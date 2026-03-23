@@ -1,24 +1,29 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+
+import PointPreviewDrawer from './components/PointPreviewDrawer.vue'
+import PosterTitleBlock from './components/PosterTitleBlock.vue'
+import WorldMapStage from './components/WorldMapStage.vue'
+import { useMapUiStore } from './stores/map-ui'
+
+const mapUiStore = useMapUiStore()
+const { selectedPoint } = storeToRefs(mapUiStore)
+</script>
+
 <template>
   <div class="app-shell">
     <div class="app-shell__grain" aria-hidden="true"></div>
     <main class="poster-shell">
-      <header class="poster-shell__title" data-region="title">
-        <p class="poster-shell__eyebrow">Phase 1 Poster Shell</p>
-        <h1>旅行世界地图</h1>
-        <p class="poster-shell__guiding-line">点开一枚落点，先从纸上的远方开始回看旅程。</p>
-      </header>
-
-      <section class="poster-shell__stage" data-region="map-stage" aria-label="Map stage placeholder">
-        <div class="poster-shell__stage-frame">
-          <div class="poster-shell__stage-surface">
-            <span>map stage placeholder</span>
-          </div>
-        </div>
+      <PosterTitleBlock class="poster-shell__title" />
+      <section
+        class="poster-shell__experience"
+        :class="{
+          'poster-shell__experience--drawer-open': Boolean(selectedPoint)
+        }"
+      >
+        <WorldMapStage class="poster-shell__stage" />
+        <PointPreviewDrawer class="poster-shell__drawer" />
       </section>
-
-      <aside class="poster-shell__drawer-host" data-region="drawer-host" aria-label="Drawer host placeholder">
-        <span>drawer host placeholder</span>
-      </aside>
     </main>
   </div>
 </template>
@@ -52,68 +57,25 @@
   grid-template-rows: auto minmax(0, 1fr);
 }
 
-.poster-shell__title {
-  max-width: 28rem;
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.poster-shell__eyebrow {
-  font-size: var(--font-label-size);
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--color-ink-muted);
-}
-
-.poster-shell__title h1 {
-  margin: 0;
-  font-size: var(--font-display-size);
-  line-height: var(--font-display-line-height);
-  font-weight: var(--font-weight-heading);
-  color: var(--color-ink-strong);
-}
-
-.poster-shell__guiding-line {
-  margin: 0;
-  max-width: 22rem;
-}
-
 .poster-shell__stage {
   min-height: 60vh;
 }
 
-.poster-shell__stage-frame,
-.poster-shell__drawer-host {
-  border: 1px solid var(--color-frame);
-  background: color-mix(in srgb, var(--color-surface) 86%, white 14%);
-  box-shadow: var(--shadow-dusty);
+.poster-shell__experience {
+  position: relative;
 }
 
-.poster-shell__stage-frame {
-  min-height: 100%;
-  padding: var(--space-lg);
-}
-
-.poster-shell__stage-surface {
-  min-height: 100%;
-  display: grid;
-  place-items: center;
-  border: 1px dashed color-mix(in srgb, var(--color-frame) 55%, transparent);
-  color: var(--color-ink-muted);
-}
-
-.poster-shell__drawer-host {
-  display: none;
+.poster-shell__experience--drawer-open {
+  padding-bottom: min(16rem, 42vh);
 }
 
 @media (min-width: 960px) {
   .poster-shell {
     align-items: start;
-    grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
-      'title drawer'
-      'stage drawer';
+      'title'
+      'stage';
   }
 
   .poster-shell__title {
@@ -126,12 +88,9 @@
     min-height: 68vh;
   }
 
-  .poster-shell__drawer-host {
-    grid-area: drawer;
-    display: block;
-    min-height: 24rem;
-    padding: var(--space-lg);
-    color: var(--color-ink-muted);
+  .poster-shell__experience--drawer-open {
+    padding-right: min(24rem, 32vw);
+    padding-bottom: 0;
   }
 }
 </style>
