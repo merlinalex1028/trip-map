@@ -1,0 +1,33 @@
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  --font-body-size: 16px;
+  --font-label-size: 14px;
+  --font-heading-size: 24px;
+  --font-display-size: 40px;
+
+  --font-weight-body: 400;
+  --font-weight-label: 600;
+  --font-weight-heading: 600;
+
+  --font-body-line-height: 1.5;
+  --font-label-line-height: 1.4;
+  --font-heading-line-height: 1.2;
+  --font-display-line-height: 1.1;
+
+  --color-page: #f2e6c9;
+  --color-surface: #c8b28a;
+  --color-accent: #c8643b;
+  --color-destructive: #8d3e2f;
+  --color-frame: #8f7550;
+  --color-ink-strong: #3f2f24;
+  --color-ink-muted: #6a5645;
+
+  --shadow-dusty: 0 12px 30px rgba(73, 49, 31, 0.14);
+}
