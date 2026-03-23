@@ -12,7 +12,7 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: 地图基础与应用骨架** - 搭建前端项目、响应式地图主界面和点位展示骨架
+- [x] **Phase 1: 地图基础与应用骨架** - 搭建前端项目、响应式地图主界面和点位展示骨架 (completed 2026-03-23)
 - [ ] **Phase 2: 国家级真实地点识别** - 打通点击坐标到国家/地区识别的核心链路
 - [ ] **Phase 3: 点位闭环与本地持久化** - 完成点位 CRUD、详情抽屉与本地数据合并保存
 - [ ] **Phase 4: 可用性打磨与增强能力** - 完善异常处理、边界体验、可访问性与城市级扩展入口
@@ -28,12 +28,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. 用户可以看到预置点位在地图上的基础展示
   3. 用户可以在桌面端和移动端打开对应布局的详情抽屉容器
   4. 应用启动后可以读取并展示内置示例点位
-**Plans**: 3 plans
+**Plans**: 3/3 plans complete
 
 Plans:
-- [ ] 01-01: 初始化 `Vue 3 + Vite + TypeScript` 项目并搭建应用壳层
-- [ ] 01-02: 接入固定投影世界地图底图与响应式布局
-- [ ] 01-03: 建立基础点位展示、选中态和详情抽屉容器
+- [x] 01-01: 初始化 `Vue 3 + Vite + TypeScript` 项目并搭建应用壳层
+- [x] 01-02: 接入固定投影世界地图底图与响应式布局
+- [x] 01-03: 建立基础点位展示、选中态和详情抽屉容器
 
 ### Phase 2: 国家级真实地点识别
 **Goal**: 实现从地图点击到真实地理坐标换算，再到国家/地区级离线地点识别的核心链路。
@@ -88,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. 地图基础与应用骨架 | 0/3 | Not started | - |
+| 1. 地图基础与应用骨架 | 3/3 | Complete | 2026-03-23 |
 | 2. 国家级真实地点识别 | 0/2 | Not started | - |
 | 3. 点位闭环与本地持久化 | 0/3 | Not started | - |
 | 4. 可用性打磨与增强能力 | 0/2 | Not started | - |
