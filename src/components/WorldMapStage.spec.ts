@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 import WorldMapStage from './WorldMapStage.vue'
 
@@ -36,16 +37,16 @@ describe('WorldMapStage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps the detected marker aligned to the clicked position', async () => {
+  it('creates a draft point aligned to the clicked position', async () => {
     const wrapper = mount(WorldMapStage, {
       global: {
         plugins: [pinia]
       }
     })
 
-    const mapImage = wrapper.get('.world-map-stage__map').element as HTMLImageElement
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
 
-    Object.defineProperty(mapImage, 'getBoundingClientRect', {
+    Object.defineProperty(surface, 'getBoundingClientRect', {
       value: () => ({
         left: 0,
         top: 0,
@@ -65,12 +66,56 @@ describe('WorldMapStage', () => {
     })
     await flushPromises()
 
-    const mapUiStore = useMapUiStore()
-    const detectedMarker = wrapper.get('[data-detected-marker="true"]')
+    const mapPointsStore = useMapPointsStore()
+    const draftMarker = wrapper.get('.seed-marker--draft')
 
-    expect(mapUiStore.selectedPoint?.countryCode).toBe('JP')
-    expect(mapUiStore.selectedPoint?.x).toBeCloseTo(1180 / 1600, 4)
-    expect(mapUiStore.selectedPoint?.y).toBeCloseTo(360 / 800, 4)
-    expect(detectedMarker.attributes('transform')).toBe('translate(1180 360)')
+    expect(mapPointsStore.activePoint?.countryCode).toBe('JP')
+    expect(mapPointsStore.activePoint?.x).toBeCloseTo(1180 / 1600, 4)
+    expect(mapPointsStore.activePoint?.y).toBeCloseTo(360 / 800, 4)
+    expect(draftMarker.attributes('style')).toContain('left: 73.75%')
+    expect(draftMarker.attributes('style')).toContain('top: 45%')
+  })
+
+  it('replaces an existing draft when the user clicks a new valid location', async () => {
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+
+    Object.defineProperty(surface, 'getBoundingClientRect', {
+      value: () => ({
+        left: 0,
+        top: 0,
+        width: 1600,
+        height: 800,
+        right: 1600,
+        bottom: 800,
+        x: 0,
+        y: 0,
+        toJSON: () => ({})
+      })
+    })
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', {
+      clientX: 1180,
+      clientY: 360
+    })
+    await flushPromises()
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', {
+      clientX: 920,
+      clientY: 280
+    })
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
+
+    expect(mapPointsStore.draftPoint?.x).toBeCloseTo(920 / 1600, 4)
+    expect(mapPointsStore.draftPoint?.y).toBeCloseTo(280 / 800, 4)
+    expect(mapUiStore.interactionNotice?.message).toBe('当前未保存地点将被丢弃，并切换到新位置')
   })
 })

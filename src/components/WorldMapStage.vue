@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, shallowRef, useTemplateRef } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 
 import worldMapUrl from '../assets/world-map.svg'
-import { loadPreviewPoints } from '../data/preview-points'
 import {
   clampNormalizedPoint,
   formatCoordinatesLabel,
@@ -12,41 +11,25 @@ import {
   normalizedPointToViewBoxPoint,
   WORLD_PROJECTION_CONFIG
 } from '../services/map-projection'
+import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
-import type { MapPointDisplay } from '../types/map-point'
+import type { DraftMapPoint } from '../types/map-point'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
 
-const previewPoints = shallowRef<MapPointDisplay[]>(loadPreviewPoints())
-const mapImageRef = useTemplateRef<HTMLImageElement>('map-image')
 const surfaceRef = useTemplateRef<HTMLDivElement>('surface')
+const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
-const { selectedPoint, selectedPointId, pendingGeoHit, isRecognizing } = storeToRefs(mapUiStore)
+const { activePoint, displayPoints, draftPoint, selectedPointId } = storeToRefs(mapPointsStore)
+const { pendingGeoHit, isRecognizing } = storeToRefs(mapUiStore)
 const {
   clearInteractionNotice,
   clearPendingGeoHit,
-  clearSelection,
   finishRecognition,
-  selectPoint,
   setInteractionNotice,
   setPendingGeoHit,
   startRecognition
 } = mapUiStore
-
-const displayPoints = computed(() => {
-  return previewPoints.value
-})
-
-const selectedDetectedPoint = computed(() => {
-  return selectedPoint.value?.source === 'detected' ? selectedPoint.value : null
-})
-
-const selectedDetectedViewBoxPoint = computed(() => {
-  if (!selectedDetectedPoint.value) {
-    return null
-  }
-
-  return normalizedPointToViewBoxPoint(selectedDetectedPoint.value)
-})
+const { replaceDraftFromDetection, startDraftFromDetection } = mapPointsStore
 
 const pendingViewBoxPoint = computed(() => {
   if (!pendingGeoHit.value) {
@@ -80,8 +63,7 @@ async function handleMapClick(event: MouseEvent) {
     return
   }
 
-  const activeElement = mapImageRef.value ?? surfaceRef.value
-  const bounds = activeElement.getBoundingClientRect()
+  const bounds = surfaceRef.value.getBoundingClientRect()
   const normalizedPoint = clampNormalizedPoint({
     x: (event.clientX - bounds.left) / bounds.width,
     y: (event.clientY - bounds.top) / bounds.height
@@ -107,7 +89,6 @@ async function handleMapClick(event: MouseEvent) {
     if (!detectionResult) {
       clearPendingGeoHit()
       finishRecognition()
-      clearSelection()
       setInteractionNotice({
         tone: 'warning',
         message: '请点击有效陆地区域'
@@ -118,7 +99,6 @@ async function handleMapClick(event: MouseEvent) {
     if (isLowConfidenceBoundaryHit(geo, detectionResult)) {
       clearPendingGeoHit()
       finishRecognition()
-      clearSelection()
       setInteractionNotice({
         tone: 'info',
         message: '请点击更靠近目标区域的位置'
@@ -130,8 +110,7 @@ async function handleMapClick(event: MouseEvent) {
       lat: detectionResult.lat,
       lng: detectionResult.lng
     })
-
-    selectPoint({
+    const nextDraftPoint: DraftMapPoint = {
       id: `detected-${detectionResult.countryCode}-${Math.round(detectionResult.lat * 100)}-${Math.round(
         detectionResult.lng * 100
       )}`,
@@ -146,14 +125,23 @@ async function handleMapClick(event: MouseEvent) {
       isFeatured: false,
       coordinatesLabel: formatCoordinatesLabel(detectionResult),
       description: '识别成功，下一阶段可补充地点内容。'
-    })
-    clearInteractionNotice()
+    }
+
+    if (draftPoint.value) {
+      replaceDraftFromDetection(nextDraftPoint)
+      setInteractionNotice({
+        tone: 'info',
+        message: '当前未保存地点将被丢弃，并切换到新位置'
+      })
+    } else {
+      startDraftFromDetection(nextDraftPoint)
+      clearInteractionNotice()
+    }
     finishRecognition()
     clearPendingGeoHit()
   } catch {
     clearPendingGeoHit()
     finishRecognition()
-    clearSelection()
     setInteractionNotice({
       tone: 'warning',
       message: '识别数据加载失败，请稍后重试'
@@ -174,7 +162,6 @@ async function handleMapClick(event: MouseEvent) {
     <div class="world-map-stage__frame">
       <div ref="surface" class="world-map-stage__surface" @click="handleMapClick">
         <img
-          ref="map-image"
           class="world-map-stage__map"
           :src="worldMapUrl"
           alt="Vintage world map poster"
@@ -198,15 +185,6 @@ async function handleMapClick(event: MouseEvent) {
             <circle class="world-map-stage__overlay-core" r="7" />
           </g>
 
-          <g
-            v-if="selectedDetectedPoint && selectedDetectedViewBoxPoint"
-            class="world-map-stage__overlay-marker world-map-stage__overlay-marker--detected"
-            :transform="`translate(${selectedDetectedViewBoxPoint.x} ${selectedDetectedViewBoxPoint.y})`"
-            data-detected-marker="true"
-          >
-            <circle class="world-map-stage__overlay-ring" r="16" />
-            <circle class="world-map-stage__overlay-core" r="8" />
-          </g>
         </svg>
         <SeedMarkerLayer :points="displayPoints" :selected-point-id="selectedPointId" />
         <div v-if="pendingGeoHit" class="world-map-stage__sr-only" :aria-label="`待识别坐标 ${formatCoordinatesLabel(pendingGeoHit)}`"></div>

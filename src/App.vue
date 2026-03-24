@@ -5,11 +5,17 @@ import { onUnmounted, watch } from 'vue'
 import PointPreviewDrawer from './components/PointPreviewDrawer.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import WorldMapStage from './components/WorldMapStage.vue'
+import { useMapPointsStore } from './stores/map-points'
 import { useMapUiStore } from './stores/map-ui'
 
 const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
-const { interactionNotice, selectedPoint } = storeToRefs(mapUiStore)
+const mapPointsStore = useMapPointsStore()
+const { interactionNotice } = storeToRefs(mapUiStore)
+const { activePoint, storageHealth } = storeToRefs(mapPointsStore)
+const { clearCorruptStorageState } = mapPointsStore
+
+mapPointsStore.bootstrapPoints()
 
 let noticeTimer: ReturnType<typeof window.setTimeout> | null = null
 
@@ -57,10 +63,20 @@ onUnmounted(() => {
       >
         {{ interactionNotice.message }}
       </div>
+      <div
+        v-if="storageHealth === 'corrupt'"
+        class="app-shell__storage-warning"
+        role="alert"
+      >
+        <span>检测到本地存档异常，请清空本地存档后继续使用。</span>
+        <button class="app-shell__storage-action" type="button" @click="clearCorruptStorageState">
+          清空本地存档
+        </button>
+      </div>
       <section
         class="poster-shell__experience"
         :class="{
-          'poster-shell__experience--drawer-open': Boolean(selectedPoint)
+          'poster-shell__experience--drawer-open': Boolean(activePoint)
         }"
       >
         <WorldMapStage class="poster-shell__stage" />
@@ -109,6 +125,40 @@ onUnmounted(() => {
 
 .app-shell__notice--warning {
   border-color: rgba(200, 100, 59, 0.48);
+}
+
+.app-shell__storage-warning {
+  position: fixed;
+  top: max(calc(var(--space-lg) + 4.25rem), env(safe-area-inset-top, 0px) + var(--space-sm));
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  min-width: min(18rem, calc(100vw - var(--space-2xl)));
+  max-width: min(34rem, calc(100vw - var(--space-2xl)));
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(141, 62, 47, 0.4);
+  background: rgba(251, 246, 236, 0.96);
+  color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 16px 28px rgba(73, 49, 31, 0.12);
+  backdrop-filter: blur(6px);
+  transform: translateX(-50%);
+}
+
+.app-shell__storage-action {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.65rem 0.95rem;
+  border: 1px solid rgba(141, 62, 47, 0.45);
+  background: rgba(252, 247, 236, 0.92);
+  color: #8d3e2f;
+  cursor: pointer;
 }
 
 .poster-shell {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useMapUiStore } from '../stores/map-ui'
+import { useMapPointsStore } from '../stores/map-points'
 import type { MapPointDisplay } from '../types/map-point'
 
 const props = defineProps<{
@@ -7,10 +7,10 @@ const props = defineProps<{
   selectedPointId: string | null
 }>()
 
-const { selectPoint } = useMapUiStore()
+const { selectPointById } = useMapPointsStore()
 
 function handlePointSelect(point: MapPointDisplay) {
-  selectPoint(point)
+  selectPointById(point.id)
 }
 </script>
 
@@ -23,7 +23,8 @@ function handlePointSelect(point: MapPointDisplay) {
       :class="{
         'seed-marker--selected': point.id === props.selectedPointId,
         'seed-marker--featured': point.isFeatured,
-        'seed-marker--saved': point.source === 'saved'
+        'seed-marker--saved': point.source === 'saved',
+        'seed-marker--draft': point.source === 'detected'
       }"
       :style="{
         left: `${point.x * 100}%`,
@@ -60,12 +61,15 @@ function handlePointSelect(point: MapPointDisplay) {
 
 .seed-marker {
   position: absolute;
-  display: grid;
-  gap: var(--space-xs);
-  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
 }
 
 .seed-marker__button {
+  /* Keep the geographic anchor on the dot itself so labels never shift marker position. */
+  position: absolute;
+  left: 0;
+  top: 0;
   display: grid;
   place-items: center;
   width: 44px;
@@ -74,6 +78,7 @@ function handlePointSelect(point: MapPointDisplay) {
   border: 0;
   background: transparent;
   cursor: pointer;
+  transform: translate(-50%, -50%);
 }
 
 .seed-marker__button:focus-visible {
@@ -113,6 +118,15 @@ function handlePointSelect(point: MapPointDisplay) {
     0 0 16px rgba(111, 122, 91, 0.16);
 }
 
+.seed-marker--draft .seed-marker__dot {
+  border-color: rgba(200, 100, 59, 0.6);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 249, 232, 0.98), rgba(200, 100, 59, 0.98));
+  box-shadow:
+    0 0 0 7px rgba(200, 100, 59, 0.18),
+    0 0 20px rgba(200, 100, 59, 0.28);
+}
+
 .seed-marker--selected .seed-marker__dot,
 .seed-marker__button--selected .seed-marker__dot {
   border-color: rgba(200, 100, 59, 0.9);
@@ -123,6 +137,9 @@ function handlePointSelect(point: MapPointDisplay) {
 }
 
 .seed-marker__label {
+  position: absolute;
+  top: 0.9rem;
+  left: 0.9rem;
   align-self: start;
   width: max-content;
   max-width: 10rem;
@@ -133,6 +150,7 @@ function handlePointSelect(point: MapPointDisplay) {
   font-size: var(--font-label-size);
   line-height: 1.2;
   box-shadow: 0 8px 18px rgba(73, 49, 31, 0.08);
+  pointer-events: none;
 }
 
 .seed-marker--selected .seed-marker__label {

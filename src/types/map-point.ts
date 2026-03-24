@@ -1,6 +1,6 @@
 export type MapPointSource = 'seed' | 'saved' | 'detected'
 
-export interface MapPointDisplay {
+interface BaseMapPoint {
   id: string
   name: string
   countryName: string
@@ -14,3 +14,35 @@ export interface MapPointDisplay {
   description: string
   coordinatesLabel: string
 }
+
+export interface MapPointDisplay extends BaseMapPoint {
+  source: MapPointSource
+}
+
+export interface DraftMapPoint extends BaseMapPoint {
+  source: 'detected'
+}
+
+export interface PersistedMapPoint extends BaseMapPoint {
+  source: 'saved'
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SeedPointOverride {
+  id: string
+  name: string
+  description: string
+  isFeatured: boolean
+  updatedAt: string
+}
+
+export interface EditablePointSnapshot {
+  name: string
+  description: string
+  isFeatured: boolean
+}
+
+export type DrawerMode = 'detected-preview' | 'view' | 'edit'
+
+export type PointStorageHealth = 'ready' | 'empty' | 'corrupt'
