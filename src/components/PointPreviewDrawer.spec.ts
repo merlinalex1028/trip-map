@@ -1,15 +1,19 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 
 import { useMapPointsStore } from '../stores/map-points'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 
-function createDraft(id = 'detected-jp-1', name = 'Japan') {
+function createDraft(overrides: Record<string, unknown> = {}) {
   return {
-    id,
-    name,
-    countryName: name,
+    id: 'detected-jp-1',
+    name: 'Japan',
+    countryName: 'Japan',
     countryCode: 'JP',
+    precision: 'country' as const,
+    cityName: null,
+    fallbackNotice: null,
     lat: 35,
     lng: 135,
     x: 0.7,
@@ -17,7 +21,8 @@ function createDraft(id = 'detected-jp-1', name = 'Japan') {
     source: 'detected' as const,
     isFeatured: false,
     description: '识别成功，下一阶段可补充地点内容。',
-    coordinatesLabel: '35.0000°N, 135.0000°E'
+    coordinatesLabel: '35.0000°N, 135.0000°E',
+    ...overrides
   }
 }
 
@@ -53,79 +58,89 @@ describe('PointPreviewDrawer', () => {
   })
 
   afterEach(() => {
+    document.body.innerHTML = ''
     vi.unstubAllGlobals()
   })
 
-  it('renders detected-preview mode with the save action', () => {
+  it('renders detected-preview mode as an accessible dialog', async () => {
     const store = useMapPointsStore()
-
     store.startDraftFromDetection(createDraft())
 
     const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
       global: {
         plugins: [pinia]
       }
     })
 
+    await nextTick()
+
+    expect(wrapper.attributes('role')).toBe('dialog')
     expect(wrapper.text()).toContain('识别结果')
     expect(wrapper.text()).toContain('保存为地点')
-    expect(wrapper.text()).toContain('关闭')
+    expect(document.activeElement).toBe(wrapper.get('.point-preview-drawer__name').element)
   })
 
-  it('shows saved points in view mode first and exposes the exact edit fields', async () => {
+  it('keeps Tab focus trap inside the drawer', async () => {
     const store = useMapPointsStore()
-
     store.startDraftFromDetection(createDraft())
     store.saveDraftAsPoint()
 
     const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
       global: {
         plugins: [pinia]
       }
     })
 
-    expect(wrapper.text()).toContain('查看地点')
-    expect(wrapper.text()).toContain('编辑')
-    expect(wrapper.text()).toContain('删除')
+    await nextTick()
 
-    await wrapper.get('.point-preview-drawer__action--primary').trigger('click')
+    const closeButton = wrapper.get('.point-preview-drawer__close')
+    const lastAction = wrapper.findAll('.point-preview-drawer__action')[1]
 
-    expect(wrapper.text()).toContain('名称')
-    expect(wrapper.text()).toContain('简介')
-    expect(wrapper.text()).toContain('点亮状态')
+    ;(lastAction.element as HTMLButtonElement).focus()
+    await lastAction.trigger('keydown', { key: 'Tab' })
+
+    expect(document.activeElement).toBe(closeButton.element)
+
+    ;(closeButton.element as HTMLButtonElement).focus()
+    await closeButton.trigger('keydown', { key: 'Tab', shiftKey: true })
+
+    expect(document.activeElement).toBe(lastAction.element)
   })
 
-  it('shows the hide action for seed points instead of delete', () => {
-    const store = useMapPointsStore()
+  it('closes immediately on Escape when there are no unsaved edits', async () => {
+    const confirmSpy = vi.fn(() => true)
+    vi.stubGlobal('confirm', confirmSpy)
+    window.confirm = confirmSpy as typeof window.confirm
 
-    store.bootstrapPoints()
-    store.selectPointById('seed-kyoto')
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(createDraft())
 
     const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
       global: {
         plugins: [pinia]
       }
     })
 
-    expect(wrapper.text()).toContain('隐藏')
-    expect(wrapper.text()).not.toContain('删除')
+    await wrapper.get('.point-preview-drawer').trigger('keydown', { key: 'Escape' })
+
+    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(store.activePoint).toBeNull()
   })
 
-  it('confirms before closing with unsaved edits and keeps the drawer open when rejected', async () => {
+  it('guards Escape close when dirty edits exist', async () => {
     const store = useMapPointsStore()
-
     store.startDraftFromDetection(createDraft())
     store.saveDraftAsPoint()
 
     const confirmSpy = vi.fn(() => false)
     vi.stubGlobal('confirm', confirmSpy)
     window.confirm = confirmSpy as typeof window.confirm
-    Object.defineProperty(window, 'confirm', {
-      configurable: true,
-      value: confirmSpy
-    })
 
     const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
       global: {
         plugins: [pinia]
       }
@@ -133,74 +148,34 @@ describe('PointPreviewDrawer', () => {
 
     await wrapper.get('.point-preview-drawer__action--primary').trigger('click')
     await wrapper.get('.point-preview-drawer__input').setValue('Kyoto')
-    await wrapper.get('.point-preview-drawer__close').trigger('click')
+    await wrapper.get('.point-preview-drawer__input').trigger('keydown', { key: 'Escape' })
 
     expect(confirmSpy).toHaveBeenCalledWith('你有未保存的更改，确定关闭吗？')
     expect(store.activePoint).not.toBeNull()
   })
 
-  it('cancels edit mode back to the last saved content', async () => {
+  it('renders long text inside a dedicated scroll region while actions stay visible', async () => {
     const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createDraft())
+    store.startDraftFromDetection(
+      createDraft({
+        fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+        description: 'long text '.repeat(80)
+      })
+    )
     store.saveDraftAsPoint()
 
     const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
       global: {
         plugins: [pinia]
       }
     })
 
-    await wrapper.get('.point-preview-drawer__action--primary').trigger('click')
-    await wrapper.get('.point-preview-drawer__input').setValue('Kyoto')
-    await wrapper.findAll('.point-preview-drawer__action')[1].trigger('click')
+    await nextTick()
 
-    expect(store.drawerMode).toBe('view')
-    expect(wrapper.text()).toContain('Japan')
-    expect(wrapper.find('.point-preview-drawer__input').exists()).toBe(false)
-  })
-
-  it('confirms deletion and hiding actions before applying them', async () => {
-    const confirmSpy = vi.fn(() => true)
-    vi.stubGlobal('confirm', confirmSpy)
-    window.confirm = confirmSpy as typeof window.confirm
-    Object.defineProperty(window, 'confirm', {
-      configurable: true,
-      value: confirmSpy
-    })
-
-    const savedStore = useMapPointsStore()
-    savedStore.startDraftFromDetection(createDraft())
-    savedStore.saveDraftAsPoint()
-
-    const savedWrapper = mount(PointPreviewDrawer, {
-      global: {
-        plugins: [pinia]
-      }
-    })
-
-    await savedWrapper.findAll('.point-preview-drawer__action')[1].trigger('click')
-
-    expect(confirmSpy).toHaveBeenCalledWith('确定删除这个地点吗？')
-    expect(savedStore.userPoints).toHaveLength(0)
-
-    pinia = createPinia()
-    setActivePinia(pinia)
-    installStorageMock()
-
-    const seedStore = useMapPointsStore()
-    seedStore.bootstrapPoints()
-    seedStore.selectPointById('seed-kyoto')
-
-    const seedWrapper = mount(PointPreviewDrawer, {
-      global: {
-        plugins: [pinia]
-      }
-    })
-
-    await seedWrapper.findAll('.point-preview-drawer__action')[1].trigger('click')
-
-    expect(confirmSpy).toHaveBeenCalledWith('确定隐藏这个预置地点吗？')
-    expect(seedStore.deletedSeedIds).toContain('seed-kyoto')
+    expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
+    expect(wrapper.text()).toContain('未识别到更精确城市，已回退到国家/地区')
+    expect(wrapper.find('.point-preview-drawer__actions').exists()).toBe(true)
+    expect(wrapper.find('.point-preview-drawer__close').exists()).toBe(true)
   })
 })

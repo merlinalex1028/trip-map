@@ -1,4 +1,8 @@
-import { isLowConfidenceBoundaryHit, lookupCountryRegionByCoordinates } from './geo-lookup'
+import {
+  CITY_FALLBACK_NOTICE,
+  isLowConfidenceBoundaryHit,
+  lookupCountryRegionByCoordinates
+} from './geo-lookup'
 import { normalizedPointToGeoCoordinates } from './map-projection'
 
 const RENDER_FRAME = {
@@ -17,6 +21,15 @@ function renderedGeoPointToNormalizedPoint(lat: number, lng: number) {
   }
 }
 
+function renderedGeoPointOffsetByPixels(lat: number, lng: number, offsetX: number, offsetY: number) {
+  const point = renderedGeoPointToNormalizedPoint(lat, lng)
+
+  return {
+    x: point.x + offsetX / RENDER_FRAME.viewBoxWidth,
+    y: point.y + offsetY / RENDER_FRAME.viewBoxHeight
+  }
+}
+
 describe('geo lookup service', () => {
   it('detects Lisbon as Portugal', () => {
     const result = lookupCountryRegionByCoordinates({
@@ -26,6 +39,18 @@ describe('geo lookup service', () => {
 
     expect(result?.countryCode).toBe('PT')
     expect(result?.countryName).toBe('Portugal')
+  })
+
+  it('enriches Kyoto with high-confidence city metadata', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 35.0116,
+      lng: 135.7681
+    })
+
+    expect(result?.precision).toBe('city-high')
+    expect(result?.cityName).toBe('Kyoto')
+    expect(result?.displayName).toBe('Kyoto')
+    expect(result?.fallbackNotice).toBeNull()
   })
 
   it('detects Cairo as Egypt without low-confidence rejection', () => {
@@ -56,7 +81,17 @@ describe('geo lookup service', () => {
     const result = lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('JP')
-    expect(result?.displayName).toBe('Japan')
+    expect(result?.displayName).toBe('Tokyo')
+  })
+
+  it('keeps a realistic near-city click within high-confidence enrichment range', () => {
+    const normalizedPoint = renderedGeoPointOffsetByPixels(35.0116, 135.7681, 3, -2)
+    const geo = normalizedPointToGeoCoordinates(normalizedPoint)
+    const result = lookupCountryRegionByCoordinates(geo)
+
+    expect(result?.countryCode).toBe('JP')
+    expect(result?.precision).toBe('city-high')
+    expect(result?.cityName).toBe('Kyoto')
   })
 
   it('keeps an obvious Hong Kong click aligned with Hong Kong instead of Myanmar', () => {
@@ -85,5 +120,27 @@ describe('geo lookup service', () => {
     })
 
     expect(result).toBeNull()
+  })
+
+  it('falls back to the country/region copy when no reliable city candidate exists', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 72,
+      lng: -42
+    })
+
+    expect(result?.countryCode).toBe('GL')
+    expect(['country', 'region']).toContain(result?.precision)
+    expect(result?.fallbackNotice).toBe(CITY_FALLBACK_NOTICE)
+  })
+
+  it('keeps a near-but-not-on city click in the country fallback path', () => {
+    const normalizedPoint = renderedGeoPointOffsetByPixels(35.0116, 135.7681, -12, 0)
+    const geo = normalizedPointToGeoCoordinates(normalizedPoint)
+    const result = lookupCountryRegionByCoordinates(geo)
+
+    expect(result?.countryCode).toBe('JP')
+    expect(result?.displayName).toBe('Japan')
+    expect(result?.precision).toBe('country')
+    expect(result?.fallbackNotice).toBe(CITY_FALLBACK_NOTICE)
   })
 })

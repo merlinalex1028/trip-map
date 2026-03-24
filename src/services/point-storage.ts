@@ -19,18 +19,22 @@ export type PointStorageLoadResult =
       snapshot: PointStorageSnapshot
     }
   | {
-      status: 'empty' | 'corrupt'
+      status: 'empty' | 'corrupt' | 'incompatible'
       snapshot: null
     }
 
-function isValidPersistedPoint(value: unknown): value is PersistedMapPoint {
+function isValidPrecision(value: unknown): value is PersistedMapPoint['precision'] {
+  return value === 'country' || value === 'region' || value === 'city-high' || value === 'city-possible'
+}
+
+function normalizePersistedPoint(value: unknown): PersistedMapPoint | null {
   if (!value || typeof value !== 'object') {
-    return false
+    return null
   }
 
   const point = value as Record<string, unknown>
 
-  return (
+  if (
     typeof point.id === 'string' &&
     typeof point.name === 'string' &&
     typeof point.countryName === 'string' &&
@@ -45,7 +49,29 @@ function isValidPersistedPoint(value: unknown): value is PersistedMapPoint {
     typeof point.coordinatesLabel === 'string' &&
     typeof point.createdAt === 'string' &&
     typeof point.updatedAt === 'string'
-  )
+  ) {
+    return {
+      id: point.id,
+      name: point.name,
+      countryName: point.countryName,
+      countryCode: point.countryCode,
+      precision: isValidPrecision(point.precision) ? point.precision : 'country',
+      cityName: typeof point.cityName === 'string' ? point.cityName : null,
+      fallbackNotice: typeof point.fallbackNotice === 'string' ? point.fallbackNotice : null,
+      x: point.x,
+      y: point.y,
+      lat: point.lat,
+      lng: point.lng,
+      source: 'saved',
+      isFeatured: point.isFeatured,
+      description: point.description,
+      coordinatesLabel: point.coordinatesLabel,
+      createdAt: point.createdAt,
+      updatedAt: point.updatedAt
+    }
+  }
+
+  return null
 }
 
 function isValidSeedPointOverride(value: unknown): value is SeedPointOverride {
@@ -88,15 +114,37 @@ export function loadPointStorageSnapshot(): PointStorageLoadResult {
   try {
     const parsed = JSON.parse(rawSnapshot) as Partial<PointStorageSnapshot> | null
 
+    if (!parsed) {
+      return {
+        status: 'corrupt',
+        snapshot: null
+      }
+    }
+
+    if (parsed.version !== 1) {
+      return {
+        status: 'incompatible',
+        snapshot: null
+      }
+    }
+
     if (
-      !parsed ||
-      parsed.version !== 1 ||
       !Array.isArray(parsed.userPoints) ||
       !Array.isArray(parsed.seedOverrides) ||
       !isValidDeletedSeedIds(parsed.deletedSeedIds) ||
-      !parsed.userPoints.every(isValidPersistedPoint) ||
       !parsed.seedOverrides.every(isValidSeedPointOverride)
     ) {
+      return {
+        status: 'corrupt',
+        snapshot: null
+      }
+    }
+
+    const normalizedUserPoints = parsed.userPoints
+      .map((point) => normalizePersistedPoint(point))
+      .filter((point): point is PersistedMapPoint => point !== null)
+
+    if (normalizedUserPoints.length !== parsed.userPoints.length) {
       return {
         status: 'corrupt',
         snapshot: null
@@ -107,7 +155,7 @@ export function loadPointStorageSnapshot(): PointStorageLoadResult {
       status: 'ready',
       snapshot: {
         version: 1,
-        userPoints: parsed.userPoints,
+        userPoints: normalizedUserPoints,
         seedOverrides: parsed.seedOverrides,
         deletedSeedIds: parsed.deletedSeedIds
       }

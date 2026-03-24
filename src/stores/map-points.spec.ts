@@ -37,6 +37,9 @@ describe('map-points store', () => {
       name,
       countryName: name,
       countryCode: 'JP',
+      precision: 'city-high' as const,
+      cityName: 'Kyoto',
+      fallbackNotice: null,
       lat: 35,
       lng: 135,
       x: 0.7,
@@ -72,9 +75,28 @@ describe('map-points store', () => {
     const savedPoint = store.saveDraftAsPoint()
 
     expect(savedPoint?.id.startsWith('saved-')).toBe(true)
+    expect(savedPoint?.cityName).toBe('Kyoto')
     expect(store.draftPoint).toBeNull()
     expect(store.userPoints).toHaveLength(1)
     expect(store.activePoint?.source).toBe('saved')
+  })
+
+  it('keeps city metadata and fallbackNotice after save and bootstrap', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection({
+      ...createDraft('detected-jp-3', 'Kyoto'),
+      fallbackNotice: '未识别到更精确城市，已回退到国家/地区'
+    })
+    store.saveDraftAsPoint()
+
+    setActivePinia(createPinia())
+
+    const rehydratedStore = useMapPointsStore()
+    rehydratedStore.bootstrapPoints()
+
+    expect(rehydratedStore.userPoints[0].cityName).toBe('Kyoto')
+    expect(rehydratedStore.userPoints[0].fallbackNotice).toBe('未识别到更精确城市，已回退到国家/地区')
   })
 
   it('hides a seed point from the merged display points', () => {

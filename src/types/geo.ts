@@ -22,6 +22,7 @@ export interface ProjectionConfig {
 }
 
 export type GeoLookupStatus = 'idle' | 'resolving' | 'resolved' | 'invalid'
+export type GeoPrecision = 'country' | 'region' | 'city-high' | 'city-possible'
 
 export interface GeoDetectionResult {
   kind: 'country' | 'region'
@@ -29,6 +30,9 @@ export interface GeoDetectionResult {
   countryName: string
   regionName: string | null
   displayName: string
+  precision: GeoPrecision
+  cityName: string | null
+  fallbackNotice: string | null
   lat: number
   lng: number
   confidence: number

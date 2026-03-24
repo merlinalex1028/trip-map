@@ -38,6 +38,9 @@ function createSavedPoint(): PersistedMapPoint {
     name: 'Japan',
     countryName: 'Japan',
     countryCode: 'JP',
+    precision: 'city-high',
+    cityName: 'Kyoto',
+    fallbackNotice: null,
     lat: 35,
     lng: 135,
     x: 0.7,
@@ -76,6 +79,65 @@ describe('point-storage service', () => {
     })
   })
 
+  it('loads legacy version-1 snapshots that are missing new city fields', () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        userPoints: [
+          {
+            id: 'saved-legacy',
+            name: 'Portugal',
+            countryName: 'Portugal',
+            countryCode: 'PT',
+            lat: 38.7223,
+            lng: -9.1393,
+            x: 0.34,
+            y: 0.28,
+            source: 'saved',
+            isFeatured: false,
+            description: 'legacy',
+            coordinatesLabel: '38.7223°N, 9.1393°W',
+            createdAt: '2026-03-24T00:00:00.000Z',
+            updatedAt: '2026-03-24T00:00:00.000Z'
+          }
+        ],
+        seedOverrides: [],
+        deletedSeedIds: []
+      })
+    )
+
+    expect(loadPointStorageSnapshot()).toEqual({
+      status: 'ready',
+      snapshot: {
+        version: 1,
+        userPoints: [
+          {
+            id: 'saved-legacy',
+            name: 'Portugal',
+            countryName: 'Portugal',
+            countryCode: 'PT',
+            precision: 'country',
+            cityName: null,
+            fallbackNotice: null,
+            lat: 38.7223,
+            lng: -9.1393,
+            x: 0.34,
+            y: 0.28,
+            source: 'saved',
+            isFeatured: false,
+            description: 'legacy',
+            coordinatesLabel: '38.7223°N, 9.1393°W',
+            createdAt: '2026-03-24T00:00:00.000Z',
+            updatedAt: '2026-03-24T00:00:00.000Z'
+          }
+        ],
+        seedOverrides: [],
+        deletedSeedIds: []
+      }
+    })
+  })
+
   it('applies seed overrides and deletedSeedIds when merging display points', () => {
     const merged = mergeSeedAndLocalPoints(
       seedPoints,
@@ -106,7 +168,7 @@ describe('point-storage service', () => {
     })
   })
 
-  it('marks wrong version snapshots as corrupt', () => {
+  it('marks wrong version snapshots as incompatible', () => {
     window.localStorage.setItem(
       POINT_STORAGE_KEY,
       JSON.stringify({
@@ -118,7 +180,7 @@ describe('point-storage service', () => {
     )
 
     expect(loadPointStorageSnapshot()).toEqual({
-      status: 'corrupt',
+      status: 'incompatible',
       snapshot: null
     })
   })

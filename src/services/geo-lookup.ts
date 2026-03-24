@@ -1,6 +1,8 @@
 import { geoContains } from 'd3-geo'
 
+import { cityCandidatesByContext } from '../data/geo/city-candidates'
 import countryRegions from '../data/geo/country-regions.geo.json'
+import { WORLD_PROJECTION_CONFIG } from './map-projection'
 import type { GeoCoordinates, GeoDetectionResult, GeoFeatureProperties } from '../types/geo'
 
 interface GeoPolygonGeometry {
@@ -28,6 +30,10 @@ const countryRegionFeatures = (countryRegions as CountryRegionFeatureCollection)
 const countryRegionFeatureMap = new Map(
   countryRegionFeatures.map((feature) => [feature.properties.countryCode, feature] as const)
 )
+export const CITY_FALLBACK_NOTICE = '未识别到更精确城市，已回退到国家/地区'
+const KM_PER_DEGREE = 111
+const MIN_CITY_HIGH_HIT_PIXELS = 6
+const MIN_CITY_POSSIBLE_HIT_PIXELS = 9
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -60,9 +66,124 @@ function toDetectionResult(
     countryName: feature.properties.countryName,
     regionName: feature.properties.regionName,
     displayName: feature.properties.displayName,
+    precision: feature.properties.regionName ? 'region' : 'country',
+    cityName: null,
+    fallbackNotice: null,
     lat: geo.lat,
     lng: geo.lng,
     confidence
+  }
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180
+}
+
+function calculateDistanceKm(origin: GeoCoordinates, target: GeoCoordinates) {
+  const earthRadiusKm = 6371
+  const latDelta = toRadians(target.lat - origin.lat)
+  const lngDelta = toRadians(target.lng - origin.lng)
+  const lat1 = toRadians(origin.lat)
+  const lat2 = toRadians(target.lat)
+  const a =
+    Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(lngDelta / 2) * Math.sin(lngDelta / 2)
+
+  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}
+
+function getMaxKmPerInteractionPixel(lat: number) {
+  const latKmPerPixel =
+    ((WORLD_PROJECTION_CONFIG.latMax - WORLD_PROJECTION_CONFIG.latMin) /
+      WORLD_PROJECTION_CONFIG.plotHeight) *
+    KM_PER_DEGREE
+  const lngKmPerPixel =
+    ((WORLD_PROJECTION_CONFIG.lngMax - WORLD_PROJECTION_CONFIG.lngMin) /
+      WORLD_PROJECTION_CONFIG.plotWidth) *
+    KM_PER_DEGREE *
+    Math.cos(toRadians(lat))
+
+  return Math.max(latKmPerPixel, lngKmPerPixel)
+}
+
+function getInteractionAdjustedRadiusKm(lat: number, configuredRadiusKm: number, minPixels: number) {
+  return Math.max(configuredRadiusKm, getMaxKmPerInteractionPixel(lat) * minPixels)
+}
+
+function getCityCandidateKeys(result: GeoDetectionResult) {
+  return [
+    result.regionName ? `${result.countryCode}:${result.regionName}` : null,
+    `${result.countryCode}:country`
+  ].filter((key): key is string => Boolean(key))
+}
+
+function enrichWithCityContext(
+  detectionResult: GeoDetectionResult,
+  geo: GeoCoordinates
+): GeoDetectionResult {
+  const candidatePool = getCityCandidateKeys(detectionResult).flatMap((key) => {
+    return cityCandidatesByContext[key] ?? []
+  })
+
+  if (!candidatePool.length) {
+    return {
+      ...detectionResult,
+      fallbackNotice: CITY_FALLBACK_NOTICE
+    }
+  }
+
+  const bestMatch = candidatePool
+    .map((candidate) => ({
+      candidate,
+      distanceKm: calculateDistanceKm(geo, {
+        lat: candidate.lat,
+        lng: candidate.lng
+      })
+    }))
+    .sort((left, right) => left.distanceKm - right.distanceKm)[0]
+
+  if (!bestMatch) {
+    return {
+      ...detectionResult,
+      fallbackNotice: CITY_FALLBACK_NOTICE
+    }
+  }
+
+  const highRadiusKm = getInteractionAdjustedRadiusKm(
+    bestMatch.candidate.lat,
+    bestMatch.candidate.highRadiusKm,
+    MIN_CITY_HIGH_HIT_PIXELS
+  )
+  const possibleRadiusKm = getInteractionAdjustedRadiusKm(
+    bestMatch.candidate.lat,
+    bestMatch.candidate.possibleRadiusKm,
+    MIN_CITY_POSSIBLE_HIT_PIXELS
+  )
+
+  if (bestMatch.distanceKm <= highRadiusKm) {
+    return {
+      ...detectionResult,
+      displayName: bestMatch.candidate.name,
+      precision: 'city-high',
+      cityName: bestMatch.candidate.name,
+      lat: bestMatch.candidate.lat,
+      lng: bestMatch.candidate.lng,
+      fallbackNotice: null
+    }
+  }
+
+  if (bestMatch.distanceKm <= possibleRadiusKm) {
+    return {
+      ...detectionResult,
+      precision: 'city-possible',
+      cityName: bestMatch.candidate.name,
+      fallbackNotice: CITY_FALLBACK_NOTICE
+    }
+  }
+
+  return {
+    ...detectionResult,
+    fallbackNotice: CITY_FALLBACK_NOTICE
   }
 }
 
@@ -74,7 +195,11 @@ export function lookupCountryRegionByCoordinates(geo: GeoCoordinates): GeoDetect
     )
   })
 
-  return feature ? toDetectionResult(feature, geo) : null
+  if (!feature) {
+    return null
+  }
+
+  return enrichWithCityContext(toDetectionResult(feature, geo), geo)
 }
 
 export function isLowConfidenceBoundaryHit(

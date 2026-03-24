@@ -1,3 +1,5 @@
+import type { GeoPrecision } from './geo'
+
 export type MapPointSource = 'seed' | 'saved' | 'detected'
 
 interface BaseMapPoint {
@@ -5,6 +7,9 @@ interface BaseMapPoint {
   name: string
   countryName: string
   countryCode: string
+  precision: GeoPrecision
+  cityName: string | null
+  fallbackNotice: string | null
   x: number
   y: number
   lat: number
@@ -45,4 +50,4 @@ export interface EditablePointSnapshot {
 
 export type DrawerMode = 'detected-preview' | 'view' | 'edit'
 
-export type PointStorageHealth = 'ready' | 'empty' | 'corrupt'
+export type PointStorageHealth = 'ready' | 'empty' | 'corrupt' | 'incompatible'

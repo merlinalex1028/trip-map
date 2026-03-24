@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 
 import { useMapPointsStore } from './stores/map-points'
 import { POINT_STORAGE_KEY } from './services/point-storage'
@@ -59,9 +60,12 @@ describe('App shell', () => {
 
     firstStore.startDraftFromDetection({
       id: 'detected-japan',
-      name: 'Japan',
+      name: 'Kyoto',
       countryName: 'Japan',
       countryCode: 'JP',
+      precision: 'city-high',
+      cityName: 'Kyoto',
+      fallbackNotice: null,
       lat: 35,
       lng: 135,
       x: 0.7,
@@ -86,7 +90,8 @@ describe('App shell', () => {
     const secondStore = useMapPointsStore()
 
     expect(secondStore.userPoints).toHaveLength(1)
-    expect(secondStore.userPoints[0].name).toBe('Japan')
+    expect(secondStore.userPoints[0].name).toBe('Kyoto')
+    expect(secondStore.userPoints[0].cityName).toBe('Kyoto')
   })
 
   it('shows a corrupted-storage warning and clears it on demand', async () => {
@@ -106,5 +111,71 @@ describe('App shell', () => {
 
     expect(window.localStorage.getItem(POINT_STORAGE_KEY)).toBeNull()
     expect(wrapper.text()).not.toContain('检测到本地存档异常，请清空本地存档后继续使用。')
+  })
+
+  it('shows the same recovery path for incompatible snapshots', async () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        userPoints: [],
+        seedOverrides: [],
+        deletedSeedIds: []
+      })
+    )
+
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    expect(wrapper.text()).toContain('清空本地存档')
+
+    await wrapper.get('.app-shell__storage-action').trigger('click')
+
+    expect(window.localStorage.getItem(POINT_STORAGE_KEY)).toBeNull()
+  })
+
+  it('keeps long text inside the drawer layout hooks when a point is active', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const store = useMapPointsStore()
+    store.startDraftFromDetection({
+      id: 'detected-kyoto',
+      name: 'Kyoto',
+      countryName: 'Japan',
+      countryCode: 'JP',
+      precision: 'city-high',
+      cityName: 'Kyoto',
+      fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+      lat: 35.0116,
+      lng: 135.7681,
+      x: 0.68,
+      y: 0.42,
+      source: 'detected',
+      isFeatured: false,
+      description: 'long text '.repeat(80),
+      coordinatesLabel: '35.0116°N, 135.7681°E'
+    })
+    store.saveDraftAsPoint()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
+    expect(wrapper.text()).toContain('未识别到更精确城市，已回退到国家/地区')
+
+    store.enterEditMode()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-edit')
   })
 })

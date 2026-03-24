@@ -114,9 +114,15 @@ async function handleMapClick(event: MouseEvent) {
       id: `detected-${detectionResult.countryCode}-${Math.round(detectionResult.lat * 100)}-${Math.round(
         detectionResult.lng * 100
       )}`,
-      name: detectionResult.displayName,
-      countryName: detectionResult.displayName,
+      name:
+        detectionResult.precision === 'city-high' && detectionResult.cityName
+          ? detectionResult.cityName
+          : detectionResult.displayName,
+      countryName: detectionResult.regionName ?? detectionResult.countryName,
       countryCode: detectionResult.countryCode,
+      precision: detectionResult.precision,
+      cityName: detectionResult.cityName,
+      fallbackNotice: detectionResult.fallbackNotice,
       lat: detectionResult.lat,
       lng: detectionResult.lng,
       x: detectedPoint.x,

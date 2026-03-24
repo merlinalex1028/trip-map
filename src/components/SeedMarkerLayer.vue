@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed, shallowRef } from 'vue'
+
 import { useMapPointsStore } from '../stores/map-points'
 import type { MapPointDisplay } from '../types/map-point'
 
@@ -8,9 +10,51 @@ const props = defineProps<{
 }>()
 
 const { selectPointById } = useMapPointsStore()
+const hoveredPointId = shallowRef<string | null>(null)
+const focusedPointId = shallowRef<string | null>(null)
+const hasSelection = computed(() => Boolean(props.selectedPointId))
 
 function handlePointSelect(point: MapPointDisplay) {
   selectPointById(point.id)
+}
+
+function buildAriaLabel(point: MapPointDisplay) {
+  const parts = [point.name, point.countryName, point.coordinatesLabel]
+
+  if (point.source === 'detected') {
+    parts.push('未保存地点')
+  }
+
+  return parts.join('，')
+}
+
+function isLabelVisible(point: MapPointDisplay) {
+  return (
+    point.isFeatured ||
+    point.id === props.selectedPointId ||
+    point.id === hoveredPointId.value ||
+    point.id === focusedPointId.value
+  )
+}
+
+function handlePointMouseEnter(pointId: string) {
+  hoveredPointId.value = pointId
+}
+
+function handlePointMouseLeave(pointId: string) {
+  if (hoveredPointId.value === pointId) {
+    hoveredPointId.value = null
+  }
+}
+
+function handlePointFocus(pointId: string) {
+  focusedPointId.value = pointId
+}
+
+function handlePointBlur(pointId: string) {
+  if (focusedPointId.value === pointId) {
+    focusedPointId.value = null
+  }
 }
 </script>
 
@@ -22,6 +66,7 @@ function handlePointSelect(point: MapPointDisplay) {
       class="seed-marker"
       :class="{
         'seed-marker--selected': point.id === props.selectedPointId,
+        'seed-marker--dimmed': hasSelection && point.id !== props.selectedPointId,
         'seed-marker--featured': point.isFeatured,
         'seed-marker--saved': point.source === 'saved',
         'seed-marker--draft': point.source === 'detected'
@@ -38,13 +83,17 @@ function handlePointSelect(point: MapPointDisplay) {
         }"
         type="button"
         :aria-pressed="point.id === props.selectedPointId"
-        :aria-label="`查看 ${point.name}`"
+        :aria-label="buildAriaLabel(point)"
         @click="handlePointSelect(point)"
+        @mouseenter="handlePointMouseEnter(point.id)"
+        @mouseleave="handlePointMouseLeave(point.id)"
+        @focus="handlePointFocus(point.id)"
+        @blur="handlePointBlur(point.id)"
       >
         <span class="seed-marker__dot" aria-hidden="true"></span>
       </button>
       <span
-        v-if="point.isFeatured || point.id === props.selectedPointId"
+        v-if="isLabelVisible(point)"
         class="seed-marker__label"
       >
         {{ point.name }}
@@ -79,6 +128,10 @@ function handlePointSelect(point: MapPointDisplay) {
   background: transparent;
   cursor: pointer;
   transform: translate(-50%, -50%);
+}
+
+.seed-marker--dimmed .seed-marker__button {
+  z-index: 0;
 }
 
 .seed-marker__button:focus-visible {
@@ -125,6 +178,14 @@ function handlePointSelect(point: MapPointDisplay) {
   box-shadow:
     0 0 0 7px rgba(200, 100, 59, 0.18),
     0 0 20px rgba(200, 100, 59, 0.28);
+  animation: draft-marker-pulse 1.45s ease-in-out infinite;
+}
+
+.seed-marker--dimmed .seed-marker__dot {
+  opacity: 0.68;
+  box-shadow:
+    0 0 0 5px rgba(111, 122, 91, 0.08),
+    0 0 12px rgba(73, 49, 31, 0.12);
 }
 
 .seed-marker--selected .seed-marker__dot,
@@ -155,5 +216,22 @@ function handlePointSelect(point: MapPointDisplay) {
 
 .seed-marker--selected .seed-marker__label {
   border-color: rgba(200, 100, 59, 0.72);
+}
+
+@keyframes draft-marker-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      0 0 0 7px rgba(200, 100, 59, 0.18),
+      0 0 20px rgba(200, 100, 59, 0.28);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 9px rgba(200, 100, 59, 0.22),
+      0 0 24px rgba(200, 100, 59, 0.34);
+  }
 }
 </style>

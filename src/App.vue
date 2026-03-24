@@ -12,7 +12,7 @@ const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
 const mapPointsStore = useMapPointsStore()
 const { interactionNotice } = storeToRefs(mapUiStore)
-const { activePoint, storageHealth } = storeToRefs(mapPointsStore)
+const { activePoint, drawerMode, storageHealth } = storeToRefs(mapPointsStore)
 const { clearCorruptStorageState } = mapPointsStore
 
 mapPointsStore.bootstrapPoints()
@@ -64,7 +64,7 @@ onUnmounted(() => {
         {{ interactionNotice.message }}
       </div>
       <div
-        v-if="storageHealth === 'corrupt'"
+        v-if="storageHealth === 'corrupt' || storageHealth === 'incompatible'"
         class="app-shell__storage-warning"
         role="alert"
       >
@@ -76,7 +76,8 @@ onUnmounted(() => {
       <section
         class="poster-shell__experience"
         :class="{
-          'poster-shell__experience--drawer-open': Boolean(activePoint)
+          'poster-shell__experience--drawer-open': Boolean(activePoint),
+          'poster-shell__experience--drawer-edit': drawerMode === 'edit'
         }"
       >
         <WorldMapStage class="poster-shell__stage" />
@@ -178,10 +179,19 @@ onUnmounted(() => {
 
 .poster-shell__experience {
   position: relative;
+  min-height: 0;
 }
 
 .poster-shell__experience--drawer-open {
   padding-bottom: min(16rem, 42vh);
+}
+
+.poster-shell__experience--drawer-edit {
+  padding-bottom: min(18rem, 48vh);
+}
+
+.poster-shell__drawer {
+  z-index: 3;
 }
 
 @media (min-width: 960px) {
@@ -204,6 +214,11 @@ onUnmounted(() => {
   }
 
   .poster-shell__experience--drawer-open {
+    padding-right: min(24rem, 32vw);
+    padding-bottom: 0;
+  }
+
+  .poster-shell__experience--drawer-edit {
     padding-right: min(24rem, 32vw);
     padding-bottom: 0;
   }
