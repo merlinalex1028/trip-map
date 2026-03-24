@@ -1,9 +1,9 @@
 ---
 phase: 02
 slug: 国家级真实地点识别
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-23
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-23
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 02-01-01 | 01 | 1 | GEO-01 | unit | `pnpm test -- src/services/map-projection.spec.ts` | ❌ W0 | ⬜ pending |
-| 02-01-02 | 01 | 1 | GEO-01 | component | `pnpm test -- src/components/WorldMapStage.spec.ts` | ❌ W0 | ⬜ pending |
-| 02-02-01 | 02 | 2 | GEO-02 | unit | `pnpm test -- src/services/geo-lookup.spec.ts` | ❌ W0 | ⬜ pending |
-| 02-02-02 | 02 | 2 | GEO-03 | component | `pnpm test -- src/components/WorldMapStage.spec.ts` | ❌ W0 | ⬜ pending |
+| 02-01-01 | 01 | 1 | GEO-01 | unit | `pnpm test -- src/services/map-projection.spec.ts` | ✅ | ✅ green |
+| 02-01-02 | 01 | 1 | GEO-01 | component | `pnpm test -- src/components/WorldMapStage.spec.ts` | ✅ | ✅ green |
+| 02-02-01 | 02 | 2 | GEO-02 | unit | `pnpm test -- src/services/geo-lookup.spec.ts` | ✅ | ✅ green |
+| 02-02-02 | 02 | 2 | GEO-03 | component | `pnpm test -- src/components/WorldMapStage.spec.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,9 +49,9 @@ created: 2026-03-23
 
 ## Wave 0 Requirements
 
-- [ ] `src/services/map-projection.spec.ts` — 覆盖投影正反算、边界 clamp 与无效点返回
-- [ ] `src/services/geo-lookup.spec.ts` — 覆盖国家命中、海洋无效、特殊地区口径
-- [ ] `src/components/WorldMapStage.spec.ts` — 覆盖点击反馈、toast、无效不创建与成功预览
+- [x] `src/services/map-projection.spec.ts` — 覆盖投影正反算、绘图区对齐与无效输入 clamp
+- [x] `src/services/geo-lookup.spec.ts` — 覆盖国家命中、海洋无效、特殊地区口径与东亚回归样本
+- [x] `src/components/WorldMapStage.spec.ts` — 覆盖点击反馈、无效不创建、成功预览与真实点击对齐回归
 
 ---
 
@@ -66,11 +66,11 @@ created: 2026-03-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-24
