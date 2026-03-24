@@ -9,42 +9,42 @@
 
 - [ ] **MAP-01**: 用户可以在桌面端和移动端看到一张可交互的世界地图主视图
 - [ ] **MAP-02**: 用户可以看到预置示例点位和已保存点位在地图上的高亮展示
-- [x] **MAP-03**: 用户点击已有点位时可以重新选中该点位并打开对应详情面板
+- [ ] **MAP-03**: 用户点击已有点位时可以重新选中该点位并打开对应详情面板
 
 ### Geo Detection
 
-- [x] **GEO-01**: 用户点击地图后，系统可以将点击位置转换为对应的真实地理坐标
-- [x] **GEO-02**: 用户点击有效陆地区域后，系统可以离线识别对应的国家或地区信息
-- [x] **GEO-03**: 用户点击海洋、无效区域或无法识别的位置时，系统不会创建错误点位并会给出明确提示
-- [x] **GEO-04**: 系统在无法可靠识别城市时，仍可以以国家或地区级结果创建有效点位
+- [ ] **GEO-01**: 用户点击地图后，系统可以将点击位置转换为对应的真实地理坐标
+- [ ] **GEO-02**: 用户点击有效陆地区域后，系统可以离线识别对应的国家或地区信息
+- [ ] **GEO-03**: 用户点击海洋、无效区域或无法识别的位置时，系统不会创建错误点位并会给出明确提示
+- [ ] **GEO-04**: 系统在无法可靠识别城市时，仍可以以国家或地区级结果创建有效点位
 
 ### Point Management
 
-- [x] **PNT-01**: 用户点击已识别的真实地点后，可以创建一个包含地理信息的旅行点位
-- [x] **PNT-02**: 用户可以编辑点位的名称、简介和点亮状态
-- [x] **PNT-03**: 用户可以删除自己创建的点位
-- [x] **PNT-04**: 用户可以明显区分普通高亮点位与当前选中点位
-- [x] **PNT-05**: 用户取消新建点位时，地图上不会残留未保存的空点位
+- [ ] **PNT-01**: 用户点击已识别的真实地点后，可以创建一个包含地理信息的旅行点位
+- [ ] **PNT-02**: 用户可以编辑点位的名称、简介和点亮状态
+- [ ] **PNT-03**: 用户可以删除自己创建的点位
+- [ ] **PNT-04**: 用户可以明显区分普通高亮点位与当前选中点位
+- [ ] **PNT-05**: 用户取消新建点位时，地图上不会残留未保存的空点位
 
 ### Detail Drawer
 
 - [ ] **DRW-01**: 用户在桌面端通过右侧抽屉查看和编辑当前点位
 - [ ] **DRW-02**: 用户在移动端通过底部抽屉查看和编辑当前点位
-- [x] **DRW-03**: 用户可以在详情面板中看到地点名称、所属国家或地区、地理坐标、简介和点亮状态
-- [x] **DRW-04**: 用户可以通过关闭按钮或 `Esc` 键关闭详情面板
+- [ ] **DRW-03**: 用户可以在详情面板中看到地点名称、所属国家或地区、地理坐标、简介和点亮状态
+- [ ] **DRW-04**: 用户可以通过关闭按钮或 `Esc` 键关闭详情面板
 
 ### Data & Persistence
 
 - [ ] **DAT-01**: 系统首次加载时可以读取项目内置的示例点位数据
-- [x] **DAT-02**: 用户创建、编辑或删除点位后，刷新页面数据仍然保留
-- [x] **DAT-03**: 系统会以用户本地数据优先的规则合并示例点位与本地点位
-- [x] **DAT-04**: 当本地存储为空、损坏或版本不兼容时，系统可以安全回退到默认状态
+- [ ] **DAT-02**: 用户创建、编辑或删除点位后，刷新页面数据仍然保留
+- [ ] **DAT-03**: 系统会以用户本地数据优先的规则合并示例点位与本地点位
+- [ ] **DAT-04**: 当本地存储为空、损坏或版本不兼容时，系统可以安全回退到默认状态
 
 ### Usability & Quality
 
-- [x] **UX-01**: 所有地图点位和抽屉交互都具备清晰的焦点态与可点击反馈
-- [x] **UX-02**: 长文本简介不会破坏详情面板布局
-- [x] **UX-03**: 地图边界与国家边界附近的点击结果不会渲染出容器外点位
+- [ ] **UX-01**: 所有地图点位和抽屉交互都具备清晰的焦点态与可点击反馈
+- [ ] **UX-02**: 长文本简介不会破坏详情面板布局
+- [ ] **UX-03**: 地图边界与国家边界附近的点击结果不会渲染出容器外点位
 
 ## v2 Requirements
 
@@ -76,29 +76,29 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MAP-01 | Phase 1 | Pending |
-| MAP-02 | Phase 1 | Pending |
-| MAP-03 | Phase 3 | Complete |
-| GEO-01 | Phase 2 | Complete |
-| GEO-02 | Phase 2 | Complete |
-| GEO-03 | Phase 2 | Complete |
-| GEO-04 | Phase 4 | Complete |
-| PNT-01 | Phase 3 | Complete |
-| PNT-02 | Phase 3 | Complete |
-| PNT-03 | Phase 3 | Complete |
-| PNT-04 | Phase 4 | Complete |
-| PNT-05 | Phase 3 | Complete |
-| DRW-01 | Phase 1 | Pending |
-| DRW-02 | Phase 1 | Pending |
-| DRW-03 | Phase 3 | Complete |
-| DRW-04 | Phase 4 | Complete |
-| DAT-01 | Phase 1 | Pending |
-| DAT-02 | Phase 3 | Complete |
-| DAT-03 | Phase 3 | Complete |
-| DAT-04 | Phase 4 | Complete |
-| UX-01 | Phase 4 | Complete |
-| UX-02 | Phase 4 | Complete |
-| UX-03 | Phase 4 | Complete |
+| MAP-01 | Phase 6 | Pending |
+| MAP-02 | Phase 6 | Pending |
+| MAP-03 | Phase 5 | Pending |
+| GEO-01 | Phase 6 | Pending |
+| GEO-02 | Phase 6 | Pending |
+| GEO-03 | Phase 6 | Pending |
+| GEO-04 | Phase 6 | Pending |
+| PNT-01 | Phase 6 | Pending |
+| PNT-02 | Phase 6 | Pending |
+| PNT-03 | Phase 6 | Pending |
+| PNT-04 | Phase 6 | Pending |
+| PNT-05 | Phase 5 | Pending |
+| DRW-01 | Phase 6 | Pending |
+| DRW-02 | Phase 6 | Pending |
+| DRW-03 | Phase 6 | Pending |
+| DRW-04 | Phase 6 | Pending |
+| DAT-01 | Phase 6 | Pending |
+| DAT-02 | Phase 6 | Pending |
+| DAT-03 | Phase 6 | Pending |
+| DAT-04 | Phase 6 | Pending |
+| UX-01 | Phase 6 | Pending |
+| UX-02 | Phase 6 | Pending |
+| UX-03 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
@@ -107,4 +107,4 @@
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-24 after milestone gap planning*

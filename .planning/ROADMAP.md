@@ -16,6 +16,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: 国家级真实地点识别** - 打通点击坐标到国家/地区识别的核心链路 (completed 2026-03-24)
 - [x] **Phase 3: 点位闭环与本地持久化** - 完成点位 CRUD、详情抽屉与本地数据合并保存 (completed 2026-03-24)
 - [x] **Phase 4: 可用性打磨与增强能力** - 完善异常处理、边界体验、可访问性与城市级扩展入口 (completed 2026-03-24)
+- [ ] **Phase 5: 草稿取消闭环与点位重选修复** - 修复草稿残留问题，补齐点位重选与取消新建的运行时闭环
+- [ ] **Phase 6: 历史验证证据补齐与需求追踪回填** - 补齐 phase verification、validation 和 requirement traceability，推动 milestone 审计通过
 
 ## Phase Details
 
@@ -84,10 +86,39 @@ Plans:
 - [x] 04-02: 补齐异常降级、城市级回退与整体视觉反馈优化
 - [x] 04-03: 修复城市增强命中区过窄并补齐交互级回归覆盖
 
+### Phase 5: 草稿取消闭环与点位重选修复
+**Goal**: 修复草稿点位在切换到已有点位后的残留问题，重新打通点位重选、取消新建与抽屉关闭的完整闭环。
+**Depends on**: Phase 4
+**Requirements**: MAP-03, PNT-05
+**Gap Closure**: Closes gaps from audit
+**Success Criteria** (what must be TRUE):
+  1. 用户创建草稿后切换到已有点位时，旧草稿不会在地图上残留
+  2. 用户关闭抽屉或取消新建时，未保存草稿会被稳定清理
+  3. 点位重选、草稿替换与抽屉关闭的自动化回归覆盖补齐
+**Plans**: 0/0 plans complete
+
+Plans:
+- [ ] To be planned via `$gsd-plan-phase 5`
+
+### Phase 6: 历史验证证据补齐与需求追踪回填
+**Goal**: 补齐 v1.0 的 phase verification、validation 和 requirements traceability 证据，使 milestone 审计结果可从 gaps_found 收敛到 passed。
+**Depends on**: Phase 5
+**Requirements**: MAP-01, MAP-02, GEO-01, GEO-02, GEO-03, GEO-04, PNT-01, PNT-02, PNT-03, PNT-04, DRW-01, DRW-02, DRW-03, DRW-04, DAT-01, DAT-02, DAT-03, DAT-04, UX-01, UX-02, UX-03
+**Gap Closure**: Closes gaps from audit
+**Success Criteria** (what must be TRUE):
+  1. Phase 1-4 都具备可审计的 `VERIFICATION.md` 或等效正式验证结论
+  2. Phase 1-3 的 validation / Nyquist 状态补齐到可用于 milestone 审计
+  3. `REQUIREMENTS.md` 的勾选状态和 traceability 与当前事实一致
+  4. 重新运行 `$gsd-audit-milestone` 时，不再因为验证证据缺口而阻塞里程碑归档
+**Plans**: 0/0 plans complete
+
+Plans:
+- [ ] To be planned via `$gsd-plan-phase 6`
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -95,3 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. 国家级真实地点识别 | 4/4 | Complete | 2026-03-24 |
 | 3. 点位闭环与本地持久化 | 3/3 | Complete | 2026-03-24 |
 | 4. 可用性打磨与增强能力 | 3/3 | Complete | 2026-03-24 |
+| 5. 草稿取消闭环与点位重选修复 | 0/0 | Pending | — |
+| 6. 历史验证证据补齐与需求追踪回填 | 0/0 | Pending | — |
