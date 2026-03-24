@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: 点位闭环与本地持久化** - 完成点位 CRUD、详情抽屉与本地数据合并保存 (completed 2026-03-24)
 - [x] **Phase 4: 可用性打磨与增强能力** - 完善异常处理、边界体验、可访问性与城市级扩展入口 (completed 2026-03-24)
 - [x] **Phase 5: 草稿取消闭环与点位重选修复** - 修复草稿残留问题，补齐点位重选与取消新建的运行时闭环 (completed 2026-03-24)
-- [ ] **Phase 6: 历史验证证据补齐与需求追踪回填** - 补齐 phase verification、validation 和 requirement traceability，推动 milestone 审计通过
+- [x] **Phase 6: 历史验证证据补齐与需求追踪回填** - 补齐 phase verification、validation 和 requirement traceability，推动 milestone 审计通过 (completed 2026-03-24)
 
 ## Phase Details
 
@@ -110,12 +110,12 @@ Plans:
   2. Phase 1-3 的 validation / Nyquist 状态补齐到可用于 milestone 审计
   3. `REQUIREMENTS.md` 的勾选状态和 traceability 与当前事实一致
   4. 重新运行 `$gsd-audit-milestone` 时，不再因为验证证据缺口而阻塞里程碑归档
-**Plans**: 2/3 plans complete
+**Plans**: 3/3 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md — 补齐 Phase 1-2 的 verification 与 Nyquist 证据
 - [x] 06-02-PLAN.md — 补齐 Phase 3-4 的 verification 与剩余 validation 证据
-- [ ] 06-03-PLAN.md — 回填 requirements traceability 并重写 milestone audit verdict
+- [x] 06-03-PLAN.md — 回填 requirements traceability 并重写 milestone audit verdict
 
 ## Progress
 
@@ -129,4 +129,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. 点位闭环与本地持久化 | 3/3 | Complete | 2026-03-24 |
 | 4. 可用性打磨与增强能力 | 3/3 | Complete | 2026-03-24 |
 | 5. 草稿取消闭环与点位重选修复 | 1/1 | Complete | 2026-03-24 |
-| 6. 历史验证证据补齐与需求追踪回填 | 2/3 | In Progress | — |
+| 6. 历史验证证据补齐与需求追踪回填 | 3/3 | Complete | 2026-03-24 |
