@@ -14,7 +14,8 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] 用户点击已有点位时可以重新选中该点位并打开对应详情面板
+- [x] 用户取消新建点位时，地图上不会残留未保存的空点位
 
 ### Active
 
@@ -23,6 +24,11 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 - [ ] 用户可以创建、查看、编辑、删除自己的旅行点位，并看到高亮状态
 - [ ] 用户可以通过详情面板维护地点名称、简介、点亮状态等基础内容
 - [ ] 用户数据可通过本地种子数据和 `localStorage` 合并加载，并在刷新后保留
+
+## Current State
+
+- Phase 05 `草稿取消闭环与点位重选修复` 已完成，草稿切换到已有点位后的残留问题已修复，并补齐了对应回归测试。
+- 当前焦点已切换到 Phase 06 `历史验证证据补齐与需求追踪回填`，目标是补齐 v1.0 的 verification、validation 与 traceability 证据。
 
 ### Out of Scope
 
@@ -61,4 +67,4 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 | 详情交互采用响应式抽屉而非独立页面 | 保持地图为主视觉，同时减少跳转中断感 | — Pending |
 
 ---
-*Last updated: 2026-03-23 after initialization*
+*Last updated: 2026-03-24 after Phase 05 completion*
