@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: Phase 4 UI-SPEC approved
-last_updated: "2026-03-24T07:22:17.260Z"
+status: ready_to_execute
+stopped_at: Phase 4 planned
+last_updated: "2026-03-24T07:30:01Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 10
+  total_plans: 12
   completed_plans: 10
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 04 planning — 可用性打磨与增强能力
+**Current focus:** Phase 04 execution prep — 可用性打磨与增强能力
 
 ## Current Position
 
-Phase: 03 (点位闭环与本地持久化) — COMPLETE
-Next: Phase 04 — 可用性打磨与增强能力
+Phase: 04 (可用性打磨与增强能力) — PLANNED
+Next: Execute Phase 04 — 2 plans in 2 waves
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Recent decisions affecting current work:
 - Initialization: Country-level recognition required; city-level is enhancement
 - Phase 1: Poster-style SVG map stage with seed preview markers and a shared preview drawer flow is now the baseline UI contract
 - Phase 3: Point lifecycle now flows through a dedicated `map-points` store with draft, view, edit, and local persistence states
+- Phase 4: Execution is split into 04-01 UI/accessibility hardening and 04-02 degradation plus city-enhancement persistence
 
 ### Pending Todos
 
@@ -85,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-24T07:22:17.253Z
-Stopped at: Phase 4 UI-SPEC approved
-Resume file: .planning/phases/04-可用性打磨与增强能力/04-UI-SPEC.md
+Last session: 2026-03-24T07:30:01Z
+Stopped at: Phase 4 planned
+Resume file: .planning/phases/04-可用性打磨与增强能力/04-01-PLAN.md
