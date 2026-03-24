@@ -110,10 +110,12 @@ Plans:
   2. Phase 1-3 的 validation / Nyquist 状态补齐到可用于 milestone 审计
   3. `REQUIREMENTS.md` 的勾选状态和 traceability 与当前事实一致
   4. 重新运行 `$gsd-audit-milestone` 时，不再因为验证证据缺口而阻塞里程碑归档
-**Plans**: 0/0 plans complete
+**Plans**: 0/3 plans complete
 
 Plans:
-- [ ] To be planned via `$gsd-plan-phase 6`
+- [ ] 06-01-PLAN.md — 补齐 Phase 1-2 的 verification 与 Nyquist 证据
+- [ ] 06-02-PLAN.md — 补齐 Phase 3-4 的 verification 与剩余 validation 证据
+- [ ] 06-03-PLAN.md — 回填 requirements traceability 并重写 milestone audit verdict
 
 ## Progress
 
@@ -127,4 +129,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. 点位闭环与本地持久化 | 3/3 | Complete | 2026-03-24 |
 | 4. 可用性打磨与增强能力 | 3/3 | Complete | 2026-03-24 |
 | 5. 草稿取消闭环与点位重选修复 | 1/1 | Complete | 2026-03-24 |
-| 6. 历史验证证据补齐与需求追踪回填 | 0/0 | Pending | — |
+| 6. 历史验证证据补齐与需求追踪回填 | 0/3 | Pending | — |
