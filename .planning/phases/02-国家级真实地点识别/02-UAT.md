@@ -3,7 +3,7 @@ status: diagnosed
 phase: 02-国家级真实地点识别
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md
 started: 2026-03-24T03:12:03Z
-updated: 2026-03-24T03:31:00Z
+updated: 2026-03-24T03:37:31Z
 ---
 
 ## Current Test
@@ -16,16 +16,16 @@ updated: 2026-03-24T03:31:00Z
 expected: 打开页面后，世界地图应完整显示为新的真实地理底图，整体仍保持海报感主视觉。初始状态下抽屉默认关闭，预置点位依然可见，页面上不应出现残留的识别提示或失败提示。
 result: pass
 
-### 2. 点击有效陆地后识别成功
+### 2. 点击有效陆地后识别成功（复测）
 expected: 点击明显的陆地区域后，点击位置会先出现轻量脉冲点，随后自动打开抽屉并显示识别结果。抽屉标题应为识别出的国家或地区名，副行与坐标信息同步可见，地图上会出现对应的临时高亮点。
 result: issue
-reported: "点击明显日本位置会显示中国"
+reported: "如图所示，点击红色笔触位置后识别到的位置是偏左上的，这存在于几乎所有位置"
 severity: major
 
-### 3. 特殊地区优先展示
+### 3. 特殊地区优先展示（复测）
 expected: 点击香港、澳门或格陵兰这类特殊地区时，抽屉标题应优先显示地区名，而不是被并回普通国家名；例如应看到 Hong Kong、Macau 或 Greenland。
 result: issue
-reported: "点击香港位置显示了Myanmar"
+reported: "因为点位偏移的问题无法识别到具体地区"
 severity: major
 
 ### 4. 点击海洋或无效区域
@@ -52,31 +52,35 @@ skipped: 0
 
 - truth: "点击明显的陆地区域后会打开抽屉并显示正确的国家或地区识别结果"
   status: failed
-  reason: "User reported: 点击明显日本位置会显示中国"
+  reason: "User reported: 如图所示，点击红色笔触位置后识别到的位置是偏左上的，这存在于几乎所有位置"
   severity: major
   test: 2
-  root_cause: "世界地图 SVG 的真实球面边框横向落在 x=160..1440，但 WORLD_PROJECTION_CONFIG 假定地理绘图区为 x=40..1560，导致点击反算比实际底图向西偏移约 120px。"
+  root_cause: "当前点击链路仍依赖‘推断出来的地理绘图区’，而不是运行时真实渲染的地图像素区域；因此只要展示层与推断框稍有漂移，识别结果就会在全图表现为系统性偏左上。"
   artifacts:
     - path: "src/assets/world-map.svg"
-      issue: "可见地理框与投影契约横向范围不一致"
+      issue: "展示地图是预渲染 SVG 图片，真实可视地理像素并未直接驱动点击层"
     - path: "src/services/map-projection.ts"
-      issue: "点击反算仍使用 40..1560 的横向地理范围"
+      issue: "投影反算仍使用推断框，而不是从真实渲染契约导出的交互框"
+    - path: "src/services/geo-lookup.spec.ts"
+      issue: "当前回归测试主要验证服务层数学，没有覆盖真实点击对齐"
   missing:
-    - "人工回归确认日本点击在真实页面中已恢复正确识别"
-  resolution: "已在 02-03 中将 WORLD_PROJECTION_CONFIG 对齐到真实球面框 x=160..1440，并新增 Japan 点击回归测试。"
+    - "让显示层和点击反算层共享同一份真实渲染 frame metadata"
+    - "补充交互级点击对齐回归测试"
+  resolution: "02-03 只修正了球面框常量与样本国家回归，未解决全图 click-to-render 对齐问题。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"
 - truth: "点击香港、澳门或格陵兰等特殊地区时，抽屉应优先显示正确的地区识别结果"
   status: failed
-  reason: "User reported: 点击香港位置显示了Myanmar"
+  reason: "User reported: 因为点位偏移的问题无法识别到具体地区"
   severity: major
   test: 3
-  root_cause: "与日本误判相同，底图横向投影框比反算契约更窄，东亚点击整体被映射到更靠西的经度，导致香港样本落到 Myanmar 附近。"
+  root_cause: "与 Test 2 相同，问题不再只是香港样本本身，而是全图点击结果与可视地图像素仍有系统性偏移，导致小区域更难被准确命中。"
   artifacts:
     - path: "src/assets/world-map.svg"
-      issue: "东亚区域视觉位置与经度映射不一致"
+      issue: "特殊地区在视觉上面积更小，更容易被全局偏移放大成识别失败"
     - path: "src/components/WorldMapStage.vue"
-      issue: "用户点击结果依赖了错误的底图横向地理框"
+      issue: "真实点击坐标到地理结果的映射仍未与显示层精确对齐"
   missing:
-    - "人工回归确认 Hong Kong 点击在真实页面中已恢复正确识别"
-  resolution: "已在 02-03 中修正 East Asia 横向投影对齐，并新增 Hong Kong 点击回归测试。"
+    - "修复全图 click-to-marker 偏移后再回归确认 Hong Kong 等小区域"
+    - "补充特殊地区的交互级命中测试"
+  resolution: "02-03 虽补了 Hong Kong 服务层回归，但人工复测表明全局偏移仍会让小区域命中失败。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"
