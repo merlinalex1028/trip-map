@@ -5,7 +5,7 @@ source:
   - 04-01-SUMMARY.md
   - 04-02-SUMMARY.md
 started: 2026-03-24T08:18:50Z
-updated: 2026-03-24T09:08:00Z
+updated: 2026-03-24T09:46:21Z
 ---
 
 ## Current Test
@@ -51,10 +51,18 @@ result: pass
 expected: 点击能识别国家/地区、但没有命中高置信城市的附近区域时，系统仍应稳定创建草稿/点位；抽屉里应出现“未识别到更精确城市，已回退到国家/地区”之类的回退说明，保存流程可继续。
 result: pass
 
+### 9. 城市增强命中区再次复验
+expected: 在 Kyoto / Tokyo 这类已支持城市附近点击时，不需要像素级点中城市中心，也应能较稳定地触发城市增强。新草稿标题应直接显示城市名，副信息仍能看出所属国家/地区。
+result: pass
+
+### 10. 国家级回退路径再次复验
+expected: 点击能识别国家/地区、但没有命中高置信城市的附近区域时，系统仍应稳定创建草稿/点位；抽屉里应出现“未识别到更精确城市，已回退到国家/地区”之类的回退说明，保存流程可继续。
+result: pass
+
 ## Summary
 
-total: 8
-passed: 5
+total: 10
+passed: 7
 issues: 2
 pending: 0
 skipped: 1
