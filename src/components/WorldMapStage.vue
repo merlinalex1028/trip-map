@@ -8,13 +8,16 @@ import {
   clampNormalizedPoint,
   formatCoordinatesLabel,
   geoCoordinatesToNormalizedPoint,
-  normalizedPointToGeoCoordinates
+  normalizedPointToGeoCoordinates,
+  normalizedPointToViewBoxPoint,
+  WORLD_PROJECTION_CONFIG
 } from '../services/map-projection'
 import { useMapUiStore } from '../stores/map-ui'
 import type { MapPointDisplay } from '../types/map-point'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
 
 const previewPoints = shallowRef<MapPointDisplay[]>(loadPreviewPoints())
+const mapImageRef = useTemplateRef<HTMLImageElement>('map-image')
 const surfaceRef = useTemplateRef<HTMLDivElement>('surface')
 const mapUiStore = useMapUiStore()
 const { selectedPoint, selectedPointId, pendingGeoHit, isRecognizing } = storeToRefs(mapUiStore)
@@ -30,11 +33,27 @@ const {
 } = mapUiStore
 
 const displayPoints = computed(() => {
-  if (selectedPoint.value?.source === 'detected') {
-    return [...previewPoints.value, selectedPoint.value]
+  return previewPoints.value
+})
+
+const selectedDetectedPoint = computed(() => {
+  return selectedPoint.value?.source === 'detected' ? selectedPoint.value : null
+})
+
+const selectedDetectedViewBoxPoint = computed(() => {
+  if (!selectedDetectedPoint.value) {
+    return null
   }
 
-  return previewPoints.value
+  return normalizedPointToViewBoxPoint(selectedDetectedPoint.value)
+})
+
+const pendingViewBoxPoint = computed(() => {
+  if (!pendingGeoHit.value) {
+    return null
+  }
+
+  return normalizedPointToViewBoxPoint(pendingGeoHit.value)
 })
 
 let recognitionSequence = 0
@@ -61,7 +80,8 @@ async function handleMapClick(event: MouseEvent) {
     return
   }
 
-  const bounds = surfaceRef.value.getBoundingClientRect()
+  const activeElement = mapImageRef.value ?? surfaceRef.value
+  const bounds = activeElement.getBoundingClientRect()
   const normalizedPoint = clampNormalizedPoint({
     x: (event.clientX - bounds.left) / bounds.width,
     y: (event.clientY - bounds.top) / bounds.height
@@ -153,22 +173,43 @@ async function handleMapClick(event: MouseEvent) {
   >
     <div class="world-map-stage__frame">
       <div ref="surface" class="world-map-stage__surface" @click="handleMapClick">
-        <img class="world-map-stage__map" :src="worldMapUrl" alt="Vintage world map poster" />
-        <SeedMarkerLayer :points="displayPoints" :selected-point-id="selectedPointId" />
-        <div
-          v-if="pendingGeoHit"
-          class="world-map-stage__pending-hit"
-          :class="{
-            'world-map-stage__pending-hit--active': isRecognizing
-          }"
-          :style="{
-            left: `${pendingGeoHit.x * 100}%`,
-            top: `${pendingGeoHit.y * 100}%`
-          }"
-          :aria-label="`待识别坐标 ${formatCoordinatesLabel(pendingGeoHit)}`"
+        <img
+          ref="map-image"
+          class="world-map-stage__map"
+          :src="worldMapUrl"
+          alt="Vintage world map poster"
+        />
+        <svg
+          class="world-map-stage__overlay"
+          :viewBox="`0 0 ${WORLD_PROJECTION_CONFIG.viewBoxWidth} ${WORLD_PROJECTION_CONFIG.viewBoxHeight}`"
+          preserveAspectRatio="none"
+          aria-hidden="true"
         >
-          <span class="world-map-stage__pending-core" aria-hidden="true"></span>
-        </div>
+          <g
+            v-if="pendingGeoHit && pendingViewBoxPoint"
+            class="world-map-stage__overlay-marker world-map-stage__overlay-marker--pending"
+            :class="{
+              'world-map-stage__overlay-marker--active': isRecognizing
+            }"
+            :transform="`translate(${pendingViewBoxPoint.x} ${pendingViewBoxPoint.y})`"
+            data-pending-marker="true"
+          >
+            <circle class="world-map-stage__overlay-ring" r="15" />
+            <circle class="world-map-stage__overlay-core" r="7" />
+          </g>
+
+          <g
+            v-if="selectedDetectedPoint && selectedDetectedViewBoxPoint"
+            class="world-map-stage__overlay-marker world-map-stage__overlay-marker--detected"
+            :transform="`translate(${selectedDetectedViewBoxPoint.x} ${selectedDetectedViewBoxPoint.y})`"
+            data-detected-marker="true"
+          >
+            <circle class="world-map-stage__overlay-ring" r="16" />
+            <circle class="world-map-stage__overlay-core" r="8" />
+          </g>
+        </svg>
+        <SeedMarkerLayer :points="displayPoints" :selected-point-id="selectedPointId" />
+        <div v-if="pendingGeoHit" class="world-map-stage__sr-only" :aria-label="`待识别坐标 ${formatCoordinatesLabel(pendingGeoHit)}`"></div>
       </div>
     </div>
   </section>
@@ -209,30 +250,45 @@ async function handleMapClick(event: MouseEvent) {
   filter: saturate(0.78) sepia(0.14) contrast(0.96);
 }
 
-.world-map-stage__pending-hit {
+.world-map-stage__overlay {
   position: absolute;
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  transform: translate(-50%, -50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
 }
 
-.world-map-stage__pending-core {
-  width: 0.95rem;
-  height: 0.95rem;
-  border-radius: 999px;
-  border: 1px solid rgba(63, 47, 36, 0.42);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 247, 224, 0.98), rgba(200, 100, 59, 0.92));
-  box-shadow:
-    0 0 0 6px rgba(200, 100, 59, 0.14),
-    0 0 20px rgba(200, 100, 59, 0.24);
+.world-map-stage__overlay-marker {
+  transform-origin: center;
 }
 
-.world-map-stage__pending-hit--active .world-map-stage__pending-core {
+.world-map-stage__overlay-ring {
+  fill: rgba(200, 100, 59, 0.15);
+  stroke: rgba(255, 246, 221, 0.95);
+  stroke-width: 2.5;
+}
+
+.world-map-stage__overlay-core {
+  fill: rgba(200, 100, 59, 0.94);
+  stroke: rgba(63, 47, 36, 0.4);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 12px rgba(200, 100, 59, 0.34));
+}
+
+.world-map-stage__overlay-marker--active {
   animation: pending-pulse 1.1s ease-out infinite;
+}
+
+.world-map-stage__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes pending-pulse {

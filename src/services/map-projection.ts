@@ -1,5 +1,10 @@
 import type { GeoCoordinates, NormalizedPoint, ProjectionConfig } from '../types/geo'
 
+export interface ViewBoxPoint {
+  x: number
+  y: number
+}
+
 export const WORLD_PROJECTION_CONFIG: ProjectionConfig = {
   viewBoxWidth: 1600,
   viewBoxHeight: 800,
@@ -24,13 +29,33 @@ export function clampNormalizedPoint(point: NormalizedPoint): NormalizedPoint {
   }
 }
 
+export function normalizedPointToViewBoxPoint(
+  point: NormalizedPoint,
+  config: ProjectionConfig = WORLD_PROJECTION_CONFIG
+): ViewBoxPoint {
+  const normalizedPoint = clampNormalizedPoint(point)
+
+  return {
+    x: normalizedPoint.x * config.viewBoxWidth,
+    y: normalizedPoint.y * config.viewBoxHeight
+  }
+}
+
+export function viewBoxPointToNormalizedPoint(
+  point: ViewBoxPoint,
+  config: ProjectionConfig = WORLD_PROJECTION_CONFIG
+): NormalizedPoint {
+  return clampNormalizedPoint({
+    x: point.x / config.viewBoxWidth,
+    y: point.y / config.viewBoxHeight
+  })
+}
+
 export function normalizedPointToGeoCoordinates(
   point: NormalizedPoint,
   config: ProjectionConfig = WORLD_PROJECTION_CONFIG
 ): GeoCoordinates {
-  const normalizedPoint = clampNormalizedPoint(point)
-  const projectedX = normalizedPoint.x * config.viewBoxWidth
-  const projectedY = normalizedPoint.y * config.viewBoxHeight
+  const { x: projectedX, y: projectedY } = normalizedPointToViewBoxPoint(point, config)
   const plotX = clamp((projectedX - config.plotLeft) / config.plotWidth, 0, 1)
   const plotY = clamp((projectedY - config.plotTop) / config.plotHeight, 0, 1)
 

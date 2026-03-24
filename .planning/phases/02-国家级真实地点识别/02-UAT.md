@@ -3,7 +3,7 @@ status: diagnosed
 phase: 02-国家级真实地点识别
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md
 started: 2026-03-24T03:12:03Z
-updated: 2026-03-24T03:37:31Z
+updated: 2026-03-24T03:48:20Z
 ---
 
 ## Current Test
@@ -64,9 +64,8 @@ skipped: 0
     - path: "src/services/geo-lookup.spec.ts"
       issue: "当前回归测试主要验证服务层数学，没有覆盖真实点击对齐"
   missing:
-    - "让显示层和点击反算层共享同一份真实渲染 frame metadata"
-    - "补充交互级点击对齐回归测试"
-  resolution: "02-03 只修正了球面框常量与样本国家回归，未解决全图 click-to-render 对齐问题。"
+    - "人工回归确认全图点击不再整体偏左上"
+  resolution: "已在 02-04 中让检测点改用共享底图 viewBox 的 SVG overlay 渲染，并新增 WorldMapStage 交互级点击对齐测试。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"
 - truth: "点击香港、澳门或格陵兰等特殊地区时，抽屉应优先显示正确的地区识别结果"
   status: failed
@@ -80,7 +79,6 @@ skipped: 0
     - path: "src/components/WorldMapStage.vue"
       issue: "真实点击坐标到地理结果的映射仍未与显示层精确对齐"
   missing:
-    - "修复全图 click-to-marker 偏移后再回归确认 Hong Kong 等小区域"
-    - "补充特殊地区的交互级命中测试"
-  resolution: "02-03 虽补了 Hong Kong 服务层回归，但人工复测表明全局偏移仍会让小区域命中失败。"
+    - "人工回归确认 Hong Kong 等小区域恢复可点命中"
+  resolution: "已在 02-04 中统一点击层与检测点渲染层的坐标系；Hong Kong 等小区域需要下一轮 verify-work 做人工确认。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"

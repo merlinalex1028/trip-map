@@ -2,7 +2,9 @@ import {
   WORLD_PROJECTION_CONFIG,
   clampNormalizedPoint,
   geoCoordinatesToNormalizedPoint,
-  normalizedPointToGeoCoordinates
+  normalizedPointToGeoCoordinates,
+  normalizedPointToViewBoxPoint,
+  viewBoxPointToNormalizedPoint
 } from './map-projection'
 
 describe('map projection service', () => {
@@ -39,6 +41,16 @@ describe('map projection service', () => {
 
   it('clamps out-of-range normalized inputs', () => {
     expect(clampNormalizedPoint({ x: -1.2, y: 1.6 })).toEqual({ x: 0, y: 1 })
+  })
+
+  it('keeps viewBox conversions aligned with normalized positions', () => {
+    const viewBoxPoint = normalizedPointToViewBoxPoint({ x: 0.625, y: 0.275 })
+    const normalizedPoint = viewBoxPointToNormalizedPoint(viewBoxPoint)
+
+    expect(viewBoxPoint.x).toBeCloseTo(1000, 8)
+    expect(viewBoxPoint.y).toBeCloseTo(220, 8)
+    expect(normalizedPoint.x).toBeCloseTo(0.625, 8)
+    expect(normalizedPoint.y).toBeCloseTo(0.275, 8)
   })
 
   it('round-trips geographic coordinates back into normalized plot space', () => {
