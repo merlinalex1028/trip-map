@@ -136,16 +136,28 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function selectPointById(id: string) {
-    selectedPointId.value = id
+    const persistedDisplayPoints = mergeSeedAndLocalPoints(
+      seedPoints,
+      userPoints.value,
+      seedOverrides.value,
+      deletedSeedIds.value
+    )
+    const persistedPoint = persistedDisplayPoints.find((item) => item.id === id) ?? null
+
+    if (draftPoint.value && draftPoint.value.id !== id && persistedPoint && persistedPoint.source !== 'detected') {
+      draftPoint.value = null
+    }
 
     const point = displayPoints.value.find((item) => item.id === id) ?? null
 
     if (!point) {
+      selectedPointId.value = null
       drawerMode.value = null
       editableSnapshot.value = null
       return
     }
 
+    selectedPointId.value = point.id
     drawerMode.value = point.source === 'detected' ? 'detected-preview' : 'view'
     editableSnapshot.value = buildEditableSnapshot(point)
   }

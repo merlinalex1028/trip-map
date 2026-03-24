@@ -68,6 +68,33 @@ describe('map-points store', () => {
     expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
   })
 
+  it('clears an existing draft when selecting a saved or seed point', () => {
+    const store = useMapPointsStore()
+
+    store.bootstrapPoints()
+    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
+
+    store.selectPointById('seed-kyoto')
+
+    expect(store.draftPoint).toBeNull()
+    expect(store.selectedPointId).toBe('seed-kyoto')
+    expect(store.activePoint?.id).toBe('seed-kyoto')
+    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
+  })
+
+  it('discards the active draft when clearing the active point', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
+
+    store.clearActivePoint()
+
+    expect(store.draftPoint).toBeNull()
+    expect(store.selectedPointId).toBeNull()
+    expect(store.drawerMode).toBeNull()
+    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
+  })
+
   it('converts a draft to a saved user point', () => {
     const store = useMapPointsStore()
 
