@@ -1,3 +1,7 @@
+---
+requirements-completed: [DAT-02, DAT-03]
+---
+
 # 03-03 Summary
 
 ## Outcome

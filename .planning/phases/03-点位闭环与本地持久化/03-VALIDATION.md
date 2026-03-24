@@ -1,9 +1,9 @@
 ---
 phase: 03
 slug: 点位闭环与本地持久化
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-24
 ---
 
@@ -38,24 +38,24 @@ created: 2026-03-24
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 03-01-01 | 01 | 1 | PNT-01 | store | `pnpm test -- src/stores/map-points.spec.ts` | ❌ W0 | ⬜ pending |
-| 03-01-02 | 01 | 1 | MAP-03,PNT-05 | component | `pnpm test -- src/components/WorldMapStage.spec.ts` | ✅ | ⬜ pending |
-| 03-02-01 | 02 | 2 | DRW-03,PNT-02 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts` | ❌ W0 | ⬜ pending |
-| 03-02-02 | 02 | 2 | PNT-03 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts src/App.spec.ts` | ❌ W0 | ⬜ pending |
-| 03-03-01 | 03 | 3 | DAT-03 | unit | `pnpm test -- src/services/point-storage.spec.ts` | ❌ W0 | ⬜ pending |
-| 03-03-02 | 03 | 3 | DAT-02 | integration | `pnpm test -- src/services/point-storage.spec.ts src/components/WorldMapStage.spec.ts src/App.spec.ts` | ❌ W0 | ⬜ pending |
+| 03-01-01 | 01 | 1 | PNT-01 | store | `pnpm test -- src/stores/map-points.spec.ts` | ✅ `src/stores/map-points.spec.ts` | ✅ green |
+| 03-01-02 | 01 | 1 | MAP-03,PNT-05 | regression | `pnpm test -- src/stores/map-points.spec.ts src/App.spec.ts` | ✅ `src/stores/map-points.spec.ts`, `src/App.spec.ts` | ✅ moved to Phase 05 closure |
+| 03-02-01 | 02 | 2 | DRW-03,PNT-02 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts` | ✅ `src/components/PointPreviewDrawer.spec.ts` | ✅ green |
+| 03-02-02 | 02 | 2 | PNT-03 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts src/App.spec.ts` | ✅ `src/components/PointPreviewDrawer.spec.ts`, `src/App.spec.ts` | ✅ green |
+| 03-03-01 | 03 | 3 | DAT-03 | unit | `pnpm test -- src/services/point-storage.spec.ts` | ✅ `src/services/point-storage.spec.ts` | ✅ green |
+| 03-03-02 | 03 | 3 | DAT-02 | integration | `pnpm test -- src/services/point-storage.spec.ts src/App.spec.ts` | ✅ `src/services/point-storage.spec.ts`, `src/App.spec.ts` | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ green · ⚠️ delegated to Phase 05 gap closure*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `src/stores/map-points.spec.ts` — 覆盖草稿创建、保存、删除和 seed 隐藏
-- [ ] `src/components/PointPreviewDrawer.spec.ts` — 覆盖识别预览 / 查看 / 编辑三种模式与确认逻辑
-- [ ] `src/services/point-storage.spec.ts` — 覆盖版本化快照、合并规则和损坏存档提示
+- [x] `src/stores/map-points.spec.ts` — 覆盖草稿创建、保存、删除和 seed 隐藏
+- [x] `src/components/PointPreviewDrawer.spec.ts` — 覆盖识别预览 / 查看 / 编辑三种模式与确认逻辑
+- [x] `src/services/point-storage.spec.ts` — 覆盖版本化快照、合并规则和损坏存档提示
 
-*Existing infrastructure covers the remaining phase requirements.*
+*`MAP-03` 与 `PNT-05` 的真实断口已在 Phase 05 通过正式 verification 关闭，因此不再作为本 phase 的未完成 Wave 0 项。*
 
 ---
 
@@ -71,11 +71,11 @@ created: 2026-03-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
