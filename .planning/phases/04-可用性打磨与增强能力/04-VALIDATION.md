@@ -3,7 +3,7 @@ phase: 04
 slug: 可用性打磨与增强能力
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-03-24
 ---
 
@@ -38,22 +38,22 @@ created: 2026-03-24
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 04-01-01 | 01 | 1 | PNT-04, UX-01 | component | `pnpm test -- src/components/SeedMarkerLayer.spec.ts` | ❌ W0 | ⬜ pending |
-| 04-01-02 | 01 | 1 | DRW-04, UX-02 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts src/App.spec.ts` | ✅ | ⬜ pending |
-| 04-02-01 | 02 | 2 | DAT-04 | integration | `pnpm test -- src/services/point-storage.spec.ts src/stores/map-points.spec.ts src/App.spec.ts` | ✅ | ⬜ pending |
-| 04-02-02 | 02 | 2 | GEO-04, UX-03 | component | `pnpm test -- src/components/WorldMapStage.spec.ts src/services/geo-lookup.spec.ts` | ✅ | ⬜ pending |
+| 04-01-01 | 01 | 1 | PNT-04, UX-01 | component | `pnpm test -- src/components/SeedMarkerLayer.spec.ts` | ✅ `src/components/SeedMarkerLayer.spec.ts` | ✅ green |
+| 04-01-02 | 01 | 1 | DRW-04, UX-02 | component | `pnpm test -- src/components/PointPreviewDrawer.spec.ts src/App.spec.ts` | ✅ `src/components/PointPreviewDrawer.spec.ts`, `src/App.spec.ts` | ✅ green |
+| 04-02-01 | 02 | 2 | DAT-04 | integration | `pnpm test -- src/services/point-storage.spec.ts src/stores/map-points.spec.ts src/App.spec.ts` | ✅ `src/services/point-storage.spec.ts`, `src/stores/map-points.spec.ts`, `src/App.spec.ts` | ✅ green |
+| 04-02-02 | 02 | 2 | GEO-04, UX-03 | component | `pnpm test -- src/components/WorldMapStage.spec.ts src/services/geo-lookup.spec.ts` | ✅ `src/components/WorldMapStage.spec.ts`, `src/services/geo-lookup.spec.ts` | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ green · ❌ red · ⚠️ flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `src/components/SeedMarkerLayer.spec.ts` — 覆盖点位 focus、selected、label 显隐和键盘触发语义
-- [ ] `src/components/PointPreviewDrawer.spec.ts` 扩展 — 覆盖 `Esc`、focus trap、长文本滚动区和更明显关闭按钮
-- [ ] `src/stores/map-points.spec.ts` / `src/services/point-storage.spec.ts` 扩展 — 覆盖城市级高置信结果持久化与国家级回退兼容
+- [x] `src/components/SeedMarkerLayer.spec.ts` — 覆盖点位 focus、selected、label 显隐和键盘触发语义
+- [x] `src/components/PointPreviewDrawer.spec.ts` 扩展 — 覆盖 `Esc`、focus trap、长文本滚动区和更明显关闭按钮
+- [x] `src/stores/map-points.spec.ts` / `src/services/point-storage.spec.ts` 扩展 — 覆盖城市级高置信结果持久化与国家级回退兼容
 
-*Existing infrastructure covers the remaining phase requirements.*
+*现有自动化覆盖已经足以支撑 Phase 4 的 Nyquist 汇总，不再保留 Wave 0 占位。*
 
 ---
 
