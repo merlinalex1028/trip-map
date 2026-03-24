@@ -203,6 +203,44 @@ describe('WorldMapStage', () => {
     expect(mapPointsStore.activePoint?.countryName).toBe('Japan')
   })
 
+  it('removes the old draft when selecting an existing point', async () => {
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+    installFrame(surface)
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', {
+      clientX: 1180,
+      clientY: 360
+    })
+    await flushPromises()
+
+    expect(wrapper.find('.seed-marker--draft').exists()).toBe(true)
+
+    const seedKyotoMarker = wrapper
+      .findAll('.seed-marker__button')
+      .find((marker) => {
+        const ariaLabel = marker.attributes('aria-label') ?? ''
+
+        return ariaLabel.includes('Kyoto，Japan') && !ariaLabel.includes('未保存地点')
+      })
+
+    expect(seedKyotoMarker).toBeDefined()
+
+    await seedKyotoMarker!.trigger('click')
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+
+    expect(mapPointsStore.draftPoint).toBeNull()
+    expect(mapPointsStore.activePoint?.id).toBe('seed-kyoto')
+    expect(wrapper.find('.seed-marker--draft').exists()).toBe(false)
+  })
+
   it('represents a realistic near-but-not-on city click through the fallback flow', async () => {
     const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
       '../services/geo-lookup'

@@ -154,6 +154,26 @@ describe('PointPreviewDrawer', () => {
     expect(store.activePoint).not.toBeNull()
   })
 
+  it('does not leave a draft behind after switching to an existing point and closing', async () => {
+    const store = useMapPointsStore()
+    store.bootstrapPoints()
+    store.startDraftFromDetection(createDraft())
+    store.selectPointById('seed-kyoto')
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+    await wrapper.get('.point-preview-drawer__close').trigger('click')
+
+    expect(store.activePoint).toBeNull()
+    expect(store.draftPoint).toBeNull()
+  })
+
   it('renders long text inside a dedicated scroll region while actions stay visible', async () => {
     const store = useMapPointsStore()
     store.startDraftFromDetection(
