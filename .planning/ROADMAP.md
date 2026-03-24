@@ -95,10 +95,10 @@ Plans:
   1. 用户创建草稿后切换到已有点位时，旧草稿不会在地图上残留
   2. 用户关闭抽屉或取消新建时，未保存草稿会被稳定清理
   3. 点位重选、草稿替换与抽屉关闭的自动化回归覆盖补齐
-**Plans**: 0/0 plans complete
+**Plans**: 0/1 plans complete
 
 Plans:
-- [ ] To be planned via `$gsd-plan-phase 5`
+- [ ] 05-01: 修复草稿重选后的残留状态并补齐抽屉关闭回归覆盖
 
 ### Phase 6: 历史验证证据补齐与需求追踪回填
 **Goal**: 补齐 v1.0 的 phase verification、validation 和 requirements traceability 证据，使 milestone 审计结果可从 gaps_found 收敛到 passed。
