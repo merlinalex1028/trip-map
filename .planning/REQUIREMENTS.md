@@ -9,7 +9,7 @@
 
 - [ ] **MAP-01**: 用户可以在桌面端和移动端看到一张可交互的世界地图主视图
 - [ ] **MAP-02**: 用户可以看到预置示例点位和已保存点位在地图上的高亮展示
-- [ ] **MAP-03**: 用户点击已有点位时可以重新选中该点位并打开对应详情面板
+- [x] **MAP-03**: 用户点击已有点位时可以重新选中该点位并打开对应详情面板
 
 ### Geo Detection
 
@@ -24,7 +24,7 @@
 - [ ] **PNT-02**: 用户可以编辑点位的名称、简介和点亮状态
 - [ ] **PNT-03**: 用户可以删除自己创建的点位
 - [ ] **PNT-04**: 用户可以明显区分普通高亮点位与当前选中点位
-- [ ] **PNT-05**: 用户取消新建点位时，地图上不会残留未保存的空点位
+- [x] **PNT-05**: 用户取消新建点位时，地图上不会残留未保存的空点位
 
 ### Detail Drawer
 
@@ -78,7 +78,7 @@
 |-------------|-------|--------|
 | MAP-01 | Phase 6 | Pending |
 | MAP-02 | Phase 6 | Pending |
-| MAP-03 | Phase 5 | Pending |
+| MAP-03 | Phase 5 | Complete |
 | GEO-01 | Phase 6 | Pending |
 | GEO-02 | Phase 6 | Pending |
 | GEO-03 | Phase 6 | Pending |
@@ -87,7 +87,7 @@
 | PNT-02 | Phase 6 | Pending |
 | PNT-03 | Phase 6 | Pending |
 | PNT-04 | Phase 6 | Pending |
-| PNT-05 | Phase 5 | Pending |
+| PNT-05 | Phase 5 | Complete |
 | DRW-01 | Phase 6 | Pending |
 | DRW-02 | Phase 6 | Pending |
 | DRW-03 | Phase 6 | Pending |

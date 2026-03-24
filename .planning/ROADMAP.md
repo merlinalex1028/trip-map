@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: 国家级真实地点识别** - 打通点击坐标到国家/地区识别的核心链路 (completed 2026-03-24)
 - [x] **Phase 3: 点位闭环与本地持久化** - 完成点位 CRUD、详情抽屉与本地数据合并保存 (completed 2026-03-24)
 - [x] **Phase 4: 可用性打磨与增强能力** - 完善异常处理、边界体验、可访问性与城市级扩展入口 (completed 2026-03-24)
-- [ ] **Phase 5: 草稿取消闭环与点位重选修复** - 修复草稿残留问题，补齐点位重选与取消新建的运行时闭环
+- [x] **Phase 5: 草稿取消闭环与点位重选修复** - 修复草稿残留问题，补齐点位重选与取消新建的运行时闭环 (completed 2026-03-24)
 - [ ] **Phase 6: 历史验证证据补齐与需求追踪回填** - 补齐 phase verification、validation 和 requirement traceability，推动 milestone 审计通过
 
 ## Phase Details
@@ -95,10 +95,10 @@ Plans:
   1. 用户创建草稿后切换到已有点位时，旧草稿不会在地图上残留
   2. 用户关闭抽屉或取消新建时，未保存草稿会被稳定清理
   3. 点位重选、草稿替换与抽屉关闭的自动化回归覆盖补齐
-**Plans**: 0/1 plans complete
+**Plans**: 1/1 plans complete
 
 Plans:
-- [ ] 05-01: 修复草稿重选后的残留状态并补齐抽屉关闭回归覆盖
+- [x] 05-01: 修复草稿重选后的残留状态并补齐抽屉关闭回归覆盖
 
 ### Phase 6: 历史验证证据补齐与需求追踪回填
 **Goal**: 补齐 v1.0 的 phase verification、validation 和 requirements traceability 证据，使 milestone 审计结果可从 gaps_found 收敛到 passed。
@@ -126,5 +126,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. 国家级真实地点识别 | 4/4 | Complete | 2026-03-24 |
 | 3. 点位闭环与本地持久化 | 3/3 | Complete | 2026-03-24 |
 | 4. 可用性打磨与增强能力 | 3/3 | Complete | 2026-03-24 |
-| 5. 草稿取消闭环与点位重选修复 | 0/0 | Pending | — |
+| 5. 草稿取消闭环与点位重选修复 | 1/1 | Complete | 2026-03-24 |
 | 6. 历史验证证据补齐与需求追踪回填 | 0/0 | Pending | — |
