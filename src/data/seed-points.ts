@@ -1,48 +1,62 @@
+import { formatCoordinatesLabel, geoCoordinatesToNormalizedPoint } from '../services/map-projection'
 import type { MapPointDisplay } from '../types/map-point'
 
-export const seedPoints: MapPointDisplay[] = [
+const seedPointDefinitions = [
   {
     id: 'seed-lisbon',
     name: 'Lisbon',
     countryName: 'Portugal',
-    x: 0.265,
-    y: 0.405,
-    source: 'seed',
+    countryCode: 'PT',
+    lat: 38.7223,
+    lng: -9.1393,
     isFeatured: true,
-    description: '沿着大西洋海岸展开的山城港口，是这张旅行海报里的第一束暖光。',
-    coordinatesLabel: '38.72°N, 9.14°W'
+    description: '沿着大西洋海岸展开的山城港口，是这张旅行海报里的第一束暖光。'
   },
   {
     id: 'seed-cairo',
     name: 'Cairo',
     countryName: 'Egypt',
-    x: 0.565,
-    y: 0.435,
-    source: 'seed',
+    countryCode: 'EG',
+    lat: 30.0444,
+    lng: 31.2357,
     isFeatured: true,
-    description: '在沙色与河流交界处留下的一枚地标，适合做海报里的东方锚点。',
-    coordinatesLabel: '30.04°N, 31.24°E'
+    description: '在沙色与河流交界处留下的一枚地标，适合做海报里的东方锚点。'
   },
   {
     id: 'seed-kyoto',
     name: 'Kyoto',
     countryName: 'Japan',
-    x: 0.835,
-    y: 0.395,
-    source: 'seed',
+    countryCode: 'JP',
+    lat: 35.0116,
+    lng: 135.7681,
     isFeatured: false,
-    description: '远东边缘的一枚安静落点，让版面保持稀疏而完整。',
-    coordinatesLabel: '35.01°N, 135.77°E'
+    description: '远东边缘的一枚安静落点，让版面保持稀疏而完整。'
   },
   {
     id: 'seed-buenos-aires',
     name: 'Buenos Aires',
     countryName: 'Argentina',
-    x: 0.315,
-    y: 0.765,
-    source: 'seed',
+    countryCode: 'AR',
+    lat: -34.6037,
+    lng: -58.3816,
     isFeatured: false,
-    description: '向南延展的一颗尾点，让整张地图的旅行感更完整。',
-    coordinatesLabel: '34.60°S, 58.38°W'
+    description: '向南延展的一颗尾点，让整张地图的旅行感更完整。'
   }
-]
+] as const
+
+export const seedPoints: MapPointDisplay[] = seedPointDefinitions.map((definition) => {
+  const point = geoCoordinatesToNormalizedPoint({
+    lat: definition.lat,
+    lng: definition.lng
+  })
+
+  return {
+    ...definition,
+    ...point,
+    source: 'seed',
+    coordinatesLabel: formatCoordinatesLabel({
+      lat: definition.lat,
+      lng: definition.lng
+    })
+  }
+})

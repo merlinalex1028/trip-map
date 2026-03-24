@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
+import { onUnmounted, watch } from 'vue'
 
 import PointPreviewDrawer from './components/PointPreviewDrawer.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
@@ -7,7 +8,37 @@ import WorldMapStage from './components/WorldMapStage.vue'
 import { useMapUiStore } from './stores/map-ui'
 
 const mapUiStore = useMapUiStore()
-const { selectedPoint } = storeToRefs(mapUiStore)
+const { clearInteractionNotice } = mapUiStore
+const { interactionNotice, selectedPoint } = storeToRefs(mapUiStore)
+
+let noticeTimer: ReturnType<typeof window.setTimeout> | null = null
+
+watch(
+  () => interactionNotice.value?.message,
+  (message) => {
+    if (noticeTimer) {
+      window.clearTimeout(noticeTimer)
+      noticeTimer = null
+    }
+
+    if (!message) {
+      return
+    }
+
+    noticeTimer = window.setTimeout(() => {
+      clearInteractionNotice()
+      noticeTimer = null
+    }, 2600)
+  }
+)
+
+onUnmounted(() => {
+  if (!noticeTimer) {
+    return
+  }
+
+  window.clearTimeout(noticeTimer)
+})
 </script>
 
 <template>
@@ -15,6 +46,17 @@ const { selectedPoint } = storeToRefs(mapUiStore)
     <div class="app-shell__grain" aria-hidden="true"></div>
     <main class="poster-shell">
       <PosterTitleBlock class="poster-shell__title" />
+      <div
+        v-if="interactionNotice"
+        class="app-shell__notice"
+        :class="{
+          'app-shell__notice--warning': interactionNotice.tone === 'warning'
+        }"
+        role="status"
+        aria-live="polite"
+      >
+        {{ interactionNotice.message }}
+      </div>
       <section
         class="poster-shell__experience"
         :class="{
@@ -44,6 +86,29 @@ const { selectedPoint } = storeToRefs(mapUiStore)
     radial-gradient(circle at 30% 80%, rgba(146, 112, 74, 0.06), transparent 30%);
   mix-blend-mode: multiply;
   opacity: 0.85;
+}
+
+.app-shell__notice {
+  position: fixed;
+  top: max(var(--space-lg), env(safe-area-inset-top, 0px) + var(--space-sm));
+  left: 50%;
+  z-index: 5;
+  min-width: min(18rem, calc(100vw - var(--space-2xl)));
+  max-width: min(28rem, calc(100vw - var(--space-2xl)));
+  padding: 0.8rem 1rem;
+  border: 1px solid rgba(143, 117, 80, 0.52);
+  background: rgba(251, 246, 236, 0.92);
+  color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 16px 28px rgba(73, 49, 31, 0.12);
+  backdrop-filter: blur(6px);
+  transform: translateX(-50%);
+}
+
+.app-shell__notice--warning {
+  border-color: rgba(200, 100, 59, 0.48);
 }
 
 .poster-shell {

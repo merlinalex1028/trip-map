@@ -13,9 +13,9 @@
 
 ### Geo Detection
 
-- [ ] **GEO-01**: 用户点击地图后，系统可以将点击位置转换为对应的真实地理坐标
-- [ ] **GEO-02**: 用户点击有效陆地区域后，系统可以离线识别对应的国家或地区信息
-- [ ] **GEO-03**: 用户点击海洋、无效区域或无法识别的位置时，系统不会创建错误点位并会给出明确提示
+- [x] **GEO-01**: 用户点击地图后，系统可以将点击位置转换为对应的真实地理坐标
+- [x] **GEO-02**: 用户点击有效陆地区域后，系统可以离线识别对应的国家或地区信息
+- [x] **GEO-03**: 用户点击海洋、无效区域或无法识别的位置时，系统不会创建错误点位并会给出明确提示
 - [ ] **GEO-04**: 系统在无法可靠识别城市时，仍可以以国家或地区级结果创建有效点位
 
 ### Point Management
@@ -79,9 +79,9 @@
 | MAP-01 | Phase 1 | Pending |
 | MAP-02 | Phase 1 | Pending |
 | MAP-03 | Phase 3 | Pending |
-| GEO-01 | Phase 2 | Pending |
-| GEO-02 | Phase 2 | Pending |
-| GEO-03 | Phase 2 | Pending |
+| GEO-01 | Phase 2 | Complete |
+| GEO-02 | Phase 2 | Complete |
+| GEO-03 | Phase 2 | Complete |
 | GEO-04 | Phase 4 | Pending |
 | PNT-01 | Phase 3 | Pending |
 | PNT-02 | Phase 3 | Pending |

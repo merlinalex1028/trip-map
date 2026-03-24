@@ -9,17 +9,23 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@turf/boolean-point-in-polygon": "^7.3.4",
+    "d3-geo": "^3.1.1",
     "nanoid": "^5.1.5",
     "pinia": "^3.0.3",
     "vue": "^3.5.21"
   },
   "devDependencies": {
+    "@types/d3-geo": "^3.1.0",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^17.6.3",
+    "i18n-iso-countries": "^7.14.0",
+    "topojson-client": "^3.1.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.1",
     "vitest": "^3.2.4",
-    "vue-tsc": "^3.0.6"
+    "vue-tsc": "^3.0.6",
+    "world-atlas": "^2.0.2"
   }
 }

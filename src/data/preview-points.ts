@@ -14,8 +14,11 @@ function isValidPoint(value: unknown): value is MapPointDisplay {
     typeof point.id === 'string' &&
     typeof point.name === 'string' &&
     typeof point.countryName === 'string' &&
+    typeof point.countryCode === 'string' &&
     typeof point.x === 'number' &&
     typeof point.y === 'number' &&
+    typeof point.lat === 'number' &&
+    typeof point.lng === 'number' &&
     typeof point.source === 'string' &&
     typeof point.isFeatured === 'boolean' &&
     typeof point.description === 'string' &&

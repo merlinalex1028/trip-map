@@ -1,0 +1,37 @@
+import {
+  WORLD_PROJECTION_CONFIG,
+  clampNormalizedPoint,
+  geoCoordinatesToNormalizedPoint,
+  normalizedPointToGeoCoordinates
+} from './map-projection'
+
+describe('map projection service', () => {
+  it('maps the center of the surface near null island', () => {
+    const result = normalizedPointToGeoCoordinates({ x: 0.5, y: 0.5 })
+
+    expect(result.lng).toBeCloseTo(0, 6)
+    expect(result.lat).toBeCloseTo(0, 6)
+  })
+
+  it('maps left and right extremes near world bounds', () => {
+    const left = normalizedPointToGeoCoordinates({ x: 0, y: 0.5 })
+    const right = normalizedPointToGeoCoordinates({ x: 1, y: 0.5 })
+
+    expect(left.lng).toBeCloseTo(-180, 6)
+    expect(right.lng).toBeCloseTo(180, 6)
+  })
+
+  it('clamps out-of-range normalized inputs', () => {
+    expect(clampNormalizedPoint({ x: -1.2, y: 1.6 })).toEqual({ x: 0, y: 1 })
+  })
+
+  it('round-trips geographic coordinates back into normalized plot space', () => {
+    const point = geoCoordinatesToNormalizedPoint({ lng: 31.2357, lat: 30.0444 })
+    const result = normalizedPointToGeoCoordinates(point)
+
+    expect(point.x).toBeGreaterThan(WORLD_PROJECTION_CONFIG.plotLeft / WORLD_PROJECTION_CONFIG.viewBoxWidth)
+    expect(point.y).toBeGreaterThan(WORLD_PROJECTION_CONFIG.plotTop / WORLD_PROJECTION_CONFIG.viewBoxHeight)
+    expect(result.lng).toBeCloseTo(31.2357, 6)
+    expect(result.lat).toBeCloseTo(30.0444, 6)
+  })
+})

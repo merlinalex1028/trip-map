@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 
 import { useMapUiStore } from '../stores/map-ui'
 
 const mapUiStore = useMapUiStore()
 const { selectedPoint } = storeToRefs(mapUiStore)
 const { clearSelection } = mapUiStore
+const drawerBadge = computed(() => {
+  return selectedPoint.value?.source === 'detected' ? '识别结果' : '查看地点'
+})
 
 function handleWindowKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
@@ -35,7 +38,7 @@ onUnmounted(() => {
     </button>
 
     <div class="point-preview-drawer__body">
-      <p class="point-preview-drawer__badge">查看地点</p>
+      <p class="point-preview-drawer__badge">{{ drawerBadge }}</p>
       <h2 class="point-preview-drawer__name">{{ selectedPoint.name }}</h2>
       <p class="point-preview-drawer__country">{{ selectedPoint.countryName }}</p>
       <p class="point-preview-drawer__coordinate">{{ selectedPoint.coordinatesLabel }}</p>

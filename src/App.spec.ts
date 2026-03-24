@@ -12,6 +12,7 @@ describe('App shell', () => {
     })
 
     expect(wrapper.find('.poster-shell').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('旅行世界地图')
   })
 })
