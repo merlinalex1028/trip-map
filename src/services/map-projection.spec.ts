@@ -6,6 +6,15 @@ import {
 } from './map-projection'
 
 describe('map projection service', () => {
+  it('keeps the geographic render frame aligned with the poster svg', () => {
+    expect(WORLD_PROJECTION_CONFIG).toMatchObject({
+      plotLeft: 160,
+      plotTop: 80,
+      plotWidth: 1280,
+      plotHeight: 640
+    })
+  })
+
   it('maps the center of the surface near null island', () => {
     const result = normalizedPointToGeoCoordinates({ x: 0.5, y: 0.5 })
 
@@ -13,9 +22,16 @@ describe('map projection service', () => {
     expect(result.lat).toBeCloseTo(0, 6)
   })
 
-  it('maps left and right extremes near world bounds', () => {
-    const left = normalizedPointToGeoCoordinates({ x: 0, y: 0.5 })
-    const right = normalizedPointToGeoCoordinates({ x: 1, y: 0.5 })
+  it('maps the rendered plot bounds near world limits', () => {
+    const left = normalizedPointToGeoCoordinates({
+      x: WORLD_PROJECTION_CONFIG.plotLeft / WORLD_PROJECTION_CONFIG.viewBoxWidth,
+      y: 0.5
+    })
+    const right = normalizedPointToGeoCoordinates({
+      x: (WORLD_PROJECTION_CONFIG.plotLeft + WORLD_PROJECTION_CONFIG.plotWidth) /
+        WORLD_PROJECTION_CONFIG.viewBoxWidth,
+      y: 0.5
+    })
 
     expect(left.lng).toBeCloseTo(-180, 6)
     expect(right.lng).toBeCloseTo(180, 6)

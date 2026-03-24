@@ -3,9 +3,9 @@ import type { GeoCoordinates, NormalizedPoint, ProjectionConfig } from '../types
 export const WORLD_PROJECTION_CONFIG: ProjectionConfig = {
   viewBoxWidth: 1600,
   viewBoxHeight: 800,
-  plotLeft: 40,
+  plotLeft: 160,
   plotTop: 80,
-  plotWidth: 1520,
+  plotWidth: 1280,
   plotHeight: 640,
   lngMin: -180,
   lngMax: 180,

@@ -1,4 +1,21 @@
 import { isLowConfidenceBoundaryHit, lookupCountryRegionByCoordinates } from './geo-lookup'
+import { normalizedPointToGeoCoordinates } from './map-projection'
+
+const RENDER_FRAME = {
+  left: 160,
+  top: 80,
+  width: 1280,
+  height: 640,
+  viewBoxWidth: 1600,
+  viewBoxHeight: 800
+}
+
+function renderedGeoPointToNormalizedPoint(lat: number, lng: number) {
+  return {
+    x: (RENDER_FRAME.left + ((lng + 180) / 360) * RENDER_FRAME.width) / RENDER_FRAME.viewBoxWidth,
+    y: (RENDER_FRAME.top + ((90 - lat) / 180) * RENDER_FRAME.height) / RENDER_FRAME.viewBoxHeight
+  }
+}
 
 describe('geo lookup service', () => {
   it('detects Lisbon as Portugal', () => {
@@ -31,6 +48,24 @@ describe('geo lookup service', () => {
     expect(result?.countryCode).toBe('HK')
     expect(result?.displayName).toBe('Hong Kong')
     expect(result?.kind).toBe('region')
+  })
+
+  it('keeps an obvious Japan click aligned with Japan instead of inland Asia', () => {
+    const normalizedPoint = renderedGeoPointToNormalizedPoint(35.6762, 139.6503)
+    const geo = normalizedPointToGeoCoordinates(normalizedPoint)
+    const result = lookupCountryRegionByCoordinates(geo)
+
+    expect(result?.countryCode).toBe('JP')
+    expect(result?.displayName).toBe('Japan')
+  })
+
+  it('keeps an obvious Hong Kong click aligned with Hong Kong instead of Myanmar', () => {
+    const normalizedPoint = renderedGeoPointToNormalizedPoint(22.3193, 114.1694)
+    const geo = normalizedPointToGeoCoordinates(normalizedPoint)
+    const result = lookupCountryRegionByCoordinates(geo)
+
+    expect(result?.countryCode).toBe('HK')
+    expect(result?.displayName).toBe('Hong Kong')
   })
 
   it('detects Greenland with the expected display name', () => {

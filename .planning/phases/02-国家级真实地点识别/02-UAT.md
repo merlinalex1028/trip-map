@@ -3,7 +3,7 @@ status: diagnosed
 phase: 02-国家级真实地点识别
 source: 02-01-SUMMARY.md, 02-02-SUMMARY.md
 started: 2026-03-24T03:12:03Z
-updated: 2026-03-24T03:22:13Z
+updated: 2026-03-24T03:31:00Z
 ---
 
 ## Current Test
@@ -62,8 +62,8 @@ skipped: 0
     - path: "src/services/map-projection.ts"
       issue: "点击反算仍使用 40..1560 的横向地理范围"
   missing:
-    - "让 SVG 底图与 WORLD_PROJECTION_CONFIG 使用完全一致的地理绘图区"
-    - "增加日本点击样本的自动化回归测试"
+    - "人工回归确认日本点击在真实页面中已恢复正确识别"
+  resolution: "已在 02-03 中将 WORLD_PROJECTION_CONFIG 对齐到真实球面框 x=160..1440，并新增 Japan 点击回归测试。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"
 - truth: "点击香港、澳门或格陵兰等特殊地区时，抽屉应优先显示正确的地区识别结果"
   status: failed
@@ -77,6 +77,6 @@ skipped: 0
     - path: "src/components/WorldMapStage.vue"
       issue: "用户点击结果依赖了错误的底图横向地理框"
   missing:
-    - "修正 East Asia 区域的点击反算对齐"
-    - "增加 Hong Kong 点击样本的自动化回归测试"
+    - "人工回归确认 Hong Kong 点击在真实页面中已恢复正确识别"
+  resolution: "已在 02-03 中修正 East Asia 横向投影对齐，并新增 Hong Kong 点击回归测试。"
   debug_session: ".planning/debug/02-projection-frame-mismatch.md"
