@@ -16,19 +16,21 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 
 - [x] 用户点击已有点位时可以重新选中该点位并打开对应详情面板
 - [x] 用户取消新建点位时，地图上不会残留未保存的空点位
+- [x] 用户可以看到一张可交互的世界地图，并在桌面端和移动端正常使用
+- [x] 用户点击地图后，系统可以离线识别真实地点，至少达到国家/地区级准确性
+- [x] 系统在无法可靠识别城市时，仍可以回退到国家或地区级结果继续创建点位
+- [x] 用户可以创建、查看、编辑、删除自己的旅行点位，并看到高亮状态
+- [x] 用户可以通过详情面板维护地点名称、简介、点亮状态等基础内容
+- [x] 用户数据可通过本地种子数据和 `localStorage` 合并加载，并在刷新后保留
 
 ### Active
 
-- [ ] 用户可以看到一张可交互的世界地图，并在桌面端和移动端正常使用
-- [ ] 用户点击地图后，系统可以离线识别真实地点，至少达到国家/地区级准确性
-- [ ] 用户可以创建、查看、编辑、删除自己的旅行点位，并看到高亮状态
-- [ ] 用户可以通过详情面板维护地点名称、简介、点亮状态等基础内容
-- [ ] 用户数据可通过本地种子数据和 `localStorage` 合并加载，并在刷新后保留
+- None — v1 核心 requirements 已在 Phase 06 的里程碑审计中全部验证通过。
 
 ## Current State
 
-- Phase 05 `草稿取消闭环与点位重选修复` 已完成，草稿切换到已有点位后的残留问题已修复，并补齐了对应回归测试。
-- 当前焦点已切换到 Phase 06 `历史验证证据补齐与需求追踪回填`，目标是补齐 v1.0 的 verification、validation 与 traceability 证据。
+- Phase 06 `历史验证证据补齐与需求追踪回填` 已完成，Phase 1-4 的 verification、validation 与 requirement traceability 证据均已补齐。
+- `v1.0-MILESTONE-AUDIT.md` 已收口为 `passed`，项目当前可直接进入 milestone archive 或转入 v2 规划。
 
 ### Out of Scope
 
@@ -40,7 +42,7 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 
 ## Context
 
-- 当前项目是 greenfield，目录中仅有产品文档 [PRD.md](/Users/huangjingping/i/trip-map/PRD.md)，尚未存在业务代码
+- 当前项目已完成 v1 milestone 的 6 个 phase，前端代码、测试与 planning 产物均已存在；[PRD.md](/Users/huangjingping/i/trip-map/PRD.md) 继续作为产品背景文档保留
 - 产品已经明确要求“真实点位判断”，不能只保存屏幕坐标，必须保存 `lat/lng`、国家/地区信息，并支持后续增强到城市级
 - 第一版默认采用固定投影世界地图，点击地图后先完成屏幕坐标到地理坐标的映射，再做国家边界命中与可选城市匹配
 - 数据来源分为两层：项目内置的预置示例点位，以及用户通过界面创建和编辑后的本地点位
@@ -67,4 +69,4 @@ v1 将以 `Vue 3 + Vite + TypeScript` 的单页应用形式实现，核心体验
 | 详情交互采用响应式抽屉而非独立页面 | 保持地图为主视觉，同时减少跳转中断感 | — Pending |
 
 ---
-*Last updated: 2026-03-24 after Phase 05 completion*
+*Last updated: 2026-03-24 after Phase 06 completion*
