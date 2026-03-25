@@ -1,118 +1,120 @@
-# Feature Research
+# Feature Landscape: 旅行世界地图 v2.0
 
-**Domain:** 旅行世界地图与离线真实地点识别
-**Researched:** 2026-03-23
-**Confidence:** HIGH
+**Scope:** 仅覆盖本 milestone 新增能力：城市优先选择、真实城市边界高亮、浮动 popup 详情、原创二次元可爱视觉改版
+**Researched:** 2026-03-25
+**Overall confidence:** MEDIUM
 
-## Feature Landscape
+## Scope Guardrails
 
-### Table Stakes (Users Expect These)
+- 复用 `v1` 已有世界地图、点位 CRUD、本地持久化、响应式 drawer。
+- 本文件不覆盖富内容、同步、分享、账号、社交、统计系统。
+- 目标是把“城市级选择体验”做成主交互，而不是把产品扩成通用地图平台。
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| 世界地图可视化 | 没有地图就无法承载旅行足迹体验 | LOW | v1 可先使用固定投影静态底图 |
-| 点击地图识别国家/地区 | 这是“真实点位判断”的核心承诺 | HIGH | 需要投影换算与国家边界命中 |
-| 旅行点位创建与高亮 | 用户需要能标记自己去过的地方 | MEDIUM | 点位要区分普通高亮与选中态 |
-| 点位详情抽屉 | 用户需要查看和补充地点信息 | MEDIUM | 桌面右抽屉、移动端底抽屉 |
-| 点位编辑与删除 | 旅行记录不是一次性写入，必须可改 | MEDIUM | 需要未保存取消与误触恢复策略 |
-| 本地持久化 | 用户刷新后不应丢失记录 | MEDIUM | 需种子数据与本地数据合并策略 |
+## Table Stakes
 
-### Differentiators (Competitive Advantage)
+| Theme | Feature | User-facing behavior | Complexity | Prerequisites | Notes |
+|-------|---------|----------------------|------------|---------------|-------|
+| 城市优先选择 | 城市候选优先入口 | 用户可以从城市候选或搜索结果开始选点，也可以点地图后优先获得城市级候选，而不是被迫精准点击极小区域 | MEDIUM | 城市数据索引、名称标准化 | 同类旅行记录产品普遍支持按城市检索或直接标记城市 |
+| 城市优先选择 | 明确的城市失败回退 | 当系统无法可靠命中城市时，必须明确提示并回退到国家/地区级，而不是静默创建错误城市 | HIGH | 城市命中置信度、回退规则 | 这是从 `v1` 国家级识别升级到城市优先时的可信度底线 |
+| 城市优先选择 | 同名城市消歧 | 同名城市或边界附近点击时，用户可以看到带国家/州信息的候选列表并确认最终城市 | HIGH | 稳定 `cityId`、所属上级区域元数据 | 没有消歧，城市优先会快速失去可信度 |
+| 城市优先选择 | 已有城市复用 | 用户再次选中已记录城市时，系统优先回到现有点位或进入编辑，而不是盲目创建重复记录 | MEDIUM | 城市 identity 映射、已有点位索引 | 这是城市级产品比国家级更容易暴露的重复问题 |
+| 边界高亮 | 真实城市面域高亮 | 选中城市后，地图高亮真实城市边界的填充和描边，而不是只亮一个 pin | HIGH | 城市边界 polygon 数据、选中态渲染层 | 这是本 milestone 最关键的“看得见的升级” |
+| 边界高亮 | 稳定的选中态切换 | hover、selected、关闭 popup、切换城市后，高亮状态切换一致且不会残留错误面域 | MEDIUM | 单一选中态源、边界 layer 状态管理 | 需要避免多处状态分别控制导致闪烁或残影 |
+| Popup 详情 | 轻量浮动摘要卡 | 选中城市后出现浮动 popup，展示城市名、国家/地区、访问状态、简介摘要等最小必要信息 | MEDIUM | 选中城市状态、popup 锚点策略 | popup 应该是“确认与预览”，不是完整编辑器 |
+| Popup 详情 | popup 到 drawer 的接力 | popup 内提供查看详情、编辑、切换状态等快捷动作，复杂编辑继续复用现有 drawer | MEDIUM | 与现有 drawer 的状态联动 | 这样能新增轻量反馈，又不复制一套表单 |
+| Popup 详情 | 小屏安全展示 | 在移动端，popup 必须自动避开边缘或退化为底部 peek 卡片，不能遮挡主要地图内容或跑出屏幕 | MEDIUM | 响应式定位、边界碰撞处理 | 地图产品的 popup 在移动端最容易出现遮挡问题 |
+| 可爱视觉改版 | 统一的视觉语言 | marker、边界高亮、popup、drawer、按钮、空状态要使用同一套颜色、圆角、插画和字体语气 | MEDIUM | 设计 token、组件样式收口 | 不统一就会像“旧 UI 上贴新皮肤” |
+| 可爱视觉改版 | 可爱但不牺牲可读性 | 新风格必须保留足够对比度、可点击热区、状态区分和地图可读性 | MEDIUM | 颜色与尺寸规范、可访问性检查 | 视觉改版不能压过地图交互本身 |
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| 无网络地点识别 | 强化隐私与离线能力，体验更可信 | HIGH | 明确区别于在线逆地理编码 |
-| 清晰的地点双坐标模型 | 为未来升级城市级识别、地图替换和导出预留空间 | MEDIUM | 同时存 `lat/lng` 与 `x/y` |
-| 轻量快速的点亮体验 | 用户从点击到看到结果必须顺滑 | MEDIUM | 地图主视觉不能被表单打断 |
+## Differentiators
 
-### Anti-Features (Commonly Requested, Often Problematic)
+| Theme | Feature | User-facing behavior | Complexity | Prerequisites | Notes |
+|-------|---------|----------------------|------------|---------------|-------|
+| 城市优先选择 | 视口/最近使用快捷城市 | 用户在当前地图区域或最近使用列表中快速选择城市，而不是每次都重新搜 | MEDIUM | 城市索引、最近选择记录 | 这是“城市优先”从能用到顺手的关键增强 |
+| 城市优先选择 | 宽容命中区 | 对小城市、狭长城市或边界附近点击，系统通过最近边界/候选规则给出更宽容的命中体验 | HIGH | 城市边界数据、距离或面积启发式 | 可明显改善“点不中城市”的主观感受 |
+| 边界高亮 | 城市状态视觉语法 | 未记录、已记录、当前选中、待确认等状态在边界和 marker 上有统一且一眼可懂的视觉差异 | MEDIUM | 状态模型、设计 token | 比单纯换颜色更有产品完成度 |
+| Popup 详情 | 低摩擦快捷动作 | popup 内直接提供“标记去过/取消点亮/查看详情”等 1-2 个高频动作 | MEDIUM | 点位状态更新链路 | 能减少每次都打开 drawer 的操作成本 |
+| Popup 详情 | 智能定位与避让 | popup 根据边界中心、点击点或 marker 自动选择锚点，尽量不挡住当前城市 | HIGH | popup offset、边缘碰撞处理 | 这是地图 popup 看起来“专业”的细节 |
+| 可爱视觉改版 | 角色化空状态与成功反馈 | 空地图、首次添加、保存成功等时刻有统一的原创可爱插画或轻动画反馈 | MEDIUM | 插画资产、动效规范 | 适合强化“二次元可爱”记忆点，但应控制在少量关键时刻 |
+| 可爱视觉改版 | 地图友好的装饰性动效 | 选中城市或保存成功时提供短促、克制的 halo/sparkle 动效，而不是持续占据注意力 | MEDIUM | 动效 token、性能预算 | 差异化强，但必须受性能和干扰度约束 |
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| 在线逆地理编码 API | 看起来最快拿到地点名称 | 破坏离线目标，引入外部依赖与成本 | 静态国家边界 + 本地城市数据 |
-| 富媒体旅行日志 | 容易让产品显得更完整 | 会显著扩大 v1 范围，偏离真实点位主线 | 先只支持标题与简介 |
-| 社交分享与账号系统 | 很常见，容易联想到“旅行社区” | 对当前单用户产品价值不大，复杂度高 | 先打磨本地记录体验 |
+## Anti-Features
+
+| Anti-Feature | Why Avoid Now | What to Do Instead |
+|--------------|---------------|--------------------|
+| 全量全球地点搜索到乡镇/POI/景点级 | 数据清洗、别名、排序和性能成本会快速失控，远超“城市优先”范围 | 先只支持受控的城市级数据集和明确的覆盖范围 |
+| 在线 geocoding / autocomplete API | 与项目“本地离线识别”方向冲突，并引入网络依赖、成本与隐私问题 | 继续坚持本地城市索引和本地边界数据 |
+| 全面改造成 slippy map（连续缩放、拖拽、倾斜、瓦片体系） | 这是地图引擎级重构，不是本 milestone 的核心问题 | 在现有固定世界地图上先把城市识别、边界高亮和 popup 做稳 |
+| 让 popup 承担完整编辑表单 | 会复制 drawer 能力，导致两套编辑入口长期分裂 | popup 只做摘要和高频快捷动作，完整编辑继续进入 drawer |
+| 用户手动画城市边界或修正 polygon | 会把产品拖向 GIS 工具，复杂度和错误处理都显著上升 | 对无法稳定命中的情况提供候选确认或国家级回退 |
+| 统计面板、排行榜、成就系统 | 很容易膨胀成另一条产品线，且不直接解决本 milestone 核心体验 | 先把选城市、看边界、看详情这条主链路完成 |
+| bucket list、路线规划、行程时间线 | 虽然和城市选择相邻，但会把模型从“旅行足迹”扩展到“旅行规划” | 本期最多保留简单状态切换，不做规划系统 |
+| 每个城市一套独立插画、Live2D mascot、重动效主题皮肤 | 资产生产成本过高，极易拖慢交付并影响性能 | 做一套统一的原创可爱视觉规范和少量复用插画 |
+| 全站所有界面同步重设计 | 范围过大，且风险会扩散到与 milestone 无关的区域 | 只重做与地图主链路直接相关的界面表面：地图、marker、popup、drawer、按钮、空状态 |
 
 ## Feature Dependencies
 
 ```text
-真实地点识别
-    └──requires──> 固定投影与坐标换算
-                           └──requires──> 世界地图底图与地理数据
+城市数据标准化
+  -> 城市搜索/候选入口
+  -> 同名城市消歧
+  -> 稳定 cityId
 
-点位创建与高亮
-    └──requires──> 真实地点识别
+稳定 cityId
+  -> 已有城市复用
+  -> 城市边界 lookup
+  -> popup 内容绑定
 
-详情抽屉编辑
-    └──requires──> 点位创建与选择态
+城市边界 polygon 数据
+  -> 真实边界高亮
+  -> 宽容命中区
+  -> popup 智能定位
 
-本地持久化
-    └──enhances──> 点位创建与详情编辑
+popup 摘要卡
+  -> 高频快捷动作
+  -> 打开现有 drawer 做完整编辑
 
-城市级识别
-    └──requires──> 国家级识别与城市数据集
+视觉 token / 插画规范
+  -> marker 改版
+  -> 边界高亮风格
+  -> popup / drawer 改版
+  -> 可选的轻动效反馈
 ```
 
-### Dependency Notes
+## MVP Recommendation
 
-- **真实地点识别 requires 固定投影与坐标换算:** 如果底图与投影规则不一致，命中结果就不可信
-- **点位创建与高亮 requires 真实地点识别:** 这是产品主行为，不能跳过
-- **详情抽屉编辑 requires 点位创建与选择态:** 抽屉必须围绕当前选中点位工作
-- **城市级识别 requires 国家级识别与城市数据集:** 城市识别应该建立在国家级正确性之上
+优先顺序建议：
 
-## MVP Definition
+1. 城市候选解析、同名消歧、失败回退先做稳。
+2. 真实城市边界高亮与状态切换紧接着落地。
+3. 浮动 popup 只做摘要与快捷动作，并与现有 drawer 打通。
+4. 在交互链路稳定后，再统一 marker、popup、边界与 drawer 的可爱视觉语言。
+5. 最后再加最近使用城市、智能避让、轻动效、角色化反馈等差异化增强。
 
-### Launch With (v1)
+明确延后：
 
-- [ ] 世界地图底图与响应式布局 — 提供完整地图主视图
-- [ ] 国家/地区级离线地点识别 — 满足真实点位判断承诺
-- [ ] 点位创建、编辑、删除与高亮 — 形成闭环旅行记录
-- [ ] 详情抽屉与基础信息维护 — 允许用户补充地点信息
-- [ ] `seed + localStorage` 数据管理 — 保证首次演示与持久化
-
-### Add After Validation (v1.x)
-
-- [ ] 城市级匹配 — 依赖城市数据质量与性能验证
-- [ ] 更丰富的交互反馈 — 比如 toast、撤销、筛选
-- [ ] 简单搜索或快速定位 — 当点位数量变多后再增强
-
-### Future Consideration (v2+)
-
-- [ ] 图片、标签、游记、时间线 — 扩展内容表达
-- [ ] 导入导出、云端同步 — 扩展数据可移植性
-- [ ] 分享链接、社区互动 — 从个人工具转向社交产品
-
-## Feature Prioritization Matrix
-
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| 世界地图展示 | HIGH | LOW | P1 |
-| 国家级地点识别 | HIGH | HIGH | P1 |
-| 点位 CRUD | HIGH | MEDIUM | P1 |
-| 详情抽屉 | HIGH | MEDIUM | P1 |
-| 本地持久化 | HIGH | MEDIUM | P1 |
-| 城市级匹配 | MEDIUM | HIGH | P2 |
-| 搜索/筛选 | MEDIUM | MEDIUM | P2 |
-| 富内容与同步 | MEDIUM | HIGH | P3 |
-
-**Priority key:**
-- P1: Must have for launch
-- P2: Should have, add when possible
-- P3: Nice to have, future consideration
-
-## Competitor Feature Analysis
-
-| Feature | Competitor A | Competitor B | Our Approach |
-|---------|--------------|--------------|--------------|
-| 访问过的地点点亮 | 常见 scratch-map 体验 | 常见旅行打卡体验 | 保留，但要求点击后先完成真实地点识别 |
-| 统计/社交/分享 | 常作为后续扩展 | 常作为增长功能 | 明确不纳入 v1 |
-| 地点内容扩展 | 常见图片、攻略、标签 | 常见多模块信息流 | v1 只保留标题与简介 |
+- 富内容 popup
+- 统计/成就/排行榜
+- bucket list 与路线规划
+- 导入导出、分享、同步
+- 全量地图引擎重构
 
 ## Sources
 
-- [PRD.md](/Users/huangjingping/i/trip-map/PRD.md) — 已确认的产品范围与交互要求
-- 子研究摘要：Features 维度 — GSD 并行研究结果
+- [`.planning/PROJECT.md`](/Users/huangjingping/i/trip-map/.planning/PROJECT.md) — 项目边界与既有能力基线
+- [`.planning/milestones/v1.0-REQUIREMENTS.md`](/Users/huangjingping/i/trip-map/.planning/milestones/v1.0-REQUIREMENTS.md) — 既有 requirement 基线，确认哪些能力应复用而非重做
+- `Been` 产品页（MEDIUM）: https://been.travel/ — 当前同类产品把“countries / cities / regions”并列为用户可标记层级
+- `Visited Cities` 产品页（MEDIUM）: https://www.visitedcities.com/ — 强调“pin the exact cities, towns, and villages”与城市级追踪是卖点
+- `Visited Cities` Google Play（MEDIUM）: https://play.google.com/store/apps/details?hl=en_US&id=com.bolsos.visited — 当前同类产品默认用户期望城市级追踪、wishlist、stats
+- `Visited App` App Store / 官网（MEDIUM）: https://apps.apple.com/us/app/visited-travel-tracker-map/id846983349 , https://visitedapp.com/ — 说明旅行地图产品常见扩展方向，但这些不应自动进入本 milestone
+- `Countries Been`（MEDIUM）: https://www.countriesbeen.com/ — 展示城市数量级和浏览器本地保存/跨设备扩展是相邻方向，但非本期核心
+- `Polarsteps` 计划目的地帮助文档（MEDIUM）: https://support.polarsteps.com/hc/en-us/articles/24265886208914-How-do-I-plan-my-trip — 体现“输入搜索或地图选点”是常见 destination 选择模式
+- `MapLibre GL JS` popup 与 polygon 示例（HIGH）: https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-click/ , https://maplibre.org/maplibre-gl-js/docs/examples/show-polygon-information-on-click/ , https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/ — 支持 popup、polygon click、offset/padding 等交互模式
+- `MapLibre Style Spec` feature-state（HIGH）: https://maplibre.org/maplibre-style-spec/expressions/ — 支持 hover/selected 等边界状态渲染
+- `Google Maps` marker accessibility（HIGH）: https://developers.google.com/maps/documentation/javascript/advanced-markers/accessible-markers — 支持可点击、可聚焦、增大热区、键盘触发等交互可达性原则
+- `Microsoft Azure Maps` accessibility（MEDIUM）: https://learn.microsoft.com/en-us/azure/azure-maps/map-accessibility — 支持 popup 键盘可达、颜色对比、避免仅依赖 hover 的地图 UX 原则
 
----
-*Feature research for: 旅行世界地图*
-*Researched: 2026-03-23*
+## Confidence Notes
+
+- `城市优先选择 / popup / 边界高亮`: MEDIUM-HIGH。竞品模式与地图 SDK 文档较一致。
+- `可爱视觉改版`: MEDIUM。外部资料更适合提供可读性和可访问性约束，具体“原创二次元可爱”风格仍应由产品方向主导。
