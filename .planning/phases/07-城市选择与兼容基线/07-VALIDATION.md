@@ -44,6 +44,9 @@ created: 2026-03-25
 | 07-02-02 | 02 | 2 | DEST-03, DEST-05, DAT-05 | component | `pnpm test -- src/components/WorldMapStage.spec.ts src/components/PointPreviewDrawer.spec.ts src/App.spec.ts` | ✅ `src/components/WorldMapStage.spec.ts`, `src/components/PointPreviewDrawer.spec.ts`, `src/App.spec.ts` | ✅ green |
 | 07-03-01 | 03 | 3 | DEST-01, DEST-04 | service | `pnpm test -- src/services/geo-lookup.spec.ts` | ✅ `src/services/geo-lookup.spec.ts` | ✅ green |
 | 07-03-02 | 03 | 3 | DEST-02, DEST-04 | component | `pnpm test -- src/services/city-search.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts` | ✅ `src/services/city-search.spec.ts`, `src/components/PointPreviewDrawer.spec.ts`, `src/components/WorldMapStage.spec.ts` | ✅ green |
+| 07-04-01 | 04 | 4 | DEST-01, DEST-02, DEST-04 | data | `pnpm test -- src/data/geo/city-candidates.spec.ts` | ✅ `src/data/geo/city-candidates.spec.ts` | ✅ green |
+| 07-05-01 | 05 | 5 | DEST-01, DEST-04 | service | `pnpm test -- src/services/geo-lookup.spec.ts` | ✅ `src/services/geo-lookup.spec.ts` | ✅ green |
+| 07-05-02 | 05 | 5 | DEST-02, DEST-04, DEST-05 | integration | `pnpm test -- src/services/city-search.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts && pnpm build` | ✅ `src/services/city-search.spec.ts`, `src/components/PointPreviewDrawer.spec.ts`, `src/components/WorldMapStage.spec.ts` | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,8 +60,10 @@ created: 2026-03-25
 - [x] `src/components/WorldMapStage.spec.ts` / `src/App.spec.ts` — 扩展点击 -> 候选 -> 复用 / 回退的交互回归
 - [x] `src/services/city-search.spec.ts` — 覆盖中文/英文城市搜索与空查询行为
 - [x] `src/services/geo-lookup.spec.ts` / `src/components/WorldMapStage.spec.ts` — 覆盖 Paris / New York 等非 demo 国家点击的候选回归
+- [x] `src/data/geo/city-candidates.spec.ts` — 锁住覆盖规模、国家码合法性与关键国家多城市分布
+- [x] `src/services/geo-lookup.spec.ts` / `src/components/WorldMapStage.spec.ts` — 覆盖 Budapest / Nairobi 等原 43 城之外的稀疏国家点击
 
-*候选流、兼容语义、非 demo 国家点击与中文搜索回归均已补齐，本阶段现已满足 Nyquist 合规要求。*
+*候选流、兼容语义、覆盖统计、稀疏国家点击与中英文搜索回归均已补齐，本阶段现已满足 Nyquist 合规要求。*
 
 ---
 

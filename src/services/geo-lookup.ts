@@ -41,6 +41,10 @@ const MIN_CITY_HIGH_HIT_PIXELS = 6
 const CITY_RELIABLE_STATUS_HINT = '更接近点击位置'
 const CITY_POSSIBLE_STATUS_HINT = '可能位置，需要确认'
 
+interface RankedCityCandidate extends GeoCityCandidate {
+  canResolveHighConfidence: boolean
+}
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
 }
@@ -144,7 +148,7 @@ function collectCandidatePool(detectionResult: GeoDetectionResult) {
 function buildRankedCityCandidates(
   detectionResult: GeoDetectionResult,
   geo: GeoCoordinates
-): GeoCityCandidate[] {
+): RankedCityCandidate[] {
   const candidatePool = collectCandidatePool(detectionResult)
 
   return candidatePool
@@ -153,12 +157,11 @@ function buildRankedCityCandidates(
         lat: candidate.lat,
         lng: candidate.lng
       })
-      const highRadiusKm = getInteractionAdjustedRadiusKm(
-        candidate.lat,
-        candidate.highRadiusKm,
-        MIN_CITY_HIGH_HIT_PIXELS
-      )
-      const matchLevel = distanceKm <= highRadiusKm ? 'high' : 'possible'
+      const canResolveHighConfidence = candidate.highRadiusKm > 0
+      const highRadiusKm = canResolveHighConfidence
+        ? getInteractionAdjustedRadiusKm(candidate.lat, candidate.highRadiusKm, MIN_CITY_HIGH_HIT_PIXELS)
+        : Number.NEGATIVE_INFINITY
+      const matchLevel = canResolveHighConfidence && distanceKm <= highRadiusKm ? 'high' : 'possible'
 
       return {
         cityId: candidate.id,
@@ -166,8 +169,9 @@ function buildRankedCityCandidates(
         contextLabel: candidate.contextLabel,
         matchLevel,
         distanceKm,
-        statusHint: matchLevel === 'high' ? CITY_RELIABLE_STATUS_HINT : CITY_POSSIBLE_STATUS_HINT
-      } satisfies GeoCityCandidate
+        statusHint: matchLevel === 'high' ? CITY_RELIABLE_STATUS_HINT : CITY_POSSIBLE_STATUS_HINT,
+        canResolveHighConfidence
+      } satisfies RankedCityCandidate
     })
     .sort((left, right) => {
       if (left.distanceKm !== right.distanceKm) {
@@ -176,6 +180,7 @@ function buildRankedCityCandidates(
 
       return left.cityId.localeCompare(right.cityId)
     })
+    .slice(0, 3)
 }
 
 function enrichWithCityContext(
@@ -183,6 +188,7 @@ function enrichWithCityContext(
   geo: GeoCoordinates
 ): GeoDetectionResult {
   const cityCandidates = buildRankedCityCandidates(detectionResult, geo)
+  const publicCandidates = cityCandidates.map(({ canResolveHighConfidence: _ignored, ...candidate }) => candidate)
 
   if (!cityCandidates.length) {
     return {
@@ -209,15 +215,17 @@ function enrichWithCityContext(
       precision: 'city-high',
       cityId: reliableCandidate.cityId,
       cityName: reliableCandidate.cityName,
-      cityCandidates,
+      cityCandidates: publicCandidates,
       fallbackNotice: null
     }
   }
 
+  const hasPreciseCandidate = cityCandidates.some((candidate) => candidate.canResolveHighConfidence)
+
   return {
     ...detectionResult,
-    precision: 'city-possible',
-    cityCandidates,
+    precision: hasPreciseCandidate ? 'city-possible' : detectionResult.precision,
+    cityCandidates: publicCandidates,
     fallbackNotice: CITY_FALLBACK_NOTICE
   }
 }

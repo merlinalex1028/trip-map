@@ -268,6 +268,36 @@ describe('WorldMapStage', () => {
     )
   }, 15000)
 
+  it('shows candidates for a realistic sparse-country Budapest click', async () => {
+    const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
+      '../services/geo-lookup'
+    )
+    lookupCountryRegionByCoordinates.mockImplementation(actualGeoLookup.lookupCountryRegionByCoordinates)
+    isLowConfidenceBoundaryHit.mockImplementation(actualGeoLookup.isLowConfidenceBoundaryHit)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+    installFrame(surface)
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', clickPointFromGeo(47.4979, 19.0402, 1, -1))
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'hu-budapest',
+        cityName: 'Budapest'
+      })
+    )
+  }, 15000)
+
   it('reuses an existing saved city and emits the light notice prefix', async () => {
     const wrapper = mount(WorldMapStage, {
       global: {

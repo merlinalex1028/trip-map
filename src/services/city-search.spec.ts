@@ -1,39 +1,39 @@
 import { searchOfflineCities } from './city-search'
 
 describe('city search service', () => {
-  it('returns Chinese search matches from the broader offline index', () => {
+  it('returns Chinese search matches outside the original demo-sized index', () => {
     const results = searchOfflineCities({
-      query: '巴黎',
+      query: '布达佩斯',
       origin: {
-        lat: 48.8566,
-        lng: 2.3522
+        lat: 47.4979,
+        lng: 19.0402
       },
-      countryCode: 'FR'
+      countryCode: 'HU'
     })
 
     expect(results[0]).toEqual(
       expect.objectContaining({
-        cityId: 'fr-paris',
-        cityName: 'Paris',
-        contextLabel: 'France · Ile-de-France'
+        cityId: 'hu-budapest',
+        cityName: 'Budapest',
+        contextLabel: 'Hungary · Budapest'
       })
     )
   })
 
-  it('prefers the current country context when ranking English results', () => {
+  it('returns English search matches from the expanded offline catalog', () => {
     const results = searchOfflineCities({
-      query: 'san',
+      query: 'nai',
       origin: {
-        lat: 37.7749,
-        lng: -122.4194
+        lat: -1.2921,
+        lng: 36.8219
       },
-      countryCode: 'US'
+      countryCode: 'KE'
     })
 
     expect(results[0]).toEqual(
       expect.objectContaining({
-        cityId: 'us-san-francisco',
-        cityName: 'San Francisco'
+        cityId: 'ke-nairobi',
+        cityName: 'Nairobi'
       })
     )
   })

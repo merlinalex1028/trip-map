@@ -76,6 +76,38 @@ describe('geo lookup service', () => {
     )
   })
 
+  it('returns ranked city candidates for a realistic Budapest click', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 47.4979,
+      lng: 19.0402
+    })
+
+    expect(result?.countryCode).toBe('HU')
+    expect(result?.cityCandidates[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'hu-budapest',
+        cityName: 'Budapest',
+        statusHint: '更接近点击位置'
+      })
+    )
+  })
+
+  it('returns ranked city candidates for a realistic Nairobi click', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: -1.2921,
+      lng: 36.8219
+    })
+
+    expect(result?.countryCode).toBe('KE')
+    expect(result?.cityCandidates[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'ke-nairobi',
+        cityName: 'Nairobi',
+        statusHint: '更接近点击位置'
+      })
+    )
+  })
+
   it('enriches Kyoto with high-confidence city metadata', () => {
     const result = lookupCountryRegionByCoordinates({
       lat: 35.0116,

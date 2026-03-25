@@ -252,15 +252,15 @@ describe('PointPreviewDrawer', () => {
     expect(store.activePoint?.cityId).toBe('jp-osaka')
   })
 
-  it('rescues an empty pending candidate pool with offline Chinese city search', async () => {
+  it('rescues an empty pending candidate pool with offline Chinese city search beyond the demo catalog', async () => {
     const store = useMapPointsStore()
     store.startPendingCitySelection(
       createDraft({
-        id: 'detected-fr-1',
-        name: 'France',
-        countryName: 'France',
-        countryCode: 'FR',
-        cityContextLabel: 'France'
+        id: 'detected-hu-1',
+        name: 'Hungary',
+        countryName: 'Hungary',
+        countryCode: 'HU',
+        cityContextLabel: 'Hungary'
       }),
       []
     )
@@ -272,15 +272,58 @@ describe('PointPreviewDrawer', () => {
       }
     })
 
-    await wrapper.get('input[placeholder="搜索城市"]').setValue('巴黎')
+    await wrapper.get('input[placeholder="搜索城市"]').setValue('布达佩斯')
 
-    expect(wrapper.text()).toContain('Paris')
+    expect(wrapper.text()).toContain('Budapest')
 
     await wrapper.get('.point-preview-drawer__candidate').trigger('click')
 
     expect(store.drawerMode).toBe('detected-preview')
-    expect(store.activePoint?.cityId).toBe('fr-paris')
-    expect(store.activePoint?.name).toBe('Paris')
+    expect(store.activePoint?.cityId).toBe('hu-budapest')
+    expect(store.activePoint?.name).toBe('Budapest')
+  })
+
+  it('reuses an existing saved city when selecting an expanded-catalog search result', async () => {
+    const store = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
+    store.startDraftFromDetection(
+      createDraft({
+        id: 'saved-hu-budapest',
+        name: 'Budapest',
+        countryName: 'Hungary',
+        countryCode: 'HU',
+        precision: 'city-high',
+        cityId: 'hu-budapest',
+        cityName: 'Budapest',
+        cityContextLabel: 'Hungary · Budapest'
+      })
+    )
+    store.saveDraftAsPoint()
+    store.startPendingCitySelection(
+      createDraft({
+        id: 'detected-hu-2',
+        name: 'Hungary',
+        countryName: 'Hungary',
+        countryCode: 'HU',
+        cityContextLabel: 'Hungary'
+      }),
+      []
+    )
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await wrapper.get('input[placeholder="搜索城市"]').setValue('buda')
+    await wrapper.get('.point-preview-drawer__candidate').trigger('click')
+
+    expect(store.drawerMode).toBe('view')
+    expect(store.activePoint?.source).toBe('saved')
+    expect(store.activePoint?.cityId).toBe('hu-budapest')
+    expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Budapest')
   })
 
   it('shows the fallback CTA and explanatory copy for country continuation', async () => {
