@@ -39,7 +39,9 @@ function createSavedPoint(): PersistedMapPoint {
     countryName: 'Japan',
     countryCode: 'JP',
     precision: 'city-high',
+    cityId: 'jp-kyoto',
     cityName: 'Kyoto',
+    cityContextLabel: 'Japan · Kansai',
     fallbackNotice: null,
     lat: 35,
     lng: 135,
@@ -118,7 +120,9 @@ describe('point-storage service', () => {
             countryName: 'Portugal',
             countryCode: 'PT',
             precision: 'country',
+            cityId: null,
             cityName: null,
+            cityContextLabel: null,
             fallbackNotice: null,
             lat: 38.7223,
             lng: -9.1393,
@@ -136,6 +140,31 @@ describe('point-storage service', () => {
         deletedSeedIds: []
       }
     })
+  })
+
+  it('preserves cityId and cityContextLabel when saving and loading a city record', () => {
+    const snapshot = {
+      version: 1 as const,
+      userPoints: [createSavedPoint()],
+      seedOverrides: [],
+      deletedSeedIds: []
+    }
+
+    savePointStorageSnapshot(snapshot)
+
+    const result = loadPointStorageSnapshot()
+
+    expect(result.status).toBe('ready')
+    expect(result.snapshot?.userPoints[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'jp-kyoto',
+        cityContextLabel: 'Japan · Kansai',
+        lat: 35,
+        lng: 135,
+        x: 0.7,
+        y: 0.45
+      })
+    )
   })
 
   it('applies seed overrides and deletedSeedIds when merging display points', () => {

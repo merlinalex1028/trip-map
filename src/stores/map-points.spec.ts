@@ -38,7 +38,9 @@ describe('map-points store', () => {
       countryName: name,
       countryCode: 'JP',
       precision: 'city-high' as const,
+      cityId: 'jp-kyoto',
       cityName: 'Kyoto',
+      cityContextLabel: 'Japan · Kansai',
       fallbackNotice: null,
       lat: 35,
       lng: 135,
@@ -102,7 +104,9 @@ describe('map-points store', () => {
     const savedPoint = store.saveDraftAsPoint()
 
     expect(savedPoint?.id.startsWith('saved-')).toBe(true)
+    expect(savedPoint?.cityId).toBe('jp-kyoto')
     expect(savedPoint?.cityName).toBe('Kyoto')
+    expect(savedPoint?.cityContextLabel).toBe('Japan · Kansai')
     expect(store.draftPoint).toBeNull()
     expect(store.userPoints).toHaveLength(1)
     expect(store.activePoint?.source).toBe('saved')
@@ -124,6 +128,32 @@ describe('map-points store', () => {
 
     expect(rehydratedStore.userPoints[0].cityName).toBe('Kyoto')
     expect(rehydratedStore.userPoints[0].fallbackNotice).toBe('未识别到更精确城市，已回退到国家/地区')
+  })
+
+  it('finds a saved point by exact cityId', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createDraft('detected-jp-1', 'Kyoto'))
+    const savedPoint = store.saveDraftAsPoint()
+
+    expect(savedPoint).not.toBeNull()
+    expect(store.findSavedPointByCityId('jp-kyoto')?.id).toBe(savedPoint?.id)
+    expect(store.findSavedPointByCityId('jp-osaka')).toBeNull()
+  })
+
+  it('reuses an existing saved point by cityId before creating a duplicate draft', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createDraft('detected-jp-1', 'Kyoto'))
+    const savedPoint = store.saveDraftAsPoint()
+
+    const decision = store.openSavedPointForCityOrStartDraft(createDraft('detected-jp-2', 'Kyoto retry'))
+
+    expect(decision.type).toBe('reused')
+    expect(decision.point.id).toBe(savedPoint?.id)
+    expect(store.draftPoint).toBeNull()
+    expect(store.selectedPointId).toBe(savedPoint?.id ?? null)
+    expect(store.userPoints).toHaveLength(1)
   })
 
   it('hides a seed point from the merged display points', () => {
