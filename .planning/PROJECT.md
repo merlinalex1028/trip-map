@@ -25,26 +25,31 @@
 
 ### Active
 
-- [ ] 更可靠的城市级地点识别与更大的可操作命中区
-- [ ] 图片、标签、游记或时间线等富内容扩展
-- [ ] 导入导出、分享或多设备同步能力
+- [ ] 以城市为主要选择结果，国家/地区仅作为识别失败时的兜底信息
+- [ ] 地图中的已点亮地点以真实城市边界范围整体高亮，而不是单点 marker
+- [ ] 详情交互从抽屉重构为悬浮弹窗，并与地图主舞台形成一体化体验
+- [ ] 整体视觉升级为原创二次元美少女可爱风格，不绑定具体 IP
 
 ## Current State
 
 - `v1.0` 已归档，milestone audit 为 `passed`，Phase 1-6 与 23 个 v1 requirements 全部完成。
-- 当前代码库已具备可运行的旅行地图 MVP，下一步重点是定义下个 milestone 的增强方向，而不是继续修补 v1 基线。
+- 当前代码库已具备可运行的旅行地图 MVP，`v2.0` 将围绕“城市主视角 + 城市区域点亮 + 悬浮弹窗 + 风格重构”展开，而不是继续停留在国家级点位增强。
 
-## Next Milestone Goals
+## Current Milestone: v2.0 城市主视角与可爱风格重构
 
-- 把城市级识别从保守增强提升为更稳定、可预期的主交互能力
-- 扩展点位内容模型，引入图片、标签、游记或时间线
-- 评估导入导出、分享与多设备同步的优先级和边界
+**Goal:** 把旅行地图从“国家/地区级点位记录”升级为“以城市为主要选择单位、以真实城市区域点亮呈现、并完成整体可爱风格重构”的新版本。
+
+**Target features:**
+- 城市成为主要选择结果，国家/地区只作为兜底信息而不是主交互目标
+- 以真实城市行政边界为目标，让点亮效果覆盖整个城市区域，而不是单个 marker 点
+- 详情交互从抽屉改为悬浮弹窗，保持地图主舞台感
+- 整体视觉升级为原创二次元美少女可爱风格，不绑定具体 IP 或角色
 
 ### Out of Scope
 
-- 后端服务与账号体系 — v1 只做单用户本地体验，先验证核心交互
-- 多端同步与分享 — 增加系统复杂度，但不影响旅行点位记录的核心价值
-- 图片、游记、标签、时间线等富内容 — 先把点位识别与基础记录做稳
+- 后端服务与账号体系 — 本 milestone 仍聚焦单用户本地体验，避免把核心复杂度转移到服务端
+- 多端同步、分享、导入导出 — 先把城市识别与城市区域点亮体验做稳，再评估数据流扩展
+- 图片、游记、标签、时间线等富内容 — 当前重点是城市主交互和视觉/详情形态重构
 - 社交、排行榜、探索内容流 — 偏离个人旅行地图主线
 - 在线逆地理编码 API — 与“本地离线识别”方向冲突
 
@@ -54,15 +59,17 @@
 - 产品已经明确要求“真实点位判断”，不能只保存屏幕坐标，必须保存 `lat/lng`、国家/地区信息，并支持后续增强到城市级
 - 第一版默认采用固定投影世界地图，点击地图后先完成屏幕坐标到地理坐标的映射，再做国家边界命中与可选城市匹配
 - 数据来源分为两层：项目内置的预置示例点位，以及用户通过界面创建和编辑后的本地点位
-- 该项目的技术风险主要集中在地图投影一致性、点位命中准确性、边界区域处理和本地数据持久化策略
+- `v2.0` 的主要新增风险集中在真实城市边界数据质量、城市命中判定稳定性、区域高亮渲染性能、弹窗定位策略，以及强风格 UI 重构对可用性的影响
 
 ## Constraints
 
 - **Tech stack**: `Vue 3 + Vite + TypeScript` — 已在产品方案中确认，后续实现不切换框架
 - **Architecture**: 前端本地静态识别 — v1 不依赖后端和在线逆地理编码接口
-- **Accuracy**: 国家/地区级识别必须可用 — 这是核心价值，不允许退化为“随意落点”
+- **Accuracy**: 城市识别必须成为主路径，国家/地区级识别作为兜底而非默认结果
 - **Data model**: 必须保存 `lat/lng` 与 `x/y` — 前者保证真实地点语义，后者保证固定底图渲染稳定
-- **UX**: 桌面右侧抽屉 / 移动端底部抽屉 — 已作为默认交互模式确定
+- **Map rendering**: 城市点亮应以真实城市边界为目标 — 不接受只把城市继续表现成单点 marker
+- **UX**: 详情交互应改为悬浮弹窗 — 不再沿用桌面右侧抽屉 / 移动端底部抽屉作为主模式
+- **Visual design**: 使用原创二次元美少女可爱风格 — 可借鉴风格语言，但不绑定任何具体 IP
 - **Scope**: 单用户本地体验优先 — 不提前引入同步、账号、分享等扩展能力
 
 ## Key Decisions
@@ -75,6 +82,27 @@
 | 用户点位保存 `lat/lng` 与 `x/y` 双坐标 | 兼顾真实地理语义与底图渲染稳定性 | ✓ Shipped in v1.0 |
 | 数据层采用 `seed + localStorage overlay` | 满足首屏演示与本地持久化，不依赖后端 | ✓ Shipped in v1.0 |
 | 详情交互采用响应式抽屉而非独立页面 | 保持地图为主视觉，同时减少跳转中断感 | ✓ Shipped in v1.0 |
+| `v2.0` 以城市作为主要选择单位 | 用户明确要求旅行记录以城市为核心，而不是国家/地区级保守结果 | — Pending |
+| `v2.0` 以真实城市边界整体点亮替代单点 marker 表达 | 需要让“去过这座城市”在地图上具备区域语义，而非仅是坐标点 | — Pending |
+| `v2.0` 详情交互改为悬浮弹窗 | 让地图继续成为视觉主舞台，同时减少抽屉对整体风格的割裂感 | — Pending |
+| `v2.0` 整体视觉升级为原创二次元美少女可爱风格 | 用户明确要求做统一视觉语言重构，且不绑定具体 IP | — Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `$gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `$gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-03-24 after v1.0 milestone archive*
+*Last updated: 2026-03-25 after v2.0 milestone initialization*

@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Planning next milestone
-stopped_at: Completed Phase 06
-last_updated: "2026-03-24T12:22:15.831Z"
+milestone: v2.0
+milestone_name: 城市主视角与可爱风格重构
+status: Defining requirements
+stopped_at: Milestone initialized
+last_updated: "2026-03-25T00:00:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Planning next milestone
+**Current focus:** Milestone v2.0 requirements and roadmap definition
 
 ## Current Position
 
-Phase: Archived
-Plan: Waiting for next milestone definition
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-25 — Milestone v2.0 started
 
 ## Performance Metrics
 
@@ -98,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-24T12:20:00.000Z
-Stopped at: Completed Phase 06
+Last session: 2026-03-25T00:00:00.000Z
+Stopped at: Milestone initialized
 Resume file: None
