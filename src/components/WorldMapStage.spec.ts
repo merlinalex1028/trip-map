@@ -55,7 +55,9 @@ describe('WorldMapStage', () => {
       regionName: null,
       displayName: 'Kyoto',
       precision: 'city-high',
+      cityId: 'jp-kyoto',
       cityName: 'Kyoto',
+      cityCandidates: [],
       fallbackNotice: null,
       lat: geo.lat,
       lng: geo.lng,
@@ -107,8 +109,10 @@ describe('WorldMapStage', () => {
       regionName: null,
       displayName: 'Portugal',
       precision: 'country',
+      cityId: null,
       cityName: null,
-      fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+      cityCandidates: [],
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
       lat: geo.lat,
       lng: geo.lng,
       confidence: 0.95
@@ -132,7 +136,7 @@ describe('WorldMapStage', () => {
     const mapPointsStore = useMapPointsStore()
 
     expect(mapPointsStore.activePoint?.name).toBe('Portugal')
-    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未识别到更精确城市，已回退到国家/地区')
+    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
   })
 
   it('keeps edge-position fallback markers inside the map surface', async () => {
@@ -143,8 +147,10 @@ describe('WorldMapStage', () => {
       regionName: null,
       displayName: 'Japan',
       precision: 'country',
+      cityId: null,
       cityName: null,
-      fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+      cityCandidates: [],
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
       lat: 88,
       lng: 179,
       confidence: 0.94
@@ -263,7 +269,7 @@ describe('WorldMapStage', () => {
     const mapPointsStore = useMapPointsStore()
 
     expect(mapPointsStore.activePoint?.name).toBe('Japan')
-    expect(mapPointsStore.activePoint?.precision).toBe('country')
-    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未识别到更精确城市，已回退到国家/地区')
+    expect(mapPointsStore.activePoint?.precision).toBe('city-possible')
+    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
   })
 })

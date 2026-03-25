@@ -23,6 +23,16 @@ export interface ProjectionConfig {
 
 export type GeoLookupStatus = 'idle' | 'resolving' | 'resolved' | 'invalid'
 export type GeoPrecision = 'country' | 'region' | 'city-high' | 'city-possible'
+export type GeoCityMatchLevel = 'high' | 'possible'
+
+export interface GeoCityCandidate {
+  cityId: string
+  cityName: string
+  contextLabel: string
+  matchLevel: GeoCityMatchLevel
+  distanceKm: number
+  statusHint: '更接近点击位置' | '可能位置，需要确认'
+}
 
 export interface GeoDetectionResult {
   kind: 'country' | 'region'
@@ -31,7 +41,9 @@ export interface GeoDetectionResult {
   regionName: string | null
   displayName: string
   precision: GeoPrecision
+  cityId: string | null
   cityName: string | null
+  cityCandidates: GeoCityCandidate[]
   fallbackNotice: string | null
   lat: number
   lng: number

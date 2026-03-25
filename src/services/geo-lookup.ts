@@ -3,7 +3,12 @@ import { geoContains } from 'd3-geo'
 import { cityCandidatesByContext } from '../data/geo/city-candidates'
 import countryRegions from '../data/geo/country-regions.geo.json'
 import { WORLD_PROJECTION_CONFIG } from './map-projection'
-import type { GeoCoordinates, GeoDetectionResult, GeoFeatureProperties } from '../types/geo'
+import type {
+  GeoCityCandidate,
+  GeoCoordinates,
+  GeoDetectionResult,
+  GeoFeatureProperties
+} from '../types/geo'
 
 interface GeoPolygonGeometry {
   type: 'Polygon'
@@ -30,10 +35,11 @@ const countryRegionFeatures = (countryRegions as CountryRegionFeatureCollection)
 const countryRegionFeatureMap = new Map(
   countryRegionFeatures.map((feature) => [feature.properties.countryCode, feature] as const)
 )
-export const CITY_FALLBACK_NOTICE = '未识别到更精确城市，已回退到国家/地区'
+export const CITY_FALLBACK_NOTICE = '未能可靠确认城市，已提供国家/地区继续记录'
 const KM_PER_DEGREE = 111
 const MIN_CITY_HIGH_HIT_PIXELS = 6
-const MIN_CITY_POSSIBLE_HIT_PIXELS = 9
+const CITY_RELIABLE_STATUS_HINT = '更接近点击位置'
+const CITY_POSSIBLE_STATUS_HINT = '可能位置，需要确认'
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max)
@@ -67,7 +73,9 @@ function toDetectionResult(
     regionName: feature.properties.regionName,
     displayName: feature.properties.displayName,
     precision: feature.properties.regionName ? 'region' : 'country',
+    cityId: null,
     cityName: null,
+    cityCandidates: [],
     fallbackNotice: null,
     lat: geo.lat,
     lng: geo.lng,
@@ -117,30 +125,59 @@ function getCityCandidateKeys(result: GeoDetectionResult) {
   ].filter((key): key is string => Boolean(key))
 }
 
-function enrichWithCityContext(
+function buildRankedCityCandidates(
   detectionResult: GeoDetectionResult,
   geo: GeoCoordinates
-): GeoDetectionResult {
+): GeoCityCandidate[] {
   const candidatePool = getCityCandidateKeys(detectionResult).flatMap((key) => {
     return cityCandidatesByContext[key] ?? []
   })
 
-  if (!candidatePool.length) {
+  return candidatePool
+    .map((candidate) => {
+      const distanceKm = calculateDistanceKm(geo, {
+        lat: candidate.lat,
+        lng: candidate.lng
+      })
+      const highRadiusKm = getInteractionAdjustedRadiusKm(
+        candidate.lat,
+        candidate.highRadiusKm,
+        MIN_CITY_HIGH_HIT_PIXELS
+      )
+      const matchLevel = distanceKm <= highRadiusKm ? 'high' : 'possible'
+
+      return {
+        cityId: candidate.id,
+        cityName: candidate.name,
+        contextLabel: candidate.contextLabel,
+        matchLevel,
+        distanceKm,
+        statusHint: matchLevel === 'high' ? CITY_RELIABLE_STATUS_HINT : CITY_POSSIBLE_STATUS_HINT
+      } satisfies GeoCityCandidate
+    })
+    .sort((left, right) => {
+      if (left.distanceKm !== right.distanceKm) {
+        return left.distanceKm - right.distanceKm
+      }
+
+      return left.cityId.localeCompare(right.cityId)
+    })
+}
+
+function enrichWithCityContext(
+  detectionResult: GeoDetectionResult,
+  geo: GeoCoordinates
+): GeoDetectionResult {
+  const cityCandidates = buildRankedCityCandidates(detectionResult, geo)
+
+  if (!cityCandidates.length) {
     return {
       ...detectionResult,
       fallbackNotice: CITY_FALLBACK_NOTICE
     }
   }
 
-  const bestMatch = candidatePool
-    .map((candidate) => ({
-      candidate,
-      distanceKm: calculateDistanceKm(geo, {
-        lat: candidate.lat,
-        lng: candidate.lng
-      })
-    }))
-    .sort((left, right) => left.distanceKm - right.distanceKm)[0]
+  const bestMatch = cityCandidates[0]
 
   if (!bestMatch) {
     return {
@@ -149,40 +186,24 @@ function enrichWithCityContext(
     }
   }
 
-  const highRadiusKm = getInteractionAdjustedRadiusKm(
-    bestMatch.candidate.lat,
-    bestMatch.candidate.highRadiusKm,
-    MIN_CITY_HIGH_HIT_PIXELS
-  )
-  const possibleRadiusKm = getInteractionAdjustedRadiusKm(
-    bestMatch.candidate.lat,
-    bestMatch.candidate.possibleRadiusKm,
-    MIN_CITY_POSSIBLE_HIT_PIXELS
-  )
+  const reliableCandidate = cityCandidates.find((candidate) => candidate.matchLevel === 'high') ?? null
 
-  if (bestMatch.distanceKm <= highRadiusKm) {
+  if (reliableCandidate) {
     return {
       ...detectionResult,
-      displayName: bestMatch.candidate.name,
+      displayName: reliableCandidate.cityName,
       precision: 'city-high',
-      cityName: bestMatch.candidate.name,
-      lat: bestMatch.candidate.lat,
-      lng: bestMatch.candidate.lng,
+      cityId: reliableCandidate.cityId,
+      cityName: reliableCandidate.cityName,
+      cityCandidates,
       fallbackNotice: null
-    }
-  }
-
-  if (bestMatch.distanceKm <= possibleRadiusKm) {
-    return {
-      ...detectionResult,
-      precision: 'city-possible',
-      cityName: bestMatch.candidate.name,
-      fallbackNotice: CITY_FALLBACK_NOTICE
     }
   }
 
   return {
     ...detectionResult,
+    precision: 'city-possible',
+    cityCandidates,
     fallbackNotice: CITY_FALLBACK_NOTICE
   }
 }
