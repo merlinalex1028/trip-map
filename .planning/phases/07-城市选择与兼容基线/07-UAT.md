@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 07-城市选择与兼容基线
 source:
   - 07-01-SUMMARY.md
@@ -53,7 +53,18 @@ blocked: 0
   reason: "User reported: 地点过少，没有明确的可获取城市，建议可以通过某些接口获取城市实际位置然后判断"
   severity: major
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "07-03 只是把最初的 demo 级候选表扩成了一个仍然很小的离线静态索引；当前只覆盖 43 个城市、21 个国家，而边界识别覆盖 238 个国家/地区，所以真实点击仍会大量落在无候选或候选过少的区域。"
+  artifacts:
+    - path: "src/data/geo/city-candidates.ts"
+      issue: "城市库规模仍是小样例库，不足以覆盖真实常见点击分布。"
+    - path: "src/services/geo-lookup.ts"
+      issue: "候选池完全依赖静态索引，没有第二数据源或最近城市补全。"
+    - path: "src/services/city-search.ts"
+      issue: "搜索仍然只在同一份 43 城离线索引里检索，无法弥补未覆盖国家/城市。"
+    - path: "src/components/PointPreviewDrawer.vue"
+      issue: "UI 链路正常，但默认和搜索结果都被上游稀疏数据限制。"
+  missing:
+    - "引入更完整的城市数据源或最近城市索引，而不是继续手工补少量样例城市。"
+    - "若离线数据成本过高，则把在线 reverse geocoding / nearest-city 接口纳入正式修复范围。"
+    - "补充能证明覆盖规模提升的统计或回归验证，而不只是少数样例城市。"
+  debug_session: ".planning/debug/phase07-remaining-city-coverage-gap.md"
