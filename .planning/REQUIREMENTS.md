@@ -71,28 +71,28 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEST-01 | TBC | Pending |
-| DEST-02 | TBC | Pending |
-| DEST-03 | TBC | Pending |
-| DEST-04 | TBC | Pending |
-| DEST-05 | TBC | Pending |
-| BND-01 | TBC | Pending |
-| BND-02 | TBC | Pending |
-| BND-03 | TBC | Pending |
-| POP-01 | TBC | Pending |
-| POP-02 | TBC | Pending |
-| POP-03 | TBC | Pending |
-| DAT-05 | TBC | Pending |
-| DAT-06 | TBC | Pending |
-| VIS-01 | TBC | Pending |
-| VIS-02 | TBC | Pending |
-| VIS-03 | TBC | Pending |
+| DEST-01 | Phase 7 | Pending |
+| DEST-02 | Phase 7 | Pending |
+| DEST-03 | Phase 7 | Pending |
+| DEST-04 | Phase 7 | Pending |
+| DEST-05 | Phase 7 | Pending |
+| BND-01 | Phase 8 | Pending |
+| BND-02 | Phase 8 | Pending |
+| BND-03 | Phase 8 | Pending |
+| POP-01 | Phase 9 | Pending |
+| POP-02 | Phase 9 | Pending |
+| POP-03 | Phase 9 | Pending |
+| DAT-05 | Phase 7 | Pending |
+| DAT-06 | Phase 8 | Pending |
+| VIS-01 | Phase 10 | Pending |
+| VIS-02 | Phase 10 | Pending |
+| VIS-03 | Phase 10 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial v2.0 definition*
+*Last updated: 2026-03-25 after v2.0 roadmap traceability mapping*
