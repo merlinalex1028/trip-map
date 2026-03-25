@@ -1,5 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 
+import { useMapUiStore } from './map-ui'
 import { useMapPointsStore } from './map-points'
 
 describe('map-points store', () => {
@@ -50,6 +51,18 @@ describe('map-points store', () => {
       isFeatured: false,
       description: 'draft description',
       coordinatesLabel: '35.0000°N, 135.0000°E'
+    }
+  }
+
+  function createCandidate(overrides: Record<string, unknown> = {}) {
+    return {
+      cityId: 'jp-kyoto',
+      cityName: 'Kyoto',
+      contextLabel: 'Japan · Kansai',
+      matchLevel: 'high' as const,
+      distanceKm: 2.4,
+      statusHint: '更接近点击位置' as const,
+      ...overrides
     }
   }
 
@@ -117,7 +130,7 @@ describe('map-points store', () => {
 
     store.startDraftFromDetection({
       ...createDraft('detected-jp-3', 'Kyoto'),
-      fallbackNotice: '未识别到更精确城市，已回退到国家/地区'
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
     })
     store.saveDraftAsPoint()
 
@@ -127,7 +140,7 @@ describe('map-points store', () => {
     rehydratedStore.bootstrapPoints()
 
     expect(rehydratedStore.userPoints[0].cityName).toBe('Kyoto')
-    expect(rehydratedStore.userPoints[0].fallbackNotice).toBe('未识别到更精确城市，已回退到国家/地区')
+    expect(rehydratedStore.userPoints[0].fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
   })
 
   it('finds a saved point by exact cityId', () => {
@@ -143,17 +156,59 @@ describe('map-points store', () => {
 
   it('reuses an existing saved point by cityId before creating a duplicate draft', () => {
     const store = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
 
     store.startDraftFromDetection(createDraft('detected-jp-1', 'Kyoto'))
     const savedPoint = store.saveDraftAsPoint()
+    store.startPendingCitySelection(createDraft('detected-jp-2', 'Japan retry'), [createCandidate()])
 
-    const decision = store.openSavedPointForCityOrStartDraft(createDraft('detected-jp-2', 'Kyoto retry'))
+    const decision = store.confirmPendingCitySelection(createCandidate())
 
-    expect(decision.type).toBe('reused')
-    expect(decision.point.id).toBe(savedPoint?.id)
+    expect(decision?.type).toBe('reused')
+    expect(decision?.point.id).toBe(savedPoint?.id)
     expect(store.draftPoint).toBeNull()
+    expect(store.pendingCitySelection).toBeNull()
     expect(store.selectedPointId).toBe(savedPoint?.id ?? null)
     expect(store.userPoints).toHaveLength(1)
+    expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Kyoto')
+  })
+
+  it('starts a new draft from the selected city candidate when no saved city exists', () => {
+    const store = useMapPointsStore()
+
+    store.startPendingCitySelection(createDraft('detected-jp-1', 'Japan'), [createCandidate()])
+    const decision = store.confirmPendingCitySelection(createCandidate())
+
+    expect(decision?.type).toBe('created-draft')
+    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.activePoint?.name).toBe('Kyoto')
+    expect(store.activePoint?.cityId).toBe('jp-kyoto')
+    expect(store.activePoint?.cityContextLabel).toBe('Japan · Kansai')
+    expect(store.activePoint?.fallbackNotice).toBeNull()
+  })
+
+  it('continues with the fallback country draft from pending city selection', () => {
+    const store = useMapPointsStore()
+
+    store.startPendingCitySelection(
+      {
+        ...createDraft('detected-pt-1', 'Portugal'),
+        countryCode: 'PT',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Portugal',
+        precision: 'country',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      },
+      [createCandidate({ cityId: 'pt-lisbon', cityName: 'Lisbon', contextLabel: 'Portugal' })]
+    )
+
+    const fallbackPoint = store.continuePendingWithFallback()
+
+    expect(fallbackPoint?.name).toBe('Portugal')
+    expect(store.pendingCitySelection).toBeNull()
+    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
   })
 
   it('hides a seed point from the merged display points', () => {

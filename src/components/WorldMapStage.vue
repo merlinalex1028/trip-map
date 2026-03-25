@@ -29,7 +29,7 @@ const {
   setPendingGeoHit,
   startRecognition
 } = mapUiStore
-const { replaceDraftFromDetection, startDraftFromDetection } = mapPointsStore
+const { startPendingCitySelection } = mapPointsStore
 
 const pendingViewBoxPoint = computed(() => {
   if (!pendingGeoHit.value) {
@@ -110,19 +110,16 @@ async function handleMapClick(event: MouseEvent) {
       lat: detectionResult.lat,
       lng: detectionResult.lng
     })
-    const nextDraftPoint: DraftMapPoint = {
+    const fallbackDraftPoint: DraftMapPoint = {
       id: `detected-${detectionResult.countryCode}-${Math.round(detectionResult.lat * 100)}-${Math.round(
         detectionResult.lng * 100
       )}`,
-      name:
-        detectionResult.precision === 'city-high' && detectionResult.cityName
-          ? detectionResult.cityName
-          : detectionResult.displayName,
+      name: detectionResult.displayName,
       countryName: detectionResult.regionName ?? detectionResult.countryName,
       countryCode: detectionResult.countryCode,
       precision: detectionResult.precision,
-      cityId: detectionResult.cityId,
-      cityName: detectionResult.cityName,
+      cityId: null,
+      cityName: null,
       cityContextLabel:
         detectionResult.cityCandidates[0]?.contextLabel ??
         (detectionResult.regionName ?? detectionResult.countryName),
@@ -136,15 +133,16 @@ async function handleMapClick(event: MouseEvent) {
       coordinatesLabel: formatCoordinatesLabel(detectionResult),
       description: '识别成功，下一阶段可补充地点内容。'
     }
+    const hadDraft = Boolean(draftPoint.value)
 
-    if (draftPoint.value) {
-      replaceDraftFromDetection(nextDraftPoint)
+    startPendingCitySelection(fallbackDraftPoint, detectionResult.cityCandidates)
+
+    if (hadDraft) {
       setInteractionNotice({
         tone: 'info',
         message: '当前未保存地点将被丢弃，并切换到新位置'
       })
     } else {
-      startDraftFromDetection(nextDraftPoint)
       clearInteractionNotice()
     }
     finishRecognition()

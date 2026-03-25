@@ -50,6 +50,6 @@ export interface EditablePointSnapshot {
   isFeatured: boolean
 }
 
-export type DrawerMode = 'detected-preview' | 'view' | 'edit'
+export type DrawerMode = 'candidate-select' | 'detected-preview' | 'view' | 'edit'
 
 export type PointStorageHealth = 'ready' | 'empty' | 'corrupt' | 'incompatible'

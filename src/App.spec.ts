@@ -64,7 +64,9 @@ describe('App shell', () => {
       countryName: 'Japan',
       countryCode: 'JP',
       precision: 'city-high',
+      cityId: 'jp-kyoto',
       cityName: 'Kyoto',
+      cityContextLabel: 'Japan · Kansai',
       fallbackNotice: null,
       lat: 35,
       lng: 135,
@@ -91,6 +93,7 @@ describe('App shell', () => {
 
     expect(secondStore.userPoints).toHaveLength(1)
     expect(secondStore.userPoints[0].name).toBe('Kyoto')
+    expect(secondStore.userPoints[0].cityId).toBe('jp-kyoto')
     expect(secondStore.userPoints[0].cityName).toBe('Kyoto')
   })
 
@@ -155,8 +158,10 @@ describe('App shell', () => {
       countryName: 'Japan',
       countryCode: 'JP',
       precision: 'city-high',
+      cityId: 'jp-kyoto',
       cityName: 'Kyoto',
-      fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+      cityContextLabel: 'Japan · Kansai',
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
       lat: 35.0116,
       lng: 135.7681,
       x: 0.68,
@@ -171,7 +176,58 @@ describe('App shell', () => {
 
     expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
     expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
-    expect(wrapper.text()).toContain('未识别到更精确城市，已回退到国家/地区')
+    expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
+
+    store.enterEditMode()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-edit')
+  })
+
+  it('keeps legacy saved points without city identity viewable and editable', async () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        userPoints: [
+          {
+            id: 'legacy-kyoto',
+            name: 'Kyoto legacy',
+            countryName: 'Japan',
+            countryCode: 'JP',
+            precision: 'city-high',
+            fallbackNotice: null,
+            x: 0.68,
+            y: 0.42,
+            lat: 35.0116,
+            lng: 135.7681,
+            source: 'saved',
+            isFeatured: false,
+            description: 'legacy point',
+            coordinatesLabel: '35.0116°N, 135.7681°E',
+            createdAt: '2026-03-25T00:00:00.000Z',
+            updatedAt: '2026-03-25T00:00:00.000Z'
+          }
+        ],
+        seedOverrides: [],
+        deletedSeedIds: []
+      })
+    )
+
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const store = useMapPointsStore()
+    store.selectPointById('legacy-kyoto')
+    await nextTick()
+
+    expect(wrapper.text()).toContain('Kyoto legacy')
+    expect(wrapper.text()).toContain('编辑')
 
     store.enterEditMode()
     await nextTick()

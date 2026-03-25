@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
 import { useMapPointsStore } from '../stores/map-points'
+import { useMapUiStore } from '../stores/map-ui'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 
 function createDraft(overrides: Record<string, unknown> = {}) {
@@ -12,7 +13,9 @@ function createDraft(overrides: Record<string, unknown> = {}) {
     countryName: 'Japan',
     countryCode: 'JP',
     precision: 'country' as const,
+    cityId: null,
     cityName: null,
+    cityContextLabel: 'Japan',
     fallbackNotice: null,
     lat: 35,
     lng: 135,
@@ -22,6 +25,18 @@ function createDraft(overrides: Record<string, unknown> = {}) {
     isFeatured: false,
     description: '识别成功，下一阶段可补充地点内容。',
     coordinatesLabel: '35.0000°N, 135.0000°E',
+    ...overrides
+  }
+}
+
+function createCandidate(overrides: Record<string, unknown> = {}) {
+  return {
+    cityId: 'jp-kyoto',
+    cityName: 'Kyoto',
+    contextLabel: 'Japan · Kansai',
+    matchLevel: 'high' as const,
+    distanceKm: 1.5,
+    statusHint: '更接近点击位置' as const,
     ...overrides
   }
 }
@@ -62,9 +77,39 @@ describe('PointPreviewDrawer', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders detected-preview mode as an accessible dialog', async () => {
+  it('renders candidate-select mode with search and at most three candidates', async () => {
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createDraft())
+    store.startDraftFromDetection(
+      createDraft({
+        id: 'saved-jp-kyoto',
+        name: 'Kyoto',
+        precision: 'city-high',
+        cityId: 'jp-kyoto',
+        cityName: 'Kyoto',
+        cityContextLabel: 'Japan · Kansai'
+      })
+    )
+    store.saveDraftAsPoint()
+    store.startPendingCitySelection(createDraft(), [
+      createCandidate(),
+      createCandidate({
+        cityId: 'jp-osaka',
+        cityName: 'Osaka',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'possible',
+        statusHint: '可能位置，需要确认'
+      }),
+      createCandidate({
+        cityId: 'jp-kobe',
+        cityName: 'Kobe',
+        contextLabel: 'Japan · Kansai'
+      }),
+      createCandidate({
+        cityId: 'jp-nara',
+        cityName: 'Nara',
+        contextLabel: 'Japan · Kansai'
+      })
+    ])
 
     const wrapper = mount(PointPreviewDrawer, {
       attachTo: document.body,
@@ -76,8 +121,12 @@ describe('PointPreviewDrawer', () => {
     await nextTick()
 
     expect(wrapper.attributes('role')).toBe('dialog')
-    expect(wrapper.text()).toContain('识别结果')
-    expect(wrapper.text()).toContain('保存为地点')
+    expect(wrapper.text()).toContain('确认城市')
+    expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(true)
+    expect(wrapper.text()).toContain('已存在记录')
+    expect(wrapper.text()).toContain('可能位置，需要确认')
+    expect(wrapper.findAll('.point-preview-drawer__candidate')).toHaveLength(3)
+    expect(wrapper.text()).not.toContain('Nara')
     expect(document.activeElement).toBe(wrapper.get('.point-preview-drawer__name').element)
   })
 
@@ -115,7 +164,7 @@ describe('PointPreviewDrawer', () => {
     window.confirm = confirmSpy as typeof window.confirm
 
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createDraft())
+    store.startPendingCitySelection(createDraft(), [createCandidate()])
 
     const wrapper = mount(PointPreviewDrawer, {
       attachTo: document.body,
@@ -128,6 +177,7 @@ describe('PointPreviewDrawer', () => {
 
     expect(confirmSpy).not.toHaveBeenCalled()
     expect(store.activePoint).toBeNull()
+    expect(store.pendingCitySelection).toBeNull()
   })
 
   it('guards Escape close when dirty edits exist', async () => {
@@ -174,11 +224,75 @@ describe('PointPreviewDrawer', () => {
     expect(store.draftPoint).toBeNull()
   })
 
+  it('uses the same selection path for default candidates and search results', async () => {
+    const store = useMapPointsStore()
+    store.startPendingCitySelection(createDraft(), [
+      createCandidate(),
+      createCandidate({
+        cityId: 'jp-osaka',
+        cityName: 'Osaka',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'possible',
+        statusHint: '可能位置，需要确认'
+      })
+    ])
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await wrapper.get('input[placeholder="搜索城市"]').setValue('osaka')
+    await wrapper.get('.point-preview-drawer__candidate').trigger('click')
+
+    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.activePoint?.name).toBe('Osaka')
+    expect(store.activePoint?.cityId).toBe('jp-osaka')
+  })
+
+  it('shows the fallback CTA and explanatory copy for country continuation', async () => {
+    const store = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
+    store.startPendingCitySelection(
+      createDraft({
+        id: 'detected-pt-1',
+        name: 'Portugal',
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        cityContextLabel: 'Portugal',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      }),
+      [createCandidate({ cityId: 'pt-lisbon', cityName: 'Lisbon', contextLabel: 'Portugal' })]
+    )
+    mapUiStore.setInteractionNotice({
+      tone: 'info',
+      message: 'temporary'
+    })
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
+    expect(wrapper.text()).toContain('按国家/地区继续记录')
+
+    await wrapper.get('.point-preview-drawer__action').trigger('click')
+
+    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.activePoint?.name).toBe('Portugal')
+    expect(mapUiStore.interactionNotice).toBeNull()
+  })
+
   it('renders long text inside a dedicated scroll region while actions stay visible', async () => {
     const store = useMapPointsStore()
     store.startDraftFromDetection(
       createDraft({
-        fallbackNotice: '未识别到更精确城市，已回退到国家/地区',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
         description: 'long text '.repeat(80)
       })
     )
@@ -194,7 +308,7 @@ describe('PointPreviewDrawer', () => {
     await nextTick()
 
     expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
-    expect(wrapper.text()).toContain('未识别到更精确城市，已回退到国家/地区')
+    expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
     expect(wrapper.find('.point-preview-drawer__actions').exists()).toBe(true)
     expect(wrapper.find('.point-preview-drawer__close').exists()).toBe(true)
   })

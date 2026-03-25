@@ -76,7 +76,7 @@ onUnmounted(() => {
       <section
         class="poster-shell__experience"
         :class="{
-          'poster-shell__experience--drawer-open': Boolean(activePoint),
+          'poster-shell__experience--drawer-open': Boolean(activePoint) || drawerMode === 'candidate-select',
           'poster-shell__experience--drawer-edit': drawerMode === 'edit'
         }"
       >

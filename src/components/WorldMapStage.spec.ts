@@ -41,28 +41,89 @@ function clickPointFromGeo(lat: number, lng: number, offsetX = 0, offsetY = 0) {
   }
 }
 
+function createDetectionResult(overrides: Partial<GeoDetectionResult> = {}): GeoDetectionResult {
+  return {
+    kind: 'country',
+    countryCode: 'JP',
+    countryName: 'Japan',
+    regionName: null,
+    displayName: 'Japan',
+    precision: 'city-high',
+    cityId: 'jp-kyoto',
+    cityName: 'Kyoto',
+    cityCandidates: [
+      {
+        cityId: 'jp-kyoto',
+        cityName: 'Kyoto',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'high',
+        distanceKm: 2.2,
+        statusHint: '更接近点击位置'
+      },
+      {
+        cityId: 'jp-osaka',
+        cityName: 'Osaka',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'possible',
+        distanceKm: 18.5,
+        statusHint: '可能位置，需要确认'
+      },
+      {
+        cityId: 'jp-kobe',
+        cityName: 'Kobe',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'possible',
+        distanceKm: 31.4,
+        statusHint: '可能位置，需要确认'
+      },
+      {
+        cityId: 'jp-nara',
+        cityName: 'Nara',
+        contextLabel: 'Japan · Kansai',
+        matchLevel: 'possible',
+        distanceKm: 33.1,
+        statusHint: '可能位置，需要确认'
+      }
+    ],
+    fallbackNotice: null,
+    lat: 35.0116,
+    lng: 135.7681,
+    confidence: 0.99,
+    ...overrides
+  }
+}
+
 describe('WorldMapStage', () => {
   let pinia: ReturnType<typeof createPinia>
 
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
+    const storage = new Map<string, string>()
+    const localStorageMock = {
+      getItem: (key: string) => storage.get(key) ?? null,
+      setItem: (key: string, value: string) => {
+        storage.set(key, value)
+      },
+      removeItem: (key: string) => {
+        storage.delete(key)
+      },
+      clear: () => {
+        storage.clear()
+      }
+    }
+    vi.stubGlobal('localStorage', localStorageMock)
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: localStorageMock
+    })
     lookupCountryRegionByCoordinates.mockReset()
-    lookupCountryRegionByCoordinates.mockImplementation((geo: { lat: number; lng: number }) => ({
-      kind: 'country',
-      countryCode: 'JP',
-      countryName: 'Japan',
-      regionName: null,
-      displayName: 'Kyoto',
-      precision: 'city-high',
-      cityId: 'jp-kyoto',
-      cityName: 'Kyoto',
-      cityCandidates: [],
-      fallbackNotice: null,
-      lat: geo.lat,
-      lng: geo.lng,
-      confidence: 0.99
-    }))
+    lookupCountryRegionByCoordinates.mockImplementation((geo: { lat: number; lng: number }) =>
+      createDetectionResult({
+        lat: geo.lat,
+        lng: geo.lng
+      })
+    )
     isLowConfidenceBoundaryHit.mockReset()
     isLowConfidenceBoundaryHit.mockReturnValue(false)
 
@@ -77,7 +138,7 @@ describe('WorldMapStage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('creates a draft point with high-confidence city metadata', async () => {
+  it('opens a candidate-first confirmation state instead of immediately creating a draft', async () => {
     const wrapper = mount(WorldMapStage, {
       global: {
         plugins: [pinia]
@@ -95,28 +156,37 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.activePoint?.name).toBe('Kyoto')
-    expect(mapPointsStore.activePoint?.precision).toBe('city-high')
-    expect(mapPointsStore.activePoint?.cityName).toBe('Kyoto')
-    expect(mapPointsStore.activePoint?.countryName).toBe('Japan')
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.draftPoint).toBeNull()
+    expect(mapPointsStore.activePoint).toBeNull()
+    expect(mapPointsStore.pendingCitySelection?.cityCandidates).toHaveLength(4)
   })
 
-  it('keeps the fallback country path and copy when city enrichment fails', async () => {
-    lookupCountryRegionByCoordinates.mockImplementationOnce((geo: { lat: number; lng: number }) => ({
-      kind: 'country',
-      countryCode: 'PT',
-      countryName: 'Portugal',
-      regionName: null,
-      displayName: 'Portugal',
-      precision: 'country',
-      cityId: null,
-      cityName: null,
-      cityCandidates: [],
-      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
-      lat: geo.lat,
-      lng: geo.lng,
-      confidence: 0.95
-    }))
+  it('keeps the fallback country path and copy inside pending candidate selection', async () => {
+    lookupCountryRegionByCoordinates.mockImplementationOnce((geo: { lat: number; lng: number }) =>
+      createDetectionResult({
+        countryCode: 'PT',
+        countryName: 'Portugal',
+        displayName: 'Portugal',
+        precision: 'city-possible',
+        cityId: null,
+        cityName: null,
+        cityCandidates: [
+          {
+            cityId: 'pt-lisbon',
+            cityName: 'Lisbon',
+            contextLabel: 'Portugal',
+            matchLevel: 'possible',
+            distanceKm: 24,
+            statusHint: '可能位置，需要确认'
+          }
+        ],
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
+        lat: geo.lat,
+        lng: geo.lng,
+        confidence: 0.95
+      })
+    )
 
     const wrapper = mount(WorldMapStage, {
       global: {
@@ -135,55 +205,14 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.activePoint?.name).toBe('Portugal')
-    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.pendingCitySelection?.fallbackPoint.name).toBe('Portugal')
+    expect(mapPointsStore.pendingCitySelection?.fallbackPoint.fallbackNotice).toBe(
+      '未能可靠确认城市，已提供国家/地区继续记录'
+    )
   })
 
-  it('keeps edge-position fallback markers inside the map surface', async () => {
-    lookupCountryRegionByCoordinates.mockImplementationOnce(() => ({
-      kind: 'country',
-      countryCode: 'JP',
-      countryName: 'Japan',
-      regionName: null,
-      displayName: 'Japan',
-      precision: 'country',
-      cityId: null,
-      cityName: null,
-      cityCandidates: [],
-      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
-      lat: 88,
-      lng: 179,
-      confidence: 0.94
-    }))
-
-    const wrapper = mount(WorldMapStage, {
-      global: {
-        plugins: [pinia]
-      }
-    })
-
-    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
-    installFrame(surface)
-
-    await wrapper.get('.world-map-stage__surface').trigger('click', {
-      clientX: 1588,
-      clientY: 84
-    })
-    await flushPromises()
-
-    const markerStyle = wrapper.get('.seed-marker--draft').attributes('style') ?? ''
-    const leftValue = Number(markerStyle.match(/left: ([0-9.]+)%/)?.[1] ?? 0)
-    const topValue = Number(markerStyle.match(/top: ([0-9.]+)%/)?.[1] ?? 0)
-    const mapUiStore = useMapUiStore()
-
-    expect(leftValue).toBeGreaterThanOrEqual(0)
-    expect(leftValue).toBeLessThanOrEqual(100)
-    expect(topValue).toBeGreaterThanOrEqual(0)
-    expect(topValue).toBeLessThanOrEqual(100)
-    expect(mapUiStore.interactionNotice).toBeNull()
-  })
-
-  it('represents a realistic near-city click through the actual draft flow', async () => {
+  it('represents a realistic near-city click through the actual candidate flow', async () => {
     const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
       '../services/geo-lookup'
     )
@@ -204,12 +233,12 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.activePoint?.precision).toBe('city-high')
-    expect(mapPointsStore.activePoint?.name).toBe('Kyoto')
-    expect(mapPointsStore.activePoint?.countryName).toBe('Japan')
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.cityName).toBe('Kyoto')
+    expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.statusHint).toBe('更接近点击位置')
   })
 
-  it('removes the old draft when selecting an existing point', async () => {
+  it('reuses an existing saved city and emits the light notice prefix', async () => {
     const wrapper = mount(WorldMapStage, {
       global: {
         plugins: [pinia]
@@ -219,35 +248,50 @@ describe('WorldMapStage', () => {
     const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
     installFrame(surface)
 
+    const mapPointsStore = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
+    mapPointsStore.startDraftFromDetection({
+      id: 'detected-jp-1',
+      name: 'Kyoto',
+      countryName: 'Japan',
+      countryCode: 'JP',
+      precision: 'city-high',
+      cityId: 'jp-kyoto',
+      cityName: 'Kyoto',
+      cityContextLabel: 'Japan · Kansai',
+      fallbackNotice: null,
+      lat: 35.0116,
+      lng: 135.7681,
+      x: 0.68,
+      y: 0.42,
+      source: 'detected',
+      isFeatured: false,
+      description: 'saved point',
+      coordinatesLabel: '35.0116°N, 135.7681°E'
+    })
+    mapPointsStore.saveDraftAsPoint()
+
     await wrapper.get('.world-map-stage__surface').trigger('click', {
       clientX: 1180,
       clientY: 360
     })
     await flushPromises()
 
-    expect(wrapper.find('.seed-marker--draft').exists()).toBe(true)
+    const existingCandidate = mapPointsStore.pendingCitySelection?.cityCandidates[0]
 
-    const seedKyotoMarker = wrapper
-      .findAll('.seed-marker__button')
-      .find((marker) => {
-        const ariaLabel = marker.attributes('aria-label') ?? ''
+    expect(existingCandidate).toBeDefined()
+    expect(mapPointsStore.findSavedPointByCityId(existingCandidate!.cityId)?.name ? '已存在记录' : '').toBe(
+      '已存在记录'
+    )
 
-        return ariaLabel.includes('Kyoto，Japan') && !ariaLabel.includes('未保存地点')
-      })
-
-    expect(seedKyotoMarker).toBeDefined()
-
-    await seedKyotoMarker!.trigger('click')
-    await flushPromises()
-
-    const mapPointsStore = useMapPointsStore()
+    mapPointsStore.confirmPendingCitySelection(existingCandidate!)
 
     expect(mapPointsStore.draftPoint).toBeNull()
-    expect(mapPointsStore.activePoint?.id).toBe('seed-kyoto')
-    expect(wrapper.find('.seed-marker--draft').exists()).toBe(false)
+    expect(mapPointsStore.activePoint?.name).toBe('Kyoto')
+    expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Kyoto')
   })
 
-  it('represents a realistic near-but-not-on city click through the fallback flow', async () => {
+  it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {
     const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
       '../services/geo-lookup'
     )
@@ -268,8 +312,10 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.activePoint?.name).toBe('Japan')
-    expect(mapPointsStore.activePoint?.precision).toBe('city-possible')
-    expect(mapPointsStore.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.pendingCitySelection?.fallbackPoint.name).toBe('Japan')
+    expect(mapPointsStore.pendingCitySelection?.fallbackPoint.fallbackNotice).toBe(
+      '未能可靠确认城市，已提供国家/地区继续记录'
+    )
   })
 })
