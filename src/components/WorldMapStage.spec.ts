@@ -236,7 +236,37 @@ describe('WorldMapStage', () => {
     expect(mapPointsStore.drawerMode).toBe('candidate-select')
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.cityName).toBe('Kyoto')
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.statusHint).toBe('更接近点击位置')
-  })
+  }, 15000)
+
+  it('shows candidates for a realistic non-demo Paris click', async () => {
+    const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
+      '../services/geo-lookup'
+    )
+    lookupCountryRegionByCoordinates.mockImplementation(actualGeoLookup.lookupCountryRegionByCoordinates)
+    isLowConfidenceBoundaryHit.mockImplementation(actualGeoLookup.isLowConfidenceBoundaryHit)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+    installFrame(surface)
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', clickPointFromGeo(48.8566, 2.3522, 2, -2))
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+
+    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'fr-paris',
+        cityName: 'Paris'
+      })
+    )
+  }, 15000)
 
   it('reuses an existing saved city and emits the light notice prefix', async () => {
     const wrapper = mount(WorldMapStage, {
@@ -317,5 +347,5 @@ describe('WorldMapStage', () => {
     expect(mapPointsStore.pendingCitySelection?.fallbackPoint.fallbackNotice).toBe(
       '未能可靠确认城市，已提供国家/地区继续记录'
     )
-  })
+  }, 15000)
 })

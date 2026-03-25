@@ -1,6 +1,6 @@
 import { geoContains } from 'd3-geo'
 
-import { cityCandidatesByContext } from '../data/geo/city-candidates'
+import { cityCandidatesByContext, cityCandidatesByCountry, type CityCandidate } from '../data/geo/city-candidates'
 import countryRegions from '../data/geo/country-regions.geo.json'
 import { WORLD_PROJECTION_CONFIG } from './map-projection'
 import type {
@@ -125,13 +125,27 @@ function getCityCandidateKeys(result: GeoDetectionResult) {
   ].filter((key): key is string => Boolean(key))
 }
 
+function collectCandidatePool(detectionResult: GeoDetectionResult) {
+  const candidateMap = new Map<string, CityCandidate>()
+
+  for (const key of getCityCandidateKeys(detectionResult)) {
+    for (const candidate of cityCandidatesByContext[key] ?? []) {
+      candidateMap.set(candidate.id, candidate)
+    }
+  }
+
+  for (const candidate of cityCandidatesByCountry[detectionResult.countryCode] ?? []) {
+    candidateMap.set(candidate.id, candidate)
+  }
+
+  return [...candidateMap.values()]
+}
+
 function buildRankedCityCandidates(
   detectionResult: GeoDetectionResult,
   geo: GeoCoordinates
 ): GeoCityCandidate[] {
-  const candidatePool = getCityCandidateKeys(detectionResult).flatMap((key) => {
-    return cityCandidatesByContext[key] ?? []
-  })
+  const candidatePool = collectCandidatePool(detectionResult)
 
   return candidatePool
     .map((candidate) => {

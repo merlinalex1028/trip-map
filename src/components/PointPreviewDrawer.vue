@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, reactive, ref, useTemplateRef, watch } from 'vue'
 
+import { searchOfflineCities } from '../services/city-search'
 import { useMapPointsStore } from '../stores/map-points'
 import type { GeoCityCandidate } from '../types/geo'
 import type { EditablePointSnapshot } from '../types/map-point'
@@ -39,21 +40,24 @@ const isCandidateSelectionMode = computed(() => {
 const pendingFallbackPoint = computed(() => pendingCitySelection.value?.fallbackPoint ?? null)
 
 const displayedCandidateItems = computed(() => {
-  const cityCandidates = pendingCitySelection.value?.cityCandidates ?? []
   const normalizedQuery = searchQuery.value.trim().toLowerCase()
+  const pendingCityCandidates = pendingCitySelection.value?.cityCandidates ?? []
+  const pendingPoint = pendingFallbackPoint.value
+
+  const cityCandidates =
+    normalizedQuery && pendingPoint
+      ? searchOfflineCities({
+          query: normalizedQuery,
+          origin: {
+            lat: pendingPoint.lat,
+            lng: pendingPoint.lng
+          },
+          countryCode: pendingPoint.countryCode,
+          limit: 3
+        })
+      : pendingCityCandidates.slice(0, 3)
 
   return cityCandidates
-    .filter((candidate) => {
-      if (!normalizedQuery) {
-        return true
-      }
-
-      return (
-        candidate.cityName.toLowerCase().includes(normalizedQuery) ||
-        candidate.contextLabel.toLowerCase().includes(normalizedQuery)
-      )
-    })
-    .slice(0, 3)
     .map((candidate) => {
       const existingPoint = findSavedPointByCityId(candidate.cityId)
 

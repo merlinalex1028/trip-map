@@ -252,6 +252,37 @@ describe('PointPreviewDrawer', () => {
     expect(store.activePoint?.cityId).toBe('jp-osaka')
   })
 
+  it('rescues an empty pending candidate pool with offline Chinese city search', async () => {
+    const store = useMapPointsStore()
+    store.startPendingCitySelection(
+      createDraft({
+        id: 'detected-fr-1',
+        name: 'France',
+        countryName: 'France',
+        countryCode: 'FR',
+        cityContextLabel: 'France'
+      }),
+      []
+    )
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await wrapper.get('input[placeholder="搜索城市"]').setValue('巴黎')
+
+    expect(wrapper.text()).toContain('Paris')
+
+    await wrapper.get('.point-preview-drawer__candidate').trigger('click')
+
+    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.activePoint?.cityId).toBe('fr-paris')
+    expect(store.activePoint?.name).toBe('Paris')
+  })
+
   it('shows the fallback CTA and explanatory copy for country continuation', async () => {
     const store = useMapPointsStore()
     const mapUiStore = useMapUiStore()

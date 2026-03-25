@@ -41,6 +41,41 @@ describe('geo lookup service', () => {
     expect(result?.countryName).toBe('Portugal')
   })
 
+  it('returns ranked city candidates for a realistic Paris click', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 48.8566,
+      lng: 2.3522
+    })
+
+    expect(result?.countryCode).toBe('FR')
+    expect(result?.precision).toBe('city-high')
+    expect(result?.cityCandidates[0]).toEqual(
+      expect.objectContaining({
+        cityId: 'fr-paris',
+        cityName: 'Paris',
+        statusHint: '更接近点击位置'
+      })
+    )
+    expect(result?.cityCandidates.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('returns ranked city candidates for a realistic New York click', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 40.7128,
+      lng: -74.006
+    })
+
+    expect(result?.countryCode).toBe('US')
+    expect(result?.cityCandidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          cityId: 'us-new-york',
+          cityName: 'New York'
+        })
+      ])
+    )
+  })
+
   it('enriches Kyoto with high-confidence city metadata', () => {
     const result = lookupCountryRegionByCoordinates({
       lat: 35.0116,
