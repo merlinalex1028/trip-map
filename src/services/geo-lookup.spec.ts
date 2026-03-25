@@ -51,6 +51,21 @@ describe('geo lookup service', () => {
     expect(result?.cityName).toBe('Kyoto')
     expect(result?.displayName).toBe('Kyoto')
     expect(result?.fallbackNotice).toBeNull()
+    expect(result?.cityId).toBe('jp-kyoto')
+    expect(result?.cityCandidates).toEqual([
+      expect.objectContaining({
+        cityId: 'jp-kyoto',
+        cityName: 'Kyoto',
+        matchLevel: 'high',
+        statusHint: '更接近点击位置'
+      }),
+      expect.objectContaining({
+        cityId: 'jp-osaka'
+      }),
+      expect.objectContaining({
+        cityId: 'jp-tokyo'
+      })
+    ])
   })
 
   it('detects Cairo as Egypt without low-confidence rejection', () => {
@@ -92,6 +107,27 @@ describe('geo lookup service', () => {
     expect(result?.countryCode).toBe('JP')
     expect(result?.precision).toBe('city-high')
     expect(result?.cityName).toBe('Kyoto')
+  })
+
+  it('includes disambiguation context on ranked nearby city candidates', () => {
+    const result = lookupCountryRegionByCoordinates({
+      lat: 34.9,
+      lng: 135.65
+    })
+
+    expect(result?.countryCode).toBe('JP')
+    expect(result?.cityCandidates).toHaveLength(3)
+    expect(result?.cityCandidates[0]?.distanceKm).toBeLessThanOrEqual(
+      result?.cityCandidates[1]?.distanceKm ?? Number.POSITIVE_INFINITY
+    )
+    expect(result?.cityCandidates.map((candidate) => candidate.contextLabel)).toEqual(
+      expect.arrayContaining([
+        expect.any(String),
+        expect.any(String),
+        expect.any(String)
+      ])
+    )
+    expect(result?.cityCandidates.every((candidate) => candidate.contextLabel !== candidate.cityName)).toBe(true)
   })
 
   it('keeps an obvious Hong Kong click aligned with Hong Kong instead of Myanmar', () => {
@@ -139,8 +175,16 @@ describe('geo lookup service', () => {
     const result = lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('JP')
-    expect(result?.displayName).toBe('Japan')
-    expect(result?.precision).toBe('country')
-    expect(result?.fallbackNotice).toBe(CITY_FALLBACK_NOTICE)
+    expect(result?.cityId).toBeNull()
+    expect(result?.precision).toBe('city-possible')
+    expect(result?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
+    expect(result?.cityCandidates).toContainEqual(
+      expect.objectContaining({
+        cityId: 'jp-kyoto',
+        cityName: 'Kyoto',
+        matchLevel: 'possible',
+        statusHint: '可能位置，需要确认'
+      })
+    )
   })
 })
