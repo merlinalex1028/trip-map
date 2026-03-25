@@ -55,7 +55,9 @@ export const seedPoints: MapPointDisplay[] = seedPointDefinitions.map((definitio
     ...point,
     source: 'seed',
     precision: 'city-high',
+    cityId: `seed-${definition.id.replace(/^seed-/, '')}`,
     cityName: definition.name,
+    cityContextLabel: definition.countryName,
     fallbackNotice: null,
     coordinatesLabel: formatCoordinatesLabel({
       lat: definition.lat,

@@ -38,6 +38,11 @@ function toPersistedMapPoint(point: MapPointDisplay): PersistedMapPoint {
   }
 }
 
+interface SavedPointReuseDecision {
+  type: 'reused' | 'created-draft'
+  point: MapPointDisplay
+}
+
 export const useMapPointsStore = defineStore('map-points', () => {
   const userPoints = shallowRef<PersistedMapPoint[]>([])
   const seedOverrides = shallowRef<SeedPointOverride[]>([])
@@ -208,6 +213,33 @@ export const useMapPointsStore = defineStore('map-points', () => {
     return nextPoint
   }
 
+  function findSavedPointByCityId(cityId: string) {
+    return userPoints.value.find((point) => point.cityId === cityId) ?? null
+  }
+
+  function openSavedPointForCityOrStartDraft(point: DraftMapPoint): SavedPointReuseDecision {
+    const savedPoint = point.cityId ? findSavedPointByCityId(point.cityId) : null
+
+    if (savedPoint) {
+      draftPoint.value = null
+      selectedPointId.value = savedPoint.id
+      drawerMode.value = 'view'
+      editableSnapshot.value = buildEditableSnapshot(savedPoint)
+
+      return {
+        type: 'reused',
+        point: savedPoint
+      }
+    }
+
+    startDraftFromDetection(point)
+
+    return {
+      type: 'created-draft',
+      point
+    }
+  }
+
   function updateSavedPoint(id: string, snapshot: EditablePointSnapshot) {
     const now = new Date().toISOString()
     const seedPoint = seedPoints.find((point) => point.id === id)
@@ -308,6 +340,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     enterEditMode,
     exitEditMode,
     saveDraftAsPoint,
+    findSavedPointByCityId,
+    openSavedPointForCityOrStartDraft,
     updateSavedPoint,
     deleteUserPoint,
     hideSeedPoint,

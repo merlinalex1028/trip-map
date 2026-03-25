@@ -8,7 +8,9 @@ interface BaseMapPoint {
   countryName: string
   countryCode: string
   precision: GeoPrecision
+  cityId: string | null
   cityName: string | null
+  cityContextLabel: string | null
   fallbackNotice: string | null
   x: number
   y: number

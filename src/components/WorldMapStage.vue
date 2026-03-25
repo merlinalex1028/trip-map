@@ -121,7 +121,11 @@ async function handleMapClick(event: MouseEvent) {
       countryName: detectionResult.regionName ?? detectionResult.countryName,
       countryCode: detectionResult.countryCode,
       precision: detectionResult.precision,
+      cityId: detectionResult.cityId,
       cityName: detectionResult.cityName,
+      cityContextLabel:
+        detectionResult.cityCandidates[0]?.contextLabel ??
+        (detectionResult.regionName ?? detectionResult.countryName),
       fallbackNotice: detectionResult.fallbackNotice,
       lat: detectionResult.lat,
       lng: detectionResult.lng,
