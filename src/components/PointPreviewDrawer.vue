@@ -8,7 +8,7 @@ import type { GeoCityCandidate } from '../types/geo'
 import type { EditablePointSnapshot } from '../types/map-point'
 
 const mapPointsStore = useMapPointsStore()
-const { activePoint, drawerMode, pendingCitySelection } = storeToRefs(mapPointsStore)
+const { activeBoundaryCoverageState, activePoint, drawerMode, pendingCitySelection } = storeToRefs(mapPointsStore)
 const {
   clearActivePoint,
   confirmPendingCitySelection,
@@ -122,6 +122,14 @@ const drawerFallbackNotice = computed(() => {
   }
 
   return activePoint.value?.fallbackNotice ?? null
+})
+
+const drawerBoundarySupportNotice = computed(() => {
+  if (activeBoundaryCoverageState.value !== 'missing') {
+    return null
+  }
+
+  return '当前城市暂不支持边界高亮，将仅保存城市身份与文本信息'
 })
 
 const isFallbackPrimary = computed(() => {
@@ -341,6 +349,13 @@ function handlePanelKeydown(event: KeyboardEvent) {
         role="status"
       >
         {{ drawerFallbackNotice }}
+      </p>
+      <p
+        v-if="drawerBoundarySupportNotice"
+        class="point-preview-drawer__fallback point-preview-drawer__fallback--boundary"
+        role="status"
+      >
+        {{ drawerBoundarySupportNotice }}
       </p>
     </div>
 

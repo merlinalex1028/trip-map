@@ -3,7 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
 import { seedPoints } from '../data/seed-points'
-import { getBoundaryByCityId } from '../services/city-boundaries'
+import { getBoundaryByCityId, hasBoundaryCoverageForCityId } from '../services/city-boundaries'
 import {
   clearPointStorageSnapshot,
   loadPointStorageSnapshot,
@@ -85,6 +85,18 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     return displayPoints.value.find((point) => point.id === selectedPointId.value) ?? null
+  })
+
+  const activeBoundaryCoverageState = computed<'supported' | 'missing' | 'not-applicable'>(() => {
+    if (!activePoint.value?.cityId) {
+      return 'not-applicable'
+    }
+
+    if (activePoint.value.boundaryId || hasBoundaryCoverageForCityId(activePoint.value.cityId)) {
+      return 'supported'
+    }
+
+    return 'missing'
   })
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
@@ -432,6 +444,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     storageHealth,
     displayPoints,
     activePoint,
+    activeBoundaryCoverageState,
     selectedBoundaryId,
     savedBoundaryIds,
     bootstrapPoints,

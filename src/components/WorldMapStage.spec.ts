@@ -431,6 +431,69 @@ describe('WorldMapStage', () => {
     expect(selectedBoundary.findAll('path')).toHaveLength(tokyoBoundary?.polygons.length ?? 0)
   })
 
+  it('renders a reopened Budapest point with its selected city boundary highlight', () => {
+    const mapPointsStore = useMapPointsStore()
+    const budapestBoundary = getBoundaryByCityId('hu-budapest')
+
+    mapPointsStore.startPendingCitySelection(
+      {
+        id: 'detected-hu-fallback',
+        name: 'Hungary',
+        countryName: 'Hungary',
+        countryCode: 'HU',
+        precision: 'country',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Hungary',
+        boundaryId: null,
+        boundaryDatasetVersion: null,
+        fallbackNotice: null,
+        lat: 47.4979,
+        lng: 19.0402,
+        x: 0.55,
+        y: 0.28,
+        source: 'detected',
+        isFeatured: false,
+        description: 'saved point',
+        coordinatesLabel: '47.4979°N, 19.0402°E'
+      },
+      [
+        {
+          cityId: 'hu-budapest',
+          cityName: 'Budapest',
+          contextLabel: 'Hungary · Budapest',
+          matchLevel: 'high',
+          distanceKm: 1.8,
+          statusHint: '更接近点击位置'
+        }
+      ]
+    )
+
+    mapPointsStore.confirmPendingCitySelection({
+      cityId: 'hu-budapest',
+      cityName: 'Budapest',
+      contextLabel: 'Hungary · Budapest',
+      matchLevel: 'high',
+      distanceKm: 1.8,
+      statusHint: '更接近点击位置'
+    })
+
+    const savedPoint = mapPointsStore.saveDraftAsPoint()
+    mapPointsStore.clearActivePoint()
+    mapPointsStore.selectPointById(savedPoint!.id)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      budapestBoundary?.boundaryId ?? ''
+    )
+    expect(wrapper.findAll('.world-map-stage__boundary--saved')).toHaveLength(1)
+  })
+
   it('switches the strong boundary highlight to the newly selected saved city without leaving residue', async () => {
     const mapPointsStore = useMapPointsStore()
     const kyotoBoundary = getBoundaryByCityId('jp-kyoto')

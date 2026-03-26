@@ -270,6 +270,56 @@ describe('map-points store', () => {
     expect(store.savedBoundaryIds).toEqual([])
   })
 
+  it('keeps Budapest boundary support through confirm, save, and reopen', () => {
+    const store = useMapPointsStore()
+    const budapestBoundary = getBoundaryByCityId('hu-budapest')
+
+    store.startPendingCitySelection(
+      {
+        ...createDraft('detected-hu-fallback', 'Hungary'),
+        name: 'Hungary',
+        countryName: 'Hungary',
+        countryCode: 'HU',
+        precision: 'country',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Hungary',
+        boundaryId: null,
+        boundaryDatasetVersion: null
+      },
+      [
+        createCandidate({
+          cityId: 'hu-budapest',
+          cityName: 'Budapest',
+          contextLabel: 'Hungary · Budapest'
+        })
+      ]
+    )
+
+    const decision = store.confirmPendingCitySelection(
+      createCandidate({
+        cityId: 'hu-budapest',
+        cityName: 'Budapest',
+        contextLabel: 'Hungary · Budapest'
+      })
+    )
+
+    expect(decision?.type).toBe('created-draft')
+    expect(store.draftPoint?.boundaryId).toBe(budapestBoundary?.boundaryId ?? null)
+    expect(store.activeBoundaryCoverageState).toBe('supported')
+
+    const savedPoint = store.saveDraftAsPoint()
+
+    expect(savedPoint?.boundaryId).toBe(budapestBoundary?.boundaryId ?? null)
+
+    store.clearActivePoint()
+    store.selectPointById(savedPoint!.id)
+
+    expect(store.activePoint?.cityId).toBe('hu-budapest')
+    expect(store.selectedBoundaryId).toBe(budapestBoundary?.boundaryId ?? null)
+    expect(store.activeBoundaryCoverageState).toBe('supported')
+  })
+
   it('continues with the fallback country draft from pending city selection', () => {
     const store = useMapPointsStore()
 
@@ -344,6 +394,7 @@ describe('map-points store', () => {
 
     expect(store.selectedBoundaryId).toBeNull()
     expect(store.savedBoundaryIds).toEqual([])
+    expect(store.activeBoundaryCoverageState).toBe('not-applicable')
 
     store.startPendingCitySelection(
       {
@@ -363,6 +414,27 @@ describe('map-points store', () => {
 
     expect(store.selectedBoundaryId).toBeNull()
     expect(store.savedBoundaryIds).toEqual([])
+    expect(store.activeBoundaryCoverageState).toBe('not-applicable')
+  })
+
+  it('marks unsupported city records as missing boundary coverage', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection({
+      ...createDraft('detected-cl-santiago', 'Santiago'),
+      name: 'Santiago',
+      countryName: 'Chile',
+      countryCode: 'CL',
+      cityId: 'cl-santiago',
+      cityName: 'Santiago',
+      cityContextLabel: 'Chile · Santiago',
+      boundaryId: null,
+      boundaryDatasetVersion: null,
+      fallbackNotice: null
+    })
+
+    expect(store.activeBoundaryCoverageState).toBe('missing')
+    expect(store.selectedBoundaryId).toBeNull()
   })
 
   it('hides a seed point from the merged display points', () => {

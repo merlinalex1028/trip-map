@@ -393,6 +393,40 @@ describe('PointPreviewDrawer', () => {
     expect(store.activePoint?.boundaryId).toBe(boundary?.boundaryId ?? null)
     expect(store.selectedBoundaryId).toBe(boundary?.boundaryId ?? null)
     expect(wrapper.get('.point-preview-drawer__name').text()).toBe('Kyoto')
+    expect(wrapper.text()).not.toContain('当前城市暂不支持边界高亮，将仅保存城市身份与文本信息')
+  })
+
+  it('shows an explicit unsupported-boundary notice for city records outside the boundary dataset', async () => {
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(
+      createDraft({
+        id: 'saved-cl-santiago',
+        name: 'Santiago',
+        countryName: 'Chile',
+        countryCode: 'CL',
+        precision: 'city-high',
+        cityId: 'cl-santiago',
+        cityName: 'Santiago',
+        cityContextLabel: 'Chile · Santiago',
+        boundaryId: null,
+        boundaryDatasetVersion: null,
+        fallbackNotice: null
+      })
+    )
+    store.saveDraftAsPoint()
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    expect(store.activePoint?.cityId).toBe('cl-santiago')
+    expect(store.activeBoundaryCoverageState).toBe('missing')
+    expect(wrapper.text()).toContain('当前城市暂不支持边界高亮，将仅保存城市身份与文本信息')
   })
 
   it('keeps fallback and legacy records text-only without asserting a city boundary', async () => {
@@ -423,6 +457,7 @@ describe('PointPreviewDrawer', () => {
     expect(wrapper.get('.point-preview-drawer__name').text()).toBe('Portugal')
     expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
     expect(wrapper.text()).not.toContain('boundaryId')
+    expect(wrapper.text()).not.toContain('当前城市暂不支持边界高亮，将仅保存城市身份与文本信息')
   })
 
   it('shows the fallback CTA and explanatory copy for country continuation', async () => {
