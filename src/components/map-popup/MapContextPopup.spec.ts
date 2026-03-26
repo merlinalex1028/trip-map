@@ -82,10 +82,14 @@ describe('MapContextPopup', () => {
     })
 
     const body = wrapper.get('.map-context-popup__body')
+    const header = wrapper.get('[data-popup-section="header"]')
+    const content = wrapper.get('[data-popup-section="content"]')
     const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
     const footer = wrapper.get('.point-summary-card__footer')
 
     expect(body.find('.point-summary-card').exists()).toBe(true)
+    expect(header.text()).toContain('Kyoto')
+    expect(content.find('.point-summary-card__scroll-region').exists()).toBe(true)
     expect(scrollRegion.text()).toContain('long text paragraph 1')
     expect(scrollRegion.text()).not.toContain('查看详情')
     expect(footer.text()).toContain('查看详情')

@@ -161,7 +161,7 @@ function handleConfirmDestructiveAction() {
 
 <template>
   <article class="point-summary-card" data-region="point-summary-card">
-    <header class="point-summary-card__header">
+    <header class="point-summary-card__header" data-popup-section="header">
       <p class="point-summary-card__badge">
         {{
           surface.mode === 'candidate-select'
@@ -185,7 +185,7 @@ function handleConfirmDestructiveAction() {
       </p>
     </header>
 
-    <div class="point-summary-card__content">
+    <div class="point-summary-card__content" data-popup-section="content">
       <div class="point-summary-card__scroll-region" data-scroll-region="true">
         <p
           v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
@@ -234,7 +234,7 @@ function handleConfirmDestructiveAction() {
       </div>
     </div>
 
-    <footer class="point-summary-card__footer">
+    <footer class="point-summary-card__footer" data-popup-section="footer">
       <div class="point-summary-card__actions">
         <template v-if="surface.mode === 'candidate-select'">
           <button class="point-summary-card__action" type="button" @click="handleContinueWithFallback">
@@ -292,18 +292,18 @@ function handleConfirmDestructiveAction() {
 
 <style scoped>
 .point-summary-card {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   flex: 1 1 auto;
   gap: var(--space-md);
   min-height: 0;
-  height: 100%;
   padding: var(--space-lg);
   border: 1px solid rgba(143, 117, 80, 0.36);
   background:
     linear-gradient(180deg, rgba(252, 247, 236, 0.96), rgba(240, 225, 197, 0.96)),
     var(--color-surface);
   box-shadow: 0 14px 30px rgba(73, 49, 31, 0.12);
+  overflow: hidden;
 }
 
 .point-summary-card__header,
@@ -371,9 +371,8 @@ function handleConfirmDestructiveAction() {
 
 .point-summary-card__content {
   display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .point-summary-card__scroll-region {
@@ -429,7 +428,7 @@ function handleConfirmDestructiveAction() {
 }
 
 .point-summary-card__footer {
-  flex: 0 0 auto;
+  align-content: start;
   padding-top: var(--space-xs);
 }
 

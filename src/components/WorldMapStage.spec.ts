@@ -788,11 +788,15 @@ describe('WorldMapStage', () => {
     await nextTick()
 
     const popupBody = wrapper.get('.world-map-stage__surface .map-context-popup__body')
+    const header = wrapper.get('.world-map-stage__surface [data-popup-section="header"]')
+    const content = wrapper.get('.world-map-stage__surface [data-popup-section="content"]')
     const scrollRegion = wrapper.get('.world-map-stage__surface .point-summary-card__scroll-region')
     const footer = wrapper.get('.world-map-stage__surface .point-summary-card__footer')
 
     expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
     expect(popupBody.find('.point-summary-card').exists()).toBe(true)
+    expect(header.text()).toContain('Kyoto')
+    expect(content.find('.point-summary-card__scroll-region').exists()).toBe(true)
     expect(scrollRegion.text()).toContain('long text paragraph 1')
     expect(scrollRegion.text()).not.toContain('查看详情')
     expect(footer.text()).toContain('查看详情')

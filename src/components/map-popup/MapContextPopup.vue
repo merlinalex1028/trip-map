@@ -129,6 +129,7 @@ defineExpose({
   flex: 1 1 auto;
   min-height: 0;
   max-height: 100%;
+  overflow: hidden;
 }
 
 .map-context-popup__arrow {

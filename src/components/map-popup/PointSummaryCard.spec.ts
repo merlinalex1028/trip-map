@@ -82,12 +82,16 @@ describe('PointSummaryCard', () => {
       }
     })
 
+    const header = wrapper.get('[data-popup-section="header"]')
+    const content = wrapper.get('[data-popup-section="content"]')
     const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
     const footer = wrapper.get('.point-summary-card__footer')
 
     expect(wrapper.text()).toContain('确认城市')
+    expect(header.text()).toContain('Japan')
     expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('已存在记录')
+    expect(content.find('.point-summary-card__scroll-region').exists()).toBe(true)
     expect(scrollRegion.text()).toContain('搜索城市')
     expect(scrollRegion.text()).toContain('Kyoto')
     expect(scrollRegion.text()).not.toContain('按国家/地区继续记录')
@@ -210,6 +214,7 @@ describe('PointSummaryCard', () => {
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.text()).toContain('点亮状态')
     expect(wrapper.text()).toContain('删除地点')
+    expect(wrapper.get('[data-popup-section="header"]').text()).toContain('Kyoto')
     expect(wrapper.get('.point-summary-card__scroll-region').text()).not.toContain('查看详情')
     expect(wrapper.get('.point-summary-card__footer').text()).toContain('查看详情')
 
