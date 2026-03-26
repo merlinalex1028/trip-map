@@ -59,6 +59,8 @@ function normalizePersistedPoint(value: unknown): PersistedMapPoint | null {
       cityId: typeof point.cityId === 'string' ? point.cityId : null,
       cityName: typeof point.cityName === 'string' ? point.cityName : null,
       cityContextLabel: typeof point.cityContextLabel === 'string' ? point.cityContextLabel : null,
+      boundaryId: typeof point.boundaryId === 'string' ? point.boundaryId : null,
+      boundaryDatasetVersion: typeof point.boundaryDatasetVersion === 'string' ? point.boundaryDatasetVersion : null,
       fallbackNotice: typeof point.fallbackNotice === 'string' ? point.fallbackNotice : null,
       x: point.x,
       y: point.y,
@@ -175,7 +177,17 @@ export function savePointStorageSnapshot(snapshot: PointStorageSnapshot) {
     return
   }
 
-  window.localStorage.setItem(POINT_STORAGE_KEY, JSON.stringify(snapshot))
+  const normalizedSnapshot: PointStorageSnapshot = {
+    ...snapshot,
+    userPoints: snapshot.userPoints.map((point) => ({
+      ...point,
+      boundaryId: typeof point.boundaryId === 'string' ? point.boundaryId : null,
+      boundaryDatasetVersion:
+        typeof point.boundaryDatasetVersion === 'string' ? point.boundaryDatasetVersion : null
+    }))
+  }
+
+  window.localStorage.setItem(POINT_STORAGE_KEY, JSON.stringify(normalizedSnapshot))
 }
 
 export function clearPointStorageSnapshot() {

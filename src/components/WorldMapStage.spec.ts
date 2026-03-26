@@ -319,6 +319,8 @@ describe('WorldMapStage', () => {
       cityId: 'jp-kyoto',
       cityName: 'Kyoto',
       cityContextLabel: 'Japan · Kansai',
+      boundaryId: null,
+      boundaryDatasetVersion: null,
       fallbackNotice: null,
       lat: 35.0116,
       lng: 135.7681,

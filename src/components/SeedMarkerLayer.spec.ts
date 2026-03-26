@@ -13,6 +13,8 @@ function createPoint(overrides: Record<string, unknown> = {}) {
     cityId: null,
     cityName: null,
     cityContextLabel: 'Japan',
+    boundaryId: null,
+    boundaryDatasetVersion: null,
     fallbackNotice: null,
     lat: 35,
     lng: 135,

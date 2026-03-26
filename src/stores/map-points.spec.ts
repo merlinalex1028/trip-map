@@ -42,6 +42,8 @@ describe('map-points store', () => {
       cityId: 'jp-kyoto',
       cityName: 'Kyoto',
       cityContextLabel: 'Japan · Kansai',
+      boundaryId: null,
+      boundaryDatasetVersion: null,
       fallbackNotice: null,
       lat: 35,
       lng: 135,

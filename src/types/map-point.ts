@@ -11,6 +11,8 @@ interface BaseMapPoint {
   cityId: string | null
   cityName: string | null
   cityContextLabel: string | null
+  boundaryId: string | null
+  boundaryDatasetVersion: string | null
   fallbackNotice: string | null
   x: number
   y: number

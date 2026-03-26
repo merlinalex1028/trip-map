@@ -123,6 +123,8 @@ async function handleMapClick(event: MouseEvent) {
       cityContextLabel:
         detectionResult.cityCandidates[0]?.contextLabel ??
         (detectionResult.regionName ?? detectionResult.countryName),
+      boundaryId: null,
+      boundaryDatasetVersion: null,
       fallbackNotice: detectionResult.fallbackNotice,
       lat: detectionResult.lat,
       lng: detectionResult.lng,

@@ -58,6 +58,8 @@ export const seedPoints: MapPointDisplay[] = seedPointDefinitions.map((definitio
     cityId: `seed-${definition.id.replace(/^seed-/, '')}`,
     cityName: definition.name,
     cityContextLabel: definition.countryName,
+    boundaryId: null,
+    boundaryDatasetVersion: null,
     fallbackNotice: null,
     coordinatesLabel: formatCoordinatesLabel({
       lat: definition.lat,
