@@ -130,4 +130,56 @@ describe('usePopupAnchoring', () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1)
   })
+
+  it('caps popup maxHeight to 60% of the map surface height', async () => {
+    const reference = document.createElement('button')
+    const surface = document.createElement('div')
+    const floating = document.createElement('div')
+
+    surface.appendChild(floating)
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      width: 720,
+      height: 500,
+      top: 0,
+      bottom: 500,
+      left: 0,
+      right: 720,
+      x: 0,
+      y: 0,
+      toJSON: () => ({})
+    })
+
+    floatingUiMocks.computePosition.mockImplementation(async (_reference, _floating, options) => {
+      const sizeMiddleware = options.middleware[3]
+      sizeMiddleware.options.apply({
+        availableWidth: 540,
+        availableHeight: 420,
+        elements: {
+          floating
+        }
+      })
+
+      return {
+        x: 20,
+        y: 24,
+        placement: 'top',
+        middlewareData: {}
+      }
+    })
+    floatingUiMocks.autoUpdate.mockImplementation((_reference, _floating, update) => {
+      void update()
+      return vi.fn()
+    })
+
+    mountComposable(() =>
+      usePopupAnchoring({
+        reference: ref(reference),
+        floating: ref(floating)
+      })
+    )
+
+    await nextTick()
+
+    expect(floating.style.maxHeight).toBe('300px')
+  })
 })

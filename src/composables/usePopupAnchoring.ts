@@ -26,6 +26,16 @@ interface UsePopupAnchoringOptions {
   placement?: Placement
 }
 
+function resolvePopupMaxHeight(floating: HTMLElement, availableHeight: number) {
+  const mapHeight = floating.parentElement?.getBoundingClientRect().height
+
+  if (!mapHeight || mapHeight <= 0) {
+    return Math.max(0, availableHeight)
+  }
+
+  return Math.max(0, Math.min(availableHeight, mapHeight * 0.6))
+}
+
 function hasCollision(middlewareData: Record<string, unknown> | undefined) {
   if (!middlewareData) {
     return false
@@ -74,7 +84,7 @@ export function usePopupAnchoring(options: UsePopupAnchoringOptions) {
             availableHeight.value = nextAvailableHeight
             Object.assign(elements.floating.style, {
               maxWidth: `${Math.max(280, Math.min(360, availableWidth))}px`,
-              maxHeight: `${Math.max(0, nextAvailableHeight)}px`
+              maxHeight: `${resolvePopupMaxHeight(elements.floating, nextAvailableHeight)}px`
             })
           }
         })
