@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { nextTick } from 'vue'
 
 import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
@@ -419,15 +420,51 @@ describe('WorldMapStage', () => {
     const savedBoundaries = wrapper.findAll('.world-map-stage__boundary--saved')
     const selectedBoundary = wrapper.get('.world-map-stage__boundary--selected')
 
-    expect(wrapper.get('.world-map-stage__boundary-layer').exists()).toBe(true)
+    expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(true)
     expect(savedBoundaries).toHaveLength(2)
     expect(
       wrapper
-        .get(`[data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"].world-map-stage__boundary--saved`)
+        .find(`[data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"].world-map-stage__boundary--saved`)
         .exists()
     ).toBe(true)
     expect(selectedBoundary.attributes('data-boundary-id')).toBe(tokyoBoundary?.boundaryId ?? '')
     expect(selectedBoundary.findAll('path')).toHaveLength(tokyoBoundary?.polygons.length ?? 0)
+  })
+
+  it('switches the strong boundary highlight to the newly selected saved city without leaving residue', async () => {
+    const mapPointsStore = useMapPointsStore()
+    const kyotoBoundary = getBoundaryByCityId('jp-kyoto')
+    const lisbonBoundary = getBoundaryByCityId('pt-lisbon')
+
+    mapPointsStore.startDraftFromDetection(
+      createCityDraft('jp-kyoto', {
+        name: 'Kyoto',
+        cityName: 'Kyoto'
+      })
+    )
+    const kyotoPoint = mapPointsStore.saveDraftAsPoint()
+    mapPointsStore.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    const lisbonPoint = mapPointsStore.saveDraftAsPoint()
+    mapPointsStore.selectPointById(kyotoPoint!.id)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      kyotoBoundary?.boundaryId ?? ''
+    )
+
+    mapPointsStore.selectPointById(lisbonPoint!.id)
+    await nextTick()
+
+    const selectedBoundary = wrapper.get('.world-map-stage__boundary--selected')
+
+    expect(selectedBoundary.attributes('data-boundary-id')).toBe(lisbonBoundary?.boundaryId ?? '')
+    expect(wrapper.find(`[data-highlight-state="selected"][data-boundary-id="${kyotoBoundary?.boundaryId ?? ''}"]`).exists()).toBe(false)
+    expect(wrapper.findAll('.world-map-stage__boundary--saved')).toHaveLength(2)
   })
 
   it('does not render a city boundary layer for fallback-only state', () => {

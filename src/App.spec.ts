@@ -2,9 +2,43 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
+import { getBoundaryByCityId } from './services/city-boundaries'
 import { useMapPointsStore } from './stores/map-points'
 import { POINT_STORAGE_KEY } from './services/point-storage'
 import App from './App.vue'
+
+function createBoundaryAwareDraft(cityId: string, overrides: Record<string, unknown> = {}) {
+  const boundary = getBoundaryByCityId(cityId)
+
+  if (!boundary) {
+    throw new Error(`Missing boundary fixture for ${cityId}`)
+  }
+
+  const isPortugal = cityId.startsWith('pt-')
+
+  return {
+    id: `detected-${cityId}`,
+    name: boundary.cityName,
+    countryName: isPortugal ? 'Portugal' : 'Japan',
+    countryCode: isPortugal ? 'PT' : 'JP',
+    precision: 'city-high' as const,
+    cityId,
+    cityName: boundary.cityName,
+    cityContextLabel: isPortugal ? 'Portugal' : 'Japan · Kansai',
+    boundaryId: boundary.boundaryId,
+    boundaryDatasetVersion: boundary.datasetVersion,
+    fallbackNotice: null,
+    lat: isPortugal ? 38.7223 : 35.0116,
+    lng: isPortugal ? -9.1393 : 135.7681,
+    x: isPortugal ? 0.47 : 0.68,
+    y: isPortugal ? 0.37 : 0.42,
+    source: 'detected' as const,
+    isFeatured: false,
+    description: 'boundary-aware point',
+    coordinatesLabel: isPortugal ? '38.7223°N, 9.1393°W' : '35.0116°N, 135.7681°E',
+    ...overrides
+  }
+}
 
 describe('App shell', () => {
   beforeEach(() => {
@@ -237,5 +271,34 @@ describe('App shell', () => {
     await nextTick()
 
     expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-edit')
+  })
+
+  it('removes the strong boundary layer after closing the drawer while keeping saved weak highlights', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(createBoundaryAwareDraft('jp-kyoto'))
+    store.saveDraftAsPoint()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      getBoundaryByCityId('jp-kyoto')?.boundaryId ?? ''
+    )
+
+    store.clearActivePoint()
+    await nextTick()
+
+    expect(wrapper.get('.world-map-stage__boundary--saved').attributes('data-boundary-id')).toBe(
+      getBoundaryByCityId('jp-kyoto')?.boundaryId ?? ''
+    )
+    expect(wrapper.find('.world-map-stage__boundary--selected').exists()).toBe(false)
+    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
   })
 })
