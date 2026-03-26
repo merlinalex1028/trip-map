@@ -65,7 +65,11 @@ Plans:
   1. 用户选中城市或已有点位后，可以看到锚定在地图上下文中的悬浮 popup 摘要卡。
   2. 用户可以在 popup 中完成高频快捷操作，并通过显式入口进入完整详情或编辑视图。
   3. 用户在移动端使用时，popup 会自动避开视口边缘，必要时回退为安全的底部 peek 或等效轻量展示。
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 09-01-PLAN.md — 拆分 summary/deep surface 契约并抽共享摘要卡
+- [ ] 09-02-PLAN.md — 接入桌面 anchored popup 与地图内锚点定位
+- [ ] 09-03-PLAN.md — 补移动端 peek 回退、布局迁移与边界稳定性回归
 **UI hint**: yes
 
 ### Phase 10: 可爱风格与可读性收口
