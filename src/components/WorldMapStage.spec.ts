@@ -1,12 +1,21 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
+import { computed, nextTick, shallowRef } from 'vue'
 
 import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCoordinates, GeoDetectionResult } from '../types/geo'
 import WorldMapStage from './WorldMapStage.vue'
+
+const popupAnchoringMock = vi.hoisted(() => ({
+  cleanup: vi.fn(),
+  lastOptions: null as
+    | {
+        reference: () => Element | null
+      }
+    | null
+}))
 
 const lookupCountryRegionByCoordinates = vi.fn<
   (geo: GeoCoordinates) => GeoDetectionResult | null
@@ -18,6 +27,24 @@ const isLowConfidenceBoundaryHit = vi.fn<
 vi.mock('../services/geo-lookup', () => ({
   lookupCountryRegionByCoordinates,
   isLowConfidenceBoundaryHit
+}))
+
+vi.mock('../composables/usePopupAnchoring', () => ({
+  usePopupAnchoring: (options: { reference: () => Element | null }) => {
+    popupAnchoringMock.lastOptions = options
+
+    return {
+      floatingStyles: computed(() => ({
+        left: '24px',
+        top: '32px'
+      })),
+      placement: shallowRef('top-start'),
+      collisionState: shallowRef('stable'),
+      availableHeight: shallowRef(320),
+      updatePosition: vi.fn(),
+      cleanup: popupAnchoringMock.cleanup
+    }
+  }
 }))
 
 function installFrame(surface: HTMLDivElement) {
@@ -161,6 +188,8 @@ describe('WorldMapStage', () => {
     )
     isLowConfidenceBoundaryHit.mockReset()
     isLowConfidenceBoundaryHit.mockReturnValue(false)
+    popupAnchoringMock.lastOptions = null
+    popupAnchoringMock.cleanup.mockReset()
 
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
       callback(0)
@@ -569,6 +598,94 @@ describe('WorldMapStage', () => {
     expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(false)
   })
 
+  it('renders candidate-select popup inside the map stage with a pending anchor source', async () => {
+    const mapPointsStore = useMapPointsStore()
+    const mapUiStore = useMapUiStore()
+
+    mapUiStore.setPendingGeoHit({
+      x: 0.68,
+      y: 0.42,
+      lat: 35.0116,
+      lng: 135.7681
+    })
+    mapPointsStore.startPendingCitySelection(
+      createCityDraft('jp-kyoto', {
+        id: 'detected-jp-fallback',
+        name: 'Japan',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Japan',
+        boundaryId: null,
+        boundaryDatasetVersion: null,
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      }),
+      [
+        {
+          cityId: 'jp-kyoto',
+          cityName: 'Kyoto',
+          contextLabel: 'Japan · Kansai',
+          matchLevel: 'high',
+          distanceKm: 2.2,
+          statusHint: '更接近点击位置'
+        }
+      ]
+    )
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const popup = wrapper.get('.world-map-stage__surface .map-context-popup')
+    const anchor = popupAnchoringMock.lastOptions?.reference()
+
+    expect(popup.attributes('data-popup-anchor-source')).toBe('pending')
+    expect(wrapper.text()).toContain('Japan')
+    expect(anchor).toBeInstanceOf(SVGElement)
+    expect(anchor?.getAttribute('data-pending-marker')).toBe('true')
+  })
+
+  it('renders selected view popup inside the map stage and keeps boundary highlight identity in sync', async () => {
+    const mapPointsStore = useMapPointsStore()
+    const kyotoBoundary = getBoundaryByCityId('jp-kyoto')
+
+    mapPointsStore.startDraftFromDetection(
+      createCityDraft('jp-kyoto', {
+        name: 'Kyoto',
+        cityName: 'Kyoto'
+      })
+    )
+    const savedPoint = mapPointsStore.saveDraftAsPoint()
+
+    if (!savedPoint) {
+      throw new Error('Expected saved point fixture')
+    }
+
+    mapPointsStore.selectPointById(savedPoint.id)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const popup = wrapper.get('.world-map-stage__surface .map-context-popup')
+    const anchor = popupAnchoringMock.lastOptions?.reference()
+
+    expect(popup.attributes('data-popup-anchor-source')).toBe('marker')
+    expect(wrapper.text()).toContain('Kyoto')
+    expect(anchor).toBeInstanceOf(HTMLElement)
+    expect((anchor as HTMLElement | null)?.getAttribute('data-point-id')).toBe(savedPoint.id)
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      kyotoBoundary?.boundaryId ?? ''
+    )
+  })
+
   it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {
     const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
       '../services/geo-lookup'
@@ -597,4 +714,39 @@ describe('WorldMapStage', () => {
       '未能可靠确认城市，已提供国家/地区继续记录'
     )
   }, 15000)
+
+  it('falls back to a boundary anchor when the stage cannot resolve a marker element', async () => {
+    const boundaryPinia = createPinia()
+    setActivePinia(boundaryPinia)
+    const boundaryStore = useMapPointsStore()
+
+    boundaryStore.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    const savedPoint = boundaryStore.saveDraftAsPoint()
+
+    if (!savedPoint) {
+      throw new Error('Expected boundary fallback fixture')
+    }
+
+    boundaryStore.selectPointById(savedPoint.id)
+
+    const boundaryWrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [boundaryPinia],
+        stubs: {
+          SeedMarkerLayer: {
+            template: '<div class="seed-marker-layer-stub"></div>'
+          }
+        }
+      }
+    })
+
+    await nextTick()
+
+    const popup = boundaryWrapper.get('.map-context-popup')
+    const anchor = popupAnchoringMock.lastOptions?.reference()
+
+    expect(popup.attributes('data-popup-anchor-source')).toBe('boundary')
+    expect(anchor).not.toBeNull()
+    expect(anchor).not.toBeInstanceOf(Element)
+  })
 })
