@@ -375,24 +375,26 @@ function handlePrimaryAction(surface: SummarySurface) {
 |----------|-------|
 | Framework | `vitest` `3.2.4` + `@vue/test-utils` `2.4.6` + `happy-dom` |
 | Config file | `vitest.config.ts` |
-| Quick run command | `npm test -- src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts src/stores/map-points.spec.ts src/App.spec.ts` |
-| Full suite command | `npm test` |
+| Quick run command | `pnpm test -- src/stores/map-points.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts src/composables/usePopupAnchoring.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/WorldMapStage.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/App.spec.ts` |
+| Full suite command | `pnpm test` |
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| POP-01 | 选中城市/点位后出现锚定在地图语境中的摘要 popup | component + integration | `npm test -- src/components/MapContextPopup.spec.ts -t "anchors summary popup"` | ❌ Wave 0 |
-| POP-02 | popup 内执行保存/编辑/删除/隐藏等高频动作，并显式 handoff 到 drawer | component + integration | `npm test -- src/components/MapContextPopup.spec.ts -t "runs quick actions and opens drawer handoff"` | ❌ Wave 0 |
-| POP-03 | 窄屏/危险边缘时自动回退 peek，桌面端仍保持锚定与碰撞避让 | unit + component | `npm test -- src/composables/usePopupAnchoring.spec.ts src/components/MapContextPopup.spec.ts -t "falls back to peek on unsafe viewport"` | ❌ Wave 0 |
+| POP-01 | 选中城市/点位后出现锚定在地图语境中的摘要 popup | component + integration | `pnpm test -- src/composables/usePopupAnchoring.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/WorldMapStage.spec.ts` | ❌ Wave 0 |
+| POP-02 | popup 内执行保存/编辑/删除/隐藏等高频动作，并显式 handoff 到 drawer | unit + component + integration | `pnpm test -- src/stores/map-points.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts src/App.spec.ts` | ❌ Wave 0 + existing extension |
+| POP-03 | 窄屏/危险边缘时自动回退 peek，桌面端仍保持锚定与碰撞避让 | unit + component + integration | `pnpm test -- src/composables/usePopupAnchoring.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts src/App.spec.ts` | ❌ Wave 0 + existing extension |
 
 ### Sampling Rate
-- **Per task commit:** `npm test -- src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts src/stores/map-points.spec.ts src/App.spec.ts`
-- **Per wave merge:** `npm test`
+- **Per task commit:** `pnpm test -- src/stores/map-points.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts src/composables/usePopupAnchoring.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/WorldMapStage.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/App.spec.ts`
+- **Per wave merge:** `pnpm test`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
-- [ ] `src/components/MapContextPopup.spec.ts` — 覆盖 POP-01 / POP-02 的 shell、anchor、快捷动作与 handoff
+- [ ] `src/components/map-popup/PointSummaryCard.spec.ts` — 覆盖 candidate / detected / view 三态 CTA 与 inline destructive confirm
+- [ ] `src/components/map-popup/MapContextPopup.spec.ts` — 覆盖 POP-01 / POP-02 的 shell、anchor、快捷动作与 handoff
 - [ ] `src/composables/usePopupAnchoring.spec.ts` — 覆盖 POP-03 的 collision、flip、shift、size 和 cleanup
+- [ ] `src/components/map-popup/MobilePeekSheet.spec.ts` — 覆盖 mobile / unsafe fallback shell 与 safe-area 约束
 - [ ] `src/App.spec.ts` 扩展 — 断言 drawer 不再是默认主入口，只在 deep mode 接管
 - [ ] `src/components/WorldMapStage.spec.ts` 扩展 — 断言 anchor 来源切换不破坏 `selectedBoundaryId` / `savedBoundaryIds`
 
