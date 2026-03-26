@@ -1,7 +1,10 @@
 import {
+  boundaryCoverageStats,
   CITY_BOUNDARY_DATASET_VERSION,
+  curatedCitiesMissingBoundaryCoverage,
   getBoundaryById,
-  getBoundaryByCityId
+  getBoundaryByCityId,
+  hasBoundaryCoverageForCityId
 } from './city-boundaries'
 
 describe('city-boundaries service', () => {
@@ -43,5 +46,64 @@ describe('city-boundaries service', () => {
         datasetVersion: CITY_BOUNDARY_DATASET_VERSION
       })
     )
+  })
+
+  it('audits curated-city boundary coverage so shrinkage is visible in CI', () => {
+    expect(boundaryCoverageStats.coveredCuratedCityCount).toBe(43)
+    expect(boundaryCoverageStats.missingCuratedCityCount).toBe(0)
+    expect(curatedCitiesMissingBoundaryCoverage).toEqual([])
+  })
+
+  it('resolves expanded boundary coverage for key curated and sparse-country cities', () => {
+    expect(hasBoundaryCoverageForCityId('hu-budapest')).toBe(true)
+    expect(hasBoundaryCoverageForCityId('ke-nairobi')).toBe(true)
+    expect(hasBoundaryCoverageForCityId('jp-osaka')).toBe(true)
+    expect(hasBoundaryCoverageForCityId('pt-porto')).toBe(true)
+    expect(hasBoundaryCoverageForCityId('us-new-york')).toBe(true)
+
+    expect(getBoundaryByCityId('hu-budapest')).toEqual(
+      expect.objectContaining({
+        cityId: 'hu-budapest',
+        cityName: 'Budapest',
+        datasetVersion: CITY_BOUNDARY_DATASET_VERSION
+      })
+    )
+    expect(getBoundaryByCityId('ke-nairobi')).toEqual(
+      expect.objectContaining({
+        cityId: 'ke-nairobi',
+        cityName: 'Nairobi',
+        datasetVersion: CITY_BOUNDARY_DATASET_VERSION
+      })
+    )
+    expect(getBoundaryByCityId('jp-osaka')).toEqual(
+      expect.objectContaining({
+        cityId: 'jp-osaka',
+        cityName: 'Osaka',
+        datasetVersion: CITY_BOUNDARY_DATASET_VERSION
+      })
+    )
+    expect(getBoundaryByCityId('pt-porto')).toEqual(
+      expect.objectContaining({
+        cityId: 'pt-porto',
+        cityName: 'Porto',
+        datasetVersion: CITY_BOUNDARY_DATASET_VERSION
+      })
+    )
+    expect(getBoundaryByCityId('us-new-york')).toEqual(
+      expect.objectContaining({
+        cityId: 'us-new-york',
+        cityName: 'New York',
+        datasetVersion: CITY_BOUNDARY_DATASET_VERSION
+      })
+    )
+  })
+
+  it('keeps shipped boundary ids stable for persisted restore flows', () => {
+    expect(getBoundaryByCityId('pt-lisbon')?.boundaryId).toBe('pt-lisbon-municipality')
+    expect(getBoundaryByCityId('eg-cairo')?.boundaryId).toBe('eg-cairo-governorate')
+    expect(getBoundaryByCityId('jp-kyoto')?.boundaryId).toBe('jp-kyoto-city')
+    expect(getBoundaryByCityId('jp-tokyo')?.boundaryId).toBe('jp-tokyo-metropolis')
+    expect(getBoundaryByCityId('fr-paris')?.boundaryId).toBe('fr-paris-commune')
+    expect(getBoundaryByCityId('ar-buenos-aires')?.boundaryId).toBe('ar-buenos-aires-autonomous-city')
   })
 })

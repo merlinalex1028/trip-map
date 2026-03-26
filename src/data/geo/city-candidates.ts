@@ -480,6 +480,8 @@ function groupByContext(candidates: CityCandidate[]) {
 }
 
 const supportedCountryCodes = [...new Set(cityCandidateDefinitions.map((candidate) => candidate.countryCode))].sort()
+export const curatedCityIds = curatedCitySeeds.map((seed) => defineCity(seed).id)
+export const curatedCityCount = curatedCityIds.length
 
 export const countriesMissingCityCoverage = Object.entries(countryMetaByCode)
   .filter(([countryCode]) => !supportedCountryCodes.includes(countryCode))

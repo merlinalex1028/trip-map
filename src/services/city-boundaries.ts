@@ -1,4 +1,5 @@
 import boundaryDataset from '../data/geo/city-boundaries.geo.json'
+import { curatedCityIds } from '../data/geo/city-candidates'
 import type {
   CityBoundaryFeature,
   CityBoundaryFeatureCollection,
@@ -27,6 +28,21 @@ const boundaryIdByCityId = cityBoundaryFeatures.reduce<Map<string, string>>((map
 
   return map
 }, new Map())
+
+export function hasBoundaryCoverageForCityId(cityId: string): boolean {
+  return boundaryIdByCityId.has(cityId)
+}
+
+export const curatedCitiesMissingBoundaryCoverage = curatedCityIds.filter(
+  (cityId) => !hasBoundaryCoverageForCityId(cityId)
+)
+
+export const boundaryCoverageStats = {
+  totalBoundaryFeatureCount: cityBoundaryFeatures.length,
+  totalCuratedCityCount: curatedCityIds.length,
+  coveredCuratedCityCount: curatedCityIds.length - curatedCitiesMissingBoundaryCoverage.length,
+  missingCuratedCityCount: curatedCitiesMissingBoundaryCoverage.length
+}
 
 export function normalizeBoundaryGeometry(
   geometry: CityBoundaryGeometry,
