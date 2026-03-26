@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 09-popup
 source:
   - 09-popup-01-SUMMARY.md
@@ -58,7 +58,16 @@ blocked: 0
   reason: "User reported: 当前是整个popup滚动了，我想要的是仅中间的简介区域滚动"
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "滚动层级放在 popup / peek shell body 上，而 PointSummaryCard 仍是单层流式卡片，没有独立的中部 scroll-region 和稳定 footer，导致一旦内容超高就是整张卡片一起滚。"
+  artifacts:
+    - path: "src/components/map-popup/MapContextPopup.vue"
+      issue: "map-context-popup__body 直接包裹整张 PointSummaryCard，并承担 overflow-y: auto"
+    - path: "src/components/map-popup/MobilePeekSheet.vue"
+      issue: "mobile-peek-sheet__body 直接包裹整张 PointSummaryCard，并承担 overflow-y: auto"
+    - path: "src/components/map-popup/PointSummaryCard.vue"
+      issue: "缺少类似 drawer 的中部 scroll-region / 稳定 actions 分区"
+  missing:
+    - "把 PointSummaryCard 拆成 header + content scroll-region + stable actions"
+    - "让 popup / peek shell 只提供高度约束与裁切，不再作为整卡滚动容器"
+    - "补回归测试，锁住仅中间简介区滚动而不是整张 popup 一起滚"
+  debug_session: ".planning/debug/09-popup-middle-scroll.md"
