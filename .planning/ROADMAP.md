@@ -49,7 +49,12 @@ Plans:
   2. 用户在 popup、详情面板和保存结果中看到的城市身份，与地图上被高亮的城市边界保持一致。
   3. 用户在 hover、选中、关闭 popup、切换城市或返回已有点位时，城市边界高亮状态切换稳定，不会残留错误面域。
   4. 用户保存 v2.0 城市记录并在后续重新打开时，系统能恢复同一城市身份与对应边界高亮语义。
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 08-01-PLAN.md — 建立离线边界数据契约与 `boundaryId` 持久化骨架
+- [x] 08-02-PLAN.md — 接入 store 派生边界状态与地图真实边界 overlay
+- [x] 08-03-PLAN.md — 补齐 reopen / switch / close / fallback / multi-area 回归
+- [ ] 08-04-PLAN.md — 扩大当前主链路边界覆盖并补 unsupported 城市语义护栏
 **UI hint**: yes
 
 ### Phase 9: Popup 主舞台交互
@@ -79,6 +84,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. 城市选择与兼容基线 | v2.0 | 5/5 | Complete | 2026-03-25 |
-| 8. 城市边界高亮语义 | v2.0 | 0/TBD | Not started | - |
+| 8. 城市边界高亮语义 | v2.0 | 3/4 | In progress | - |
 | 9. Popup 主舞台交互 | v2.0 | 0/TBD | Not started | - |
 | 10. 可爱风格与可读性收口 | v2.0 | 0/TBD | Not started | - |
