@@ -69,6 +69,21 @@ describe('map-points store', () => {
     }
   }
 
+  function createFallbackDraft(id: string, name = 'Japan') {
+    return {
+      ...createDraft(id, name),
+      name,
+      countryName: name,
+      precision: 'country' as const,
+      cityId: null,
+      cityName: null,
+      cityContextLabel: name,
+      boundaryId: null,
+      boundaryDatasetVersion: null,
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+    }
+  }
+
   function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
     const boundary = getBoundaryByCityId(cityId)
 
@@ -104,6 +119,157 @@ describe('map-points store', () => {
     expect(store.draftPoint?.id).toBe('detected-jp-2')
     expect(store.selectedPointId).toBe('detected-jp-2')
     expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
+  })
+
+  it('keeps candidate selection in summary mode without opening the deep drawer', () => {
+    const store = useMapPointsStore()
+    const fallbackPoint = createFallbackDraft('detected-jp-fallback')
+    const cityCandidates = [createCandidate()]
+
+    store.startPendingCitySelection(fallbackPoint, cityCandidates)
+
+    expect(store.summaryMode).toBe('candidate-select')
+    expect(store.drawerMode).toBeNull()
+    expect(store.summarySurfaceState).toEqual({
+      mode: 'candidate-select',
+      fallbackPoint,
+      cityCandidates
+    })
+  })
+
+  it('switches summary mode to detected preview for new drafts and view for reused saved points', () => {
+    const store = useMapPointsStore()
+    const fallbackPoint = createFallbackDraft('detected-jp-fallback')
+
+    store.startPendingCitySelection(fallbackPoint, [createCandidate()])
+    store.confirmPendingCitySelection(createCandidate())
+
+    expect(store.summaryMode).toBe('detected-preview')
+    expect(store.summarySurfaceState?.mode).toBe('detected-preview')
+    expect(store.summarySurfaceState?.point.cityId).toBe('jp-kyoto')
+
+    store.saveDraftAsPoint()
+    store.clearActivePoint()
+
+    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    const savedPoint = store.saveDraftAsPoint()
+    store.startPendingCitySelection(createFallbackDraft('detected-pt-fallback', 'Portugal'), [
+      createCandidate({
+        cityId: 'pt-lisbon',
+        cityName: 'Lisbon',
+        contextLabel: 'Portugal'
+      })
+    ])
+
+    const decision = store.confirmPendingCitySelection(
+      createCandidate({
+        cityId: 'pt-lisbon',
+        cityName: 'Lisbon',
+        contextLabel: 'Portugal'
+      })
+    )
+
+    expect(decision?.type).toBe('reused')
+    expect(decision?.point.id).toBe(savedPoint?.id)
+    expect(store.summaryMode).toBe('view')
+    expect(store.summarySurfaceState).toMatchObject({
+      mode: 'view',
+      point: {
+        id: savedPoint?.id,
+        cityId: 'pt-lisbon'
+      }
+    })
+  })
+
+  it('opens and closes the deep drawer without clearing summary state or boundary selection', () => {
+    const store = useMapPointsStore()
+    const boundaryId = getBoundaryByCityId('pt-lisbon')?.boundaryId ?? null
+
+    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    const savedPoint = store.saveDraftAsPoint()
+
+    expect(store.summaryMode).toBe('view')
+    expect(store.drawerMode).toBeNull()
+    expect(store.selectedBoundaryId).toBe(boundaryId)
+
+    store.openDrawerView()
+
+    expect(store.summaryMode).toBe('view')
+    expect(store.drawerMode).toBe('view')
+    expect(store.selectedBoundaryId).toBe(boundaryId)
+    expect(store.summarySurfaceState).toMatchObject({
+      mode: 'view',
+      point: {
+        id: savedPoint?.id
+      }
+    })
+
+    store.closeDrawer()
+
+    expect(store.summaryMode).toBe('view')
+    expect(store.drawerMode).toBeNull()
+    expect(store.selectedBoundaryId).toBe(boundaryId)
+    expect(store.summarySurfaceState).toMatchObject({
+      mode: 'view',
+      point: {
+        id: savedPoint?.id
+      }
+    })
+  })
+
+  it('toggles featured state for active draft, saved, and seed points', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createDraft('detected-featured', 'Kyoto'))
+    expect(store.activePoint?.isFeatured).toBe(false)
+
+    store.toggleActivePointFeatured()
+    expect(store.activePoint?.isFeatured).toBe(true)
+
+    const savedPoint = store.saveDraftAsPoint()
+    expect(savedPoint?.isFeatured).toBe(true)
+
+    store.toggleActivePointFeatured()
+    expect(store.activePoint?.isFeatured).toBe(false)
+
+    store.selectPointById('seed-kyoto')
+    const initialSeedFeatured = store.activePoint?.isFeatured
+
+    store.toggleActivePointFeatured()
+
+    expect(store.activePoint?.source).toBe('seed')
+    expect(store.activePoint?.isFeatured).toBe(!initialSeedFeatured)
+  })
+
+  it('reuses saved points for search candidates through the same confirm flow as default candidates', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    const savedPoint = store.saveDraftAsPoint()
+
+    store.startPendingCitySelection(createFallbackDraft('detected-search-fallback'), [createCandidate()])
+
+    const searchCandidate = createCandidate({
+      cityId: 'pt-lisbon',
+      cityName: 'Lisbon',
+      contextLabel: 'Portugal',
+      statusHint: '搜索结果'
+    })
+
+    expect(store.findSavedPointByCityId('pt-lisbon')?.id).toBe(savedPoint?.id)
+
+    const decision = store.confirmPendingCitySelection(searchCandidate)
+
+    expect(decision?.type).toBe('reused')
+    expect(decision?.point.id).toBe(savedPoint?.id)
+    expect(store.summaryMode).toBe('view')
+    expect(store.summarySurfaceState).toMatchObject({
+      mode: 'view',
+      point: {
+        id: savedPoint?.id,
+        cityId: 'pt-lisbon'
+      }
+    })
   })
 
   it('clears an existing draft when selecting a saved or seed point', () => {
