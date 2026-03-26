@@ -18,7 +18,9 @@ import type {
   MapPointDisplay,
   PersistedMapPoint,
   PointStorageHealth,
-  SeedPointOverride
+  SeedPointOverride,
+  SummaryMode,
+  SummarySurfaceState
 } from '../types/map-point'
 import { useMapUiStore } from './map-ui'
 
@@ -59,6 +61,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
   const draftPoint = shallowRef<DraftMapPoint | null>(null)
   const pendingCitySelection = shallowRef<PendingCitySelection | null>(null)
   const selectedPointId = shallowRef<string | null>(null)
+  const summaryMode = shallowRef<SummaryMode | null>(null)
   const drawerMode = shallowRef<DrawerMode | null>(null)
   const editableSnapshot = shallowRef<EditablePointSnapshot | null>(null)
   const storageHealth = shallowRef<PointStorageHealth>('empty')
@@ -97,6 +100,29 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     return 'missing'
+  })
+
+  const summarySurfaceState = computed<SummarySurfaceState | null>(() => {
+    if (summaryMode.value === 'candidate-select' && pendingCitySelection.value) {
+      return {
+        mode: 'candidate-select',
+        fallbackPoint: pendingCitySelection.value.fallbackPoint,
+        cityCandidates: pendingCitySelection.value.cityCandidates
+      }
+    }
+
+    if (
+      (summaryMode.value === 'detected-preview' || summaryMode.value === 'view') &&
+      activePoint.value
+    ) {
+      return {
+        mode: summaryMode.value,
+        point: activePoint.value,
+        boundarySupportState: activeBoundaryCoverageState.value
+      }
+    }
+
+    return null
   })
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
@@ -144,6 +170,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     if (pendingCitySelection.value) {
       pendingCitySelection.value = null
       selectedPointId.value = null
+      summaryMode.value = null
       drawerMode.value = null
       editableSnapshot.value = null
       return
@@ -155,6 +182,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     selectedPointId.value = null
+    summaryMode.value = null
     drawerMode.value = null
     editableSnapshot.value = null
   }
@@ -163,7 +191,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     pendingCitySelection.value = null
     draftPoint.value = point
     selectedPointId.value = point.id
-    drawerMode.value = 'detected-preview'
+    summaryMode.value = 'detected-preview'
+    drawerMode.value = null
     editableSnapshot.value = buildEditableSnapshot(point)
   }
 
@@ -171,7 +200,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     pendingCitySelection.value = null
     draftPoint.value = point
     selectedPointId.value = point.id
-    drawerMode.value = 'detected-preview'
+    summaryMode.value = 'detected-preview'
+    drawerMode.value = null
     editableSnapshot.value = buildEditableSnapshot(point)
   }
 
@@ -182,7 +212,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
       cityCandidates
     }
     selectedPointId.value = null
-    drawerMode.value = 'candidate-select'
+    summaryMode.value = 'candidate-select'
+    drawerMode.value = null
     editableSnapshot.value = null
   }
 
@@ -191,6 +222,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     pendingCitySelection.value = null
     editableSnapshot.value = null
     selectedPointId.value = null
+    summaryMode.value = null
     drawerMode.value = null
   }
 
@@ -213,14 +245,29 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     if (!point) {
       selectedPointId.value = null
+      summaryMode.value = null
       drawerMode.value = null
       editableSnapshot.value = null
       return
     }
 
     selectedPointId.value = point.id
-    drawerMode.value = point.source === 'detected' ? 'detected-preview' : 'view'
+    summaryMode.value = point.source === 'detected' ? 'detected-preview' : 'view'
+    drawerMode.value = null
     editableSnapshot.value = buildEditableSnapshot(point)
+  }
+
+  function openDrawerView() {
+    if (!activePoint.value) {
+      return
+    }
+
+    editableSnapshot.value = buildEditableSnapshot(activePoint.value)
+    drawerMode.value = 'view'
+  }
+
+  function closeDrawer() {
+    drawerMode.value = null
   }
 
   function enterEditMode() {
@@ -239,7 +286,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     editableSnapshot.value = buildEditableSnapshot(activePoint.value)
-    drawerMode.value = activePoint.value.source === 'detected' ? 'detected-preview' : 'view'
+    drawerMode.value = 'view'
   }
 
   function saveDraftAsPoint(snapshot?: EditablePointSnapshot) {
@@ -261,7 +308,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     userPoints.value = [...userPoints.value, nextPoint]
     draftPoint.value = null
     selectedPointId.value = nextPoint.id
-    drawerMode.value = 'view'
+    summaryMode.value = 'view'
+    drawerMode.value = null
     editableSnapshot.value = buildEditableSnapshot(nextPoint)
     storageHealth.value = 'ready'
     persistSnapshot()
@@ -300,7 +348,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     if (savedPoint) {
       draftPoint.value = null
       selectedPointId.value = savedPoint.id
-      drawerMode.value = 'view'
+      summaryMode.value = 'view'
+      drawerMode.value = null
       editableSnapshot.value = buildEditableSnapshot(savedPoint)
 
       return {
@@ -381,12 +430,40 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     selectedPointId.value = id
+    summaryMode.value = 'view'
     drawerMode.value = 'view'
 
     const nextActivePoint = displayPoints.value.find((point) => point.id === id)
     editableSnapshot.value = nextActivePoint ? buildEditableSnapshot(nextActivePoint) : null
     storageHealth.value = 'ready'
     persistSnapshot()
+  }
+
+  function toggleActivePointFeatured() {
+    if (!activePoint.value) {
+      return
+    }
+
+    const nextIsFeatured = !activePoint.value.isFeatured
+
+    if (activePoint.value.source === 'detected') {
+      if (!draftPoint.value || draftPoint.value.id !== activePoint.value.id) {
+        return
+      }
+
+      draftPoint.value = {
+        ...draftPoint.value,
+        isFeatured: nextIsFeatured
+      }
+      editableSnapshot.value = buildEditableSnapshot(draftPoint.value)
+      return
+    }
+
+    updateSavedPoint(activePoint.value.id, {
+      name: activePoint.value.name,
+      description: activePoint.value.description,
+      isFeatured: nextIsFeatured
+    })
   }
 
   function deleteUserPoint(id: string) {
@@ -427,6 +504,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     draftPoint.value = null
     pendingCitySelection.value = null
     selectedPointId.value = null
+    summaryMode.value = null
     drawerMode.value = null
     editableSnapshot.value = null
     storageHealth.value = 'empty'
@@ -439,12 +517,14 @@ export const useMapPointsStore = defineStore('map-points', () => {
     draftPoint,
     pendingCitySelection,
     selectedPointId,
+    summaryMode,
     drawerMode,
     editableSnapshot,
     storageHealth,
     displayPoints,
     activePoint,
     activeBoundaryCoverageState,
+    summarySurfaceState,
     selectedBoundaryId,
     savedBoundaryIds,
     bootstrapPoints,
@@ -454,6 +534,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     startPendingCitySelection,
     discardDraft,
     selectPointById,
+    openDrawerView,
+    closeDrawer,
     enterEditMode,
     exitEditMode,
     saveDraftAsPoint,
@@ -462,6 +544,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     confirmPendingCitySelection,
     continuePendingWithFallback,
     updateSavedPoint,
+    toggleActivePointFeatured,
     deleteUserPoint,
     hideSeedPoint,
     restoreSeedPoint,

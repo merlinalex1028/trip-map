@@ -1,4 +1,4 @@
-import type { GeoPrecision } from './geo'
+import type { GeoCityCandidate, GeoPrecision } from './geo'
 
 export type MapPointSource = 'seed' | 'saved' | 'detected'
 
@@ -52,6 +52,20 @@ export interface EditablePointSnapshot {
   isFeatured: boolean
 }
 
-export type DrawerMode = 'candidate-select' | 'detected-preview' | 'view' | 'edit'
+export type SummaryMode = 'candidate-select' | 'detected-preview' | 'view'
+
+export type DrawerMode = 'view' | 'edit'
+
+export type SummarySurfaceState =
+  | {
+      mode: 'candidate-select'
+      fallbackPoint: DraftMapPoint
+      cityCandidates: GeoCityCandidate[]
+    }
+  | {
+      mode: 'detected-preview' | 'view'
+      point: MapPointDisplay
+      boundarySupportState: 'supported' | 'missing' | 'not-applicable'
+    }
 
 export type PointStorageHealth = 'ready' | 'empty' | 'corrupt' | 'incompatible'

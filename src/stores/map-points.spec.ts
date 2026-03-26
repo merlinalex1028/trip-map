@@ -401,7 +401,8 @@ describe('map-points store', () => {
     const decision = store.confirmPendingCitySelection(createCandidate())
 
     expect(decision?.type).toBe('created-draft')
-    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.summaryMode).toBe('detected-preview')
+    expect(store.drawerMode).toBeNull()
     expect(store.activePoint?.name).toBe('Kyoto')
     expect(store.activePoint?.cityId).toBe('jp-kyoto')
     expect(store.activePoint?.cityContextLabel).toBe('Japan · Kansai')
@@ -506,7 +507,8 @@ describe('map-points store', () => {
 
     expect(fallbackPoint?.name).toBe('Portugal')
     expect(store.pendingCitySelection).toBeNull()
-    expect(store.drawerMode).toBe('detected-preview')
+    expect(store.summaryMode).toBe('detected-preview')
+    expect(store.drawerMode).toBeNull()
     expect(store.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
   })
 
