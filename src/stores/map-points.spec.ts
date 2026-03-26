@@ -1,5 +1,6 @@
 import { createPinia, setActivePinia } from 'pinia'
 
+import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapUiStore } from './map-ui'
 import { useMapPointsStore } from './map-points'
 
@@ -64,6 +65,26 @@ describe('map-points store', () => {
       matchLevel: 'high' as const,
       distanceKm: 2.4,
       statusHint: '更接近点击位置' as const,
+      ...overrides
+    }
+  }
+
+  function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
+    const boundary = getBoundaryByCityId(cityId)
+
+    if (!boundary) {
+      throw new Error(`Missing boundary fixture for ${cityId}`)
+    }
+
+    return {
+      ...createDraft(`detected-${cityId}`, boundary.cityName),
+      countryCode: cityId.startsWith('pt-') ? 'PT' : 'JP',
+      name: boundary.cityName,
+      cityId,
+      cityName: boundary.cityName,
+      cityContextLabel: cityId.startsWith('pt-') ? 'Portugal' : 'Japan · Kansai',
+      boundaryId: boundary.boundaryId,
+      boundaryDatasetVersion: boundary.datasetVersion,
       ...overrides
     }
   }
@@ -189,6 +210,34 @@ describe('map-points store', () => {
     expect(store.activePoint?.fallbackNotice).toBeNull()
   })
 
+  it('attaches exact boundary identity when confirming a concrete city candidate', () => {
+    const store = useMapPointsStore()
+    const boundary = getBoundaryByCityId('jp-kyoto')
+
+    expect(boundary).not.toBeNull()
+
+    store.startPendingCitySelection(
+      {
+        ...createDraft('detected-jp-fallback', 'Japan'),
+        name: 'Japan',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Japan',
+        precision: 'country',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      },
+      [createCandidate()]
+    )
+
+    const decision = store.confirmPendingCitySelection(createCandidate())
+
+    expect(decision?.type).toBe('created-draft')
+    expect(store.draftPoint?.boundaryId).toBe(boundary?.boundaryId ?? null)
+    expect(store.draftPoint?.boundaryDatasetVersion).toBe(boundary?.datasetVersion ?? null)
+    expect(store.selectedBoundaryId).toBe(boundary?.boundaryId ?? null)
+    expect(store.savedBoundaryIds).toEqual([])
+  })
+
   it('continues with the fallback country draft from pending city selection', () => {
     const store = useMapPointsStore()
 
@@ -211,6 +260,77 @@ describe('map-points store', () => {
     expect(store.pendingCitySelection).toBeNull()
     expect(store.drawerMode).toBe('detected-preview')
     expect(store.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
+  })
+
+  it('derives saved weak-highlight ids and selected strong-highlight id from point state', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    const kyotoPoint = store.saveDraftAsPoint()
+
+    store.startDraftFromDetection(
+      createCityDraft('pt-lisbon', {
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        lat: 38.7223,
+        lng: -9.1393,
+        x: 0.47,
+        y: 0.37,
+        coordinatesLabel: '38.7223°N, 9.1393°W'
+      })
+    )
+    const lisbonPoint = store.saveDraftAsPoint()
+
+    expect(kyotoPoint).not.toBeNull()
+    expect(lisbonPoint).not.toBeNull()
+
+    store.selectPointById(kyotoPoint!.id)
+
+    expect(store.selectedBoundaryId).toBe(getBoundaryByCityId('jp-kyoto')?.boundaryId ?? null)
+    expect(store.savedBoundaryIds).toEqual([
+      getBoundaryByCityId('jp-kyoto')?.boundaryId,
+      getBoundaryByCityId('pt-lisbon')?.boundaryId
+    ])
+  })
+
+  it('fails closed for fallback and legacy points that have no boundary identity', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection({
+      ...createDraft('detected-legacy-country', 'Japan'),
+      name: 'Japan',
+      precision: 'country',
+      cityId: null,
+      cityName: null,
+      cityContextLabel: 'Japan',
+      boundaryId: null,
+      boundaryDatasetVersion: null
+    })
+    const legacyPoint = store.saveDraftAsPoint()
+
+    store.selectPointById(legacyPoint!.id)
+
+    expect(store.selectedBoundaryId).toBeNull()
+    expect(store.savedBoundaryIds).toEqual([])
+
+    store.startPendingCitySelection(
+      {
+        ...createDraft('detected-pt-fallback', 'Portugal'),
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Portugal',
+        precision: 'country',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      },
+      [createCandidate({ cityId: 'pt-lisbon', cityName: 'Lisbon', contextLabel: 'Portugal' })]
+    )
+
+    store.continuePendingWithFallback()
+
+    expect(store.selectedBoundaryId).toBeNull()
+    expect(store.savedBoundaryIds).toEqual([])
   })
 
   it('hides a seed point from the merged display points', () => {

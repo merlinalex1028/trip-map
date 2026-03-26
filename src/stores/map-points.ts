@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
 import { seedPoints } from '../data/seed-points'
+import { getBoundaryByCityId } from '../services/city-boundaries'
 import {
   clearPointStorageSnapshot,
   loadPointStorageSnapshot,
@@ -84,6 +85,16 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
 
     return displayPoints.value.find((point) => point.id === selectedPointId.value) ?? null
+  })
+
+  const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
+
+  const savedBoundaryIds = computed(() => {
+    const boundaryIds = userPoints.value
+      .map((point) => point.boundaryId)
+      .filter((boundaryId): boundaryId is string => Boolean(boundaryId))
+
+    return Array.from(new Set(boundaryIds))
   })
 
   function persistSnapshot() {
@@ -250,6 +261,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     fallbackPoint: DraftMapPoint,
     candidate: GeoCityCandidate
   ): DraftMapPoint {
+    const boundary = getBoundaryByCityId(candidate.cityId)
+
     return {
       ...fallbackPoint,
       id: `detected-${candidate.cityId}-${Math.round(fallbackPoint.lat * 100)}-${Math.round(fallbackPoint.lng * 100)}`,
@@ -258,6 +271,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
       cityId: candidate.cityId,
       cityName: candidate.cityName,
       cityContextLabel: candidate.contextLabel,
+      boundaryId: boundary?.boundaryId ?? null,
+      boundaryDatasetVersion: boundary?.datasetVersion ?? null,
       fallbackNotice: null
     }
   }
@@ -417,6 +432,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     storageHealth,
     displayPoints,
     activePoint,
+    selectedBoundaryId,
+    savedBoundaryIds,
     bootstrapPoints,
     clearActivePoint,
     startDraftFromDetection,
