@@ -84,6 +84,7 @@ defineExpose({
     :aria-labelledby="popupTitleId"
     :data-popup-anchor-source="anchorSource"
     :style="popupStyles"
+    @click.stop
   >
     <div class="map-context-popup__arrow" aria-hidden="true"></div>
     <h2

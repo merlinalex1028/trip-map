@@ -65,6 +65,7 @@ watch(
     aria-modal="false"
     :aria-labelledby="peekTitleId"
     :style="peekStyles"
+    @click.stop
   >
     <div class="mobile-peek-sheet__chrome">
       <h2

@@ -25,6 +25,7 @@ import type {
 import type { DraftMapPoint, SummarySurfaceState } from '../types/map-point'
 import MobilePeekSheet from './map-popup/MobilePeekSheet.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
+import PointPreviewDrawer from './PointPreviewDrawer.vue'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
 
 interface BoundaryPathGroup {
@@ -309,7 +310,7 @@ const popupAnchor = shallowRef<PopupAnchor | null>(null)
 async function refreshPopupAnchor() {
   const surface = summarySurfaceState.value
 
-  if (!surface || drawerMode.value !== null) {
+  if (!surface) {
     popupAnchor.value = null
     return
   }
@@ -320,6 +321,10 @@ async function refreshPopupAnchor() {
 
 const isSummarySurfaceVisible = computed(
   () => Boolean(summarySurfaceState.value) && drawerMode.value === null
+)
+
+const isDeepPopupVisible = computed(
+  () => Boolean(summarySurfaceState.value) && popupAnchor.value !== null && drawerMode.value !== null
 )
 
 const {
@@ -599,6 +604,12 @@ async function handleMapClick(event: MouseEvent) {
           @edit-point="enterEditMode"
           @toggle-featured="toggleActivePointFeatured"
           @confirm-destructive="handleConfirmDestructive"
+        />
+        <PointPreviewDrawer
+          v-if="isDeepPopupVisible && popupAnchor"
+          ref="popup"
+          :floating-styles="popupFloatingStyles"
+          :anchor-source="popupAnchor.source"
         />
         <MobilePeekSheet
           v-if="isMobilePeekVisible && summarySurfaceState"

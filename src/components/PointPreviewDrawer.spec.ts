@@ -115,10 +115,40 @@ describe('PointPreviewDrawer', () => {
     await nextTick()
 
     expect(wrapper.find('.point-preview-drawer').exists()).toBe(true)
+    expect(wrapper.find('.point-preview-drawer__arrow').exists()).toBe(true)
     expect(wrapper.text()).toContain('Kyoto')
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.text()).not.toContain('查看详情')
     expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(false)
+  })
+
+  it('accepts anchored popup styles when rendered as a map popup shell', async () => {
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.saveDraftAsPoint()
+    store.openDrawerView()
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      props: {
+        anchorSource: 'boundary',
+        floatingStyles: {
+          left: '24px',
+          top: '32px'
+        }
+      },
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const panel = wrapper.get('.point-preview-drawer')
+
+    expect(panel.attributes('data-popup-anchor-source')).toBe('boundary')
+    expect(panel.attributes('style')).toContain('left: 24px')
+    expect(panel.attributes('style')).toContain('top: 32px')
   })
 
   it('keeps Tab focus trapped inside the deep drawer', async () => {

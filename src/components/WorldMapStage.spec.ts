@@ -802,6 +802,41 @@ describe('WorldMapStage', () => {
     expect(footer.text()).toContain('查看详情')
   })
 
+  it('renders the deep detail view as an anchored popup inside the map stage after detail handoff', async () => {
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection(
+      createCityDraft('jp-kyoto', {
+        name: 'Kyoto',
+        cityName: 'Kyoto'
+      })
+    )
+    const savedPoint = mapPointsStore.saveDraftAsPoint()
+
+    if (!savedPoint) {
+      throw new Error('Expected saved point fixture')
+    }
+
+    mapPointsStore.openDrawerView()
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const deepPopup = wrapper.get('.world-map-stage__surface .point-preview-drawer')
+    const anchor = popupAnchoringMock.lastOptions?.reference()
+
+    expect(wrapper.find('.map-context-popup').exists()).toBe(false)
+    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
+    expect(deepPopup.attributes('data-popup-anchor-source')).toBe('marker')
+    expect(deepPopup.text()).toContain('编辑地点')
+    expect(anchor).toBeInstanceOf(HTMLElement)
+  })
+
   it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {
     const actualGeoLookup = await vi.importActual<typeof import('../services/geo-lookup')>(
       '../services/geo-lookup'

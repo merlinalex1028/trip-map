@@ -192,7 +192,7 @@ describe('App shell', () => {
     expect(window.localStorage.getItem(POINT_STORAGE_KEY)).toBeNull()
   })
 
-  it('only reserves drawer layout when the deep drawer is actually opened', async () => {
+  it('keeps the page layout stable and renders the deep detail view inside the map stage popup', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const wrapper = mount(App, {
@@ -226,19 +226,20 @@ describe('App shell', () => {
     store.saveDraftAsPoint()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(false)
 
     store.openDrawerView()
     await nextTick()
+    await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(true)
     expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
     expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
 
     store.enterEditMode()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-edit')
+    expect(wrapper.find('.world-map-stage__surface .point-preview-drawer__input').exists()).toBe(true)
   })
 
   it('keeps legacy saved points without city identity viewable and editable', async () => {
@@ -287,13 +288,14 @@ describe('App shell', () => {
 
     store.openDrawerView()
     await nextTick()
+    await nextTick()
 
     expect(wrapper.text()).toContain('编辑地点')
 
     store.enterEditMode()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-edit')
+    expect(wrapper.find('.world-map-stage__surface .point-preview-drawer__input').exists()).toBe(true)
   })
 
   it('removes the strong boundary layer after closing the drawer while keeping saved weak highlights', async () => {
@@ -308,10 +310,12 @@ describe('App shell', () => {
     const store = useMapPointsStore()
     store.startDraftFromDetection(createBoundaryAwareDraft('jp-kyoto'))
     store.saveDraftAsPoint()
+    await nextTick()
     store.openDrawerView()
     await nextTick()
+    await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(true)
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
       getBoundaryByCityId('jp-kyoto')?.boundaryId ?? ''
     )
@@ -323,7 +327,7 @@ describe('App shell', () => {
       getBoundaryByCityId('jp-kyoto')?.boundaryId ?? ''
     )
     expect(wrapper.find('.world-map-stage__boundary--selected').exists()).toBe(false)
-    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(false)
   })
 
   it('restores the summary surface after closing the drawer while keeping boundary identity stable', async () => {
@@ -342,12 +346,13 @@ describe('App shell', () => {
     store.saveDraftAsPoint()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(false)
 
     store.openDrawerView()
     await nextTick()
+    await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(true)
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
       kyotoBoundary?.boundaryId ?? ''
     )
@@ -355,7 +360,6 @@ describe('App shell', () => {
     store.closeDrawer()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
     expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(false)
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
       kyotoBoundary?.boundaryId ?? ''

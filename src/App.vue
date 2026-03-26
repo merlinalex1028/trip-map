@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia'
 import { onUnmounted, watch } from 'vue'
 
-import PointPreviewDrawer from './components/PointPreviewDrawer.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import WorldMapStage from './components/WorldMapStage.vue'
 import { useMapPointsStore } from './stores/map-points'
@@ -12,7 +11,7 @@ const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
 const mapPointsStore = useMapPointsStore()
 const { interactionNotice } = storeToRefs(mapUiStore)
-const { drawerMode, storageHealth } = storeToRefs(mapPointsStore)
+const { storageHealth } = storeToRefs(mapPointsStore)
 const { clearCorruptStorageState } = mapPointsStore
 
 mapPointsStore.bootstrapPoints()
@@ -73,15 +72,8 @@ onUnmounted(() => {
           清空本地存档
         </button>
       </div>
-      <section
-        class="poster-shell__experience"
-        :class="{
-          'poster-shell__experience--drawer-open': drawerMode !== null,
-          'poster-shell__experience--drawer-edit': drawerMode === 'edit'
-        }"
-      >
+      <section class="poster-shell__experience">
         <WorldMapStage class="poster-shell__stage" />
-        <PointPreviewDrawer class="poster-shell__drawer" />
       </section>
     </main>
   </div>
@@ -182,18 +174,6 @@ onUnmounted(() => {
   min-height: 0;
 }
 
-.poster-shell__experience--drawer-open {
-  padding-bottom: min(16rem, 42vh);
-}
-
-.poster-shell__experience--drawer-edit {
-  padding-bottom: min(18rem, 48vh);
-}
-
-.poster-shell__drawer {
-  z-index: 3;
-}
-
 @media (min-width: 960px) {
   .poster-shell {
     align-items: start;
@@ -211,16 +191,6 @@ onUnmounted(() => {
   .poster-shell__stage {
     grid-area: stage;
     min-height: 68vh;
-  }
-
-  .poster-shell__experience--drawer-open {
-    padding-right: min(24rem, 32vw);
-    padding-bottom: 0;
-  }
-
-  .poster-shell__experience--drawer-edit {
-    padding-right: min(24rem, 32vw);
-    padding-bottom: 0;
   }
 }
 </style>

@@ -1,9 +1,20 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, reactive, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, reactive, useTemplateRef, watch, type CSSProperties } from 'vue'
 
 import { useMapPointsStore } from '../stores/map-points'
 import type { EditablePointSnapshot } from '../types/map-point'
+
+const props = withDefaults(
+  defineProps<{
+    floatingStyles?: CSSProperties | null
+    anchorSource?: 'marker' | 'pending' | 'boundary'
+  }>(),
+  {
+    floatingStyles: null,
+    anchorSource: 'marker'
+  }
+)
 
 const mapPointsStore = useMapPointsStore()
 const { activeBoundaryCoverageState, activePoint, drawerMode } = storeToRefs(mapPointsStore)
@@ -28,6 +39,12 @@ const editForm = reactive<EditablePointSnapshot>({
 const isDrawerVisible = computed(() => {
   return Boolean(activePoint.value) && (drawerMode.value === 'view' || drawerMode.value === 'edit')
 })
+
+const drawerStyles = computed(() => ({
+  '--point-preview-popup-min-width': '300px',
+  '--point-preview-popup-max-width': '360px',
+  ...(props.floatingStyles ?? {})
+}))
 
 const sourceSnapshot = computed<EditablePointSnapshot | null>(() => {
   if (!activePoint.value) {
@@ -155,6 +172,10 @@ function handleSave() {
   updateSavedPoint(activePoint.value.id, snapshot)
 }
 
+function getPopupElement() {
+  return panelRef.value
+}
+
 function getFocusableElements() {
   if (!panelRef.value) {
     return []
@@ -209,6 +230,10 @@ function handlePanelKeydown(event: KeyboardEvent) {
     firstElement.focus()
   }
 }
+
+defineExpose({
+  getPopupElement
+})
 </script>
 
 <template>
@@ -219,9 +244,13 @@ function handlePanelKeydown(event: KeyboardEvent) {
     role="dialog"
     aria-modal="false"
     :aria-labelledby="drawerTitleId"
+    :data-popup-anchor-source="anchorSource"
+    :style="drawerStyles"
     data-region="point-preview-drawer"
     @keydown="handlePanelKeydown"
+    @click.stop
   >
+    <div class="point-preview-drawer__arrow" aria-hidden="true"></div>
     <div class="point-preview-drawer__header">
       <p class="point-preview-drawer__badge">{{ drawerBadge }}</p>
       <button class="point-preview-drawer__close" type="button" @click="handleClose">
@@ -305,21 +334,32 @@ function handlePanelKeydown(event: KeyboardEvent) {
 <style scoped>
 .point-preview-drawer {
   position: absolute;
-  inset-inline: var(--space-md);
-  bottom: var(--space-md);
-  z-index: 3;
+  z-index: 4;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: var(--space-md);
-  max-height: min(32rem, calc(100vh - 8.5rem));
+  min-width: var(--point-preview-popup-min-width);
+  max-width: var(--point-preview-popup-max-width);
+  min-height: 0;
   padding: var(--space-lg);
   border: 1px solid rgba(143, 117, 80, 0.62);
   background:
     linear-gradient(180deg, rgba(241, 230, 204, 0.96), rgba(230, 210, 176, 0.98)),
     var(--color-surface);
-  box-shadow: 0 22px 36px rgba(73, 49, 31, 0.18);
-  backdrop-filter: blur(2px);
   overflow: hidden;
+  filter: drop-shadow(0 18px 28px rgba(73, 49, 31, 0.16));
+}
+
+.point-preview-drawer__arrow {
+  position: absolute;
+  left: 1.5rem;
+  top: 100%;
+  width: 1rem;
+  height: 1rem;
+  border-right: 1px solid rgba(200, 100, 59, 0.4);
+  border-bottom: 1px solid rgba(200, 100, 59, 0.4);
+  background: color-mix(in srgb, var(--color-surface) 90%, white 10%);
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .point-preview-drawer__header {
@@ -394,15 +434,20 @@ function handlePanelKeydown(event: KeyboardEvent) {
 }
 
 .point-preview-drawer__content {
+  display: flex;
+  flex: 1 1 auto;
   min-height: 0;
+  overflow: hidden;
 }
 
 .point-preview-drawer__scroll-region {
   display: grid;
+  flex: 1 1 auto;
   gap: var(--space-md);
-  max-height: 100%;
+  min-height: 0;
   overflow-y: auto;
   padding-inline-end: 0.15rem;
+  overscroll-behavior: contain;
 }
 
 .point-preview-drawer__description {
@@ -451,8 +496,6 @@ function handlePanelKeydown(event: KeyboardEvent) {
 }
 
 .point-preview-drawer__actions {
-  position: sticky;
-  bottom: 0;
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
@@ -479,23 +522,5 @@ function handlePanelKeydown(event: KeyboardEvent) {
 .point-preview-drawer__action--danger {
   border-color: rgba(141, 62, 47, 0.48);
   color: #8d3e2f;
-}
-
-@media (min-width: 960px) {
-  .point-preview-drawer {
-    inset-inline: auto var(--space-lg);
-    top: var(--space-lg);
-    bottom: auto;
-    width: min(23rem, calc(100% - var(--space-3xl)));
-    max-height: min(36rem, calc(100vh - 8rem));
-    min-height: 20rem;
-  }
-
-  .point-preview-drawer__actions {
-    position: static;
-    padding-top: 0;
-    border-top: 0;
-    background: transparent;
-  }
 }
 </style>
