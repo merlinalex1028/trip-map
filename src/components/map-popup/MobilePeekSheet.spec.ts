@@ -95,7 +95,7 @@ describe('MobilePeekSheet', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
-  it('keeps long text inside mobile-peek-sheet__body so overflow-y: auto can take effect', () => {
+  it('keeps the stable footer outside the middle scroll region inside the peek body', () => {
     const wrapper = mount(MobilePeekSheet, {
       props: {
         surface: {
@@ -109,9 +109,13 @@ describe('MobilePeekSheet', () => {
     })
 
     const body = wrapper.get('.mobile-peek-sheet__body')
+    const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
+    const footer = wrapper.get('.point-summary-card__footer')
 
     expect(body.find('.point-summary-card').exists()).toBe(true)
-    expect(body.text()).toContain('long text paragraph 1')
+    expect(scrollRegion.text()).toContain('long text paragraph 1')
+    expect(scrollRegion.text()).not.toContain('查看详情')
+    expect(footer.text()).toContain('查看详情')
     expect(wrapper.get('.mobile-peek-sheet__close').text()).toBe('关闭')
   })
 })

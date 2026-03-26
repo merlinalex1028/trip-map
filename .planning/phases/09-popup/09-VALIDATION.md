@@ -45,7 +45,7 @@ created: 2026-03-26
 | 9-03-01 | 03 | 3 | POP-03 | component + integration | `pnpm test -- src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ❌ W0 + ✅ existing | ⬜ pending |
 | 9-03-02 | 03 | 3 | POP-02, POP-03 | integration | `pnpm test -- src/App.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ⬜ pending |
 | 9-04-01 | 04 | 4 | POP-01, POP-03 | component + integration | `pnpm test -- src/components/map-popup/MapContextPopup.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ✅ green |
-| 9-05-01 | 05 | 5 | POP-01, POP-03 | component + integration | `pnpm test -- src/components/map-popup/PointSummaryCard.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ⬜ pending |
+| 9-05-01 | 05 | 5 | POP-01, POP-03 | component + integration | `pnpm test -- src/components/map-popup/PointSummaryCard.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 

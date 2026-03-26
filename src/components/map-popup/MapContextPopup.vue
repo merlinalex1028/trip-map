@@ -125,11 +125,10 @@ defineExpose({
 }
 
 .map-context-popup__body {
+  display: flex;
   flex: 1 1 auto;
   min-height: 0;
   max-height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 .map-context-popup__arrow {

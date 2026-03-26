@@ -66,7 +66,7 @@ describe('MapContextPopup', () => {
     expect(popup.attributes('style')).toContain('--map-context-popup-max-width: 360px')
   })
 
-  it('wraps long text inside map-context-popup__body so overflow-y: auto can take effect', () => {
+  it('keeps the stable footer outside the middle scroll region inside the popup body', () => {
     const wrapper = mount(MapContextPopup, {
       attachTo: document.body,
       props: {
@@ -82,9 +82,13 @@ describe('MapContextPopup', () => {
     })
 
     const body = wrapper.get('.map-context-popup__body')
+    const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
+    const footer = wrapper.get('.point-summary-card__footer')
 
     expect(body.find('.point-summary-card').exists()).toBe(true)
-    expect(body.text()).toContain('long text paragraph 1')
+    expect(scrollRegion.text()).toContain('long text paragraph 1')
+    expect(scrollRegion.text()).not.toContain('查看详情')
+    expect(footer.text()).toContain('查看详情')
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
   })
 

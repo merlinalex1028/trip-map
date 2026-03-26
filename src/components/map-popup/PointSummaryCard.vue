@@ -183,110 +183,121 @@ function handleConfirmDestructiveAction() {
       >
         {{ isCandidateMode ? fallbackPoint?.cityContextLabel : summaryPoint?.cityContextLabel }}
       </p>
-      <p
-        v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
-        class="point-summary-card__notice"
-      >
-        {{ isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice }}
-      </p>
-      <p v-if="boundarySupportNotice" class="point-summary-card__notice">
-        {{ boundarySupportNotice }}
-      </p>
     </header>
 
-    <div v-if="isCandidateMode" class="point-summary-card__section">
-      <label class="point-summary-card__field">
-        <span class="point-summary-card__field-label">搜索城市</span>
-        <input
-          v-model="searchQuery"
-          class="point-summary-card__input"
-          type="text"
-          placeholder="搜索城市"
-        />
-      </label>
-
-      <div class="point-summary-card__candidate-list">
-        <button
-          v-for="item in candidateItems"
-          :key="item.candidate.cityId"
-          class="point-summary-card__candidate-action"
-          type="button"
-          @click="handleCandidateConfirm(item.candidate)"
+    <div class="point-summary-card__content">
+      <div class="point-summary-card__scroll-region" data-scroll-region="true">
+        <p
+          v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
+          class="point-summary-card__notice"
         >
-          <span class="point-summary-card__candidate-city">{{ item.candidate.cityName }}</span>
-          <span class="point-summary-card__candidate-context">{{ item.candidate.contextLabel }}</span>
-          <span class="point-summary-card__candidate-hint">{{ item.statusHint }}</span>
-          <span class="point-summary-card__candidate-cta">确认城市</span>
-        </button>
-      </div>
+          {{ isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice }}
+        </p>
+        <p v-if="boundarySupportNotice" class="point-summary-card__notice">
+          {{ boundarySupportNotice }}
+        </p>
 
-      <p v-if="!candidateItems.length" class="point-summary-card__empty">
-        没有匹配城市，请按国家/地区继续记录。
-      </p>
-    </div>
+        <div v-if="isCandidateMode" class="point-summary-card__section">
+          <label class="point-summary-card__field">
+            <span class="point-summary-card__field-label">搜索城市</span>
+            <input
+              v-model="searchQuery"
+              class="point-summary-card__input"
+              type="text"
+              placeholder="搜索城市"
+            />
+          </label>
 
-    <p v-else class="point-summary-card__description">
-      {{ summaryPoint?.description }}
-    </p>
+          <div class="point-summary-card__candidate-list">
+            <button
+              v-for="item in candidateItems"
+              :key="item.candidate.cityId"
+              class="point-summary-card__candidate-action"
+              type="button"
+              @click="handleCandidateConfirm(item.candidate)"
+            >
+              <span class="point-summary-card__candidate-city">{{ item.candidate.cityName }}</span>
+              <span class="point-summary-card__candidate-context">{{ item.candidate.contextLabel }}</span>
+              <span class="point-summary-card__candidate-hint">{{ item.statusHint }}</span>
+              <span class="point-summary-card__candidate-cta">确认城市</span>
+            </button>
+          </div>
 
-    <div class="point-summary-card__actions">
-      <template v-if="surface.mode === 'candidate-select'">
-        <button class="point-summary-card__action" type="button" @click="handleContinueWithFallback">
-          按国家/地区继续记录
-        </button>
-      </template>
+          <p v-if="!candidateItems.length" class="point-summary-card__empty">
+            没有匹配城市，请按国家/地区继续记录。
+          </p>
+        </div>
 
-      <template v-else-if="surface.mode === 'detected-preview'">
-        <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleSaveDraft">
-          保存为地点
-        </button>
-        <button class="point-summary-card__action" type="button" @click="handleOpenDrawer">
-          查看详情
-        </button>
-        <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
-          点亮状态
-        </button>
-      </template>
-
-      <template v-else>
-        <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleOpenDrawer">
-          查看详情
-        </button>
-        <button class="point-summary-card__action" type="button" @click="handleEnterEdit">
-          编辑地点
-        </button>
-        <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
-          点亮状态
-        </button>
-        <button
-          v-if="destructiveLabel"
-          class="point-summary-card__action point-summary-card__action--danger"
-          type="button"
-          @click="handleRequestDestructiveAction"
-        >
-          {{ destructiveLabel }}
-        </button>
-      </template>
-    </div>
-
-    <div v-if="destructivePrompt" class="point-summary-card__confirm-row">
-      <p class="point-summary-card__confirm-copy">{{ destructivePrompt }}</p>
-      <div class="point-summary-card__confirm-actions">
-        <button class="point-summary-card__confirm-action" type="button" @click="handleConfirmDestructiveAction">
-          确认
-        </button>
-        <button class="point-summary-card__confirm-cancel" type="button" @click="resetInlineConfirm">
-          取消
-        </button>
+        <p v-else class="point-summary-card__description">
+          {{ summaryPoint?.description }}
+        </p>
       </div>
     </div>
+
+    <footer class="point-summary-card__footer">
+      <div class="point-summary-card__actions">
+        <template v-if="surface.mode === 'candidate-select'">
+          <button class="point-summary-card__action" type="button" @click="handleContinueWithFallback">
+            按国家/地区继续记录
+          </button>
+        </template>
+
+        <template v-else-if="surface.mode === 'detected-preview'">
+          <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleSaveDraft">
+            保存为地点
+          </button>
+          <button class="point-summary-card__action" type="button" @click="handleOpenDrawer">
+            查看详情
+          </button>
+          <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
+            点亮状态
+          </button>
+        </template>
+
+        <template v-else>
+          <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleOpenDrawer">
+            查看详情
+          </button>
+          <button class="point-summary-card__action" type="button" @click="handleEnterEdit">
+            编辑地点
+          </button>
+          <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
+            点亮状态
+          </button>
+          <button
+            v-if="destructiveLabel"
+            class="point-summary-card__action point-summary-card__action--danger"
+            type="button"
+            @click="handleRequestDestructiveAction"
+          >
+            {{ destructiveLabel }}
+          </button>
+        </template>
+      </div>
+
+      <div v-if="destructivePrompt" class="point-summary-card__confirm-row">
+        <p class="point-summary-card__confirm-copy">{{ destructivePrompt }}</p>
+        <div class="point-summary-card__confirm-actions">
+          <button class="point-summary-card__confirm-action" type="button" @click="handleConfirmDestructiveAction">
+            确认
+          </button>
+          <button class="point-summary-card__confirm-cancel" type="button" @click="resetInlineConfirm">
+            取消
+          </button>
+        </div>
+      </div>
+    </footer>
   </article>
 </template>
 
 <style scoped>
 .point-summary-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
   gap: var(--space-md);
+  min-height: 0;
+  height: 100%;
   padding: var(--space-lg);
   border: 1px solid rgba(143, 117, 80, 0.36);
   background:
@@ -296,8 +307,11 @@ function handleConfirmDestructiveAction() {
 }
 
 .point-summary-card__header,
+.point-summary-card__content,
+.point-summary-card__scroll-region,
 .point-summary-card__section,
 .point-summary-card__candidate-list,
+.point-summary-card__footer,
 .point-summary-card__actions,
 .point-summary-card__confirm-row,
 .point-summary-card__confirm-actions,
@@ -355,6 +369,21 @@ function handleConfirmDestructiveAction() {
   line-height: var(--font-label-line-height);
 }
 
+.point-summary-card__content {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.point-summary-card__scroll-region {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: 0.25rem;
+}
+
 .point-summary-card__description {
   color: var(--color-ink-strong);
   white-space: pre-wrap;
@@ -397,6 +426,11 @@ function handleConfirmDestructiveAction() {
 
 .point-summary-card__actions {
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+
+.point-summary-card__footer {
+  flex: 0 0 auto;
+  padding-top: var(--space-xs);
 }
 
 .point-summary-card__action,

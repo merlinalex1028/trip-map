@@ -118,10 +118,9 @@ watch(
 }
 
 .mobile-peek-sheet__body {
+  display: flex;
   flex: 1 1 auto;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
   padding-bottom: var(--mobile-peek-safe-bottom);
 }
 

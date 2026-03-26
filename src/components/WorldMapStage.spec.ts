@@ -761,7 +761,7 @@ describe('WorldMapStage', () => {
     )
   })
 
-  it('keeps long text inside the popup body so bottom actions remain reachable in the map stage', async () => {
+  it('keeps long text in the popup middle scroll region while the footer actions stay stable in the map stage', async () => {
     const mapPointsStore = useMapPointsStore()
 
     mapPointsStore.startDraftFromDetection(
@@ -788,10 +788,14 @@ describe('WorldMapStage', () => {
     await nextTick()
 
     const popupBody = wrapper.get('.world-map-stage__surface .map-context-popup__body')
+    const scrollRegion = wrapper.get('.world-map-stage__surface .point-summary-card__scroll-region')
+    const footer = wrapper.get('.world-map-stage__surface .point-summary-card__footer')
 
     expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
-    expect(popupBody.text()).toContain('long text paragraph 1')
-    expect(popupBody.text()).toContain('查看详情')
+    expect(popupBody.find('.point-summary-card').exists()).toBe(true)
+    expect(scrollRegion.text()).toContain('long text paragraph 1')
+    expect(scrollRegion.text()).not.toContain('查看详情')
+    expect(footer.text()).toContain('查看详情')
   })
 
   it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {

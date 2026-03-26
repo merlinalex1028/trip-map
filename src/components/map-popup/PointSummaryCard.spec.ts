@@ -82,10 +82,16 @@ describe('PointSummaryCard', () => {
       }
     })
 
+    const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
+    const footer = wrapper.get('.point-summary-card__footer')
+
     expect(wrapper.text()).toContain('确认城市')
-    expect(wrapper.text()).toContain('按国家/地区继续记录')
     expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('已存在记录')
+    expect(scrollRegion.text()).toContain('搜索城市')
+    expect(scrollRegion.text()).toContain('Kyoto')
+    expect(scrollRegion.text()).not.toContain('按国家/地区继续记录')
+    expect(footer.text()).toContain('按国家/地区继续记录')
 
     await wrapper.findAll('.point-summary-card__candidate-action')[0]?.trigger('click')
 
@@ -163,9 +169,17 @@ describe('PointSummaryCard', () => {
       }
     })
 
+    const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
+    const footer = wrapper.get('.point-summary-card__footer')
+
     expect(wrapper.text()).toContain('保存为地点')
     expect(wrapper.text()).toContain('查看详情')
     expect(wrapper.text()).toContain('点亮状态')
+    expect(scrollRegion.text()).toContain('识别成功，下一阶段可补充地点内容。')
+    expect(scrollRegion.text()).not.toContain('保存为地点')
+    expect(footer.text()).toContain('保存为地点')
+    expect(footer.text()).toContain('查看详情')
+    expect(footer.text()).toContain('点亮状态')
 
     const actions = wrapper.findAll('.point-summary-card__action')
     await actions[0]?.trigger('click')
@@ -196,11 +210,13 @@ describe('PointSummaryCard', () => {
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.text()).toContain('点亮状态')
     expect(wrapper.text()).toContain('删除地点')
+    expect(wrapper.get('.point-summary-card__scroll-region').text()).not.toContain('查看详情')
+    expect(wrapper.get('.point-summary-card__footer').text()).toContain('查看详情')
 
     const actions = wrapper.findAll('.point-summary-card__action')
     await actions[actions.length - 1]?.trigger('click')
 
-    expect(wrapper.text()).toContain('删除地点：确认删除这个地点？')
+    expect(wrapper.get('.point-summary-card__footer').text()).toContain('删除地点：确认删除这个地点？')
     expect(confirmSpy).not.toHaveBeenCalled()
 
     await wrapper.get('.point-summary-card__confirm-action').trigger('click')
