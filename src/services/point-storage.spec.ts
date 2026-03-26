@@ -185,6 +185,38 @@ describe('point-storage service', () => {
     )
   })
 
+  it('rehydrates the exact city and boundary identity for a saved v2 city record', () => {
+    const snapshot = {
+      version: 1 as const,
+      userPoints: [
+        {
+          ...createSavedPoint(),
+          id: 'saved-kyoto-v2',
+          name: 'Kyoto',
+          boundaryId: 'jp-kyoto-city',
+          boundaryDatasetVersion: '2026-03-phase8-v1'
+        }
+      ],
+      seedOverrides: [],
+      deletedSeedIds: []
+    }
+
+    savePointStorageSnapshot(snapshot)
+
+    const result = loadPointStorageSnapshot()
+
+    expect(result.status).toBe('ready')
+    expect(result.snapshot?.userPoints[0]).toEqual(
+      expect.objectContaining({
+        id: 'saved-kyoto-v2',
+        name: 'Kyoto',
+        cityId: 'jp-kyoto',
+        boundaryId: 'jp-kyoto-city',
+        boundaryDatasetVersion: '2026-03-phase8-v1'
+      })
+    )
+  })
+
   it('fails closed when both cityId and boundaryId are absent on restore', () => {
     window.localStorage.setItem(
       POINT_STORAGE_KEY,

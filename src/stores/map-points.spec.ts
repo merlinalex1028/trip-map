@@ -181,7 +181,7 @@ describe('map-points store', () => {
     const store = useMapPointsStore()
     const mapUiStore = useMapUiStore()
 
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Kyoto'))
+    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
     const savedPoint = store.saveDraftAsPoint()
     store.startPendingCitySelection(createDraft('detected-jp-2', 'Japan retry'), [createCandidate()])
 
@@ -192,8 +192,40 @@ describe('map-points store', () => {
     expect(store.draftPoint).toBeNull()
     expect(store.pendingCitySelection).toBeNull()
     expect(store.selectedPointId).toBe(savedPoint?.id ?? null)
+    expect(store.activePoint?.boundaryId).toBe(savedPoint?.boundaryId ?? null)
+    expect(store.selectedBoundaryId).toBe(savedPoint?.boundaryId ?? null)
     expect(store.userPoints).toHaveLength(1)
     expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Kyoto')
+  })
+
+  it('drops the strong boundary highlight when clearing an active saved city while preserving saved weak highlights', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.saveDraftAsPoint()
+    store.startDraftFromDetection(
+      createCityDraft('pt-lisbon', {
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        lat: 38.7223,
+        lng: -9.1393,
+        x: 0.47,
+        y: 0.37,
+        coordinatesLabel: '38.7223°N, 9.1393°W'
+      })
+    )
+    const lisbonPoint = store.saveDraftAsPoint()
+
+    store.selectPointById(lisbonPoint!.id)
+    expect(store.selectedBoundaryId).toBe(getBoundaryByCityId('pt-lisbon')?.boundaryId ?? null)
+
+    store.clearActivePoint()
+
+    expect(store.selectedBoundaryId).toBeNull()
+    expect(store.savedBoundaryIds).toEqual([
+      getBoundaryByCityId('jp-kyoto')?.boundaryId,
+      getBoundaryByCityId('pt-lisbon')?.boundaryId
+    ])
   })
 
   it('starts a new draft from the selected city candidate when no saved city exists', () => {

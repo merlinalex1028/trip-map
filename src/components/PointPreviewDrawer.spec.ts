@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
+import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
@@ -41,6 +42,31 @@ function createCandidate(overrides: Record<string, unknown> = {}) {
     statusHint: '更接近点击位置' as const,
     ...overrides
   }
+}
+
+function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
+  const boundary = getBoundaryByCityId(cityId)
+
+  if (!boundary) {
+    throw new Error(`Missing boundary fixture for ${cityId}`)
+  }
+
+  const isHungary = cityId.startsWith('hu-')
+
+  return createDraft({
+    id: `detected-${cityId}`,
+    name: boundary.cityName,
+    countryName: isHungary ? 'Hungary' : 'Japan',
+    countryCode: isHungary ? 'HU' : 'JP',
+    precision: 'city-high',
+    cityId,
+    cityName: boundary.cityName,
+    cityContextLabel: isHungary ? 'Hungary · Budapest' : 'Japan · Kansai',
+    boundaryId: boundary.boundaryId,
+    boundaryDatasetVersion: boundary.datasetVersion,
+    fallbackNotice: null,
+    ...overrides
+  })
 }
 
 function installStorageMock() {
@@ -326,6 +352,77 @@ describe('PointPreviewDrawer', () => {
     expect(store.activePoint?.source).toBe('saved')
     expect(store.activePoint?.cityId).toBe('hu-budapest')
     expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Budapest')
+  })
+
+  it('keeps drawer title and boundary identity aligned when reopening an existing saved city', async () => {
+    const store = useMapPointsStore()
+    const boundary = getBoundaryByCityId('jp-kyoto')
+
+    store.startDraftFromDetection(
+      createCityDraft('jp-kyoto', {
+        id: 'saved-jp-kyoto',
+        name: 'Kyoto',
+        countryName: 'Japan',
+        countryCode: 'JP',
+        cityContextLabel: 'Japan · Kansai'
+      })
+    )
+    store.saveDraftAsPoint()
+    store.startPendingCitySelection(
+      createDraft({
+        id: 'detected-jp-3',
+        name: 'Japan',
+        countryName: 'Japan',
+        countryCode: 'JP',
+        cityContextLabel: 'Japan'
+      }),
+      [createCandidate()]
+    )
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await wrapper.get('.point-preview-drawer__candidate').trigger('click')
+    await nextTick()
+
+    expect(store.activePoint?.name).toBe('Kyoto')
+    expect(store.activePoint?.boundaryId).toBe(boundary?.boundaryId ?? null)
+    expect(store.selectedBoundaryId).toBe(boundary?.boundaryId ?? null)
+    expect(wrapper.get('.point-preview-drawer__name').text()).toBe('Kyoto')
+  })
+
+  it('keeps fallback and legacy records text-only without asserting a city boundary', async () => {
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(
+      createDraft({
+        id: 'saved-fallback-pt',
+        name: 'Portugal',
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        cityContextLabel: 'Portugal',
+        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+      })
+    )
+    store.saveDraftAsPoint()
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    expect(store.activePoint?.boundaryId).toBeNull()
+    expect(store.selectedBoundaryId).toBeNull()
+    expect(wrapper.get('.point-preview-drawer__name').text()).toBe('Portugal')
+    expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
+    expect(wrapper.text()).not.toContain('boundaryId')
   })
 
   it('shows the fallback CTA and explanatory copy for country continuation', async () => {
