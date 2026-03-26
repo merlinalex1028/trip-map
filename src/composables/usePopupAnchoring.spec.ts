@@ -23,7 +23,6 @@ vi.mock('@floating-ui/dom', () => ({
 
 function mountComposable<T>(useComposable: () => T) {
   const result = shallowRef<T | null>(null)
-
   const wrapper = mount(
     defineComponent({
       setup() {
@@ -35,7 +34,7 @@ function mountComposable<T>(useComposable: () => T) {
   )
 
   return {
-    result: result.value as T,
+    result,
     unmount: () => wrapper.unmount()
   }
 }
@@ -87,8 +86,8 @@ describe('usePopupAnchoring', () => {
 
     await nextTick()
 
-    expect(result.placement.value).toBe('top-start')
-    expect(result.floatingStyles.value).toMatchObject({
+    expect(result.value?.placement.value).toBe('top-start')
+    expect(result.value?.floatingStyles.value).toMatchObject({
       left: '112px',
       top: '68px'
     })
@@ -140,10 +139,10 @@ describe('usePopupAnchoring', () => {
 
     await nextTick()
 
-    expect(result.availableHeight.value).toBe(248)
+    expect(result.value?.availableHeight.value).toBe(248)
     expect(floating.style.maxWidth).toBe('360px')
     expect(floating.style.maxHeight).toBe('248px')
-    expect(result.collisionState.value).toBe('collision-aware')
+    expect(result.value?.collisionState.value).toBe('collision-aware')
 
     unmount()
 

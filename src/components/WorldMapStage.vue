@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import type { VirtualElement } from '@floating-ui/dom'
 import { storeToRefs } from 'pinia'
-import { computed, useTemplateRef } from 'vue'
+import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 
 import worldMapUrl from '../assets/world-map.svg'
+import { usePopupAnchoring } from '../composables/usePopupAnchoring'
 import { getBoundaryById } from '../services/city-boundaries'
 import {
   clampNormalizedPoint,
@@ -14,8 +16,14 @@ import {
 } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
-import type { GeoBoundaryCoordinate, GeoBoundaryPolygon, NormalizedCityBoundary } from '../types/geo'
-import type { DraftMapPoint } from '../types/map-point'
+import type {
+  GeoBoundaryCoordinate,
+  GeoBoundaryPolygon,
+  NormalizedCityBoundary,
+  NormalizedPoint
+} from '../types/geo'
+import type { DraftMapPoint, SummarySurfaceState } from '../types/map-point'
+import MapContextPopup from './map-popup/MapContextPopup.vue'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
 
 interface BoundaryPathGroup {
@@ -23,10 +31,30 @@ interface BoundaryPathGroup {
   paths: string[]
 }
 
+type PopupAnchorSource = 'marker' | 'pending' | 'boundary'
+
+interface PopupAnchor {
+  source: PopupAnchorSource
+  reference: Element | VirtualElement
+}
+
+interface PopupComponentExpose {
+  getPopupElement: () => HTMLElement | null
+}
+
 const surfaceRef = useTemplateRef<HTMLDivElement>('surface')
+const popupRef = useTemplateRef<PopupComponentExpose>('popup')
 const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
-const { activePoint, displayPoints, draftPoint, savedBoundaryIds, selectedBoundaryId, selectedPointId } =
+const {
+  draftPoint,
+  displayPoints,
+  drawerMode,
+  savedBoundaryIds,
+  selectedBoundaryId,
+  selectedPointId,
+  summarySurfaceState
+} =
   storeToRefs(mapPointsStore)
 const { pendingGeoHit, isRecognizing } = storeToRefs(mapUiStore)
 const {
@@ -37,7 +65,18 @@ const {
   setPendingGeoHit,
   startRecognition
 } = mapUiStore
-const { startPendingCitySelection } = mapPointsStore
+const {
+  confirmPendingCitySelection,
+  continuePendingWithFallback,
+  deleteUserPoint,
+  enterEditMode,
+  findSavedPointByCityId,
+  hideSeedPoint,
+  openDrawerView,
+  saveDraftAsPoint,
+  startPendingCitySelection,
+  toggleActivePointFeatured
+} = mapPointsStore
 
 const pendingViewBoxPoint = computed(() => {
   if (!pendingGeoHit.value) {
@@ -93,6 +132,236 @@ const selectedBoundaryGroup = computed(() =>
 const hasBoundaryOverlay = computed(
   () => savedBoundaryGroups.value.length > 0 || selectedBoundaryGroup.value !== null
 )
+
+const popupFloatingElement = computed(() => popupRef.value?.getPopupElement() ?? null)
+
+function createPointRect(point: NormalizedPoint) {
+  if (!surfaceRef.value) {
+    return null
+  }
+
+  const bounds = surfaceRef.value.getBoundingClientRect()
+  const x = bounds.left + point.x * bounds.width
+  const y = bounds.top + point.y * bounds.height
+
+  return {
+    width: 0,
+    height: 0,
+    top: y,
+    bottom: y,
+    left: x,
+    right: x,
+    x,
+    y,
+    toJSON: () => ({})
+  }
+}
+
+function createVirtualAnchor(point: NormalizedPoint): VirtualElement | null {
+  if (!surfaceRef.value) {
+    return null
+  }
+
+  return {
+    getBoundingClientRect() {
+      return createPointRect(point) ?? {
+        width: 0,
+        height: 0,
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        x: 0,
+        y: 0,
+        toJSON: () => ({})
+      }
+    }
+  }
+}
+
+function findMarkerAnchor(pointId: string) {
+  if (!surfaceRef.value) {
+    return null
+  }
+
+  return surfaceRef.value.querySelector<HTMLElement>(`[data-point-id="${pointId}"]`)
+}
+
+function findPendingAnchor() {
+  if (!surfaceRef.value) {
+    return null
+  }
+
+  return surfaceRef.value.querySelector<Element>('[data-pending-marker="true"]')
+}
+
+function getBoundaryAnchorPoint(boundaryId: string | null) {
+  if (!boundaryId) {
+    return null
+  }
+
+  const boundary = getBoundaryById(boundaryId)
+
+  if (!boundary) {
+    return null
+  }
+
+  let minX = Number.POSITIVE_INFINITY
+  let maxX = Number.NEGATIVE_INFINITY
+  let minY = Number.POSITIVE_INFINITY
+  let maxY = Number.NEGATIVE_INFINITY
+
+  for (const polygon of boundary.polygons) {
+    for (const ring of polygon) {
+      for (const [lng, lat] of ring) {
+        const point = geoCoordinatesToNormalizedPoint({ lat, lng })
+
+        minX = Math.min(minX, point.x)
+        maxX = Math.max(maxX, point.x)
+        minY = Math.min(minY, point.y)
+        maxY = Math.max(maxY, point.y)
+      }
+    }
+  }
+
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX) || !Number.isFinite(minY) || !Number.isFinite(maxY)) {
+    return null
+  }
+
+  return clampNormalizedPoint({
+    x: (minX + maxX) / 2,
+    y: (minY + maxY) / 2
+  })
+}
+
+function resolvePendingPopupAnchor(surface: SummarySurfaceState) {
+  const pendingAnchor = findPendingAnchor()
+
+  if (pendingAnchor) {
+    return {
+      source: 'pending' as const,
+      reference: pendingAnchor
+    }
+  }
+
+  if (surface.mode !== 'candidate-select') {
+    return null
+  }
+
+  const fallbackAnchor = createVirtualAnchor(surface.fallbackPoint)
+
+  if (!fallbackAnchor) {
+    return null
+  }
+
+  return {
+    source: 'pending' as const,
+    reference: fallbackAnchor
+  }
+}
+
+function resolveBoundaryPopupAnchor(surface: SummarySurfaceState) {
+  if (surface.mode === 'candidate-select') {
+    return null
+  }
+
+  const boundaryAnchorPoint = getBoundaryAnchorPoint(surface.point.boundaryId)
+  const fallbackPoint = boundaryAnchorPoint ?? {
+    x: surface.point.x,
+    y: surface.point.y
+  }
+  const boundaryAnchor = createVirtualAnchor(fallbackPoint)
+
+  if (!boundaryAnchor) {
+    return null
+  }
+
+  return {
+    source: 'boundary' as const,
+    reference: boundaryAnchor
+  }
+}
+
+function resolvePopupAnchor(surface: SummarySurfaceState) {
+  if (surface.mode !== 'candidate-select') {
+    const markerAnchor = findMarkerAnchor(surface.point.id)
+
+    if (markerAnchor) {
+      return {
+        source: 'marker' as const,
+        reference: markerAnchor
+      }
+    }
+  }
+
+  return resolvePendingPopupAnchor(surface) ?? resolveBoundaryPopupAnchor(surface)
+}
+
+const popupAnchor = shallowRef<PopupAnchor | null>(null)
+
+async function refreshPopupAnchor() {
+  const surface = summarySurfaceState.value
+
+  if (!surface || drawerMode.value !== null) {
+    popupAnchor.value = null
+    return
+  }
+
+  await nextTick()
+  popupAnchor.value = resolvePopupAnchor(surface)
+}
+
+const isDesktopPopupVisible = computed(
+  () => Boolean(summarySurfaceState.value) && drawerMode.value === null && popupAnchor.value !== null
+)
+
+const { floatingStyles: popupFloatingStyles } = usePopupAnchoring({
+  reference: () => popupAnchor.value?.reference ?? null,
+  floating: popupFloatingElement,
+  placement: 'top-start'
+})
+
+function handleConfirmDestructive(action: 'delete' | 'hide') {
+  const surface = summarySurfaceState.value
+
+  if (!surface || surface.mode === 'candidate-select') {
+    return
+  }
+
+  if (action === 'delete' && surface.point.source === 'saved') {
+    deleteUserPoint(surface.point.id)
+    return
+  }
+
+  if (action === 'hide' && surface.point.source === 'seed') {
+    hideSeedPoint(surface.point.id)
+  }
+}
+
+watch(
+  [
+    () => summarySurfaceState.value?.mode,
+    () =>
+      summarySurfaceState.value?.mode === 'candidate-select'
+        ? summarySurfaceState.value.fallbackPoint.id
+        : summarySurfaceState.value?.point.id ?? null,
+    () => drawerMode.value,
+    () => selectedPointId.value,
+    () => selectedBoundaryId.value,
+    () => pendingGeoHit.value?.x ?? null,
+    () => pendingGeoHit.value?.y ?? null
+  ],
+  () => {
+    void refreshPopupAnchor()
+  },
+  {
+    immediate: true
+  }
+)
+
+onMounted(() => {
+  void refreshPopupAnchor()
+})
 
 let recognitionSequence = 0
 let geoLookupModulePromise: Promise<typeof import('../services/geo-lookup')> | null = null
@@ -286,6 +555,21 @@ async function handleMapClick(event: MouseEvent) {
 
         </svg>
         <SeedMarkerLayer :points="displayPoints" :selected-point-id="selectedPointId" />
+        <MapContextPopup
+          v-if="isDesktopPopupVisible && summarySurfaceState && popupAnchor"
+          ref="popup"
+          :surface="summarySurfaceState"
+          :anchor-source="popupAnchor.source"
+          :floating-styles="popupFloatingStyles"
+          :find-saved-point-by-city-id="findSavedPointByCityId"
+          @confirm-candidate="confirmPendingCitySelection"
+          @continue-fallback="continuePendingWithFallback"
+          @save-point="saveDraftAsPoint"
+          @open-detail="openDrawerView"
+          @edit-point="enterEditMode"
+          @toggle-featured="toggleActivePointFeatured"
+          @confirm-destructive="handleConfirmDestructive"
+        />
         <div v-if="pendingGeoHit" class="world-map-stage__sr-only" :aria-label="`待识别坐标 ${formatCoordinatesLabel(pendingGeoHit)}`"></div>
       </div>
     </div>

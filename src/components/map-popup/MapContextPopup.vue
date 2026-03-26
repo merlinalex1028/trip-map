@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, useTemplateRef, watch, type CSSProperties } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
@@ -9,7 +9,7 @@ const props = withDefaults(
   defineProps<{
     surface: SummarySurfaceState
     anchorSource: 'marker' | 'pending' | 'boundary'
-    floatingStyles?: Record<string, string> | null
+    floatingStyles?: CSSProperties | null
     findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
   }>(),
   {
@@ -28,6 +28,7 @@ const emit = defineEmits<{
   confirmDestructive: [action: 'delete' | 'hide']
 }>()
 
+const popupRef = useTemplateRef<HTMLElement>('popup')
 const titleRef = useTemplateRef<HTMLElement>('title')
 const popupTitleId = 'map-context-popup-title'
 
@@ -50,6 +51,10 @@ async function focusEntryPoint() {
   titleRef.value?.focus()
 }
 
+function getPopupElement() {
+  return popupRef.value
+}
+
 watch(
   () => [
     props.surface.mode,
@@ -64,10 +69,15 @@ watch(
     immediate: true
   }
 )
+
+defineExpose({
+  getPopupElement
+})
 </script>
 
 <template>
   <aside
+    ref="popup"
     class="map-context-popup"
     role="dialog"
     aria-modal="false"

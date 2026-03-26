@@ -82,6 +82,7 @@ function handlePointBlur(pointId: string) {
           'seed-marker__button--selected': point.id === props.selectedPointId
         }"
         type="button"
+        :data-point-id="point.id"
         :aria-pressed="point.id === props.selectedPointId"
         :aria-label="buildAriaLabel(point)"
         @click="handlePointSelect(point)"
