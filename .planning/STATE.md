@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 城市主视角与可爱风格重构
 status: Phase 09 Verified Complete
-stopped_at: Completed Phase 09 human verification
-last_updated: "2026-03-26T11:05:49Z"
+stopped_at: Completed quick task 260326-qmh
+last_updated: "2026-03-26T11:14:42Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -79,8 +79,15 @@ None yet.
 
 - Phase 10 需要控制原创风格资产规模与动效预算，避免拖累地图性能或遮挡交互。
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260326-qmh | 将popup弹窗的最大高度设置为地图高度的60% | 2026-03-26 | ebeabf9 | [260326-qmh-popup-60](./quick/260326-qmh-popup-60/) |
+
 ## Session Continuity
 
+Last activity: 2026-03-26 - Completed quick task 260326-qmh: 将popup弹窗的最大高度设置为地图高度的60%
 Last session: 2026-03-26T08:07:30Z
-Stopped at: Completed Phase 09 human verification
+Stopped at: Completed quick task 260326-qmh
 Resume file: None
