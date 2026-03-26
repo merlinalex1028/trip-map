@@ -54,7 +54,7 @@ Plans:
 - [x] 08-01-PLAN.md — 建立离线边界数据契约与 `boundaryId` 持久化骨架
 - [x] 08-02-PLAN.md — 接入 store 派生边界状态与地图真实边界 overlay
 - [x] 08-03-PLAN.md — 补齐 reopen / switch / close / fallback / multi-area 回归
-- [ ] 08-04-PLAN.md — 扩大当前主链路边界覆盖并补 unsupported 城市语义护栏
+- [x] 08-04-PLAN.md — 扩大当前主链路边界覆盖并补 unsupported 城市语义护栏
 **UI hint**: yes
 
 ### Phase 9: Popup 主舞台交互
