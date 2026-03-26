@@ -3,20 +3,22 @@ import { defineComponent, nextTick, ref, shallowRef } from 'vue'
 
 import { usePopupAnchoring } from './usePopupAnchoring'
 
-const computePosition = vi.fn()
-const autoUpdate = vi.fn()
-const offset = vi.fn((value: number) => ({ name: 'offset', options: value }))
-const flip = vi.fn((options: Record<string, unknown>) => ({ name: 'flip', options }))
-const shift = vi.fn((options: Record<string, unknown>) => ({ name: 'shift', options }))
-const size = vi.fn((options: Record<string, unknown>) => ({ name: 'size', options }))
+const floatingUiMocks = vi.hoisted(() => ({
+  computePosition: vi.fn(),
+  autoUpdate: vi.fn(),
+  offset: vi.fn((value: number) => ({ name: 'offset', options: value })),
+  flip: vi.fn((options: Record<string, unknown>) => ({ name: 'flip', options })),
+  shift: vi.fn((options: Record<string, unknown>) => ({ name: 'shift', options })),
+  size: vi.fn((options: Record<string, unknown>) => ({ name: 'size', options }))
+}))
 
 vi.mock('@floating-ui/dom', () => ({
-  computePosition,
-  autoUpdate,
-  offset,
-  flip,
-  shift,
-  size
+  computePosition: floatingUiMocks.computePosition,
+  autoUpdate: floatingUiMocks.autoUpdate,
+  offset: floatingUiMocks.offset,
+  flip: floatingUiMocks.flip,
+  shift: floatingUiMocks.shift,
+  size: floatingUiMocks.size
 }))
 
 function mountComposable<T>(useComposable: () => T) {
@@ -40,29 +42,29 @@ function mountComposable<T>(useComposable: () => T) {
 
 describe('usePopupAnchoring', () => {
   beforeEach(() => {
-    computePosition.mockReset()
-    autoUpdate.mockReset()
-    offset.mockClear()
-    flip.mockClear()
-    shift.mockClear()
-    size.mockClear()
+    floatingUiMocks.computePosition.mockReset()
+    floatingUiMocks.autoUpdate.mockReset()
+    floatingUiMocks.offset.mockClear()
+    floatingUiMocks.flip.mockClear()
+    floatingUiMocks.shift.mockClear()
+    floatingUiMocks.size.mockClear()
   })
 
   it('uses Floating UI with offset, flip, shift, and size middleware', async () => {
     const reference = document.createElement('button')
     const floating = document.createElement('div')
 
-    computePosition.mockImplementation(async (_reference, _floating, options) => {
+    floatingUiMocks.computePosition.mockImplementation(async (_reference, _floating, options) => {
       expect(options.middleware).toHaveLength(4)
-      expect(offset).toHaveBeenCalledWith(12)
-      expect(flip).toHaveBeenCalledWith({
+      expect(floatingUiMocks.offset).toHaveBeenCalledWith(12)
+      expect(floatingUiMocks.flip).toHaveBeenCalledWith({
         padding: 16,
         fallbackAxisSideDirection: 'end'
       })
-      expect(shift).toHaveBeenCalledWith({
+      expect(floatingUiMocks.shift).toHaveBeenCalledWith({
         padding: 16
       })
-      expect(size).toHaveBeenCalledTimes(1)
+      expect(floatingUiMocks.size).toHaveBeenCalledTimes(1)
 
       return {
         x: 112,
@@ -71,7 +73,7 @@ describe('usePopupAnchoring', () => {
         middlewareData: {}
       }
     })
-    autoUpdate.mockImplementation((_reference, _floating, update) => {
+    floatingUiMocks.autoUpdate.mockImplementation((_reference, _floating, update) => {
       void update()
       return vi.fn()
     })
@@ -90,7 +92,7 @@ describe('usePopupAnchoring', () => {
       left: '112px',
       top: '68px'
     })
-    expect(autoUpdate).toHaveBeenCalledWith(reference, floating, expect.any(Function))
+    expect(floatingUiMocks.autoUpdate).toHaveBeenCalledWith(reference, floating, expect.any(Function))
   })
 
   it('exposes availableHeight from size middleware and cleans up autoUpdate on stop', async () => {
@@ -98,7 +100,7 @@ describe('usePopupAnchoring', () => {
     const floating = document.createElement('div')
     const cleanup = vi.fn()
 
-    computePosition.mockImplementation(async (_reference, _floating, options) => {
+    floatingUiMocks.computePosition.mockImplementation(async (_reference, _floating, options) => {
       const sizeMiddleware = options.middleware[3]
       sizeMiddleware.options.apply({
         availableWidth: 540,
@@ -124,7 +126,7 @@ describe('usePopupAnchoring', () => {
         }
       }
     })
-    autoUpdate.mockImplementation((_reference, _floating, update) => {
+    floatingUiMocks.autoUpdate.mockImplementation((_reference, _floating, update) => {
       void update()
       return cleanup
     })
