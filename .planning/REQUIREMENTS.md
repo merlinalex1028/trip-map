@@ -22,9 +22,9 @@
 
 ### Popup Interaction
 
-- [ ] **POP-01**: 用户选中城市或已有点位后，可以看到锚定在地图上下文中的悬浮 popup 摘要卡
+- [x] **POP-01**: 用户选中城市或已有点位后，可以看到锚定在地图上下文中的悬浮 popup 摘要卡
 - [x] **POP-02**: 用户可以在 popup 中完成高频快捷操作，并通过显式入口进入完整详情或编辑视图
-- [ ] **POP-03**: 用户在移动端使用时，popup 会自动避开视口边缘，必要时回退为安全的底部 peek 或等效轻量展示
+- [x] **POP-03**: 用户在移动端使用时，popup 会自动避开视口边缘，必要时回退为安全的底部 peek 或等效轻量展示
 
 ### Data & Compatibility
 
@@ -79,9 +79,9 @@
 | BND-01 | Phase 8 | Pending |
 | BND-02 | Phase 8 | Pending |
 | BND-03 | Phase 8 | Pending |
-| POP-01 | Phase 9 | Pending |
+| POP-01 | Phase 9 | Complete |
 | POP-02 | Phase 9 | Complete |
-| POP-03 | Phase 9 | Pending |
+| POP-03 | Phase 9 | Complete |
 | DAT-05 | Phase 7 | Pending |
 | DAT-06 | Phase 8 | Pending |
 | VIS-01 | Phase 10 | Pending |
@@ -95,4 +95,4 @@
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after v2.0 roadmap traceability mapping*
+*Last updated: 2026-03-26 after Phase 09 verification passed*

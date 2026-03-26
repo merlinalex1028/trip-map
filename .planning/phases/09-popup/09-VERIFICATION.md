@@ -1,7 +1,7 @@
 ---
 phase: 09-popup
-verified: 2026-03-26T10:56:06Z
-status: human_needed
+verified: 2026-03-26T11:05:49Z
+status: passed
 score: 5/5 must-haves verified
 human_verification:
   - test: "桌面端锚定 popup 的主舞台观感"
@@ -18,9 +18,9 @@ human_verification:
 # Phase 9: Popup 主舞台交互 Verification Report
 
 **Phase Goal:** 用户可以在地图上下文中通过轻量 popup 完成高频操作，再按需进入完整详情或编辑
-**Verified:** 2026-03-26T10:56:06Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-03-26T11:05:49Z
+**Status:** passed
+**Re-verification:** Yes — human verification completed
 
 ## Goal Achievement
 
@@ -92,31 +92,16 @@ No orphaned Phase 09 requirements found in `.planning/REQUIREMENTS.md`.
 | --- | --- | --- | --- | --- |
 | `src/components/PointPreviewDrawer.vue` | 116 | `window.confirm()` unsaved-change guard | Info | 仅用于 deep drawer 的放弃编辑/关闭保护；popup/peek 的删除与隐藏已改为 inline confirm，不阻塞 Phase 09 goal。 |
 
-### Human Verification Required
+### Human Verification Completed
 
-### 1. 桌面端锚定 popup 主舞台感
-
-**Test:** 在桌面宽度下依次点击候选城市、草稿点位和已保存点位。  
-**Expected:** popup 始终贴近地图对象，不像侧边抽屉，也不会因为 flip/shift 后挡住主要目标。  
-**Why human:** 视觉锚定感和遮挡节奏无法通过结构测试完全证明。
-
-### 2. 移动端 peek 安全区与点击可达性
-
-**Test:** 在真实手机或浏览器移动端模拟下触发 candidate、draft、saved 三种 summary。  
-**Expected:** peek 在底部 safe-area 之上，`关闭` 与主动作可稳定点击，不被浏览器底栏或软键盘压住。  
-**Why human:** 当前自动化不能覆盖真实设备安全区和浏览器 UI 行为。
-
-### 3. 长内容滚动手感
-
-**Test:** 准备超长简介或较长候选列表，在桌面 popup 和移动端 peek 中滚动。  
-**Expected:** 仅中间内容区滚动，头部身份信息和底部动作保持稳定；不会再出现整张卡片一起滚。  
-**Why human:** 需要人工确认真实滚动链、惯性和 overscroll 手感。
+- `09-HUMAN-UAT.md` 中的 3 项人工检查均已通过：桌面 anchored popup 主舞台观感、移动端 peek safe-area 与触达性、长内容场景滚动手感。
+- 人工结果与自动化结论一致，没有新增 gap、阻塞或体验退化记录。
 
 ### Gaps Summary
 
-没有发现会阻断 Phase 09 goal 的自动化缺口。`09-UAT.md` 中记录的 gap 6 仍是历史 issue，但当前代码已通过 `PointSummaryCard` 的中部 scroll-region、popup/peek shell 收口和对应回归测试闭环；剩余风险集中在视觉与真实设备交互感受，需要人工确认后才能把状态从 `human_needed` 收口为 `passed`。
+没有发现会阻断 Phase 09 goal 的自动化或人工验证缺口。`09-UAT.md` 中记录的 gap 6 已通过 `PointSummaryCard` 的中部 scroll-region、popup/peek shell 收口和对应回归测试闭环，且人工检查确认体验符合预期。
 
 ---
 
-_Verified: 2026-03-26T10:56:06Z_  
+_Verified: 2026-03-26T11:05:49Z_  
 _Verifier: Claude (gsd-verifier)_
