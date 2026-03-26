@@ -67,7 +67,7 @@ Plans:
   3. 用户在移动端使用时，popup 会自动避开视口边缘，必要时回退为安全的底部 peek 或等效轻量展示。
 **Plans**: 3 plans
 Plans:
-- [ ] 09-01-PLAN.md — 拆分 summary/deep surface 契约并抽共享摘要卡
+- [x] 09-01-PLAN.md — 拆分 summary/deep surface 契约并抽共享摘要卡
 - [ ] 09-02-PLAN.md — 接入桌面 anchored popup 与地图内锚点定位
 - [ ] 09-03-PLAN.md — 补移动端 peek 回退、布局迁移与边界稳定性回归
 **UI hint**: yes
@@ -89,5 +89,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 7. 城市选择与兼容基线 | v2.0 | 5/5 | Complete | 2026-03-25 |
 | 8. 城市边界高亮语义 | v2.0 | 4/4 | Complete | 2026-03-26 |
-| 9. Popup 主舞台交互 | v2.0 | 0/TBD | Not started | - |
+| 9. Popup 主舞台交互 | v2.0 | 1/3 | In Progress | - |
 | 10. 可爱风格与可读性收口 | v2.0 | 0/TBD | Not started | - |
