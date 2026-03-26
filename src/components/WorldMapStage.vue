@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { computed, useTemplateRef } from 'vue'
 
 import worldMapUrl from '../assets/world-map.svg'
+import { getBoundaryById } from '../services/city-boundaries'
 import {
   clampNormalizedPoint,
   formatCoordinatesLabel,
@@ -13,13 +14,20 @@ import {
 } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
+import type { GeoBoundaryCoordinate, GeoBoundaryPolygon, NormalizedCityBoundary } from '../types/geo'
 import type { DraftMapPoint } from '../types/map-point'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
+
+interface BoundaryPathGroup {
+  boundaryId: string
+  paths: string[]
+}
 
 const surfaceRef = useTemplateRef<HTMLDivElement>('surface')
 const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
-const { activePoint, displayPoints, draftPoint, selectedPointId } = storeToRefs(mapPointsStore)
+const { activePoint, displayPoints, draftPoint, savedBoundaryIds, selectedBoundaryId, selectedPointId } =
+  storeToRefs(mapPointsStore)
 const { pendingGeoHit, isRecognizing } = storeToRefs(mapUiStore)
 const {
   clearInteractionNotice,
@@ -38,6 +46,53 @@ const pendingViewBoxPoint = computed(() => {
 
   return normalizedPointToViewBoxPoint(pendingGeoHit.value)
 })
+
+function coordinateToPathPoint([lng, lat]: GeoBoundaryCoordinate) {
+  const normalizedPoint = geoCoordinatesToNormalizedPoint({ lat, lng })
+  const viewBoxPoint = normalizedPointToViewBoxPoint(normalizedPoint)
+
+  return `${viewBoxPoint.x.toFixed(2)} ${viewBoxPoint.y.toFixed(2)}`
+}
+
+function polygonToPath(polygon: GeoBoundaryPolygon) {
+  return polygon
+    .map((ring) => {
+      if (ring.length === 0) {
+        return null
+      }
+
+      const [firstCoordinate, ...restCoordinates] = ring
+
+      return [`M ${coordinateToPathPoint(firstCoordinate)}`, ...restCoordinates.map((coordinate) => `L ${coordinateToPathPoint(coordinate)}`), 'Z'].join(' ')
+    })
+    .filter((path): path is string => Boolean(path))
+    .join(' ')
+}
+
+function toBoundaryPathGroup(boundary: NormalizedCityBoundary | null): BoundaryPathGroup | null {
+  if (!boundary) {
+    return null
+  }
+
+  return {
+    boundaryId: boundary.boundaryId,
+    paths: boundary.polygons.map((polygon) => polygonToPath(polygon)).filter(Boolean)
+  }
+}
+
+const savedBoundaryGroups = computed(() =>
+  savedBoundaryIds.value
+    .map((boundaryId) => toBoundaryPathGroup(getBoundaryById(boundaryId)))
+    .filter((group): group is BoundaryPathGroup => Boolean(group))
+)
+
+const selectedBoundaryGroup = computed(() =>
+  toBoundaryPathGroup(selectedBoundaryId.value ? getBoundaryById(selectedBoundaryId.value) : null)
+)
+
+const hasBoundaryOverlay = computed(
+  () => savedBoundaryGroups.value.length > 0 || selectedBoundaryGroup.value !== null
+)
 
 let recognitionSequence = 0
 let geoLookupModulePromise: Promise<typeof import('../services/geo-lookup')> | null = null
@@ -183,6 +238,40 @@ async function handleMapClick(event: MouseEvent) {
           aria-hidden="true"
         >
           <g
+            v-if="hasBoundaryOverlay"
+            class="world-map-stage__boundary-layer"
+          >
+            <g
+              v-for="boundaryGroup in savedBoundaryGroups"
+              :key="`saved-${boundaryGroup.boundaryId}`"
+              class="world-map-stage__boundary world-map-stage__boundary--saved"
+              :data-boundary-id="boundaryGroup.boundaryId"
+              data-highlight-state="saved"
+            >
+              <path
+                v-for="(path, pathIndex) in boundaryGroup.paths"
+                :key="`${boundaryGroup.boundaryId}-saved-${pathIndex}`"
+                class="world-map-stage__boundary-path"
+                :d="path"
+                fill-rule="evenodd"
+              />
+            </g>
+            <g
+              v-if="selectedBoundaryGroup"
+              class="world-map-stage__boundary world-map-stage__boundary--selected"
+              :data-boundary-id="selectedBoundaryGroup.boundaryId"
+              data-highlight-state="selected"
+            >
+              <path
+                v-for="(path, pathIndex) in selectedBoundaryGroup.paths"
+                :key="`${selectedBoundaryGroup.boundaryId}-selected-${pathIndex}`"
+                class="world-map-stage__boundary-path"
+                :d="path"
+                fill-rule="evenodd"
+              />
+            </g>
+          </g>
+          <g
             v-if="pendingGeoHit && pendingViewBoxPoint"
             class="world-map-stage__overlay-marker world-map-stage__overlay-marker--pending"
             :class="{
@@ -244,6 +333,35 @@ async function handleMapClick(event: MouseEvent) {
   width: 100%;
   height: 100%;
   pointer-events: none;
+}
+
+.world-map-stage__boundary-layer {
+  isolation: isolate;
+}
+
+.world-map-stage__boundary {
+  opacity: 1;
+}
+
+.world-map-stage__boundary-path {
+  vector-effect: non-scaling-stroke;
+  transition:
+    fill 180ms ease,
+    stroke 180ms ease,
+    opacity 180ms ease;
+}
+
+.world-map-stage__boundary--saved .world-map-stage__boundary-path {
+  fill: rgba(111, 122, 91, 0.18);
+  stroke: rgba(88, 96, 70, 0.7);
+  stroke-width: 2.4;
+}
+
+.world-map-stage__boundary--selected .world-map-stage__boundary-path {
+  fill: rgba(200, 100, 59, 0.28);
+  stroke: rgba(200, 100, 59, 0.96);
+  stroke-width: 3.2;
+  filter: drop-shadow(0 0 10px rgba(200, 100, 59, 0.22));
 }
 
 .world-map-stage__overlay-marker {

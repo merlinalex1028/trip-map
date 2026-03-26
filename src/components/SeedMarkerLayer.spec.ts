@@ -68,9 +68,11 @@ describe('SeedMarkerLayer', () => {
     })
 
     const markers = wrapper.findAll('.seed-marker')
+    const buttons = wrapper.findAll('.seed-marker__button')
 
     expect(markers[0].classes()).toContain('seed-marker--selected')
     expect(markers[1].classes()).toContain('seed-marker--dimmed')
+    expect(buttons[0].classes()).toContain('seed-marker__button--selected')
   })
 
   it('reveals labels for focus-visible interactions without keeping all labels on screen', async () => {

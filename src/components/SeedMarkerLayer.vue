@@ -114,6 +114,14 @@ function handlePointBlur(pointId: string) {
   height: 0;
 }
 
+.seed-marker--saved {
+  z-index: 1;
+}
+
+.seed-marker--selected {
+  z-index: 2;
+}
+
 .seed-marker__button {
   /* Keep the geographic anchor on the dot itself so labels never shift marker position. */
   position: absolute;
@@ -140,15 +148,15 @@ function handlePointBlur(pointId: string) {
 }
 
 .seed-marker__dot {
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.8rem;
+  height: 0.8rem;
   border-radius: 999px;
   border: 1px solid rgba(63, 47, 36, 0.35);
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 246, 221, 0.95), rgba(200, 100, 59, 0.9));
   box-shadow:
-    0 0 0 7px rgba(200, 100, 59, 0.11),
-    0 0 18px rgba(200, 100, 59, 0.18);
+    0 0 0 5px rgba(200, 100, 59, 0.08),
+    0 0 14px rgba(200, 100, 59, 0.14);
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -157,18 +165,18 @@ function handlePointBlur(pointId: string) {
 
 .seed-marker__button:hover .seed-marker__dot,
 .seed-marker__button:focus-visible .seed-marker__dot {
-  transform: scale(1.08);
+  transform: scale(1.05);
   box-shadow:
-    0 0 0 8px rgba(200, 100, 59, 0.16),
-    0 0 20px rgba(200, 100, 59, 0.26);
+    0 0 0 6px rgba(200, 100, 59, 0.12),
+    0 0 18px rgba(200, 100, 59, 0.2);
 }
 
 .seed-marker--saved .seed-marker__dot {
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 246, 221, 0.98), rgba(111, 122, 91, 0.95));
   box-shadow:
-    0 0 0 6px rgba(111, 122, 91, 0.11),
-    0 0 16px rgba(111, 122, 91, 0.16);
+    0 0 0 4px rgba(111, 122, 91, 0.08),
+    0 0 10px rgba(111, 122, 91, 0.12);
 }
 
 .seed-marker--draft .seed-marker__dot {
@@ -176,25 +184,25 @@ function handlePointBlur(pointId: string) {
   background:
     radial-gradient(circle at 30% 30%, rgba(255, 249, 232, 0.98), rgba(200, 100, 59, 0.98));
   box-shadow:
-    0 0 0 7px rgba(200, 100, 59, 0.18),
-    0 0 20px rgba(200, 100, 59, 0.28);
+    0 0 0 6px rgba(200, 100, 59, 0.16),
+    0 0 18px rgba(200, 100, 59, 0.24);
   animation: draft-marker-pulse 1.45s ease-in-out infinite;
 }
 
 .seed-marker--dimmed .seed-marker__dot {
-  opacity: 0.68;
+  opacity: 0.62;
   box-shadow:
-    0 0 0 5px rgba(111, 122, 91, 0.08),
-    0 0 12px rgba(73, 49, 31, 0.12);
+    0 0 0 4px rgba(111, 122, 91, 0.06),
+    0 0 8px rgba(73, 49, 31, 0.08);
 }
 
 .seed-marker--selected .seed-marker__dot,
 .seed-marker__button--selected .seed-marker__dot {
   border-color: rgba(200, 100, 59, 0.9);
   box-shadow:
-    0 0 0 4px rgba(252, 247, 236, 0.92),
-    0 0 0 10px rgba(200, 100, 59, 0.36),
-    0 0 24px rgba(200, 100, 59, 0.42);
+    0 0 0 3px rgba(252, 247, 236, 0.9),
+    0 0 0 7px rgba(200, 100, 59, 0.26),
+    0 0 16px rgba(200, 100, 59, 0.24);
 }
 
 .seed-marker__label {

@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCoordinates, GeoDetectionResult } from '../types/geo'
@@ -89,6 +90,39 @@ function createDetectionResult(overrides: Partial<GeoDetectionResult> = {}): Geo
     lat: 35.0116,
     lng: 135.7681,
     confidence: 0.99,
+    ...overrides
+  }
+}
+
+function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
+  const boundary = getBoundaryByCityId(cityId)
+
+  if (!boundary) {
+    throw new Error(`Missing boundary fixture for ${cityId}`)
+  }
+
+  const isPortugal = cityId.startsWith('pt-')
+
+  return {
+    id: `detected-${cityId}`,
+    name: boundary.cityName,
+    countryName: isPortugal ? 'Portugal' : 'Japan',
+    countryCode: isPortugal ? 'PT' : 'JP',
+    precision: 'city-high' as const,
+    cityId,
+    cityName: boundary.cityName,
+    cityContextLabel: isPortugal ? 'Portugal' : 'Japan · Kansai',
+    boundaryId: boundary.boundaryId,
+    boundaryDatasetVersion: boundary.datasetVersion,
+    fallbackNotice: null,
+    lat: isPortugal ? 38.7223 : 35.0116,
+    lng: isPortugal ? -9.1393 : 135.7681,
+    x: isPortugal ? 0.47 : 0.68,
+    y: isPortugal ? 0.37 : 0.42,
+    source: 'detected' as const,
+    isFeatured: false,
+    description: 'saved point',
+    coordinatesLabel: isPortugal ? '38.7223°N, 9.1393°W' : '35.0116°N, 135.7681°E',
     ...overrides
   }
 }
@@ -351,6 +385,83 @@ describe('WorldMapStage', () => {
     expect(mapPointsStore.draftPoint).toBeNull()
     expect(mapPointsStore.activePoint?.name).toBe('Kyoto')
     expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Kyoto')
+  })
+
+  it('renders saved and selected city boundaries with the selected city on a stronger layer', () => {
+    const mapPointsStore = useMapPointsStore()
+    const tokyoBoundary = getBoundaryByCityId('jp-tokyo')
+    const lisbonBoundary = getBoundaryByCityId('pt-lisbon')
+
+    mapPointsStore.startDraftFromDetection(
+      createCityDraft('jp-tokyo', {
+        name: 'Tokyo',
+        cityName: 'Tokyo',
+        cityContextLabel: 'Japan · Kanto',
+        lat: 35.6762,
+        lng: 139.6503,
+        x: 0.69,
+        y: 0.41,
+        coordinatesLabel: '35.6762°N, 139.6503°E'
+      })
+    )
+    const tokyoPoint = mapPointsStore.saveDraftAsPoint()
+
+    mapPointsStore.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    mapPointsStore.saveDraftAsPoint()
+    mapPointsStore.selectPointById(tokyoPoint!.id)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const savedBoundaries = wrapper.findAll('.world-map-stage__boundary--saved')
+    const selectedBoundary = wrapper.get('.world-map-stage__boundary--selected')
+
+    expect(wrapper.get('.world-map-stage__boundary-layer').exists()).toBe(true)
+    expect(savedBoundaries).toHaveLength(2)
+    expect(
+      wrapper
+        .get(`[data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"].world-map-stage__boundary--saved`)
+        .exists()
+    ).toBe(true)
+    expect(selectedBoundary.attributes('data-boundary-id')).toBe(tokyoBoundary?.boundaryId ?? '')
+    expect(selectedBoundary.findAll('path')).toHaveLength(tokyoBoundary?.polygons.length ?? 0)
+  })
+
+  it('does not render a city boundary layer for fallback-only state', () => {
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection({
+      id: 'detected-fallback-pt',
+      name: 'Portugal',
+      countryName: 'Portugal',
+      countryCode: 'PT',
+      precision: 'country',
+      cityId: null,
+      cityName: null,
+      cityContextLabel: 'Portugal',
+      boundaryId: null,
+      boundaryDatasetVersion: null,
+      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
+      lat: 38.7223,
+      lng: -9.1393,
+      x: 0.47,
+      y: 0.37,
+      source: 'detected',
+      isFeatured: false,
+      description: 'fallback point',
+      coordinatesLabel: '38.7223°N, 9.1393°W'
+    })
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(false)
   })
 
   it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {
