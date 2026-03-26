@@ -5,22 +5,24 @@ import {
   offset,
   shift,
   size,
-  type Placement
+  type Placement,
+  type VirtualElement
 } from '@floating-ui/dom'
 import {
   computed,
   onBeforeUnmount,
   shallowRef,
+  toValue,
   watch,
   type CSSProperties,
-  type Ref
+  type MaybeRefOrGetter
 } from 'vue'
 
 export type PopupCollisionState = 'idle' | 'stable' | 'collision-aware'
 
 interface UsePopupAnchoringOptions {
-  reference: Ref<HTMLElement | SVGElement | null>
-  floating: Ref<HTMLElement | null>
+  reference: MaybeRefOrGetter<Element | VirtualElement | null>
+  floating: MaybeRefOrGetter<HTMLElement | null>
   placement?: Placement
 }
 
@@ -47,11 +49,14 @@ export function usePopupAnchoring(options: UsePopupAnchoringOptions) {
   }))
 
   async function updatePosition() {
-    if (!options.reference.value || !options.floating.value) {
+    const reference = toValue(options.reference)
+    const floating = toValue(options.floating)
+
+    if (!reference || !floating) {
       return
     }
 
-    const result = await computePosition(options.reference.value, options.floating.value, {
+    const result = await computePosition(reference, floating, {
       placement: options.placement ?? 'top',
       strategy: 'absolute',
       middleware: [
@@ -88,7 +93,7 @@ export function usePopupAnchoring(options: UsePopupAnchoringOptions) {
   }
 
   watch(
-    [options.reference, options.floating],
+    [() => toValue(options.reference), () => toValue(options.floating)],
     ([reference, floating]) => {
       cleanup()
 
