@@ -68,7 +68,13 @@ describe('point-storage service', () => {
   it('saves and loads a ready snapshot', () => {
     const snapshot = {
       version: 1 as const,
-      userPoints: [createSavedPoint()],
+      userPoints: [
+        {
+          ...createSavedPoint(),
+          boundaryId: 'jp-kyoto-city',
+          boundaryDatasetVersion: '2026-03-phase8-v1'
+        }
+      ],
       seedOverrides: [],
       deletedSeedIds: []
     }
@@ -123,6 +129,8 @@ describe('point-storage service', () => {
             cityId: null,
             cityName: null,
             cityContextLabel: null,
+            boundaryId: null,
+            boundaryDatasetVersion: null,
             fallbackNotice: null,
             lat: 38.7223,
             lng: -9.1393,
@@ -145,7 +153,13 @@ describe('point-storage service', () => {
   it('preserves cityId and cityContextLabel when saving and loading a city record', () => {
     const snapshot = {
       version: 1 as const,
-      userPoints: [createSavedPoint()],
+      userPoints: [
+        {
+          ...createSavedPoint(),
+          boundaryId: 'jp-kyoto-city',
+          boundaryDatasetVersion: '2026-03-phase8-v1'
+        }
+      ],
       seedOverrides: [],
       deletedSeedIds: []
     }
@@ -159,12 +173,63 @@ describe('point-storage service', () => {
       expect.objectContaining({
         cityId: 'jp-kyoto',
         cityContextLabel: 'Japan · Kansai',
+        boundaryId: 'jp-kyoto-city',
+        boundaryDatasetVersion: '2026-03-phase8-v1',
         lat: 35,
         lng: 135,
         x: 0.7,
         y: 0.45
       })
     )
+  })
+
+  it('fails closed when both cityId and boundaryId are absent on restore', () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        userPoints: [
+          {
+            id: 'saved-no-boundary',
+            name: 'Open Water',
+            countryName: 'Atlantic',
+            countryCode: 'ZZ',
+            precision: 'country',
+            cityId: null,
+            cityName: null,
+            cityContextLabel: null,
+            lat: 0,
+            lng: 0,
+            x: 0.5,
+            y: 0.5,
+            source: 'saved',
+            isFeatured: false,
+            description: 'legacy null city',
+            coordinatesLabel: '0.0000°N, 0.0000°E',
+            createdAt: '2026-03-24T00:00:00.000Z',
+            updatedAt: '2026-03-24T00:00:00.000Z'
+          }
+        ],
+        seedOverrides: [],
+        deletedSeedIds: []
+      })
+    )
+
+    expect(loadPointStorageSnapshot()).toEqual({
+      status: 'ready',
+      snapshot: {
+        version: 1,
+        userPoints: [
+          expect.objectContaining({
+            cityId: null,
+            boundaryId: null,
+            boundaryDatasetVersion: null
+          })
+        ],
+        seedOverrides: [],
+        deletedSeedIds: []
+      }
+    })
   })
 
   it('applies seed overrides and deletedSeedIds when merging display points', () => {
