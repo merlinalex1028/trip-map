@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 城市主视角与可爱风格重构
-status: Ready to execute
+status: Ready to plan
 stopped_at: Phase 08 ready to plan
-last_updated: "2026-03-26T02:11:44.665Z"
+last_updated: "2026-03-26T04:17:43.202Z"
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 8
-  completed_plans: 6
+  completed_phases: 2
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 08 — 城市边界高亮语义
+**Current focus:** Phase 09 — Popup 主舞台交互
 
 ## Current Position
 
-Phase: 08 (城市边界高亮语义) — EXECUTING
-Plan: 2 of 3
+Phase: 9
+Plan: Not started
 
 ## Performance Metrics
 
@@ -69,11 +69,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 8 需要把这轮扩展出来的城市身份继续对齐到真实边界与 `boundaryId`，避免“城市候选充足但高亮语义仍然稀疏”。
+- Phase 9 需要让 popup 成为地图上下文里的主入口，同时不和现有 drawer/edit 流相互打架。
 - Phase 10 需要控制原创风格资产规模与动效预算，避免拖累地图性能或遮挡交互。
 
 ## Session Continuity
 
 Last session: 2026-03-25T08:42:00Z
-Stopped at: Phase 08 ready to plan
-Resume file: .planning/phases/07-城市选择与兼容基线/07-05-SUMMARY.md
+Stopped at: Phase 09 ready to discuss
+Resume file: .planning/phases/08-城市边界高亮语义/08-04-SUMMARY.md
