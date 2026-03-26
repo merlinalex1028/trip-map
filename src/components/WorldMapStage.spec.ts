@@ -9,6 +9,8 @@ import type { GeoCoordinates, GeoDetectionResult } from '../types/geo'
 import WorldMapStage from './WorldMapStage.vue'
 
 const popupAnchoringMock = vi.hoisted(() => ({
+  availableHeight: 320,
+  collisionState: 'stable' as 'stable' | 'collision-aware' | 'unsafe',
   cleanup: vi.fn(),
   lastOptions: null as
     | {
@@ -39,13 +41,15 @@ vi.mock('../composables/usePopupAnchoring', () => ({
         top: '32px'
       })),
       placement: shallowRef('top-start'),
-      collisionState: shallowRef('stable'),
-      availableHeight: shallowRef(320),
+      collisionState: computed(() => popupAnchoringMock.collisionState),
+      availableHeight: computed(() => popupAnchoringMock.availableHeight),
       updatePosition: vi.fn(),
       cleanup: popupAnchoringMock.cleanup
     }
   }
 }))
+
+const LONG_TEXT = Array.from({ length: 24 }, (_, index) => `long text paragraph ${index + 1}`).join(' ')
 
 function installFrame(surface: HTMLDivElement) {
   Object.defineProperty(surface, 'getBoundingClientRect', {
@@ -68,6 +72,14 @@ function clickPointFromGeo(lat: number, lng: number, offsetX = 0, offsetY = 0) {
     clientX: 160 + ((lng + 180) / 360) * 1280 + offsetX,
     clientY: 80 + ((90 - lat) / 180) * 640 + offsetY
   }
+}
+
+function setViewportWidth(width: number) {
+  Object.defineProperty(window, 'innerWidth', {
+    configurable: true,
+    writable: true,
+    value: width
+  })
 }
 
 function createDetectionResult(overrides: Partial<GeoDetectionResult> = {}): GeoDetectionResult {
@@ -161,6 +173,7 @@ describe('WorldMapStage', () => {
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
+    setViewportWidth(1440)
     const storage = new Map<string, string>()
     const localStorageMock = {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -188,6 +201,8 @@ describe('WorldMapStage', () => {
     )
     isLowConfidenceBoundaryHit.mockReset()
     isLowConfidenceBoundaryHit.mockReturnValue(false)
+    popupAnchoringMock.availableHeight = 320
+    popupAnchoringMock.collisionState = 'stable'
     popupAnchoringMock.lastOptions = null
     popupAnchoringMock.cleanup.mockReset()
 
@@ -648,6 +663,66 @@ describe('WorldMapStage', () => {
     expect(anchor?.getAttribute('data-pending-marker')).toBe('true')
   })
 
+  it('renders the mobile peek instead of the desktop popup when the viewport is narrow', async () => {
+    setViewportWidth(768)
+
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startPendingCitySelection(
+      createCityDraft('jp-kyoto', {
+        id: 'detected-jp-fallback',
+        name: 'Japan',
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'Japan',
+        boundaryId: null,
+        boundaryDatasetVersion: null
+      }),
+      [
+        {
+          cityId: 'jp-kyoto',
+          cityName: 'Kyoto',
+          contextLabel: 'Japan · Kansai',
+          matchLevel: 'high',
+          distanceKm: 1.2,
+          statusHint: '更接近点击位置'
+        }
+      ]
+    )
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(true)
+    expect(wrapper.find('.map-context-popup').exists()).toBe(false)
+    expect(wrapper.text()).toContain('关闭')
+  })
+
+  it('falls back to the mobile peek when anchored popup space becomes unsafe on desktop', async () => {
+    popupAnchoringMock.availableHeight = 220
+
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    mapPointsStore.saveDraftAsPoint()
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(true)
+    expect(wrapper.find('.map-context-popup').exists()).toBe(false)
+  })
+
   it('renders selected view popup inside the map stage and keeps boundary highlight identity in sync', async () => {
     const mapPointsStore = useMapPointsStore()
     const kyotoBoundary = getBoundaryByCityId('jp-kyoto')
@@ -684,6 +759,39 @@ describe('WorldMapStage', () => {
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
       kyotoBoundary?.boundaryId ?? ''
     )
+  })
+
+  it('keeps long text inside the popup body so bottom actions remain reachable in the map stage', async () => {
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection(
+      createCityDraft('jp-kyoto', {
+        name: 'Kyoto',
+        cityName: 'Kyoto',
+        description: LONG_TEXT
+      })
+    )
+    const savedPoint = mapPointsStore.saveDraftAsPoint()
+
+    if (!savedPoint) {
+      throw new Error('Expected saved point fixture')
+    }
+
+    mapPointsStore.selectPointById(savedPoint.id)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const popupBody = wrapper.get('.world-map-stage__surface .map-context-popup__body')
+
+    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
+    expect(popupBody.text()).toContain('long text paragraph 1')
+    expect(popupBody.text()).toContain('查看详情')
   })
 
   it('continues to expose fallback copy for realistic near-but-not-on city clicks', async () => {

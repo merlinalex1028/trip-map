@@ -44,6 +44,7 @@ created: 2026-03-26
 | 9-02-02 | 02 | 2 | POP-01, POP-02 | integration | `pnpm test -- src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ⬜ pending |
 | 9-03-01 | 03 | 3 | POP-03 | component + integration | `pnpm test -- src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ❌ W0 + ✅ existing | ⬜ pending |
 | 9-03-02 | 03 | 3 | POP-02, POP-03 | integration | `pnpm test -- src/App.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ⬜ pending |
+| 9-04-01 | 04 | 4 | POP-01, POP-03 | component + integration | `pnpm test -- src/components/map-popup/MapContextPopup.spec.ts src/components/map-popup/MobilePeekSheet.spec.ts src/components/WorldMapStage.spec.ts` | ✅ existing + extension | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -67,6 +68,7 @@ created: 2026-03-26
 | 桌面端 popup 跟随 marker、候选态和已保存态切换时的主舞台观感是否自然 | POP-01 | 视觉主舞台感、遮挡感与阅读节奏难以完全由自动化断言 | 桌面宽度打开应用，依次点击候选城市、已保存点位、草稿点位，观察 popup 是否始终锚定在当前地图语境中且不遮挡关键目标 |
 | 移动端从锚定 popup 回退到底部 `peek` 的时机是否可理解、可操作 | POP-03 | 需要真实评估小屏可读性、点击命中和安全区占位 | 在窄屏视口下依次进入 `candidate-select`、草稿摘要和已保存摘要，确认 peek 不遮挡主要地图反馈，且 CTA 触达稳定 |
 | popup 内删除 / 隐藏等破坏性动作的轻确认是否既防误触又不过重 | POP-02 | 交互节奏与误触风险需要人工判断 | 在 popup 中触发删除与隐藏动作，验证需要明确二次确认或等效轻确认，但不会弹出重型流程打断地图主舞台 |
+| popup / peek 长内容是否能在当前地图语境内稳定滚动到底部动作 | POP-01, POP-03 | 需要真实观察裁切、滚动手感与 safe-area 可达性 | 准备一条长描述或多候选内容，在桌面 popup 与移动端 peek 中分别确认内容区可滚动，底部动作按钮不会被裁切成不可达状态 |
 
 ---
 

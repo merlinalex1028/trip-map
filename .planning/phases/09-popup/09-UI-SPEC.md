@@ -79,6 +79,8 @@ Accent reserved for: current popup primary CTA, selected marker/boundary emphasi
 | Element | Copy | Source |
 |---------|------|--------|
 | Primary CTA | `查看详情` for summary handoff; state-specific primary actions remain `保存为地点` in draft state and `确认城市` in candidate state | handoff requirement from `09-CONTEXT.md`; existing action labels from `src/components/PointPreviewDrawer.vue`; `查看详情` defaulted for shared popup handoff |
+| Edit cancel action | `放弃编辑` returns from drawer edit mode to summary/view state after running the existing unsaved-change guard | replaces generic `取消` per checker feedback; behavior remains locked by `09-CONTEXT.md` and current drawer flow |
+| View secondary actions | `编辑地点`, `删除地点`, `隐藏预置地点` | view-state labels made explicit from checker feedback; action scope stays aligned with `src/components/PointPreviewDrawer.vue` and `09-CONTEXT.md` |
 | Empty state heading | `没有匹配城市` | adapted from current candidate empty copy in `src/components/PointPreviewDrawer.vue` |
 | Empty state body | `没有匹配城市，请按国家/地区继续记录。` | current candidate empty/fallback copy in `src/components/PointPreviewDrawer.vue` |
 | Error state | `暂时无法完成定位，请点击更靠近目标区域的位置后重试；如果仍无法确认，可按国家/地区继续记录。` | derived from current interaction notices in `src/components/WorldMapStage.vue` and fallback rules in `09-CONTEXT.md` |
@@ -89,6 +91,7 @@ Additional copy rules:
 - Candidate item status hint uses existing short labels such as `已存在记录`; keep to one line.
 - Boundary unsupported notice stays explicit: `当前城市暂不支持边界高亮，将仅保存城市身份与文本信息。`
 - Close affordance label remains `关闭` or `关闭面板`; do not use icon-only close on mobile peek.
+- In summary surfaces, prefer explicit object labels over generic verbs: use `编辑地点`, `删除地点`, `隐藏预置地点`, `放弃编辑`; avoid bare `编辑`, `删除`, `隐藏`, `取消`.
 
 ---
 
@@ -107,14 +110,15 @@ Additional copy rules:
 |------|---------|------------------|----------------|-------------------|--------|
 | `candidate-select` | anchored popup on desktop; bottom peek on unsafe/mobile | 城市名、国家/上级区域、fallback notice、搜索输入、最多 3 条候选、复用提示 | `确认城市` via candidate item tap | `按国家/地区继续记录`, `查看详情` disabled/hidden | `09-CONTEXT.md`, `09-RESEARCH.md`, `src/components/PointPreviewDrawer.vue` |
 | `detected-preview` | anchored popup on desktop; bottom peek on unsafe/mobile | 识别结果 badge、地点名、国家/区域、坐标摘要、fallback/boundary notice、简短描述 | `保存为地点` | `查看详情`, `点亮状态` toggle | `09-CONTEXT.md`, `src/components/PointPreviewDrawer.vue` |
-| `view` | anchored popup on desktop; bottom peek on unsafe/mobile | 已保存/预置地点 badge、地点名、国家/区域、描述摘要、boundary notice、状态摘要 | `查看详情` | `编辑`, `点亮状态` toggle, `删除` or `隐藏` | `09-CONTEXT.md`, `09-RESEARCH.md`, `src/components/PointPreviewDrawer.vue` |
-| `edit` | drawer only; popup closes or demotes to handoff | popup 不承载表单、长文本或深设置 | drawer takes over | `取消` handled in drawer | locked by `09-CONTEXT.md` |
+| `view` | anchored popup on desktop; bottom peek on unsafe/mobile | 已保存/预置地点 badge、地点名、国家/区域、描述摘要、boundary notice、状态摘要 | `查看详情` | `编辑地点`, `点亮状态` toggle, `删除地点` or `隐藏预置地点` | `09-CONTEXT.md`, `09-RESEARCH.md`, `src/components/PointPreviewDrawer.vue` |
+| `edit` | drawer only; popup closes or demotes to handoff | popup 不承载表单、长文本或深设置 | drawer takes over | `放弃编辑` handled in drawer | locked by `09-CONTEXT.md` |
 
 State rules:
 
 - Popup summary and drawer deep view must consume the same store state and copy source; no duplicated business template.
 - Popup height target is medium-density: aim for 2-4 short text rows plus actions. If content needs sustained scrolling, hand off to drawer.
 - Candidate search remains available inside popup/peek; it is not moved back to a side drawer.
+- The first visual anchor on popup/peek is `状态 badge + 地点名`; the primary CTA is secondary and sits below the identity block, so the map selection context reads before action choices.
 
 ---
 

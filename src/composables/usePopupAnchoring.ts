@@ -18,7 +18,7 @@ import {
   type MaybeRefOrGetter
 } from 'vue'
 
-export type PopupCollisionState = 'idle' | 'stable' | 'collision-aware'
+export type PopupCollisionState = 'idle' | 'stable' | 'collision-aware' | 'unsafe'
 
 interface UsePopupAnchoringOptions {
   reference: MaybeRefOrGetter<Element | VirtualElement | null>
@@ -84,7 +84,12 @@ export function usePopupAnchoring(options: UsePopupAnchoringOptions) {
     x.value = result.x
     y.value = result.y
     placement.value = result.placement
-    collisionState.value = hasCollision(result.middlewareData) ? 'collision-aware' : 'stable'
+    collisionState.value =
+      availableHeight.value <= 0
+        ? 'unsafe'
+        : hasCollision(result.middlewareData)
+          ? 'collision-aware'
+          : 'stable'
   }
 
   function cleanup() {
@@ -99,7 +104,6 @@ export function usePopupAnchoring(options: UsePopupAnchoringOptions) {
 
       if (!reference || !floating) {
         collisionState.value = 'idle'
-        availableHeight.value = 0
         return
       }
 

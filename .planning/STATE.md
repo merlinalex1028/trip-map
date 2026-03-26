@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 城市主视角与可爱风格重构
-status: Ready to execute
-stopped_at: Completed 09-popup-01-PLAN.md
-last_updated: "2026-03-26T07:05:36.912Z"
+status: Executing Phase 09
+stopped_at: Completed 09-popup-03-PLAN.md
+last_updated: "2026-03-26T09:37:45.874Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 12
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 12
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 09 (popup) — EXECUTING
-Plan: 2 of 3
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 2 of 3
 | Phase 05 | 1 plan | 5 min | 5 min |
 | Phase 06 | 3 plans | 29 min | 9.7 min |
 | Phase 07 | 5 plans | 87 min | 17.4 min |
+| Phase 09 | 3 plans | 54 min | 18 min |
 
 **Recent Trend:**
 
@@ -52,6 +53,7 @@ Plan: 2 of 3
 - Trend: Broader gap-closure work completed
 
 | Phase 09-popup P01 | 28min | 2 tasks | 10 files |
+| Phase 09-popup P02-P03 | 26min | popup + peek + layout | 9 files |
 
 ## Accumulated Context
 
@@ -66,6 +68,8 @@ Recent decisions affecting current work:
 - Cute-style redesign only ships with readability, hit-area, and interaction reliability safeguards.
 - [Phase 09-popup]: Summary surface remains the single source of truth while drawer only handles deep view/edit.
 - [Phase 09-popup]: Candidate search, saved-city reuse hints, and fallback CTA now live in PointSummaryCard for popup and peek shells to share.
+- [Phase 09-popup]: Desktop summary surface anchors inside the map stage with fixed `marker -> pending -> boundary` precedence.
+- [Phase 09-popup]: Mobile or unsafe summary surface falls back to `MobilePeekSheet`, while App only yields layout space to deep drawer.
 
 ### Pending Todos
 
@@ -73,11 +77,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 9 需要让 popup 成为地图上下文里的主入口，同时不和现有 drawer/edit 流相互打架。
 - Phase 10 需要控制原创风格资产规模与动效预算，避免拖累地图性能或遮挡交互。
 
 ## Session Continuity
 
-Last session: 2026-03-26T07:05:36.909Z
-Stopped at: Completed 09-popup-01-PLAN.md
+Last session: 2026-03-26T08:07:30Z
+Stopped at: Completed 09-popup-03-PLAN.md
 Resume file: None

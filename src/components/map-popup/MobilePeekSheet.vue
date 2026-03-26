@@ -1,24 +1,17 @@
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef, watch, type CSSProperties } from 'vue'
+import { computed, nextTick, useTemplateRef, watch } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 import PointSummaryCard from './PointSummaryCard.vue'
 
-const props = withDefaults(
-  defineProps<{
-    surface: SummarySurfaceState
-    anchorSource: 'marker' | 'pending' | 'boundary'
-    floatingStyles?: CSSProperties | null
-    findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
-  }>(),
-  {
-    floatingStyles: null,
-    findSavedPointByCityId: undefined
-  }
-)
+const props = defineProps<{
+  surface: SummarySurfaceState
+  findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
+}>()
 
 const emit = defineEmits<{
+  close: []
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
   savePoint: []
@@ -28,11 +21,10 @@ const emit = defineEmits<{
   confirmDestructive: [action: 'delete' | 'hide']
 }>()
 
-const popupRef = useTemplateRef<HTMLElement>('popup')
 const titleRef = useTemplateRef<HTMLElement>('title')
-const popupTitleId = 'map-context-popup-title'
+const peekTitleId = 'mobile-peek-sheet-title'
 
-const popupTitle = computed(() => {
+const peekTitle = computed(() => {
   if (props.surface.mode === 'candidate-select') {
     return props.surface.fallbackPoint.name
   }
@@ -40,19 +32,14 @@ const popupTitle = computed(() => {
   return props.surface.point.name
 })
 
-const popupStyles = computed(() => ({
-  '--map-context-popup-min-width': '280px',
-  '--map-context-popup-max-width': '360px',
-  ...(props.floatingStyles ?? {})
+const peekStyles = computed(() => ({
+  '--mobile-peek-safe-bottom': 'max(16px, env(safe-area-inset-bottom))',
+  '--mobile-peek-max-height': 'min(32rem, calc(100vh - 8.5rem))'
 }))
 
 async function focusEntryPoint() {
   await nextTick()
   titleRef.value?.focus()
-}
-
-function getPopupElement() {
-  return popupRef.value
 }
 
 watch(
@@ -69,32 +56,30 @@ watch(
     immediate: true
   }
 )
-
-defineExpose({
-  getPopupElement
-})
 </script>
 
 <template>
   <aside
-    ref="popup"
-    class="map-context-popup"
+    class="mobile-peek-sheet"
     role="dialog"
     aria-modal="false"
-    :aria-labelledby="popupTitleId"
-    :data-popup-anchor-source="anchorSource"
-    :style="popupStyles"
+    :aria-labelledby="peekTitleId"
+    :style="peekStyles"
   >
-    <div class="map-context-popup__arrow" aria-hidden="true"></div>
-    <h2
-      :id="popupTitleId"
-      ref="title"
-      class="map-context-popup__title"
-      tabindex="-1"
-    >
-      {{ popupTitle }}
-    </h2>
-    <div class="map-context-popup__body">
+    <div class="mobile-peek-sheet__chrome">
+      <h2
+        :id="peekTitleId"
+        ref="title"
+        class="mobile-peek-sheet__title"
+        tabindex="-1"
+      >
+        {{ peekTitle }}
+      </h2>
+      <button class="mobile-peek-sheet__close" type="button" @click="emit('close')">
+        关闭
+      </button>
+    </div>
+    <div class="mobile-peek-sheet__body">
       <PointSummaryCard
         :surface="surface"
         :find-saved-point-by-city-id="findSavedPointByCityId"
@@ -112,39 +97,50 @@ defineExpose({
 </template>
 
 <style scoped>
-.map-context-popup {
+.mobile-peek-sheet {
   position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
-  min-width: var(--map-context-popup-min-width);
-  max-width: var(--map-context-popup-max-width);
+  gap: var(--space-sm);
+  max-height: var(--mobile-peek-max-height);
   min-height: 0;
   overflow: hidden;
-  filter: drop-shadow(0 18px 28px rgba(73, 49, 31, 0.16));
+  pointer-events: auto;
 }
 
-.map-context-popup__body {
+.mobile-peek-sheet__chrome {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobile-peek-sheet__body {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding-bottom: var(--mobile-peek-safe-bottom);
 }
 
-.map-context-popup__arrow {
-  position: absolute;
-  left: 1.5rem;
-  top: 100%;
-  width: 1rem;
-  height: 1rem;
-  border-right: 1px solid rgba(200, 100, 59, 0.4);
-  border-bottom: 1px solid rgba(200, 100, 59, 0.4);
-  background: color-mix(in srgb, var(--color-surface) 90%, white 10%);
-  transform: translateY(-50%) rotate(45deg);
+.mobile-peek-sheet__close {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.65rem 0.95rem;
+  border: 1px solid rgba(143, 117, 80, 0.42);
+  background: rgba(252, 247, 236, 0.94);
+  color: var(--color-ink-strong);
+  cursor: pointer;
 }
 
-.map-context-popup__title {
+.mobile-peek-sheet__close:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 72%, white 28%);
+  outline-offset: 3px;
+}
+
+.mobile-peek-sheet__title {
   position: absolute;
   width: 1px;
   height: 1px;

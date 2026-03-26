@@ -1,11 +1,25 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
+import { computed, nextTick, shallowRef } from 'vue'
 
 import { getBoundaryByCityId } from './services/city-boundaries'
 import { useMapPointsStore } from './stores/map-points'
 import { POINT_STORAGE_KEY } from './services/point-storage'
 import App from './App.vue'
+
+vi.mock('./composables/usePopupAnchoring', () => ({
+  usePopupAnchoring: () => ({
+    floatingStyles: computed(() => ({
+      left: '24px',
+      top: '32px'
+    })),
+    placement: shallowRef('top-start'),
+    collisionState: computed(() => 'stable' as const),
+    availableHeight: computed(() => 320),
+    updatePosition: vi.fn(),
+    cleanup: vi.fn()
+  })
+}))
 
 function createBoundaryAwareDraft(cityId: string, overrides: Record<string, unknown> = {}) {
   const boundary = getBoundaryByCityId(cityId)
@@ -178,7 +192,7 @@ describe('App shell', () => {
     expect(window.localStorage.getItem(POINT_STORAGE_KEY)).toBeNull()
   })
 
-  it('keeps long text inside the drawer layout hooks when a point is active', async () => {
+  it('only reserves drawer layout when the deep drawer is actually opened', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const wrapper = mount(App, {
@@ -212,11 +226,12 @@ describe('App shell', () => {
     store.saveDraftAsPoint()
     await nextTick()
 
-    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
 
     store.openDrawerView()
     await nextTick()
 
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
     expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
     expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
 
@@ -293,6 +308,7 @@ describe('App shell', () => {
     const store = useMapPointsStore()
     store.startDraftFromDetection(createBoundaryAwareDraft('jp-kyoto'))
     store.saveDraftAsPoint()
+    store.openDrawerView()
     await nextTick()
 
     expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
@@ -308,5 +324,41 @@ describe('App shell', () => {
     )
     expect(wrapper.find('.world-map-stage__boundary--selected').exists()).toBe(false)
     expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+  })
+
+  it('restores the summary surface after closing the drawer while keeping boundary identity stable', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const wrapper = mount(App, {
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    const store = useMapPointsStore()
+    const kyotoBoundary = getBoundaryByCityId('jp-kyoto')
+
+    store.startDraftFromDetection(createBoundaryAwareDraft('jp-kyoto'))
+    store.saveDraftAsPoint()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+
+    store.openDrawerView()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      kyotoBoundary?.boundaryId ?? ''
+    )
+
+    store.closeDrawer()
+    await nextTick()
+
+    expect(wrapper.get('.poster-shell__experience').classes()).not.toContain('poster-shell__experience--drawer-open')
+    expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(false)
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      kyotoBoundary?.boundaryId ?? ''
+    )
   })
 })

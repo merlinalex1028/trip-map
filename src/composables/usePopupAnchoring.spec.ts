@@ -1,6 +1,6 @@
-import { mount } from '@vue/test-utils'
-import { defineComponent, nextTick, ref, shallowRef } from 'vue'
+import { nextTick, ref } from 'vue'
 
+import { mountComposable } from '../test-utils/mountComposable'
 import { usePopupAnchoring } from './usePopupAnchoring'
 
 const floatingUiMocks = vi.hoisted(() => ({
@@ -20,24 +20,6 @@ vi.mock('@floating-ui/dom', () => ({
   shift: floatingUiMocks.shift,
   size: floatingUiMocks.size
 }))
-
-function mountComposable<T>(useComposable: () => T) {
-  const result = shallowRef<T | null>(null)
-  const wrapper = mount(
-    defineComponent({
-      setup() {
-        result.value = useComposable()
-
-        return () => null
-      }
-    })
-  )
-
-  return {
-    result,
-    unmount: () => wrapper.unmount()
-  }
-}
 
 describe('usePopupAnchoring', () => {
   beforeEach(() => {

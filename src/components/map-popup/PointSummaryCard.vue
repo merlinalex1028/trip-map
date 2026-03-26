@@ -13,6 +13,7 @@ interface CandidateListItem {
 const props = defineProps<{
   surface: SummarySurfaceState
   findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
+  titleClass?: string
 }>()
 
 const emit = defineEmits<{
@@ -52,9 +53,9 @@ const candidateItems = computed<CandidateListItem[]>(() => {
           lat: fallbackPoint.value.lat,
           lng: fallbackPoint.value.lng
         },
-          countryCode: fallbackPoint.value.countryCode,
-          limit: 3
-        })
+        countryCode: fallbackPoint.value.countryCode,
+        limit: 3
+      })
     : candidateSurface.value.cityCandidates.slice(0, 3)
 
   return candidates.map((candidate: GeoCityCandidate) => {
@@ -170,7 +171,7 @@ function handleConfirmDestructiveAction() {
               : '查看地点'
         }}
       </p>
-      <h2 class="point-summary-card__title">
+      <h2 :class="['point-summary-card__title', titleClass]" tabindex="-1">
         {{ isCandidateMode ? fallbackPoint?.name : summaryPoint?.name }}
       </h2>
       <p class="point-summary-card__meta">

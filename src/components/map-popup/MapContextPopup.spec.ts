@@ -4,6 +4,8 @@ import { nextTick } from 'vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 import MapContextPopup from './MapContextPopup.vue'
 
+const LONG_TEXT = Array.from({ length: 24 }, (_, index) => `long text paragraph ${index + 1}`).join(' ')
+
 function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
   return {
     id: 'detected-jp-1',
@@ -62,6 +64,28 @@ describe('MapContextPopup', () => {
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
     expect(popup.attributes('style')).toContain('--map-context-popup-min-width: 280px')
     expect(popup.attributes('style')).toContain('--map-context-popup-max-width: 360px')
+  })
+
+  it('wraps long text inside map-context-popup__body so overflow-y: auto can take effect', () => {
+    const wrapper = mount(MapContextPopup, {
+      attachTo: document.body,
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint({
+            description: LONG_TEXT
+          }),
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState,
+        anchorSource: 'marker'
+      }
+    })
+
+    const body = wrapper.get('.map-context-popup__body')
+
+    expect(body.find('.point-summary-card').exists()).toBe(true)
+    expect(body.text()).toContain('long text paragraph 1')
+    expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
   })
 
   it('moves focus to the title when opened', async () => {
