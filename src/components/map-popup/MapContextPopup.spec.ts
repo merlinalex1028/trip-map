@@ -1,7 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 
-import type { DraftMapPoint, SummarySurfaceState } from '../../types/map-point'
+import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 import MapContextPopup from './MapContextPopup.vue'
 
 function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
@@ -25,6 +25,17 @@ function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint
     isFeatured: false,
     description: '识别成功，下一阶段可补充地点内容。',
     coordinatesLabel: '35.0116°N, 135.7681°E',
+    ...overrides
+  }
+}
+
+function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisplay {
+  return {
+    ...createDraftPoint({
+      id: 'saved-jp-kyoto',
+      source: 'detected'
+    }),
+    source: 'saved',
     ...overrides
   }
 }
@@ -59,10 +70,7 @@ describe('MapContextPopup', () => {
       props: {
         surface: {
           mode: 'view',
-          point: createDraftPoint({
-            id: 'saved-jp-kyoto',
-            source: 'saved'
-          }),
+          point: createViewPoint(),
           boundarySupportState: 'supported'
         } satisfies SummarySurfaceState,
         anchorSource: 'boundary'
