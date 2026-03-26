@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 城市主视角与可爱风格重构
 status: Phase 09 Verified Complete
-stopped_at: Completed quick task 260326-qvd
-last_updated: "2026-03-26T11:25:34Z"
+stopped_at: Completed quick task 260326-r14
+last_updated: "2026-03-26T11:37:47Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -85,10 +85,11 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260326-qmh | 将popup弹窗的最大高度设置为地图高度的60% | 2026-03-26 | ebeabf9 | [260326-qmh-popup-60](./quick/260326-qmh-popup-60/) |
 | 260326-qvd | 修复 popup 在最大高度 60% 下的内部滚动，将其拆分为 header、content、footer，header/footer 固定、content 可滚动 | 2026-03-26 | 2980403 | [260326-qvd-popup-60-header-content-footer-header-fo](./quick/260326-qvd-popup-60-header-content-footer-header-fo/) |
+| 260326-r14 | 将剩余的drawer也改成使用popup | 2026-03-26 | f3af22d | [260326-r14-drawer-popup](./quick/260326-r14-drawer-popup/) |
 
 ## Session Continuity
 
-Last activity: 2026-03-26 - Completed quick task 260326-qvd: 修复 popup 在最大高度 60% 下的内部滚动，将其拆分为 header、content、footer，header/footer 固定、content 可滚动
+Last activity: 2026-03-26 - Completed quick task 260326-r14: 将剩余的drawer也改成使用popup
 Last session: 2026-03-26T08:07:30Z
-Stopped at: Completed quick task 260326-qvd
+Stopped at: Completed quick task 260326-r14
 Resume file: None
