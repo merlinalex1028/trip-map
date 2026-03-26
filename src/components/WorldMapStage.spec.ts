@@ -191,7 +191,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.draftPoint).toBeNull()
     expect(mapPointsStore.activePoint).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.cityCandidates).toHaveLength(4)
@@ -240,7 +241,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.fallbackPoint.name).toBe('Portugal')
     expect(mapPointsStore.pendingCitySelection?.fallbackPoint.fallbackNotice).toBe(
       '未能可靠确认城市，已提供国家/地区继续记录'
@@ -268,7 +270,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.cityName).toBe('Kyoto')
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]?.statusHint).toBe('更接近点击位置')
   }, 15000)
@@ -294,7 +297,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]).toEqual(
       expect.objectContaining({
         cityId: 'fr-paris',
@@ -324,7 +328,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.cityCandidates[0]).toEqual(
       expect.objectContaining({
         cityId: 'hu-budapest',
@@ -585,7 +590,8 @@ describe('WorldMapStage', () => {
 
     const mapPointsStore = useMapPointsStore()
 
-    expect(mapPointsStore.drawerMode).toBe('candidate-select')
+    expect(mapPointsStore.summaryMode).toBe('candidate-select')
+    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.pendingCitySelection?.fallbackPoint.name).toBe('Japan')
     expect(mapPointsStore.pendingCitySelection?.fallbackPoint.fallbackNotice).toBe(
       '未能可靠确认城市，已提供国家/地区继续记录'

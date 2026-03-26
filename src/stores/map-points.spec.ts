@@ -146,7 +146,10 @@ describe('map-points store', () => {
 
     expect(store.summaryMode).toBe('detected-preview')
     expect(store.summarySurfaceState?.mode).toBe('detected-preview')
-    expect(store.summarySurfaceState?.point.cityId).toBe('jp-kyoto')
+    if (store.summarySurfaceState?.mode !== 'detected-preview') {
+      throw new Error('expected detected-preview summary surface')
+    }
+    expect(store.summarySurfaceState.point.cityId).toBe('jp-kyoto')
 
     store.saveDraftAsPoint()
     store.clearActivePoint()

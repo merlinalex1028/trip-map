@@ -12,7 +12,7 @@ const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
 const mapPointsStore = useMapPointsStore()
 const { interactionNotice } = storeToRefs(mapUiStore)
-const { activePoint, drawerMode, storageHealth } = storeToRefs(mapPointsStore)
+const { activePoint, drawerMode, storageHealth, summaryMode } = storeToRefs(mapPointsStore)
 const { clearCorruptStorageState } = mapPointsStore
 
 mapPointsStore.bootstrapPoints()
@@ -76,7 +76,7 @@ onUnmounted(() => {
       <section
         class="poster-shell__experience"
         :class="{
-          'poster-shell__experience--drawer-open': Boolean(activePoint) || drawerMode === 'candidate-select',
+          'poster-shell__experience--drawer-open': Boolean(activePoint) || summaryMode === 'candidate-select',
           'poster-shell__experience--drawer-edit': drawerMode === 'edit'
         }"
       >

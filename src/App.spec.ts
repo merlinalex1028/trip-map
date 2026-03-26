@@ -213,6 +213,10 @@ describe('App shell', () => {
     await nextTick()
 
     expect(wrapper.get('.poster-shell__experience').classes()).toContain('poster-shell__experience--drawer-open')
+
+    store.openDrawerView()
+    await nextTick()
+
     expect(wrapper.get('[data-scroll-region="true"]').text()).toContain('long text')
     expect(wrapper.text()).toContain('未能可靠确认城市，已提供国家/地区继续记录')
 
@@ -265,7 +269,11 @@ describe('App shell', () => {
     await nextTick()
 
     expect(wrapper.text()).toContain('Kyoto legacy')
-    expect(wrapper.text()).toContain('编辑')
+
+    store.openDrawerView()
+    await nextTick()
+
+    expect(wrapper.text()).toContain('编辑地点')
 
     store.enterEditMode()
     await nextTick()

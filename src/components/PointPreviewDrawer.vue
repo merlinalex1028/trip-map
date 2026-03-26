@@ -1,23 +1,16 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, reactive, ref, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, reactive, useTemplateRef, watch } from 'vue'
 
-import { searchOfflineCities } from '../services/city-search'
 import { useMapPointsStore } from '../stores/map-points'
-import type { GeoCityCandidate } from '../types/geo'
 import type { EditablePointSnapshot } from '../types/map-point'
 
 const mapPointsStore = useMapPointsStore()
-const { activeBoundaryCoverageState, activePoint, drawerMode, pendingCitySelection } = storeToRefs(mapPointsStore)
+const { activeBoundaryCoverageState, activePoint, drawerMode } = storeToRefs(mapPointsStore)
 const {
-  clearActivePoint,
-  confirmPendingCitySelection,
-  continuePendingWithFallback,
-  deleteUserPoint,
+  closeDrawer,
   enterEditMode,
   exitEditMode,
-  findSavedPointByCityId,
-  hideSeedPoint,
   saveDraftAsPoint,
   updateSavedPoint
 } = mapPointsStore
@@ -31,41 +24,9 @@ const editForm = reactive<EditablePointSnapshot>({
   description: '',
   isFeatured: false
 })
-const searchQuery = ref('')
 
-const isCandidateSelectionMode = computed(() => {
-  return drawerMode.value === 'candidate-select' && Boolean(pendingCitySelection.value)
-})
-
-const pendingFallbackPoint = computed(() => pendingCitySelection.value?.fallbackPoint ?? null)
-
-const displayedCandidateItems = computed(() => {
-  const normalizedQuery = searchQuery.value.trim().toLowerCase()
-  const pendingCityCandidates = pendingCitySelection.value?.cityCandidates ?? []
-  const pendingPoint = pendingFallbackPoint.value
-
-  const cityCandidates =
-    normalizedQuery && pendingPoint
-      ? searchOfflineCities({
-          query: normalizedQuery,
-          origin: {
-            lat: pendingPoint.lat,
-            lng: pendingPoint.lng
-          },
-          countryCode: pendingPoint.countryCode,
-          limit: 3
-        })
-      : pendingCityCandidates.slice(0, 3)
-
-  return cityCandidates
-    .map((candidate) => {
-      const existingPoint = findSavedPointByCityId(candidate.cityId)
-
-      return {
-        candidate,
-        statusHint: existingPoint ? '已存在记录' : candidate.statusHint
-      }
-    })
+const isDrawerVisible = computed(() => {
+  return Boolean(activePoint.value) && (drawerMode.value === 'view' || drawerMode.value === 'edit')
 })
 
 const sourceSnapshot = computed<EditablePointSnapshot | null>(() => {
@@ -81,10 +42,6 @@ const sourceSnapshot = computed<EditablePointSnapshot | null>(() => {
 })
 
 const drawerBadge = computed(() => {
-  if (isCandidateSelectionMode.value) {
-    return '确认城市'
-  }
-
   if (drawerMode.value === 'edit') {
     return '编辑地点'
   }
@@ -92,37 +49,10 @@ const drawerBadge = computed(() => {
   return activePoint.value?.source === 'detected' ? '识别结果' : '查看地点'
 })
 
-const drawerTitle = computed(() => {
-  if (isCandidateSelectionMode.value) {
-    return '先确认城市'
-  }
-
-  return activePoint.value?.name ?? ''
-})
-
-const drawerCountry = computed(() => {
-  if (isCandidateSelectionMode.value) {
-    return pendingFallbackPoint.value?.countryName ?? ''
-  }
-
-  return activePoint.value?.countryName ?? ''
-})
-
-const drawerCoordinates = computed(() => {
-  if (isCandidateSelectionMode.value) {
-    return pendingFallbackPoint.value?.coordinatesLabel ?? ''
-  }
-
-  return activePoint.value?.coordinatesLabel ?? ''
-})
-
-const drawerFallbackNotice = computed(() => {
-  if (isCandidateSelectionMode.value) {
-    return pendingFallbackPoint.value?.fallbackNotice ?? null
-  }
-
-  return activePoint.value?.fallbackNotice ?? null
-})
+const drawerTitle = computed(() => activePoint.value?.name ?? '')
+const drawerCountry = computed(() => activePoint.value?.countryName ?? '')
+const drawerCoordinates = computed(() => activePoint.value?.coordinatesLabel ?? '')
+const drawerFallbackNotice = computed(() => activePoint.value?.fallbackNotice ?? null)
 
 const drawerBoundarySupportNotice = computed(() => {
   if (activeBoundaryCoverageState.value !== 'missing') {
@@ -130,10 +60,6 @@ const drawerBoundarySupportNotice = computed(() => {
   }
 
   return '当前城市暂不支持边界高亮，将仅保存城市身份与文本信息'
-})
-
-const isFallbackPrimary = computed(() => {
-  return isCandidateSelectionMode.value && drawerFallbackNotice.value === '未能可靠确认城市，已提供国家/地区继续记录'
 })
 
 const hasUnsavedChanges = computed(() => {
@@ -149,12 +75,8 @@ const hasUnsavedChanges = computed(() => {
 })
 
 watch(
-  [() => drawerMode.value, () => activePoint.value?.id, () => pendingCitySelection.value?.fallbackPoint.id],
+  [() => drawerMode.value, () => activePoint.value?.id],
   () => {
-    if (drawerMode.value === 'candidate-select') {
-      searchQuery.value = ''
-    }
-
     if (!sourceSnapshot.value) {
       editForm.name = ''
       editForm.description = ''
@@ -172,9 +94,9 @@ watch(
 )
 
 watch(
-  [() => activePoint.value?.id, () => drawerMode.value],
-  async ([activeId, mode]) => {
-    if (!activeId && mode !== 'candidate-select') {
+  [() => activePoint.value?.id, () => drawerMode.value, () => isDrawerVisible.value],
+  async ([activeId, mode, visible]) => {
+    if (!activeId || !visible || (mode !== 'view' && mode !== 'edit')) {
       return
     }
 
@@ -199,7 +121,7 @@ function handleClose() {
     return
   }
 
-  clearActivePoint()
+  closeDrawer()
 }
 
 function handleEnterEditMode() {
@@ -207,6 +129,10 @@ function handleEnterEditMode() {
 }
 
 function handleCancelEdit() {
+  if (!confirmDiscardChanges()) {
+    return
+  }
+
   exitEditMode()
 }
 
@@ -229,38 +155,6 @@ function handleSave() {
   updateSavedPoint(activePoint.value.id, snapshot)
 }
 
-function handleCandidateClick(candidate: GeoCityCandidate) {
-  confirmPendingCitySelection(candidate)
-}
-
-function handleFallbackAction() {
-  continuePendingWithFallback()
-}
-
-function handleDelete() {
-  if (!activePoint.value || activePoint.value.source !== 'saved') {
-    return
-  }
-
-  if (!window.confirm('确定删除这个地点吗？')) {
-    return
-  }
-
-  deleteUserPoint(activePoint.value.id)
-}
-
-function handleHide() {
-  if (!activePoint.value || activePoint.value.source !== 'seed') {
-    return
-  }
-
-  if (!window.confirm('确定隐藏这个预置地点吗？')) {
-    return
-  }
-
-  hideSeedPoint(activePoint.value.id)
-}
-
 function getFocusableElements() {
   if (!panelRef.value) {
     return []
@@ -274,7 +168,7 @@ function getFocusableElements() {
 }
 
 function handlePanelKeydown(event: KeyboardEvent) {
-  if (!activePoint.value && !pendingCitySelection.value) {
+  if (!isDrawerVisible.value) {
     return
   }
 
@@ -319,7 +213,7 @@ function handlePanelKeydown(event: KeyboardEvent) {
 
 <template>
   <aside
-    v-if="activePoint || pendingCitySelection"
+    v-if="isDrawerVisible"
     ref="panel"
     class="point-preview-drawer"
     role="dialog"
@@ -378,40 +272,9 @@ function handlePanelKeydown(event: KeyboardEvent) {
           </label>
         </template>
 
-        <template v-else-if="isCandidateSelectionMode">
-          <label class="point-preview-drawer__field">
-            <span class="point-preview-drawer__field-label">搜索城市</span>
-            <input
-              v-model="searchQuery"
-              class="point-preview-drawer__input"
-              type="text"
-              placeholder="搜索城市"
-            />
-          </label>
-
-          <div class="point-preview-drawer__candidate-list">
-            <button
-              v-for="item in displayedCandidateItems"
-              :key="item.candidate.cityId"
-              class="point-preview-drawer__candidate"
-              type="button"
-              @click="handleCandidateClick(item.candidate)"
-            >
-              <span class="point-preview-drawer__candidate-name">{{ item.candidate.cityName }}</span>
-              <span class="point-preview-drawer__candidate-context">{{ item.candidate.contextLabel }}</span>
-              <span class="point-preview-drawer__candidate-hint">{{ item.statusHint }}</span>
-            </button>
-          </div>
-
-          <p
-            v-if="!displayedCandidateItems.length"
-            class="point-preview-drawer__empty"
-          >
-            没有匹配城市，请按国家/地区继续记录
-          </p>
-        </template>
-
-        <p v-else class="point-preview-drawer__description">{{ activePoint?.description }}</p>
+        <div v-else class="point-preview-drawer__detail">
+          <p class="point-preview-drawer__description">{{ activePoint?.description }}</p>
+        </div>
       </div>
     </div>
 
@@ -421,53 +284,18 @@ function handlePanelKeydown(event: KeyboardEvent) {
         'point-preview-drawer__actions--edit': drawerMode === 'edit'
       }"
     >
-      <template v-if="drawerMode === 'candidate-select'">
-        <button
-          class="point-preview-drawer__action"
-          :class="{
-            'point-preview-drawer__action--primary': isFallbackPrimary
-          }"
-          type="button"
-          @click="handleFallbackAction"
-        >
-          按国家/地区继续记录
-        </button>
-      </template>
-
-      <template v-else-if="drawerMode === 'detected-preview'">
+      <template v-if="drawerMode === 'view'">
         <button class="point-preview-drawer__action point-preview-drawer__action--primary" type="button" @click="handleEnterEditMode">
-          保存为地点
-        </button>
-      </template>
-
-      <template v-else-if="drawerMode === 'view'">
-        <button class="point-preview-drawer__action point-preview-drawer__action--primary" type="button" @click="handleEnterEditMode">
-          编辑
-        </button>
-        <button
-          v-if="activePoint?.source === 'saved'"
-          class="point-preview-drawer__action point-preview-drawer__action--danger"
-          type="button"
-          @click="handleDelete"
-        >
-          删除
-        </button>
-        <button
-          v-if="activePoint?.source === 'seed'"
-          class="point-preview-drawer__action"
-          type="button"
-          @click="handleHide"
-        >
-          隐藏
+          编辑地点
         </button>
       </template>
 
       <template v-else-if="drawerMode === 'edit'">
+        <button class="point-preview-drawer__action" type="button" @click="handleCancelEdit">
+          放弃编辑
+        </button>
         <button class="point-preview-drawer__action point-preview-drawer__action--primary" type="button" @click="handleSave">
           保存
-        </button>
-        <button class="point-preview-drawer__action" type="button" @click="handleCancelEdit">
-          取消
         </button>
       </template>
     </div>
@@ -502,7 +330,6 @@ function handlePanelKeydown(event: KeyboardEvent) {
 }
 
 .point-preview-drawer__close:focus-visible,
-.point-preview-drawer__candidate:focus-visible,
 .point-preview-drawer__input:focus-visible,
 .point-preview-drawer__textarea:focus-visible,
 .point-preview-drawer__action:focus-visible {
@@ -582,47 +409,6 @@ function handlePanelKeydown(event: KeyboardEvent) {
   max-width: 30rem;
   white-space: pre-wrap;
   word-break: break-word;
-}
-
-.point-preview-drawer__candidate-list {
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.point-preview-drawer__candidate {
-  display: grid;
-  gap: 0.18rem;
-  justify-items: start;
-  padding: 0.85rem 0.95rem;
-  border: 1px solid rgba(143, 117, 80, 0.38);
-  background: rgba(252, 247, 236, 0.88);
-  color: var(--color-ink-strong);
-  text-align: left;
-  cursor: pointer;
-}
-
-.point-preview-drawer__candidate-name,
-.point-preview-drawer__candidate-context,
-.point-preview-drawer__candidate-hint,
-.point-preview-drawer__empty {
-  margin: 0;
-}
-
-.point-preview-drawer__candidate-name {
-  font-weight: var(--font-weight-label);
-}
-
-.point-preview-drawer__candidate-context,
-.point-preview-drawer__empty {
-  color: var(--color-ink-muted);
-  font-size: var(--font-label-size);
-  line-height: var(--font-label-line-height);
-}
-
-.point-preview-drawer__candidate-hint {
-  color: var(--color-accent);
-  font-size: var(--font-label-size);
-  line-height: var(--font-label-line-height);
 }
 
 .point-preview-drawer__field {
