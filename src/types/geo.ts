@@ -3,6 +3,11 @@ export interface GeoCoordinates {
   lng: number
 }
 
+export type GeoBoundaryCoordinate = [number, number]
+export type GeoBoundaryLinearRing = GeoBoundaryCoordinate[]
+export type GeoBoundaryPolygon = GeoBoundaryLinearRing[]
+export type GeoBoundaryPolygons = GeoBoundaryPolygon[]
+
 export interface NormalizedPoint {
   x: number
   y: number
@@ -56,4 +61,42 @@ export interface GeoFeatureProperties {
   regionName: string | null
   displayName: string
   bbox: [number, number, number, number]
+}
+
+export interface CityBoundaryFeatureProperties {
+  boundaryId: string
+  cityId: string
+  cityName: string
+  datasetVersion: string
+}
+
+export interface CityBoundaryPolygonGeometry {
+  type: 'Polygon'
+  coordinates: GeoBoundaryPolygon
+}
+
+export interface CityBoundaryMultiPolygonGeometry {
+  type: 'MultiPolygon'
+  coordinates: GeoBoundaryPolygons
+}
+
+export type CityBoundaryGeometry = CityBoundaryPolygonGeometry | CityBoundaryMultiPolygonGeometry
+
+export interface CityBoundaryFeature {
+  type: 'Feature'
+  properties: CityBoundaryFeatureProperties
+  geometry: CityBoundaryGeometry
+}
+
+export interface CityBoundaryFeatureCollection {
+  type: 'FeatureCollection'
+  features: CityBoundaryFeature[]
+}
+
+export interface NormalizedCityBoundary {
+  boundaryId: string
+  cityId: string
+  cityName: string
+  datasetVersion: string
+  polygons: GeoBoundaryPolygons
 }
