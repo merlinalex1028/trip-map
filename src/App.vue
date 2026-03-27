@@ -99,11 +99,11 @@ onUnmounted(() => {
 
 .app-shell__notice {
   position: fixed;
-  top: max(var(--space-lg), env(safe-area-inset-top, 0px) + var(--space-sm));
+  top: var(--space-lg);
   left: 50%;
   z-index: 5;
-  min-width: min(18rem, calc(100vw - var(--space-2xl)));
-  max-width: min(28rem, calc(100vw - var(--space-2xl)));
+  width: 28rem;
+  max-width: calc(100% - var(--space-3xl));
   padding: 0.8rem 1rem;
   border: 1px solid rgba(143, 117, 80, 0.52);
   background: rgba(251, 246, 236, 0.92);
@@ -122,7 +122,7 @@ onUnmounted(() => {
 
 .app-shell__storage-warning {
   position: fixed;
-  top: max(calc(var(--space-lg) + 4.25rem), env(safe-area-inset-top, 0px) + var(--space-sm));
+  top: calc(var(--space-lg) + 4.25rem);
   left: 50%;
   z-index: 5;
   display: flex;
@@ -130,8 +130,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
-  min-width: min(18rem, calc(100vw - var(--space-2xl)));
-  max-width: min(34rem, calc(100vw - var(--space-2xl)));
+  width: 34rem;
+  max-width: calc(100% - var(--space-3xl));
   padding: 0.9rem 1rem;
   border: 1px solid rgba(141, 62, 47, 0.4);
   background: rgba(251, 246, 236, 0.96);
@@ -159,38 +159,28 @@ onUnmounted(() => {
   z-index: 1;
   min-height: 100vh;
   display: grid;
+  align-items: start;
   gap: var(--space-xl);
   padding: var(--space-2xl);
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'title'
+    'stage';
+}
+
+.poster-shell__title {
+  grid-area: title;
+  padding-inline-end: var(--space-xl);
 }
 
 .poster-shell__stage {
-  min-height: 60vh;
+  grid-area: stage;
+  min-height: 68vh;
 }
 
 .poster-shell__experience {
   position: relative;
   min-height: 0;
-}
-
-@media (min-width: 960px) {
-  .poster-shell {
-    align-items: start;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'title'
-      'stage';
-  }
-
-  .poster-shell__title {
-    grid-area: title;
-    padding-inline-end: var(--space-xl);
-  }
-
-  .poster-shell__stage {
-    grid-area: stage;
-    min-height: 68vh;
-  }
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VirtualElement } from '@floating-ui/dom'
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, onBeforeUnmount, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 
 import worldMapUrl from '../assets/world-map.svg'
 import { usePopupAnchoring } from '../composables/usePopupAnchoring'
@@ -23,7 +23,6 @@ import type {
   NormalizedPoint
 } from '../types/geo'
 import type { DraftMapPoint, SummarySurfaceState } from '../types/map-point'
-import MobilePeekSheet from './map-popup/MobilePeekSheet.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
@@ -46,7 +45,6 @@ interface PopupComponentExpose {
 
 const surfaceRef = useTemplateRef<HTMLDivElement>('surface')
 const popupRef = useTemplateRef<PopupComponentExpose>('popup')
-const viewportWidth = shallowRef(typeof window === 'undefined' ? 1440 : window.innerWidth)
 const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
 const {
@@ -138,10 +136,6 @@ const hasBoundaryOverlay = computed(
 )
 
 const popupFloatingElement = computed(() => popupRef.value?.getPopupElement() ?? null)
-
-function syncViewportWidth() {
-  viewportWidth.value = window.innerWidth
-}
 
 function createPointRect(point: NormalizedPoint) {
   if (!surfaceRef.value) {
@@ -328,8 +322,6 @@ const isDeepPopupVisible = computed(
 )
 
 const {
-  availableHeight,
-  collisionState,
   floatingStyles: popupFloatingStyles
 } = usePopupAnchoring({
   reference: () => popupAnchor.value?.reference ?? null,
@@ -337,18 +329,9 @@ const {
   placement: 'top-start'
 })
 
-const shouldUsePeek = computed(
-  () =>
-    viewportWidth.value < 960 ||
-    collisionState.value === 'unsafe' ||
-    (availableHeight.value > 0 && availableHeight.value < 260)
-)
-
 const isDesktopPopupVisible = computed(
-  () => isSummarySurfaceVisible.value && popupAnchor.value !== null && !shouldUsePeek.value
+  () => isSummarySurfaceVisible.value && popupAnchor.value !== null
 )
-
-const isMobilePeekVisible = computed(() => isSummarySurfaceVisible.value && shouldUsePeek.value)
 
 function handleConfirmDestructive(action: 'delete' | 'hide') {
   const surface = summarySurfaceState.value
@@ -389,13 +372,7 @@ watch(
 )
 
 onMounted(() => {
-  syncViewportWidth()
-  window.addEventListener('resize', syncViewportWidth)
   void refreshPopupAnchor()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', syncViewportWidth)
 })
 
 let recognitionSequence = 0
@@ -611,19 +588,6 @@ async function handleMapClick(event: MouseEvent) {
           :floating-styles="popupFloatingStyles"
           :anchor-source="popupAnchor.source"
         />
-        <MobilePeekSheet
-          v-if="isMobilePeekVisible && summarySurfaceState"
-          :surface="summarySurfaceState"
-          :find-saved-point-by-city-id="findSavedPointByCityId"
-          @close="clearActivePoint"
-          @confirm-candidate="confirmPendingCitySelection"
-          @continue-fallback="continuePendingWithFallback"
-          @save-point="saveDraftAsPoint"
-          @open-detail="openDrawerView"
-          @edit-point="enterEditMode"
-          @toggle-featured="toggleActivePointFeatured"
-          @confirm-destructive="handleConfirmDestructive"
-        />
         <div v-if="pendingGeoHit" class="world-map-stage__sr-only" :aria-label="`待识别坐标 ${formatCoordinatesLabel(pendingGeoHit)}`"></div>
       </div>
     </div>
@@ -632,7 +596,7 @@ async function handleMapClick(event: MouseEvent) {
 
 <style scoped>
 .world-map-stage {
-  min-height: 60vh;
+  min-height: 68vh;
 }
 
 .world-map-stage__frame {
@@ -758,9 +722,4 @@ async function handleMapClick(event: MouseEvent) {
   }
 }
 
-@media (min-width: 960px) {
-  .world-map-stage {
-    min-height: 68vh;
-  }
-}
 </style>

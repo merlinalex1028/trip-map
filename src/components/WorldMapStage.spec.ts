@@ -74,14 +74,6 @@ function clickPointFromGeo(lat: number, lng: number, offsetX = 0, offsetY = 0) {
   }
 }
 
-function setViewportWidth(width: number) {
-  Object.defineProperty(window, 'innerWidth', {
-    configurable: true,
-    writable: true,
-    value: width
-  })
-}
-
 function createDetectionResult(overrides: Partial<GeoDetectionResult> = {}): GeoDetectionResult {
   return {
     kind: 'country',
@@ -173,7 +165,6 @@ describe('WorldMapStage', () => {
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
-    setViewportWidth(1440)
     const storage = new Map<string, string>()
     const localStorageMock = {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -663,9 +654,7 @@ describe('WorldMapStage', () => {
     expect(anchor?.getAttribute('data-pending-marker')).toBe('true')
   })
 
-  it('renders the mobile peek instead of the desktop popup when the viewport is narrow', async () => {
-    setViewportWidth(768)
-
+  it('keeps rendering the anchored desktop popup even when the viewport is narrow', async () => {
     const mapPointsStore = useMapPointsStore()
 
     mapPointsStore.startPendingCitySelection(
@@ -698,12 +687,11 @@ describe('WorldMapStage', () => {
 
     await nextTick()
 
-    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(true)
-    expect(wrapper.find('.map-context-popup').exists()).toBe(false)
-    expect(wrapper.text()).toContain('关闭')
+    expect(wrapper.find('.map-context-popup').exists()).toBe(true)
+    expect(wrapper.text()).toContain('确认城市')
   })
 
-  it('falls back to the mobile peek when anchored popup space becomes unsafe on desktop', async () => {
+  it('keeps the desktop popup when anchored popup space becomes tight', async () => {
     popupAnchoringMock.availableHeight = 220
 
     const mapPointsStore = useMapPointsStore()
@@ -719,8 +707,7 @@ describe('WorldMapStage', () => {
 
     await nextTick()
 
-    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(true)
-    expect(wrapper.find('.map-context-popup').exists()).toBe(false)
+    expect(wrapper.find('.map-context-popup').exists()).toBe(true)
   })
 
   it('renders selected view popup inside the map stage and keeps boundary highlight identity in sync', async () => {
@@ -793,7 +780,6 @@ describe('WorldMapStage', () => {
     const scrollRegion = wrapper.get('.world-map-stage__surface .point-summary-card__scroll-region')
     const footer = wrapper.get('.world-map-stage__surface .point-summary-card__footer')
 
-    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
     expect(popupBody.find('.point-summary-card').exists()).toBe(true)
     expect(header.text()).toContain('Kyoto')
     expect(content.find('.point-summary-card__scroll-region').exists()).toBe(true)
@@ -831,7 +817,6 @@ describe('WorldMapStage', () => {
     const anchor = popupAnchoringMock.lastOptions?.reference()
 
     expect(wrapper.find('.map-context-popup').exists()).toBe(false)
-    expect(wrapper.find('.mobile-peek-sheet').exists()).toBe(false)
     expect(deepPopup.attributes('data-popup-anchor-source')).toBe('marker')
     expect(deepPopup.text()).toContain('编辑地点')
     expect(anchor).toBeInstanceOf(HTMLElement)
