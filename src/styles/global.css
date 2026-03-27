@@ -11,7 +11,7 @@ body {
   line-height: var(--font-body-line-height);
   color: var(--color-ink-strong);
   background:
-    linear-gradient(180deg, rgba(255, 250, 241, 0.35), rgba(216, 188, 147, 0.18)),
+    linear-gradient(180deg, rgba(255, 247, 251, 0.9), rgba(232, 244, 251, 0.82)),
     var(--color-page);
 }
 

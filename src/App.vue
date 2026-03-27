@@ -83,6 +83,7 @@ onUnmounted(() => {
 .app-shell {
   position: relative;
   min-height: 100vh;
+  isolation: isolate;
 }
 
 .app-shell__grain {
@@ -90,11 +91,11 @@ onUnmounted(() => {
   inset: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(122, 78, 52, 0.08), transparent 28%),
-    radial-gradient(circle at 80% 12%, rgba(92, 57, 39, 0.05), transparent 24%),
-    radial-gradient(circle at 30% 80%, rgba(146, 112, 74, 0.06), transparent 30%);
-  mix-blend-mode: multiply;
-  opacity: 0.85;
+    radial-gradient(circle at 18% 20%, rgba(244, 143, 177, 0.14), transparent 28%),
+    radial-gradient(circle at 84% 14%, rgba(132, 199, 216, 0.14), transparent 24%),
+    radial-gradient(circle at 28% 84%, rgba(199, 171, 200, 0.16), transparent 30%);
+  mix-blend-mode: screen;
+  opacity: 0.95;
 }
 
 .app-shell__notice {
@@ -105,19 +106,23 @@ onUnmounted(() => {
   width: 28rem;
   max-width: calc(100% - var(--space-3xl));
   padding: 0.8rem 1rem;
-  border: 1px solid rgba(143, 117, 80, 0.52);
-  background: rgba(251, 246, 236, 0.92);
+  border: 1px solid color-mix(in srgb, var(--color-frame) 62%, white 38%);
+  border-radius: var(--radius-surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 244, 251, 0.78));
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   line-height: 1.4;
   text-align: center;
-  box-shadow: 0 16px 28px rgba(73, 49, 31, 0.12);
-  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: blur(10px);
   transform: translateX(-50%);
 }
 
 .app-shell__notice--warning {
-  border-color: rgba(200, 100, 59, 0.48);
+  border-color: color-mix(in srgb, var(--color-state-fallback) 74%, var(--color-frame) 26%);
+  background:
+    linear-gradient(180deg, rgba(238, 243, 248, 0.94), rgba(255, 255, 255, 0.84));
 }
 
 .app-shell__storage-warning {
@@ -133,14 +138,16 @@ onUnmounted(() => {
   width: 34rem;
   max-width: calc(100% - var(--space-3xl));
   padding: 0.9rem 1rem;
-  border: 1px solid rgba(141, 62, 47, 0.4);
-  background: rgba(251, 246, 236, 0.96);
+  border: 1px solid color-mix(in srgb, var(--color-destructive) 72%, var(--color-frame) 28%);
+  border-radius: var(--radius-surface);
+  background:
+    linear-gradient(180deg, rgba(255, 244, 244, 0.96), rgba(255, 247, 251, 0.92));
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   line-height: 1.45;
   text-align: center;
-  box-shadow: 0 16px 28px rgba(73, 49, 31, 0.12);
-  backdrop-filter: blur(6px);
+  box-shadow: 0 22px 40px rgba(120, 86, 122, 0.2);
+  backdrop-filter: blur(10px);
   transform: translateX(-50%);
 }
 
@@ -148,10 +155,23 @@ onUnmounted(() => {
   min-width: 44px;
   min-height: 44px;
   padding: 0.65rem 0.95rem;
-  border: 1px solid rgba(141, 62, 47, 0.45);
-  background: rgba(252, 247, 236, 0.92);
-  color: #8d3e2f;
+  border: 1px solid color-mix(in srgb, var(--color-destructive) 78%, white 22%);
+  border-radius: var(--radius-control);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 236, 236, 0.94));
+  color: var(--color-destructive);
+  font-weight: var(--font-weight-label);
+  box-shadow: 0 10px 22px rgba(120, 86, 122, 0.14);
   cursor: pointer;
+  transition:
+    transform var(--motion-quick) ease,
+    border-color var(--motion-quick) ease,
+    background-color var(--motion-quick) ease;
+}
+
+.app-shell__storage-action:hover {
+  border-color: var(--color-destructive);
+  transform: translateY(-1px);
 }
 
 .poster-shell {
@@ -177,10 +197,41 @@ onUnmounted(() => {
 .poster-shell__stage {
   grid-area: stage;
   min-height: 68vh;
+  position: relative;
+  z-index: 1;
 }
 
 .poster-shell__experience {
   position: relative;
   min-height: 0;
+  padding: var(--space-md);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
+  border-radius: var(--radius-surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(232, 244, 251, 0.22)),
+    color-mix(in srgb, var(--color-surface) 82%, white 18%);
+  box-shadow: var(--shadow-stage);
+  isolation: isolate;
+}
+
+.poster-shell__experience::before,
+.poster-shell__experience::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.poster-shell__experience::before {
+  inset: 0;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.58), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(244, 143, 177, 0.12), transparent 28%);
+}
+
+.poster-shell__experience::after {
+  inset: 18px;
+  border: 1px dashed rgba(199, 171, 200, 0.45);
+  border-radius: calc(var(--radius-surface) - 10px);
 }
 </style>

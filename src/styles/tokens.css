@@ -21,13 +21,31 @@
   --font-heading-line-height: 1.2;
   --font-display-line-height: 1.1;
 
-  --color-page: #f2e6c9;
-  --color-surface: #c8b28a;
-  --color-accent: #c8643b;
-  --color-destructive: #8d3e2f;
-  --color-frame: #8f7550;
-  --color-ink-strong: #3f2f24;
-  --color-ink-muted: #6a5645;
+  --color-page: #fff7fb;
+  --color-surface: #e8f4fb;
+  --color-accent: #f48fb1;
+  --color-destructive: #c86464;
+  --color-frame: #c7abc8;
+  --color-ink-strong: #4f4358;
+  --color-ink-muted: #7d7185;
 
-  --shadow-dusty: 0 12px 30px rgba(73, 49, 31, 0.14);
+  --color-state-selected: #f48fb1;
+  --color-state-selected-wash: #ffdce8;
+  --color-state-saved: #84c7d8;
+  --color-state-saved-wash: #dff4f8;
+  --color-state-fallback: #b8c6d9;
+  --color-state-fallback-wash: #eef3f8;
+  --color-state-neutral: #f5eee8;
+  --color-state-neutral-outline: #d8c8bc;
+
+  --radius-surface: 24px;
+  --radius-control: 18px;
+  --radius-pill: 999px;
+
+  --shadow-surface: 0 18px 36px rgba(120, 86, 122, 0.14);
+  --shadow-stage: 0 24px 48px rgba(120, 86, 122, 0.16);
+  --shadow-dusty: var(--shadow-surface);
+
+  --motion-quick: 140ms;
+  --motion-emphasis: 180ms;
 }

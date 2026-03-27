@@ -92,6 +92,8 @@ describe('App shell', () => {
 
     expect(wrapper.find('.poster-shell').exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
+    expect(wrapper.find('.poster-title-block__ribbon').exists()).toBe(true)
+    expect(wrapper.find('.poster-title-block__underline').exists()).toBe(true)
     expect(wrapper.text()).toContain('旅行世界地图')
   })
 
@@ -159,6 +161,7 @@ describe('App shell', () => {
     })
 
     expect(wrapper.text()).toContain('检测到本地存档异常，请清空本地存档后继续使用。')
+    expect(wrapper.find('.app-shell__storage-warning').exists()).toBe(true)
 
     await wrapper.get('.app-shell__storage-action').trigger('click')
 
@@ -186,6 +189,7 @@ describe('App shell', () => {
     })
 
     expect(wrapper.text()).toContain('清空本地存档')
+    expect(wrapper.find('.app-shell__storage-warning').exists()).toBe(true)
 
     await wrapper.get('.app-shell__storage-action').trigger('click')
 
