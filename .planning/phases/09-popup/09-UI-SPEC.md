@@ -33,13 +33,13 @@ Declared values (must be multiples of 4):
 |-------|-------|-------|--------|
 | xs | 4px | Icon gaps, inline padding, micro badges | `src/styles/tokens.css` |
 | sm | 8px | Compact element spacing, button inner gaps | `src/styles/tokens.css` |
-| md | 16px | Default card gaps, safe inset baseline, list spacing | `src/styles/tokens.css` |
-| lg | 24px | Popup/peek inner padding, section padding | `src/styles/tokens.css` |
+| md | 16px | Default card gaps, edge padding baseline, list spacing | `src/styles/tokens.css` |
+| lg | 24px | Popup inner padding, section padding | `src/styles/tokens.css` |
 | xl | 32px | Large card spacing, stage-to-surface separation | `src/styles/tokens.css` |
 | 2xl | 48px | Major vertical breaks, desktop breathing room | `src/styles/tokens.css` |
 | 3xl | 64px | Page-level spacing only; do not use inside popup | `src/styles/tokens.css` |
 
-Exceptions: interactive controls may use `min-width`/`min-height: 44px` for touch safety; anchored popup offset is `12px`; viewport collision padding is `16px`; mobile safe bottom inset is `max(16px, env(safe-area-inset-bottom))`. Source: existing button sizing in `src/components/PointPreviewDrawer.vue`, desktop/mobile placement defaults from `09-RESEARCH.md`.
+Exceptions: interactive controls may use `min-width`/`min-height: 44px` for touch safety; anchored popup offset is `12px`; viewport collision padding is `16px`. Source: existing button sizing in `src/components/PointPreviewDrawer.vue`, desktop placement defaults from `09-RESEARCH.md` plus 2026-03-27 desktop-only scope alignment.
 
 ---
 
@@ -65,7 +65,7 @@ Popup-specific type rules:
 
 | Role | Value | Usage | Source |
 |------|-------|-------|--------|
-| Dominant (60%) | `#f2e6c9` | Page canvas, mobile peek base, neutral popup background wash | `src/styles/tokens.css` |
+| Dominant (60%) | `#f2e6c9` | Page canvas, neutral popup background wash | `src/styles/tokens.css` |
 | Secondary (30%) | `#c8b28a` | Popup card body, drawer body, map frame, secondary surfaces | `src/styles/tokens.css` |
 | Accent (10%) | `#c8643b` | Selected boundary, pending marker, primary CTA fill/border, focus ring, active popup anchor arrow | `src/styles/tokens.css`, `src/components/WorldMapStage.vue`, `src/components/PointPreviewDrawer.vue` |
 | Destructive | `#8d3e2f` | Delete/hide affordances and confirm state only | `src/styles/tokens.css` |
@@ -90,7 +90,7 @@ Additional copy rules:
 
 - Candidate item status hint uses existing short labels such as `已存在记录`; keep to one line.
 - Boundary unsupported notice stays explicit: `当前城市暂不支持边界高亮，将仅保存城市身份与文本信息。`
-- Close affordance label remains `关闭` or `关闭面板`; do not use icon-only close on mobile peek.
+- Close affordance label remains `关闭` or `关闭面板`; do not use icon-only close on summary popup shell.
 - In summary surfaces, prefer explicit object labels over generic verbs: use `编辑地点`, `删除地点`, `隐藏预置地点`, `放弃编辑`; avoid bare `编辑`, `删除`, `隐藏`, `取消`.
 
 ---
@@ -108,16 +108,16 @@ Additional copy rules:
 
 | State | Surface | Required content | Primary action | Secondary actions | Source |
 |------|---------|------------------|----------------|-------------------|--------|
-| `candidate-select` | anchored popup on desktop; bottom peek on unsafe/mobile | 城市名、国家/上级区域、fallback notice、搜索输入、最多 3 条候选、复用提示 | `确认城市` via candidate item tap | `按国家/地区继续记录`, `查看详情` disabled/hidden | `09-CONTEXT.md`, `09-RESEARCH.md`, `src/components/PointPreviewDrawer.vue` |
-| `detected-preview` | anchored popup on desktop; bottom peek on unsafe/mobile | 识别结果 badge、地点名、国家/区域、坐标摘要、fallback/boundary notice、简短描述 | `保存为地点` | `查看详情`, `点亮状态` toggle | `09-CONTEXT.md`, `src/components/PointPreviewDrawer.vue` |
-| `view` | anchored popup on desktop; bottom peek on unsafe/mobile | 已保存/预置地点 badge、地点名、国家/区域、描述摘要、boundary notice、状态摘要 | `查看详情` | `编辑地点`, `点亮状态` toggle, `删除地点` or `隐藏预置地点` | `09-CONTEXT.md`, `09-RESEARCH.md`, `src/components/PointPreviewDrawer.vue` |
+| `candidate-select` | anchored popup | 城市名、国家/上级区域、fallback notice、搜索输入、最多 3 条候选、复用提示 | `确认城市` via candidate item tap | `按国家/地区继续记录`, `查看详情` disabled/hidden | `09-CONTEXT.md`, desktop-only scope alignment, `src/components/PointPreviewDrawer.vue` |
+| `detected-preview` | anchored popup | 识别结果 badge、地点名、国家/区域、坐标摘要、fallback/boundary notice、简短描述 | `保存为地点` | `查看详情`, `点亮状态` toggle | `09-CONTEXT.md`, `src/components/PointPreviewDrawer.vue` |
+| `view` | anchored popup | 已保存/预置地点 badge、地点名、国家/区域、描述摘要、boundary notice、状态摘要 | `查看详情` | `编辑地点`, `点亮状态` toggle, `删除地点` or `隐藏预置地点` | `09-CONTEXT.md`, desktop-only scope alignment, `src/components/PointPreviewDrawer.vue` |
 | `edit` | drawer only; popup closes or demotes to handoff | popup 不承载表单、长文本或深设置 | drawer takes over | `放弃编辑` handled in drawer | locked by `09-CONTEXT.md` |
 
 State rules:
 
 - Popup summary and drawer deep view must consume the same store state and copy source; no duplicated business template.
 - Popup height target is medium-density: aim for 2-4 short text rows plus actions. If content needs sustained scrolling, hand off to drawer.
-- Candidate search remains available inside popup/peek; it is not moved back to a side drawer.
+- Candidate search remains available inside popup; it is not moved back to a side drawer.
 - The first visual anchor on popup/peek is `状态 badge + 地点名`; the primary CTA is secondary and sits below the identity block, so the map selection context reads before action choices.
 
 ---
@@ -130,8 +130,8 @@ State rules:
 | Desktop anchor | Popup is rendered inside `WorldMapStage` and visually anchored to the selected marker, pending hit, or derived boundary center; never as fixed right rail or corner toast | `09-CONTEXT.md`, `09-RESEARCH.md` |
 | Desktop size | Width clamps to `280px`-`360px`; padding `24px`; internal gap `16px`; anchor offset `12px` | `09-RESEARCH.md`, spacing/token alignment |
 | Collision handling | Use viewport padding `16px`; allow flip/shift before fallback; keep popup fully readable without covering the anchor when possible | `09-RESEARCH.md` |
-| Mobile / unsafe mode | If viewport `< 960px`, anchor is unsafe, or remaining height cannot hold the summary card, switch to bottom `peek` | `09-RESEARCH.md` |
-| Peek sizing | Bottom peek spans full width minus `16px` side insets, sits above safe area, and caps height at `min(32rem, calc(100vh - 8.5rem))` | current drawer sizing in `src/components/PointPreviewDrawer.vue`, safe-area rule defaulted from research |
+| Edge-aware mode | If anchor is close to viewport edges or remaining height is tight, keep the desktop popup readable via `flip` / `shift` / `size` instead of switching surfaces | current `usePopupAnchoring.ts`, desktop-only scope alignment on 2026-03-27 |
+| Height constraint | Popup caps height via Floating UI size middleware and keeps body scrolling inside the summary card, rather than introducing a separate fallback shell | `src/composables/usePopupAnchoring.ts`, `src/components/map-popup/MapContextPopup.vue` |
 
 Anchor precedence:
 
@@ -171,7 +171,7 @@ Anchor precedence:
 ### Action Row Rules
 
 - Action row order is `primary handoff/save`, `secondary edit/toggle`, `destructive`.
-- Keep actions on a single row when space permits; wrap only on mobile peek.
+- Keep actions on a single row when space permits; wrap only when the desktop popup width constraint requires it.
 - Do not place more than 3 visible actions in the default row; overflow actions must hand off to drawer.
 
 ---
@@ -182,9 +182,8 @@ Anchor precedence:
 |-----------|----------------|----------|
 | `PointSummaryCard` | Shared summary content, notices, action row, inline confirm row | New shared content block; must power popup and drawer summary surfaces |
 | `MapContextPopup` | Desktop anchored shell | New shell; owns placement, arrow/anchor affordance, focus entry, and collision updates |
-| `MobilePeekSheet` | Mobile/unsafe fallback shell | New shell; owns bottom placement, safe area padding, and wrapped actions |
 | `PointPreviewDrawer` | Deep detail/edit surface | Keeps `edit` and long-form content only; no longer the default entry surface |
-| `WorldMapStage` | Anchor resolution and popup assembly | Computes anchor source, mounts popup/peek, preserves map context |
+| `WorldMapStage` | Anchor resolution and popup assembly | Computes anchor source, mounts anchored popup, preserves map context |
 
 ---
 

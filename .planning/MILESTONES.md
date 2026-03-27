@@ -1,5 +1,21 @@
 # Milestones
 
+## v2.0 城市主视角与可爱风格重构 (Shipped: 2026-03-27)
+
+**Phases completed:** 4 phases, 17 plans, 31 tasks
+
+**Key accomplishments:**
+
+- 城市选择链路已从国家/地区兜底模式升级为稳定 `cityId` 驱动的城市优先确认、搜索与复用流。
+- 离线城市目录与候选排序能力已扩展到真实可用覆盖面，不再局限于最初的演示城市集合。
+- 地图主表达已从单点 marker 升级为真实城市边界高亮，并通过 `boundaryId` 持久化保持 reopen / switch / fallback 语义稳定。
+- `PointSummaryCard + MapContextPopup + PointPreviewDrawer` 形成了稳定的 summary/deep surface 分工，popup 成为桌面主舞台中的主入口。
+- popup 长内容滚动问题已经收口到摘要卡中部内容区，头部身份信息和底部动作保持稳定可达。
+- 地图舞台、marker、popup 和 deep drawer 已完成统一的原创可爱风视觉收口，同时保留四态辨识、命中安全和 reduced-motion 护栏。
+- `POP-03` 已通过正式 desktop-only 范围对齐闭环，v2.0 里程碑审计最终收敛为 `passed`。
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-24)
 
 **Phases completed:** 6 phases, 17 plans, 20 tasks

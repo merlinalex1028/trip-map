@@ -1,31 +1,39 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: 城市主视角与可爱风格重构
-status: Milestone complete
-stopped_at: Completed Phase 10 UAT
-last_updated: "2026-03-27T06:21:10.215Z"
+milestone: none
+milestone_name: No active milestone
+status: Awaiting next milestone planning
+stopped_at: Archived v2.0 milestone
+last_updated: "2026-03-27T15:43:17+08:00"
 last_activity: 2026-03-27
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-25)
+See: .planning/PROJECT.md (updated 2026-03-27)
 
-**Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Milestone v2.0 complete
+**Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
+**Current focus:** No active milestone
 
 ## Current Position
 
-Phase: 10 — Complete
-Plan: 3 of 3
+Phase: none  
+Plan: none
+
+## Last Shipped Milestone
+
+- Version: `v2.0`
+- Name: 城市主视角与可爱风格重构
+- Status: archived
+- Audit: `passed`
+- Scope: 4 phases / 17 plans / 31 tasks
 
 ## Performance Metrics
 
@@ -48,29 +56,17 @@ Plan: 3 of 3
 | Phase 07 | 5 plans | 87 min | 17.4 min |
 | Phase 09 | 3 plans | 54 min | 18 min |
 
-**Recent Trend:**
-
-- Last 3 plans: 21min, 23min, 19min
-- Trend: Broader gap-closure work completed
-
-| Phase 09-popup P01 | 28min | 2 tasks | 10 files |
-| Phase 09-popup P02-P03 | 26min | popup + peek + layout | 9 files |
-
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Recent decisions affecting future work:
 
-- v2.0 roadmap uses 4 coarse phases (7-10): selection baseline, boundary highlight, popup interaction, visual redesign.
+- v2.0 roadmap used 4 coarse phases (7-10): selection baseline, boundary highlight, popup interaction, visual redesign.
 - City-first selection and v1 compatibility must land before boundary rendering and popup behavior.
-- Popup remains a lightweight summary surface; full editing stays in the heavier detail view.
-- Cute-style redesign only ships with readability, hit-area, and interaction reliability safeguards.
-- [Phase 09-popup]: Summary surface remains the single source of truth while drawer only handles deep view/edit.
-- [Phase 09-popup]: Candidate search, saved-city reuse hints, and fallback CTA now live in PointSummaryCard for popup and peek shells to share.
-- [Phase 09-popup]: Desktop summary surface anchors inside the map stage with fixed `marker -> pending -> boundary` precedence.
-- [Quick 260327-dgz]: Summary surface now always uses desktop anchored popup; `MobilePeekSheet` and related mobile-safe-area fallbacks were removed.
+- Popup remains a lightweight summary surface while drawer handles deep view/edit.
+- Phase 10 formally aligned the shipped experience to desktop-only anchored popup + deep drawer.
 
 ### Pending Todos
 
@@ -78,7 +74,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 10 需要控制原创风格资产规模与动效预算，避免拖累地图性能或遮挡交互。
+- No active blocker. Next milestone still needs fresh requirements definition before development resumes.
 
 ### Quick Tasks Completed
 
@@ -91,7 +87,7 @@ None yet.
 
 ## Session Continuity
 
-Last activity: 2026-03-27 - Completed Phase 10 UAT
-Last session: 2026-03-26T08:07:30Z
-Stopped at: Completed Phase 10 UAT
+Last activity: 2026-03-27 - Archived v2.0 milestone  
+Last session: 2026-03-26T08:07:30Z  
+Stopped at: Awaiting next milestone planning  
 Resume file: None
