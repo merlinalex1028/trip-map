@@ -80,7 +80,11 @@ Plans:
   1. 用户在地图、城市边界、marker、popup、详情面板和主要按钮中看到统一的原创二次元美少女可爱风格。
   2. 用户在桌面端和移动端都能清晰区分未记录、已记录、当前选中和低置信度回退等关键状态，不会因新风格降低可读性。
   3. 用户进行地图点击、marker 点击和 popup 操作时，装饰图层和反馈动效不会遮挡命中区域或破坏交互。
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 10-01-PLAN.md — 同步 desktop-only 合同并建立全局可爱风 token / 壳层基线
+- [ ] 10-02-PLAN.md — 收口地图舞台、边界与 marker 四态视觉和命中安全
+- [ ] 10-03-PLAN.md — 统一 popup 与 deep drawer 表面语言并保留 summary / deep 契约
 **UI hint**: yes
 
 ## Progress
