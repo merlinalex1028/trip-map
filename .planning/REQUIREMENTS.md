@@ -33,9 +33,9 @@
 
 ### Visual Redesign
 
-- [ ] **VIS-01**: 用户在地图、城市边界、marker、popup、详情面板和主要按钮中看到统一的原创二次元美少女可爱风格
-- [ ] **VIS-02**: 用户在桌面端和移动端都能清晰区分未记录、已记录、当前选中和低置信度回退等关键状态，不会因新风格降低可读性
-- [ ] **VIS-03**: 用户进行地图点击、marker 点击和 popup 操作时，装饰图层和反馈动效不会遮挡命中区域或破坏交互
+- [x] **VIS-01**: 用户在地图、城市边界、marker、popup、详情面板和主要按钮中看到统一的原创二次元美少女可爱风格
+- [x] **VIS-02**: 用户在当前桌面 anchored popup + deep drawer 主链路中，能清晰区分未记录、已记录、当前选中和低置信度回退等关键状态，不会因新风格降低可读性
+- [x] **VIS-03**: 用户进行地图点击、marker 点击和 popup 操作时，装饰图层和反馈动效不会遮挡命中区域或破坏交互
 
 ## Future Requirements
 
@@ -84,9 +84,9 @@
 | POP-03 | Phase 9 | Complete |
 | DAT-05 | Phase 7 | Pending |
 | DAT-06 | Phase 8 | Pending |
-| VIS-01 | Phase 10 | Pending |
-| VIS-02 | Phase 10 | Pending |
-| VIS-03 | Phase 10 | Pending |
+| VIS-01 | Phase 10 | Complete |
+| VIS-02 | Phase 10 | Complete |
+| VIS-03 | Phase 10 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 16 total
@@ -95,4 +95,4 @@
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-26 after Phase 09 verification passed*
+*Last updated: 2026-03-27 after Phase 10 platform scope decision*

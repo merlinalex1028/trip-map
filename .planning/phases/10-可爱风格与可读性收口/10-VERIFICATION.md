@@ -1,7 +1,7 @@
 ---
 phase: 10
 verified: 2026-03-27T05:46:04Z
-status: human_needed
+status: passed
 score: 5/5 must-haves verified
 human_verification:
   - test: "桌面 anchored popup + deep drawer 主链路的统一可爱风观感"
@@ -19,7 +19,7 @@ human_verification:
 
 **Phase Goal:** 地图、边界、marker、popup 和详情表面形成统一原创可爱风格，同时不牺牲可读性和交互可靠性  
 **Verified:** 2026-03-27T05:46:04Z  
-**Status:** human_needed
+**Status:** passed
 
 ## Goal Achievement
 
@@ -58,21 +58,21 @@ human_verification:
 
 | Requirement | Description | Status | Evidence |
 | --- | --- | --- | --- |
-| `VIS-01` | 用户能看到统一原创可爱风格 | ✓ SATISFIED (automation) / pending human sign-off | 全局 token、App shell、地图舞台、popup、drawer 已统一 palette / radius / shadow / tone。 |
-| `VIS-02` | 四态不因新风格降低可读性 | ✓ SATISFIED (automation) / pending human sign-off | `data-marker-state`、`data-highlight-state`、`data-notice-tone`、`data-cta-tone` 已落地，且相应 spec 全绿。 |
-| `VIS-03` | 装饰与动效不破坏交互 | ✓ SATISFIED (automation) / pending human sign-off | overlay inert、44px hit target、focus trap、unsaved-change guard 与 reduced-motion 断言均通过。 |
+| `VIS-01` | 用户能看到统一原创可爱风格 | ✓ SATISFIED | 全局 token、App shell、地图舞台、popup、drawer 已统一 palette / radius / shadow / tone，且人工 UAT 已通过。 |
+| `VIS-02` | 四态不因新风格降低可读性 | ✓ SATISFIED | `data-marker-state`、`data-highlight-state`、`data-notice-tone`、`data-cta-tone` 已落地，且人工 UAT 已确认肉眼可辨识。 |
+| `VIS-03` | 装饰与动效不破坏交互 | ✓ SATISFIED | overlay inert、44px hit target、focus trap、unsaved-change guard 与 reduced-motion 断言均通过，且人工 UAT 已确认交互稳定。 |
 
-### Human Verification Needed
+### Human Verification Completed
 
-自动化已经证明本阶段的结构、语义钩子和回归稳定性达标，但这个 phase 的目标本质上仍包含视觉判断与交互手感判断，因此还需要人工确认以下事项：
+`10-HUMAN-UAT.md` 已完成，3/3 项人工测试全部通过：
 
-1. 主舞台、popup、drawer 和告警表面的统一气质是否“可爱但不糊”。
-2. 四态在真实屏幕上的辨识度是否足够，不会因为圆角、wash 或浅色底而混淆。
-3. 地图点击、marker 点击和 reduced-motion 体验是否没有被装饰层削弱。
+1. 桌面 anchored popup + deep drawer 主链路的统一可爱风观感通过。
+2. 未记录、已记录、当前选中、低置信回退四态的肉眼可辨识度通过。
+3. 地图命中、装饰 inert 与 reduced-motion 体验通过。
 
 ### Gaps Summary
 
-没有发现自动化层面的功能缺口；当前唯一剩余项是 human verification checkpoint。
+没有发现自动化或人工验收层面的缺口。
 
 ---
 
