@@ -38,10 +38,12 @@ created: 2026-03-27
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 10-01-01 | 01 | 1 | VIS-01 | component | `npm test -- src/App.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/SeedMarkerLayer.spec.ts src/components/WorldMapStage.spec.ts` | ✅ | ⬜ pending |
-| 10-01-02 | 01 | 1 | VIS-02 | component | `npm test -- src/components/SeedMarkerLayer.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/WorldMapStage.spec.ts` | ✅ | ⬜ pending |
-| 10-02-01 | 02 | 2 | VIS-03 | component | `npm test -- src/components/WorldMapStage.spec.ts src/components/SeedMarkerLayer.spec.ts src/components/map-popup/MapContextPopup.spec.ts` | ✅ | ⬜ pending |
-| 10-02-02 | 02 | 2 | VIS-01, VIS-02, VIS-03 | full suite | `npm test` | ✅ | ⬜ pending |
+| 10-01-01 | 01 | 1 | VIS-02 | docs + component contract | `rg -n '当前桌面 anchored popup \+ deep drawer 主链路|docs/manual/phase-10-visual-qa.md|10-03-02' .planning/phases/10-可爱风格与可读性收口/10-VALIDATION.md` | ✅ | ⬜ pending |
+| 10-01-02 | 01 | 1 | VIS-01, VIS-02, VIS-03 | manual QA checklist | `rg -n '统一风格|四态辨识|交互命中|减少动态效果|未记录|已记录|当前选中|低置信回退|pointer-events: none|prefers-reduced-motion' docs/manual/phase-10-visual-qa.md` | ✅ | ⬜ pending |
+| 10-02-01 | 02 | 2 | VIS-01, VIS-02 | component | `npm test -- src/components/SeedMarkerLayer.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/WorldMapStage.spec.ts src/App.spec.ts` | ✅ | ⬜ pending |
+| 10-02-02 | 02 | 2 | VIS-02, VIS-03 | component | `npm test -- src/components/SeedMarkerLayer.spec.ts src/components/WorldMapStage.spec.ts src/App.spec.ts` | ✅ | ⬜ pending |
+| 10-03-01 | 03 | 3 | VIS-01, VIS-02 | component | `npm test -- src/components/map-popup/PointSummaryCard.spec.ts src/components/map-popup/MapContextPopup.spec.ts src/components/PointPreviewDrawer.spec.ts` | ✅ | ⬜ pending |
+| 10-03-02 | 03 | 3 | VIS-01, VIS-02, VIS-03 | full suite | `npm test` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -60,9 +62,9 @@ created: 2026-03-27
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| 暖粉/淡蓝主视觉在真实界面中仍保持清晰层级，不因纹理、贴纸感和圆角收口而显得过花或过糊 | VIS-01 | 当前无像素级视觉回归，也无自动化设计对比 | 1. 启动应用并依次查看标题区、地图舞台、marker、popup、drawer。 2. 确认这些表面共享同一套暖粉/淡蓝 + 圆角语言。 3. 确认没有组件仍停留在旧复古土棕主色。 |
-| 未记录、已记录、当前选中、低置信回退四态在地图与摘要表面中都能一眼区分 | VIS-02 | 自动化可断言语义钩子，但不能完全替代真实视觉辨识度检查 | 1. 触发未记录、已记录、当前选中、低置信回退四种状态。 2. 检查 marker、boundary、notice、CTA 与 badge 是否至少用两种 cue 区分。 3. 确认 selected 与 saved 不共享同一 halo 或边框语义。 |
-| 装饰层、动效和圆角视觉件不会破坏地图点击、marker 点击和 popup 操作 | VIS-03 | 命中层和视觉覆盖问题在真实交互中最容易暴露 | 1. 连续点击地图空白区、marker、popup CTA 和 drawer 操作按钮。 2. 确认不会出现误点、点穿、装饰遮挡或 hover 区域异常。 3. 在 `prefers-reduced-motion` 环境下复查一次，确认核心状态仍可辨。 |
+| 当前桌面 anchored popup + deep drawer 主链路在标题区、地图舞台、popup 和 drawer 上共享统一暖粉/淡蓝/圆角风格 | VIS-01 | 当前无像素级视觉回归，也无自动化设计对比 | 1. 按 `docs/manual/phase-10-visual-qa.md` 的 `统一风格` 小节执行。 2. 仅检查当前桌面 anchored popup + deep drawer 主链路，不引入 `MobilePeekSheet`、safe-area 或其他移动端壳层预期。 3. 确认主要表面均已消费共享 token，而不是各自漂移。 |
+| 未记录、已记录、当前选中、低置信回退四态在当前桌面 anchored popup + deep drawer 主链路中仍可一眼区分 | VIS-02 | 自动化可断言语义钩子，但不能完全替代真实视觉辨识度检查 | 1. 按 `docs/manual/phase-10-visual-qa.md` 的 `四态辨识` 小节逐项核对。 2. 检查 marker、boundary、notice、CTA 与 badge 是否至少用两种 cue 区分。 3. 确认 selected / saved / fallback / neutral 的语义在 popup 与 drawer 上一致。 |
+| 装饰层、动效和圆角视觉件不会破坏地图点击、marker 点击和 popup 操作，且 reduced-motion 仍保持清晰辨识 | VIS-03 | 命中层和视觉覆盖问题在真实交互中最容易暴露 | 1. 按 `docs/manual/phase-10-visual-qa.md` 的 `交互命中` 与 `减少动态效果` 小节执行。 2. 重点确认所有装饰层保持 `pointer-events: none`。 3. 在 `prefers-reduced-motion` 环境下复查一次当前桌面 anchored popup + deep drawer 主链路。 |
 
 ---
 
