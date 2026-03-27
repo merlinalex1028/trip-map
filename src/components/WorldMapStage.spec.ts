@@ -6,6 +6,7 @@ import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCoordinates, GeoDetectionResult } from '../types/geo'
+import worldMapStageSource from './WorldMapStage.vue?raw'
 import WorldMapStage from './WorldMapStage.vue'
 
 const popupAnchoringMock = vi.hoisted(() => ({
@@ -50,7 +51,6 @@ vi.mock('../composables/usePopupAnchoring', () => ({
 }))
 
 const LONG_TEXT = Array.from({ length: 24 }, (_, index) => `long text paragraph ${index + 1}`).join(' ')
-
 function installFrame(surface: HTMLDivElement) {
   Object.defineProperty(surface, 'getBoundingClientRect', {
     value: () => ({
@@ -459,14 +459,14 @@ describe('WorldMapStage', () => {
 
     const savedBoundaries = wrapper.findAll('.world-map-stage__boundary--saved')
     const selectedBoundary = wrapper.get('.world-map-stage__boundary--selected')
+    const savedLisbonBoundary = wrapper.get(
+      `[data-highlight-state="saved"][data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"]`
+    )
 
     expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(true)
     expect(savedBoundaries).toHaveLength(2)
-    expect(
-      wrapper
-        .find(`[data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"].world-map-stage__boundary--saved`)
-        .exists()
-    ).toBe(true)
+    expect(savedLisbonBoundary.classes()).toContain('world-map-stage__boundary--saved')
+    expect(selectedBoundary.attributes('data-highlight-state')).toBe('selected')
     expect(selectedBoundary.attributes('data-boundary-id')).toBe(tokyoBoundary?.boundaryId ?? '')
     expect(selectedBoundary.findAll('path')).toHaveLength(tokyoBoundary?.polygons.length ?? 0)
   })
@@ -602,6 +602,14 @@ describe('WorldMapStage', () => {
     })
 
     expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(false)
+  })
+
+  it('keeps overlay decoration inert and ships reduced-motion guardrails for boundary and pending emphasis', () => {
+    expect(worldMapStageSource).toContain('.world-map-stage__overlay')
+    expect(worldMapStageSource).toContain('pointer-events: none;')
+    expect(worldMapStageSource).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(worldMapStageSource).toContain('transition: none;')
+    expect(worldMapStageSource).toContain('animation: none;')
   })
 
   it('renders candidate-select popup inside the map stage with a pending anchor source', async () => {

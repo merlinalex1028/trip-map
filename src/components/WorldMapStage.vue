@@ -601,24 +601,26 @@ async function handleMapClick(event: MouseEvent) {
 
 .world-map-stage__frame {
   min-height: 100%;
-  padding: var(--space-lg);
-  border: 1px solid var(--color-frame);
-  background: color-mix(in srgb, var(--color-surface) 86%, white 14%);
-  box-shadow: var(--shadow-dusty);
+  padding: 24px;
+  border: 1px solid rgba(199, 171, 200, 0.72);
+  border-radius: 32px;
+  background: linear-gradient(180deg, rgba(255, 247, 251, 0.92), rgba(232, 244, 251, 0.88));
+  box-shadow: var(--shadow-stage);
 }
 
 .world-map-stage__surface {
   position: relative;
   aspect-ratio: 2 / 1;
   overflow: hidden;
-  border: 1px solid rgba(143, 117, 80, 0.45);
+  border: 1px solid rgba(199, 171, 200, 0.52);
+  border-radius: 28px;
   background:
-    radial-gradient(circle at 50% 35%, rgba(255, 251, 243, 0.58), transparent 44%),
-    linear-gradient(180deg, rgba(244, 230, 201, 0.76), rgba(232, 212, 177, 0.88));
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.56), transparent 24%),
+    linear-gradient(180deg, rgba(255, 238, 246, 0.78), rgba(232, 244, 251, 0.86));
 }
 
 .world-map-stage--selected .world-map-stage__surface {
-  border-color: rgba(200, 100, 59, 0.42);
+  border-color: rgba(244, 143, 177, 0.56);
 }
 
 .world-map-stage__map {
@@ -648,22 +650,22 @@ async function handleMapClick(event: MouseEvent) {
 .world-map-stage__boundary-path {
   vector-effect: non-scaling-stroke;
   transition:
-    fill 180ms ease,
-    stroke 180ms ease,
-    opacity 180ms ease;
+    fill var(--motion-emphasis) ease,
+    stroke var(--motion-emphasis) ease,
+    opacity var(--motion-emphasis) ease;
 }
 
 .world-map-stage__boundary--saved .world-map-stage__boundary-path {
-  fill: rgba(111, 122, 91, 0.18);
-  stroke: rgba(88, 96, 70, 0.7);
+  fill: rgba(132, 199, 216, 0.24);
+  stroke: rgba(132, 199, 216, 0.82);
   stroke-width: 2.4;
 }
 
 .world-map-stage__boundary--selected .world-map-stage__boundary-path {
-  fill: rgba(200, 100, 59, 0.28);
-  stroke: rgba(200, 100, 59, 0.96);
+  fill: rgba(244, 143, 177, 0.28);
+  stroke: rgba(244, 143, 177, 0.96);
   stroke-width: 3.2;
-  filter: drop-shadow(0 0 10px rgba(200, 100, 59, 0.22));
+  filter: drop-shadow(0 0 10px rgba(244, 143, 177, 0.2));
 }
 
 .world-map-stage__overlay-marker {
@@ -671,16 +673,16 @@ async function handleMapClick(event: MouseEvent) {
 }
 
 .world-map-stage__overlay-ring {
-  fill: rgba(200, 100, 59, 0.15);
-  stroke: rgba(255, 246, 221, 0.95);
+  fill: rgba(255, 220, 232, 0.38);
+  stroke: rgba(244, 143, 177, 0.56);
   stroke-width: 2.5;
 }
 
 .world-map-stage__overlay-core {
-  fill: rgba(200, 100, 59, 0.94);
-  stroke: rgba(63, 47, 36, 0.4);
+  fill: rgba(244, 143, 177, 0.94);
+  stroke: rgba(255, 255, 255, 0.86);
   stroke-width: 1.5;
-  filter: drop-shadow(0 0 12px rgba(200, 100, 59, 0.34));
+  filter: drop-shadow(0 0 12px rgba(244, 143, 177, 0.26));
 }
 
 .world-map-stage__overlay-marker--active {
@@ -703,22 +705,32 @@ async function handleMapClick(event: MouseEvent) {
   0% {
     transform: scale(0.9);
     box-shadow:
-      0 0 0 0 rgba(200, 100, 59, 0.26),
-      0 0 18px rgba(200, 100, 59, 0.2);
+      0 0 0 0 rgba(244, 143, 177, 0.24),
+      0 0 18px rgba(244, 143, 177, 0.18);
   }
 
   70% {
     transform: scale(1);
     box-shadow:
-      0 0 0 12px rgba(200, 100, 59, 0),
-      0 0 24px rgba(200, 100, 59, 0.32);
+      0 0 0 12px rgba(244, 143, 177, 0),
+      0 0 24px rgba(244, 143, 177, 0.24);
   }
 
   100% {
     transform: scale(0.96);
     box-shadow:
-      0 0 0 0 rgba(200, 100, 59, 0),
-      0 0 14px rgba(200, 100, 59, 0.12);
+      0 0 0 0 rgba(244, 143, 177, 0),
+      0 0 14px rgba(244, 143, 177, 0.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-map-stage__boundary-path {
+    transition: none;
+  }
+
+  .world-map-stage__overlay-marker--active {
+    animation: none;
   }
 }
 
