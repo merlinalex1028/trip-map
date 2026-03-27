@@ -149,6 +149,7 @@ Copy rules:
 
 Surface rules:
 
+- Project-wide visible surfaces prefer rounded corners by default: cards, popup shells, drawer shells, buttons, inputs, labels, and notices should all inherit a coherent rounded-corner language unless a sharper edge is required for explicit semantic contrast.
 - Cute ornament density must decrease as task depth increases: title block > popup/view surfaces > drawer edit surface.
 - One major surface may use either paper texture or glassy wash, not both at strong intensity.
 - Full-surface character art, oversized stickers, and decorative overlays that cover map geography are forbidden in this phase.

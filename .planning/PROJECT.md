@@ -70,6 +70,7 @@
 - **Map rendering**: 城市点亮应以真实城市边界为目标 — 不接受只把城市继续表现成单点 marker
 - **UX**: 详情交互应改为悬浮弹窗 — 不再沿用桌面右侧抽屉 / 移动端底部抽屉作为主模式
 - **Visual design**: 使用原创二次元美少女可爱风格 — 可借鉴风格语言，但不绑定任何具体 IP
+- **Surface shape**: 项目内用户可见表面优先使用圆角 — 卡片、弹窗、按钮、输入框、marker 标签等默认采用圆角语言，只有语义上必须保持尖角或几何感时才例外
 - **Scope**: 单用户本地体验优先 — 不提前引入同步、账号、分享等扩展能力
 
 ## Key Decisions
@@ -86,6 +87,7 @@
 | `v2.0` 以真实城市边界整体点亮替代单点 marker 表达 | 需要让“去过这座城市”在地图上具备区域语义，而非仅是坐标点 | — Pending |
 | `v2.0` 详情交互改为悬浮弹窗 | 让地图继续成为视觉主舞台，同时减少抽屉对整体风格的割裂感 | — Pending |
 | `v2.0` 整体视觉升级为原创二次元美少女可爱风格 | 用户明确要求做统一视觉语言重构，且不绑定具体 IP | — Pending |
+| 项目内用户可见表面优先使用圆角 | 更符合当前可爱风方向，也能统一卡片、弹窗、按钮与标签的亲和感 | — Active |
 
 ## Evolution
 
@@ -105,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-25 after v2.0 milestone initialization*
+*Last updated: 2026-03-27 after visual preference update*

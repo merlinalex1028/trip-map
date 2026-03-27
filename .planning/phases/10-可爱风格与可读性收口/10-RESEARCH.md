@@ -54,9 +54,9 @@ None — discussion stayed within phase scope
 
 Phase 10 不是“重新做一套 UI”，而是在已经稳定的 Phase 8/9 交互结构上，把视觉语言统一收口。当前代码库已经有明确入口：全局 token 在 `src/styles/tokens.css`，页面底色与排版在 `src/styles/global.css`，地图主舞台在 `src/components/WorldMapStage.vue`，状态 marker 在 `src/components/SeedMarkerLayer.vue`，摘要表面在 `src/components/map-popup/PointSummaryCard.vue`，深层表面在 `src/components/PointPreviewDrawer.vue`，标题氛围在 `src/components/PosterTitleBlock.vue`。最小风险路线是继续沿用这些结构，只改 token、state hook 和组件 scoped CSS，不引入设计系统、动画库或新的浮层模型。
 
-当前最大的规划风险不是技术，而是文档基线冲突。`ROADMAP.md` 与 `REQUIREMENTS.md` 仍写着“桌面端和移动端”，但 `STATE.md` 记录 2026-03-27 的 quick task `260327-dgz` 已移除移动端兼容，仓库中 `MobilePeekSheet` 也已不存在，而现有 `10-UI-SPEC.md` 明确把平台基线写成“Desktop anchored popup + deep drawer only”。Planner 必须先决定 Phase 10 按“最新产品状态”还是按“旧 requirement 文本”拆任务，否则会把同一阶段同时规划成桌面-only 和桌面+移动双轨。
+当前最大的规划风险原本不是技术，而是文档基线冲突。`ROADMAP.md` 与 `REQUIREMENTS.md` 一度仍写着“桌面端和移动端”，但 `STATE.md` 记录 2026-03-27 的 quick task `260327-dgz` 已移除移动端兼容，仓库中 `MobilePeekSheet` 也已不存在，而现有 `10-UI-SPEC.md` 明确把平台基线写成“Desktop anchored popup + deep drawer only”。该冲突现已由用户在 planning gate 中明确裁定为 **desktop-only**，因此后续计划应统一按“当前桌面 anchored popup + deep drawer 主链路”执行，不重新拉回移动端 `peek`。
 
-**Primary recommendation:** 按“现有桌面主舞台结构 + token-first 语义收口 + 交互安全护栏”来拆 Phase 10，并把移动端要求冲突作为计划前置澄清项。
+**Primary recommendation:** 按“现有桌面主舞台结构 + token-first 语义收口 + 交互安全护栏”来拆 Phase 10，不重新引入移动端兼容壳层。
 
 ## Standard Stack
 
@@ -283,9 +283,9 @@ Verified codebase patterns that Phase 10 should extend rather than replace:
 ## Open Questions
 
 1. **Phase 10 是否仍然必须覆盖移动端？**
-   - What we know: `ROADMAP.md` 和 `REQUIREMENTS.md` 仍写着“桌面端和移动端”；`STATE.md` 在 2026-03-27 明确记录 quick task `260327-dgz` “不再考虑移动端，彻底清除移动端兼容”；`10-UI-SPEC.md` 也把平台基线写成 desktop-only。
-   - What's unclear: planner 应该忠于最新实现/状态，还是需要把移动端能力作为本阶段恢复项重新拉回。
-   - Recommendation: 在出 PLAN 之前先显式决议。若没有新的用户输入，默认按最新 `STATE.md` 和 `10-UI-SPEC.md` 作为真实基线，只规划桌面端。
+   - Resolved: 用户已明确确认“Phase 10 不考虑移动端，按 desktop-only 规划”。
+   - Effective baseline: 以 `STATE.md`、`10-UI-SPEC.md`、更新后的 `ROADMAP.md` / `REQUIREMENTS.md` 为准，只规划当前桌面 anchored popup + deep drawer 主链路。
+   - Planner implication: 不重新引入 `MobilePeekSheet`、safe-area fallback 或移动端壳层恢复任务。
 
 2. **`10-UI-SPEC.md` 是否作为 Phase 10 的执行级设计合同一并维护？**
    - What we know: 该文件已存在，并且内容与 `10-CONTEXT.md`、`STATE.md` 及当前代码结构高度一致。
