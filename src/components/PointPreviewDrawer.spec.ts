@@ -119,6 +119,7 @@ describe('PointPreviewDrawer', () => {
     expect(wrapper.text()).toContain('Kyoto')
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.text()).not.toContain('查看详情')
+    expect(wrapper.get('.point-preview-drawer').attributes('data-drawer-mode')).toBe('view')
     expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(false)
   })
 
@@ -183,6 +184,43 @@ describe('PointPreviewDrawer', () => {
     expect(document.activeElement).toBe(lastAction!.element)
   })
 
+  it('marks fallback and unsupported-boundary notices with fallback tone in view mode', async () => {
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(
+      createDraft({
+        id: 'detected-missing-boundary-city',
+        name: 'Fallback City',
+        countryName: 'Portugal',
+        countryCode: 'PT',
+        precision: 'city-high',
+        cityId: 'pt-fallback-city',
+        cityName: 'Fallback City',
+        cityContextLabel: 'Portugal · Fallback',
+        boundaryId: null,
+        boundaryDatasetVersion: null,
+        fallbackNotice: '当前仅能按国家/地区保留这个点位。'
+      })
+    )
+    store.saveDraftAsPoint()
+    store.openDrawerView()
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    const notices = wrapper.findAll('[data-notice-tone="fallback"]')
+
+    expect(wrapper.get('.point-preview-drawer').attributes('data-drawer-mode')).toBe('view')
+    expect(notices).toHaveLength(2)
+    expect(notices[0]?.text()).toContain('当前仅能按国家/地区保留这个点位。')
+    expect(notices[1]?.text()).toContain('当前城市暂不支持边界高亮')
+  })
+
   it('closes the deep drawer on Escape when there are no unsaved edits', async () => {
     const store = useMapPointsStore()
     store.startDraftFromDetection(createCityDraft('jp-kyoto'))
@@ -223,6 +261,7 @@ describe('PointPreviewDrawer', () => {
     await wrapper.get('.point-preview-drawer__action--primary').trigger('click')
 
     expect(store.drawerMode).toBe('edit')
+    expect(wrapper.get('.point-preview-drawer').attributes('data-drawer-mode')).toBe('edit')
     expect(wrapper.text()).toContain('放弃编辑')
 
     await wrapper.get('.point-preview-drawer__input').setValue('Kyoto updated')

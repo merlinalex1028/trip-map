@@ -241,6 +241,7 @@ defineExpose({
     v-if="isDrawerVisible"
     ref="panel"
     class="point-preview-drawer"
+    :data-drawer-mode="drawerMode"
     role="dialog"
     aria-modal="false"
     :aria-labelledby="drawerTitleId"
@@ -269,6 +270,7 @@ defineExpose({
       <p
         v-if="drawerFallbackNotice"
         class="point-preview-drawer__fallback"
+        data-notice-tone="fallback"
         role="status"
       >
         {{ drawerFallbackNotice }}
@@ -276,6 +278,7 @@ defineExpose({
       <p
         v-if="drawerBoundarySupportNotice"
         class="point-preview-drawer__fallback point-preview-drawer__fallback--boundary"
+        data-notice-tone="fallback"
         role="status"
       >
         {{ drawerBoundarySupportNotice }}
@@ -342,12 +345,11 @@ defineExpose({
   max-width: var(--point-preview-popup-max-width);
   min-height: 0;
   padding: var(--space-lg);
-  border: 1px solid rgba(143, 117, 80, 0.62);
-  background:
-    linear-gradient(180deg, rgba(241, 230, 204, 0.96), rgba(230, 210, 176, 0.98)),
-    var(--color-surface);
+  border: 1px solid rgba(199, 171, 200, 0.58);
+  border-radius: var(--radius-surface);
+  background: linear-gradient(180deg, rgba(255, 249, 252, 0.98), rgba(232, 244, 251, 0.92));
   overflow: hidden;
-  filter: drop-shadow(0 18px 28px rgba(73, 49, 31, 0.16));
+  box-shadow: var(--shadow-stage);
 }
 
 .point-preview-drawer__arrow {
@@ -356,9 +358,9 @@ defineExpose({
   top: 100%;
   width: 1rem;
   height: 1rem;
-  border-right: 1px solid rgba(200, 100, 59, 0.4);
-  border-bottom: 1px solid rgba(200, 100, 59, 0.4);
-  background: color-mix(in srgb, var(--color-surface) 90%, white 10%);
+  border-right: 1px solid rgba(199, 171, 200, 0.58);
+  border-bottom: 1px solid rgba(199, 171, 200, 0.58);
+  background: linear-gradient(180deg, rgba(255, 249, 252, 0.98), rgba(232, 244, 251, 0.92));
   transform: translateY(-50%) rotate(45deg);
 }
 
@@ -382,9 +384,10 @@ defineExpose({
   min-width: 44px;
   min-height: 44px;
   padding: 0.65rem 0.95rem;
-  border: 1px solid rgba(200, 100, 59, 0.38);
-  background: rgba(252, 247, 236, 0.94);
-  color: var(--color-accent);
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-control);
+  background: rgba(255, 252, 253, 0.94);
+  color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   cursor: pointer;
@@ -401,8 +404,10 @@ defineExpose({
   width: fit-content;
   margin: 0;
   padding: 0.3rem 0.6rem;
-  border: 1px solid rgba(200, 100, 59, 0.55);
-  color: var(--color-accent);
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 220, 232, 0.66);
+  color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
@@ -427,7 +432,11 @@ defineExpose({
 .point-preview-drawer__fallback {
   grid-column: 1 / -1;
   margin: 0;
-  color: var(--color-accent);
+  padding: 0.75rem 0.85rem;
+  border: 1px dashed rgba(184, 198, 217, 0.84);
+  border-radius: var(--radius-control);
+  background: rgba(238, 243, 248, 0.96);
+  color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
@@ -478,8 +487,9 @@ defineExpose({
 .point-preview-drawer__input,
 .point-preview-drawer__textarea {
   width: 100%;
-  border: 1px solid rgba(143, 117, 80, 0.48);
-  background: rgba(252, 247, 236, 0.9);
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-control);
+  background: rgba(255, 252, 253, 0.94);
   color: var(--color-ink-strong);
   font: inherit;
 }
@@ -500,23 +510,25 @@ defineExpose({
   flex-wrap: wrap;
   gap: var(--space-sm);
   padding-top: var(--space-sm);
-  border-top: 1px solid rgba(143, 117, 80, 0.24);
-  background: linear-gradient(180deg, rgba(230, 210, 176, 0.18), rgba(230, 210, 176, 0.9));
+  border-top: 1px solid rgba(199, 171, 200, 0.28);
+  background: linear-gradient(180deg, rgba(255, 252, 253, 0.28), rgba(232, 244, 251, 0.76));
 }
 
 .point-preview-drawer__action {
   min-width: 44px;
   min-height: 44px;
   padding: 0.65rem 1rem;
-  border: 1px solid rgba(143, 117, 80, 0.45);
-  background: rgba(252, 247, 236, 0.88);
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-control);
+  background: rgba(255, 252, 253, 0.92);
   color: var(--color-ink-strong);
   cursor: pointer;
 }
 
 .point-preview-drawer__action--primary {
-  border-color: rgba(200, 100, 59, 0.58);
-  color: var(--color-accent);
+  border-color: rgba(244, 143, 177, 0.56);
+  background: rgba(255, 220, 232, 0.88);
+  color: var(--color-ink-strong);
 }
 
 .point-preview-drawer__action--danger {
