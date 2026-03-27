@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: 城市主视角与可爱风格重构
 status: Phase 09 Verified Complete
-stopped_at: Completed quick task 260326-r14
-last_updated: "2026-03-26T11:37:47Z"
+stopped_at: Completed quick task 260327-dgz
+last_updated: "2026-03-27T01:47:21Z"
 progress:
   total_phases: 4
   completed_phases: 3
@@ -69,7 +69,7 @@ Recent decisions affecting current work:
 - [Phase 09-popup]: Summary surface remains the single source of truth while drawer only handles deep view/edit.
 - [Phase 09-popup]: Candidate search, saved-city reuse hints, and fallback CTA now live in PointSummaryCard for popup and peek shells to share.
 - [Phase 09-popup]: Desktop summary surface anchors inside the map stage with fixed `marker -> pending -> boundary` precedence.
-- [Phase 09-popup]: Mobile or unsafe summary surface falls back to `MobilePeekSheet`, while App only yields layout space to deep drawer.
+- [Quick 260327-dgz]: Summary surface now always uses desktop anchored popup; `MobilePeekSheet` and related mobile-safe-area fallbacks were removed.
 
 ### Pending Todos
 
@@ -86,10 +86,11 @@ None yet.
 | 260326-qmh | 将popup弹窗的最大高度设置为地图高度的60% | 2026-03-26 | ebeabf9 | [260326-qmh-popup-60](./quick/260326-qmh-popup-60/) |
 | 260326-qvd | 修复 popup 在最大高度 60% 下的内部滚动，将其拆分为 header、content、footer，header/footer 固定、content 可滚动 | 2026-03-26 | 2980403 | [260326-qvd-popup-60-header-content-footer-header-fo](./quick/260326-qvd-popup-60-header-content-footer-header-fo/) |
 | 260326-r14 | 将剩余的drawer也改成使用popup | 2026-03-26 | f3af22d | [260326-r14-drawer-popup](./quick/260326-r14-drawer-popup/) |
+| 260327-dgz | 不再考虑移动端，彻底清除移动端兼容 | 2026-03-27 | 62524de | [260327-dgz-remove-mobile-compat](./quick/260327-dgz-remove-mobile-compat/) |
 
 ## Session Continuity
 
-Last activity: 2026-03-26 - Completed quick task 260326-r14: 将剩余的drawer也改成使用popup
+Last activity: 2026-03-27 - Completed quick task 260327-dgz: 不再考虑移动端，彻底清除移动端兼容
 Last session: 2026-03-26T08:07:30Z
-Stopped at: Completed quick task 260326-r14
+Stopped at: Completed quick task 260327-dgz
 Resume file: None
