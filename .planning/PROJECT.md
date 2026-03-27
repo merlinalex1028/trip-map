@@ -27,9 +27,11 @@
 
 ### Active
 
-- [ ] 为城市地点添加图片、标签、游记或时间线内容
-- [ ] 支持导入导出、分享或多设备同步
-- [ ] 增加更精细的地图交互、路线规划和统计视图
+- [ ] 将当前单体前端应用演进为 `web + server` 的 monorepo 结构，并明确前后端边界
+- [ ] 引入 TypeScript 后端服务，优先调研并评估 `NestJS` 及相关数据库/存储方案
+- [ ] 将地点识别与点亮语义重构为“中国市级 / 海外一级行政区”，并切换到 `Leaflet`
+- [ ] 中国境内边界数据使用阿里云 `DataV.GeoAtlas` 合规市级 GeoJSON，境外使用 `Natural Earth` 一级行政区数据
+- [ ] 选中地点后在面板中提供名称右侧的点亮/取消点亮动作，并通过 GeoJSON 整个行政区边界呈现点亮状态
 
 ## Current State
 
@@ -37,36 +39,46 @@
 - 当前代码库已具备城市优先选择、真实边界点亮、desktop anchored popup + deep drawer 主链路，以及统一视觉系统。
 - 当前源码规模约为 `8855` 行 `ts/vue`，自动化回归为 `14` 个 test files / `115` 个 tests 通过。
 
-## Next Milestone Goals
+## Current Milestone: v3.0 全栈化与行政区地图重构
 
-- 在不破坏当前城市主链路的前提下，为城市地点引入图片、标签、游记或时间线等富内容表达。
-- 评估导入导出、分享与多设备同步，明确哪些能力仍可保持本地优先，哪些需要后端支撑。
-- 继续扩展地图使用深度，例如缩放/拖拽、想去清单、路线规划和旅行统计视图。
+**Goal:** 把当前纯前端旅行地图升级为 monorepo 的全栈应用，引入 TypeScript 后端服务，重新划分前后端职责，并将地图交互改造为“中国市级 / 海外一级行政区”的新语义。
+
+**Target features:**
+- 使用 monorepo 管理现有 `web` 应用与新增 `server` 服务
+- 评估哪些现有前端数据、存储和识别流程应迁移到后端 API 重构
+- 后端优先调研 `NestJS`，并梳理数据库、对象存储等候选依赖方案供选择
+- 地图渲染切换到 `Leaflet`
+- 中国境内采用阿里云 `DataV.GeoAtlas` 市级边界数据，境外采用 `Natural Earth` 一级行政区数据
+- 中国境内选中到市级，境外选中到一级行政区
+- 面板内提供名称右侧的点亮 / 取消点亮按钮，已点亮区域以 GeoJSON 全边界高亮呈现
 
 ### Out of Scope
 
 - 在线逆地理编码、在线搜索或第三方地点 API — 与本项目离线识别方向冲突，也会把核心识别质量交给外部服务
-- 地图引擎整体替换为 `MapLibre`、`Leaflet` 或其他 slippy map 方案 — 这是架构级重做，不是下个 milestone 的默认增量目标
 - popup 承担完整编辑表单 — 会与现有 deep drawer 职责重叠，增加两套详情入口长期分裂风险
-- 账号系统、后端服务、多端同步 — 除非下一 milestone 显式重开，否则仍不默认纳入
 - 社交、排行榜、社区内容流 — 偏离个人旅行地图主线
+- 在数据库、对象存储等候选方案完成评估前，直接锁定某一个后端基础设施组合 — 需要先做研究和权衡
+- 在没有验证中国合规数据链路与境外行政区数据精度前，直接承诺所有国家都达到城市级识别 — 当前 milestone 明确以“中国市级 / 海外一级行政区”为边界
 
 ## Context
 
 - 当前项目已经完成两个 milestone：`v1.0` 建立真实点位识别与点位 CRUD 基线，`v2.0` 完成城市主视角、边界高亮、popup 主舞台交互与视觉重构
-- 前端技术栈继续保持为 `Vue 3 + Vite + TypeScript`
-- 数据层继续采用本地静态地理数据、预置 seed 点位与 `localStorage` overlay，不依赖在线服务
-- 当前主要产品风险已从“能否识别真实地点”转为“如何在不引入复杂后端的前提下扩展内容深度、数据流和地图探索能力”
+- 当前前端技术栈为 `Vue 3 + Vite + TypeScript`，此次 milestone 会基于它扩展为包含 `web` 与 `server` 的 monorepo
+- 现有数据层仍采用本地静态地理数据、预置 seed 点位与 `localStorage` overlay；本 milestone 需要重新评估其中哪些适合迁移到后端
+- 当前主要产品风险已从“能否识别真实地点”转为“如何在引入后端后仍保持地理语义清晰、数据来源合规、架构边界稳定”
 
 ## Constraints
 
-- **Tech stack**: `Vue 3 + Vite + TypeScript` — 继续保持，不切换框架
-- **Architecture**: 前端本地静态识别优先 — 不默认引入在线逆地理编码或后端依赖
+- **Tech stack**: 前端继续保持 `Vue 3 + Vite + TypeScript`，后端同样使用 TypeScript 生态 — 降低跨端心智切换与模型转换成本
+- **Architecture**: 允许引入后端服务，但必须先明确哪些职责迁移、哪些仍保留在前端或静态数据层
 - **Data model**: 必须保存真实地理语义（如 `lat/lng`、`cityId`、`boundaryId`）并兼容固定底图渲染语义
-- **Map rendering**: 城市记录继续以真实城市边界为主表达，而不是退回单点 marker 作为默认语义
+- **Map semantics**: 中国境内命中到市级，境外命中到一级行政区，不能混淆两套行政层级
+- **Map rendering**: 已点亮地点继续以真实边界高亮为主表达，而不是退回单点 marker 作为默认语义
+- **Map engine**: 地图交互将切换到 `Leaflet`，需要同时评估底图、投影、GeoJSON 性能与交互改造成本
 - **UX**: summary surface 继续保持 anchored popup，deep detail/edit 继续由 drawer 承接
 - **Visual design**: 延续原创二次元美少女可爱风格，但始终优先保证可读性、状态辨识和命中安全
-- **Scope**: 单用户本地体验优先，除非下一 milestone 明确重开同步或分享
+- **Data compliance**: 中国境内行政区边界数据必须使用符合国家测绘规范的合规来源
+- **Scope**: 当前 milestone 的重点是全栈化与行政区语义重构，不默认同时承诺完整账号体系或社交系统
 
 ## Key Decisions
 
@@ -80,6 +92,8 @@
 | summary 保持轻量 popup，deep detail/edit 继续由 drawer 承接 | 保持地图主舞台感，同时避免两套完整编辑入口长期分裂 | ✓ Shipped in v2.0 |
 | `v2.0` 晚期正式收口为 desktop-only 主链路 | 让 Phase 09/10 文档、实现与验收范围重新一致，避免继续维护已移除的移动端壳层 | ✓ Shipped in v2.0 |
 | 项目内用户可见表面优先使用圆角 | 更符合可爱风方向，也能统一卡片、弹窗、按钮与标签的亲和感 | ✓ Shipped in v2.0 |
+| `v3.0` 将以 monorepo + TypeScript backend 作为研究起点 | 新 milestone 已明确包含服务端引入与前后端职责重划，需要先用同语言生态稳定建模 | — Pending |
+| `v3.0` 地图语义切换为“中国市级 / 海外一级行政区” | 这是数据合规性、识别精度与实现复杂度之间的当前最优平衡点 | — Pending |
 
 ## Archived Milestone Snapshot
 
@@ -111,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current shipped state
 
 ---
-*Last updated: 2026-03-27 after v2.0 milestone archive*
+*Last updated: 2026-03-27 after v3.0 milestone start*

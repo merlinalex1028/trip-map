@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: No active milestone
-status: Awaiting next milestone planning
-stopped_at: Archived v2.0 milestone
-last_updated: "2026-03-27T15:43:17+08:00"
+milestone: v3.0
+milestone_name: 全栈化与行政区地图重构
+status: Defining requirements
+stopped_at: Gathering milestone requirements
+last_updated: "2026-03-27T16:20:00+08:00"
 last_activity: 2026-03-27
 progress:
   total_phases: 0
@@ -20,12 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** No active milestone
+**Current focus:** Milestone v3.0 requirement definition
 
 ## Current Position
 
-Phase: none  
-Plan: none
+Phase: Not started (defining requirements)  
+Plan: —  
+Status: Defining requirements  
+Last activity: 2026-03-27 — Milestone v3.0 started
 
 ## Last Shipped Milestone
 
@@ -74,7 +76,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- No active blocker. Next milestone still needs fresh requirements definition before development resumes.
+- 当前无执行阻塞，但 v3.0 需要先完成后端边界研究、数据源合规确认与 requirements 定义，再进入 phase 规划与开发。
 
 ### Quick Tasks Completed
 
@@ -87,7 +89,7 @@ None yet.
 
 ## Session Continuity
 
-Last activity: 2026-03-27 - Archived v2.0 milestone  
+Last activity: 2026-03-27 - Started v3.0 milestone definition  
 Last session: 2026-03-26T08:07:30Z  
-Stopped at: Awaiting next milestone planning  
+Stopped at: Gathering milestone requirements  
 Resume file: None
