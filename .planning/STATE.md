@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: Defining requirements
-stopped_at: Gathering milestone requirements
-last_updated: "2026-03-27T16:20:00+08:00"
+status: Ready to plan
+stopped_at: Roadmap created for Phase 11
+last_updated: "2026-03-27T16:45:00+08:00"
 last_activity: 2026-03-27
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Milestone v3.0 requirement definition
+**Current focus:** Phase 11 - Monorepo 与契约基线
 
 ## Current Position
 
-Phase: Not started (defining requirements)  
-Plan: —  
-Status: Defining requirements  
-Last activity: 2026-03-27 — Milestone v3.0 started
+Phase: 11 of 15 (Monorepo 与契约基线)  
+Plan: Roadmap created, awaiting phase planning  
+Status: Ready to plan  
+Last activity: 2026-03-27 — Created v3.0 roadmap with phases 11-15
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Last Shipped Milestone
 
@@ -40,35 +42,32 @@ Last activity: 2026-03-27 — Milestone v3.0 started
 ## Performance Metrics
 
 **Velocity:**
+- Total plans completed: 34
+- Average duration: n/a
+- Total execution time: n/a
 
-- Total plans completed: 19
-- Average duration: 11 min
-- Total execution time: 3.2 hours
+**By Milestone:**
 
-**By Phase:**
+| Milestone | Phases | Plans | Status |
+|-----------|--------|-------|--------|
+| v1.0 | 1-6 | 17 | Shipped |
+| v2.0 | 7-10 | 17 | Shipped |
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| Phase 01 | 3 plans | 30 min | 10 min |
-| Phase 02 | 4 plans | 70 min | 17.5 min |
-| Phase 03 | 3 plans | 45 min | 15 min |
-| Phase 04 | 3 plans | 63 min | 21 min |
-| Phase 05 | 1 plan | 5 min | 5 min |
-| Phase 06 | 3 plans | 29 min | 9.7 min |
-| Phase 07 | 5 plans | 87 min | 17.4 min |
-| Phase 09 | 3 plans | 54 min | 18 min |
+**Recent Trend:**
+- Last milestone pace: stable
+- Trend: Stable
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting future work:
+Recent decisions affecting current work:
 
-- v2.0 roadmap used 4 coarse phases (7-10): selection baseline, boundary highlight, popup interaction, visual redesign.
-- City-first selection and v1 compatibility must land before boundary rendering and popup behavior.
-- Popup remains a lightweight summary surface while drawer handles deep view/edit.
-- Phase 10 formally aligned the shipped experience to desktop-only anchored popup + deep drawer.
+- `v3.0` 从 Phase 11 开始，按 coarse 粒度压成 5 个 phase，避免写成平台重构。
+- `server` 从 `v3.0` 起拥有 canonical area resolve；前端不再长期保留另一套主判定逻辑。
+- 几何先走版本化静态资产；中国与海外 GeoJSON 不在数据层合并，`Leaflet` 直接加载两层。
+- `v3.0` 不迁移旧 `localStorage` 数据，也不再保留历史 seed 点位。
 
 ### Pending Todos
 
@@ -76,20 +75,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- 当前无执行阻塞，但 v3.0 需要先完成后端边界研究、数据源合规确认与 requirements 定义，再进入 phase 规划与开发。
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260326-qmh | 将popup弹窗的最大高度设置为地图高度的60% | 2026-03-26 | ebeabf9 | [260326-qmh-popup-60](./quick/260326-qmh-popup-60/) |
-| 260326-qvd | 修复 popup 在最大高度 60% 下的内部滚动，将其拆分为 header、content、footer，header/footer 固定、content 可滚动 | 2026-03-26 | 2980403 | [260326-qvd-popup-60-header-content-footer-header-fo](./quick/260326-qvd-popup-60-header-content-footer-header-fo/) |
-| 260326-r14 | 将剩余的drawer也改成使用popup | 2026-03-26 | f3af22d | [260326-r14-drawer-popup](./quick/260326-r14-drawer-popup/) |
-| 260327-dgz | 不再考虑移动端，彻底清除移动端兼容 | 2026-03-27 | 62524de | [260327-dgz-remove-mobile-compat](./quick/260327-dgz-remove-mobile-compat/) |
+- Canonical `placeId` 对直辖市、自治区、港澳和海外特殊行政区的规则需要在 Phase 12 明文化。
+- 中国与海外边界的坐标适配仍需在 Phase 13 验证，避免 `Leaflet` 中出现点击与边界错位。
+- 如果后续准备公开部署，还需要额外复核中国数据许可与分发边界。
 
 ## Session Continuity
 
-Last activity: 2026-03-27 - Started v3.0 milestone definition  
-Last session: 2026-03-26T08:07:30Z  
-Stopped at: Gathering milestone requirements  
+Last session: 2026-03-27 16:45  
+Stopped at: v3.0 roadmap created and traceability ready for planning  
 Resume file: None

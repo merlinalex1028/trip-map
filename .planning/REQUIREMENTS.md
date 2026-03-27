@@ -83,7 +83,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ARC-01 | Phase 11 | Pending |
-| ARC-02 | Phase 11 | Pending |
+| ARC-02 | Phase 12 | Pending |
 | ARC-03 | Phase 11 | Pending |
 | ARC-04 | Phase 11 | Pending |
 | PLC-01 | Phase 12 | Pending |
@@ -105,7 +105,7 @@
 | API-02 | Phase 15 | Pending |
 | API-03 | Phase 13 | Pending |
 | API-04 | Phase 11 | Pending |
-| API-05 | Phase 16 | Pending |
+| API-05 | Phase 15 | Pending |
 | UIX-01 | Phase 14 | Pending |
 | UIX-02 | Phase 15 | Pending |
 | UIX-03 | Phase 15 | Pending |
