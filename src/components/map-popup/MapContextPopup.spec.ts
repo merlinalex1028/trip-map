@@ -64,6 +64,9 @@ describe('MapContextPopup', () => {
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
     expect(popup.attributes('style')).toContain('--map-context-popup-min-width: 280px')
     expect(popup.attributes('style')).toContain('--map-context-popup-max-width: 360px')
+    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe(
+      'detected-preview'
+    )
   })
 
   it('keeps the stable footer outside the middle scroll region inside the popup body', () => {
@@ -93,7 +96,41 @@ describe('MapContextPopup', () => {
     expect(scrollRegion.text()).toContain('long text paragraph 1')
     expect(scrollRegion.text()).not.toContain('查看详情')
     expect(footer.text()).toContain('查看详情')
+    expect(footer.element.closest('[data-scroll-region="true"]')).toBeNull()
+    expect(footer.attributes('data-popup-section')).toBe('footer')
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
+  })
+
+  it('keeps fallback notices and selected CTA tone visible through the popup shell', () => {
+    const wrapper = mount(MapContextPopup, {
+      attachTo: document.body,
+      props: {
+        surface: {
+          mode: 'candidate-select',
+          fallbackPoint: createDraftPoint({
+            name: 'Japan',
+            countryName: 'Japan',
+            cityId: null,
+            cityName: null,
+            fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
+          }),
+          cityCandidates: []
+        } satisfies SummarySurfaceState,
+        anchorSource: 'pending'
+      }
+    })
+
+    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe(
+      'candidate-select'
+    )
+    expect(wrapper.get('[data-notice-tone="fallback"]').text()).toContain('未能可靠确认城市')
+    expect(wrapper.get('.point-summary-card__action').attributes('data-cta-tone')).toBe('selected')
+    expect(wrapper.get('.map-context-popup').attributes('style')).toContain(
+      '--map-context-popup-min-width: 280px'
+    )
+    expect(wrapper.get('.map-context-popup').attributes('style')).toContain(
+      '--map-context-popup-max-width: 360px'
+    )
   })
 
   it('moves focus to the title when opened', async () => {

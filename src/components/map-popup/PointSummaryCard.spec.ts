@@ -86,18 +86,28 @@ describe('PointSummaryCard', () => {
     const content = wrapper.get('[data-popup-section="content"]')
     const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
     const footer = wrapper.get('.point-summary-card__footer')
+    const root = wrapper.get('[data-region="point-summary-card"]')
+    const notices = wrapper.findAll('[data-notice-tone="fallback"]')
+    const candidateActions = wrapper.findAll('.point-summary-card__candidate-action')
 
     expect(wrapper.text()).toContain('确认城市')
     expect(header.text()).toContain('Japan')
+    expect(root.attributes('data-summary-mode')).toBe('candidate-select')
+    expect(root.attributes('data-record-source')).toBe('detected')
     expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('已存在记录')
+    expect(notices).toHaveLength(1)
+    expect(notices[0]?.text()).toContain('未能可靠确认城市')
     expect(content.find('.point-summary-card__scroll-region').exists()).toBe(true)
     expect(scrollRegion.text()).toContain('搜索城市')
     expect(scrollRegion.text()).toContain('Kyoto')
     expect(scrollRegion.text()).not.toContain('按国家/地区继续记录')
     expect(footer.text()).toContain('按国家/地区继续记录')
+    expect(wrapper.get('.point-summary-card__action').attributes('data-cta-tone')).toBe('selected')
+    expect(candidateActions[0]?.attributes('data-candidate-status')).toBe('saved')
+    expect(candidateActions[1]?.attributes('data-candidate-status')).toBe('available')
 
-    await wrapper.findAll('.point-summary-card__candidate-action')[0]?.trigger('click')
+    await candidateActions[0]?.trigger('click')
 
     expect(wrapper.emitted('confirmCandidate')?.[0]?.[0]).toMatchObject({
       cityId: 'jp-kyoto'
@@ -175,15 +185,20 @@ describe('PointSummaryCard', () => {
 
     const scrollRegion = wrapper.get('.point-summary-card__scroll-region')
     const footer = wrapper.get('.point-summary-card__footer')
+    const root = wrapper.get('[data-region="point-summary-card"]')
+    const primaryAction = wrapper.get('.point-summary-card__action--primary')
 
     expect(wrapper.text()).toContain('保存为地点')
     expect(wrapper.text()).toContain('查看详情')
     expect(wrapper.text()).toContain('点亮状态')
+    expect(root.attributes('data-summary-mode')).toBe('detected-preview')
+    expect(root.attributes('data-record-source')).toBe('detected')
     expect(scrollRegion.text()).toContain('识别成功，下一阶段可补充地点内容。')
     expect(scrollRegion.text()).not.toContain('保存为地点')
     expect(footer.text()).toContain('保存为地点')
     expect(footer.text()).toContain('查看详情')
     expect(footer.text()).toContain('点亮状态')
+    expect(primaryAction.attributes('data-cta-tone')).toBe('selected')
 
     const actions = wrapper.findAll('.point-summary-card__action')
     await actions[0]?.trigger('click')
@@ -210,10 +225,14 @@ describe('PointSummaryCard', () => {
       }
     })
 
+    const root = wrapper.get('[data-region="point-summary-card"]')
+
     expect(wrapper.text()).toContain('查看详情')
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.text()).toContain('点亮状态')
     expect(wrapper.text()).toContain('删除地点')
+    expect(root.attributes('data-summary-mode')).toBe('view')
+    expect(root.attributes('data-record-source')).toBe('saved')
     expect(wrapper.get('[data-popup-section="header"]').text()).toContain('Kyoto')
     expect(wrapper.get('.point-summary-card__scroll-region').text()).not.toContain('查看详情')
     expect(wrapper.get('.point-summary-card__footer').text()).toContain('查看详情')
@@ -223,6 +242,8 @@ describe('PointSummaryCard', () => {
 
     expect(wrapper.get('.point-summary-card__footer').text()).toContain('删除地点：确认删除这个地点？')
     expect(confirmSpy).not.toHaveBeenCalled()
+    expect(actions[0]?.attributes('data-cta-tone')).toBe('selected')
+    expect(actions[actions.length - 1]?.attributes('data-cta-tone')).toBe('destructive')
 
     await wrapper.get('.point-summary-card__confirm-action').trigger('click')
 
@@ -244,14 +265,38 @@ describe('PointSummaryCard', () => {
     })
 
     expect(wrapper.text()).toContain('隐藏预置地点')
+    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-record-source')).toBe('seed')
 
     const actions = wrapper.findAll('.point-summary-card__action')
     await actions[actions.length - 1]?.trigger('click')
 
     expect(wrapper.text()).toContain('隐藏预置地点：确认隐藏这个预置地点？')
+    expect(actions[actions.length - 1]?.attributes('data-cta-tone')).toBe('destructive')
 
     await wrapper.get('.point-summary-card__confirm-action').trigger('click')
 
     expect(wrapper.emitted('hidePoint')).toHaveLength(1)
+  })
+
+  it('marks fallback and unsupported-boundary notices with fallback tone while keeping destructive confirm distinct', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint({
+            fallbackNotice: '当前仅能按国家/地区保留这个点位。'
+          }),
+          boundarySupportState: 'missing'
+        } satisfies SummarySurfaceState
+      }
+    })
+
+    const notices = wrapper.findAll('[data-notice-tone="fallback"]')
+
+    expect(notices).toHaveLength(2)
+    expect(notices[0]?.text()).toContain('当前仅能按国家/地区保留这个点位。')
+    expect(notices[1]?.text()).toContain('当前城市暂不支持边界高亮')
+    expect(wrapper.get('.point-summary-card__action--primary').attributes('data-cta-tone')).toBe('selected')
+    expect(wrapper.get('.point-summary-card__action--danger').attributes('data-cta-tone')).toBe('destructive')
   })
 })

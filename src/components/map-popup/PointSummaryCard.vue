@@ -39,6 +39,14 @@ const detailSurface = computed(() =>
 )
 const summaryPoint = computed(() => detailSurface.value?.point ?? null)
 const fallbackPoint = computed(() => candidateSurface.value?.fallbackPoint ?? null)
+const summaryMode = computed(() => props.surface.mode)
+const recordSource = computed(() => {
+  if (props.surface.mode === 'candidate-select') {
+    return props.surface.fallbackPoint.source ?? 'none'
+  }
+
+  return props.surface.point.source ?? 'none'
+})
 
 const candidateItems = computed<CandidateListItem[]>(() => {
   if (!candidateSurface.value || !fallbackPoint.value) {
@@ -75,6 +83,10 @@ const boundarySupportNotice = computed(() => {
 
   return '当前城市暂不支持边界高亮，将仅保存城市身份与文本信息'
 })
+
+function getCandidateStatus(statusHint: string) {
+  return statusHint === '已存在记录' ? 'saved' : 'available'
+}
 
 const destructiveLabel = computed(() => {
   if (!summaryPoint.value) {
@@ -160,7 +172,12 @@ function handleConfirmDestructiveAction() {
 </script>
 
 <template>
-  <article class="point-summary-card" data-region="point-summary-card">
+  <article
+    class="point-summary-card"
+    data-region="point-summary-card"
+    :data-summary-mode="summaryMode"
+    :data-record-source="recordSource"
+  >
     <header class="point-summary-card__header" data-popup-section="header">
       <p class="point-summary-card__badge">
         {{
@@ -190,10 +207,15 @@ function handleConfirmDestructiveAction() {
         <p
           v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
           class="point-summary-card__notice"
+          data-notice-tone="fallback"
         >
           {{ isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice }}
         </p>
-        <p v-if="boundarySupportNotice" class="point-summary-card__notice">
+        <p
+          v-if="boundarySupportNotice"
+          class="point-summary-card__notice"
+          data-notice-tone="fallback"
+        >
           {{ boundarySupportNotice }}
         </p>
 
@@ -213,6 +235,8 @@ function handleConfirmDestructiveAction() {
               v-for="item in candidateItems"
               :key="item.candidate.cityId"
               class="point-summary-card__candidate-action"
+              :data-candidate-status="getCandidateStatus(item.statusHint)"
+              data-cta-tone="selected"
               type="button"
               @click="handleCandidateConfirm(item.candidate)"
             >
@@ -237,13 +261,23 @@ function handleConfirmDestructiveAction() {
     <footer class="point-summary-card__footer" data-popup-section="footer">
       <div class="point-summary-card__actions">
         <template v-if="surface.mode === 'candidate-select'">
-          <button class="point-summary-card__action" type="button" @click="handleContinueWithFallback">
+          <button
+            class="point-summary-card__action point-summary-card__action--primary"
+            data-cta-tone="selected"
+            type="button"
+            @click="handleContinueWithFallback"
+          >
             按国家/地区继续记录
           </button>
         </template>
 
         <template v-else-if="surface.mode === 'detected-preview'">
-          <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleSaveDraft">
+          <button
+            class="point-summary-card__action point-summary-card__action--primary"
+            data-cta-tone="selected"
+            type="button"
+            @click="handleSaveDraft"
+          >
             保存为地点
           </button>
           <button class="point-summary-card__action" type="button" @click="handleOpenDrawer">
@@ -255,7 +289,12 @@ function handleConfirmDestructiveAction() {
         </template>
 
         <template v-else>
-          <button class="point-summary-card__action point-summary-card__action--primary" type="button" @click="handleOpenDrawer">
+          <button
+            class="point-summary-card__action point-summary-card__action--primary"
+            data-cta-tone="selected"
+            type="button"
+            @click="handleOpenDrawer"
+          >
             查看详情
           </button>
           <button class="point-summary-card__action" type="button" @click="handleEnterEdit">
@@ -267,6 +306,7 @@ function handleConfirmDestructiveAction() {
           <button
             v-if="destructiveLabel"
             class="point-summary-card__action point-summary-card__action--danger"
+            data-cta-tone="destructive"
             type="button"
             @click="handleRequestDestructiveAction"
           >
@@ -278,10 +318,20 @@ function handleConfirmDestructiveAction() {
       <div v-if="destructivePrompt" class="point-summary-card__confirm-row">
         <p class="point-summary-card__confirm-copy">{{ destructivePrompt }}</p>
         <div class="point-summary-card__confirm-actions">
-          <button class="point-summary-card__confirm-action" type="button" @click="handleConfirmDestructiveAction">
+          <button
+            class="point-summary-card__confirm-action"
+            data-cta-tone="selected"
+            type="button"
+            @click="handleConfirmDestructiveAction"
+          >
             确认
           </button>
-          <button class="point-summary-card__confirm-cancel" type="button" @click="resetInlineConfirm">
+          <button
+            class="point-summary-card__confirm-cancel"
+            data-cta-tone="destructive"
+            type="button"
+            @click="resetInlineConfirm"
+          >
             取消
           </button>
         </div>
@@ -298,11 +348,10 @@ function handleConfirmDestructiveAction() {
   gap: var(--space-md);
   min-height: 0;
   padding: var(--space-lg);
-  border: 1px solid rgba(143, 117, 80, 0.36);
-  background:
-    linear-gradient(180deg, rgba(252, 247, 236, 0.96), rgba(240, 225, 197, 0.96)),
-    var(--color-surface);
-  box-shadow: 0 14px 30px rgba(73, 49, 31, 0.12);
+  border: 1px solid rgba(199, 171, 200, 0.56);
+  border-radius: var(--radius-surface);
+  background: linear-gradient(180deg, rgba(255, 252, 253, 0.96), rgba(232, 244, 251, 0.94));
+  box-shadow: var(--shadow-surface);
   overflow: hidden;
 }
 
@@ -337,8 +386,10 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__badge {
   width: fit-content;
   padding: 0.3rem 0.6rem;
-  border: 1px solid rgba(200, 100, 59, 0.55);
-  color: var(--color-accent);
+  border: 1px solid rgba(244, 143, 177, 0.42);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 220, 232, 0.72);
+  color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
@@ -361,8 +412,21 @@ function handleConfirmDestructiveAction() {
 }
 
 .point-summary-card__notice,
-.point-summary-card__candidate-cta,
 .point-summary-card__confirm-copy {
+  color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-weight-label);
+  line-height: var(--font-label-line-height);
+}
+
+.point-summary-card__notice {
+  padding: 0.7rem 0.85rem;
+  border: 1px dashed rgba(184, 198, 217, 0.84);
+  border-radius: var(--radius-control);
+  background: rgba(238, 243, 248, 0.96);
+}
+
+.point-summary-card__candidate-cta {
   color: var(--color-accent);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
@@ -402,8 +466,9 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__confirm-action,
 .point-summary-card__confirm-cancel {
   min-height: 44px;
-  border: 1px solid rgba(143, 117, 80, 0.38);
-  background: rgba(252, 247, 236, 0.92);
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-control);
+  background: rgba(255, 250, 252, 0.92);
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
 }
@@ -413,14 +478,33 @@ function handleConfirmDestructiveAction() {
 }
 
 .point-summary-card__candidate-action {
+  position: relative;
   justify-items: start;
   padding: 0.85rem 0.95rem;
+  gap: var(--space-xs);
   text-align: left;
   cursor: pointer;
 }
 
+.point-summary-card__candidate-action[data-candidate-status='saved'] {
+  border-color: rgba(132, 199, 216, 0.76);
+  background: rgba(223, 244, 248, 0.9);
+}
+
+.point-summary-card__candidate-action[data-candidate-status='available'] {
+  background: rgba(255, 250, 252, 0.92);
+}
+
 .point-summary-card__candidate-city {
   font-weight: var(--font-weight-label);
+}
+
+.point-summary-card__candidate-hint {
+  color: var(--color-ink-muted);
+}
+
+.point-summary-card__candidate-action[data-candidate-status='saved'] .point-summary-card__candidate-hint {
+  color: color-mix(in srgb, var(--color-state-saved) 70%, var(--color-ink-strong) 30%);
 }
 
 .point-summary-card__actions {
@@ -436,18 +520,25 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__confirm-action,
 .point-summary-card__confirm-cancel {
   padding: 0.75rem 0.95rem;
+  font-weight: var(--font-weight-label);
   cursor: pointer;
 }
 
 .point-summary-card__action--primary,
 .point-summary-card__confirm-action {
-  border-color: rgba(200, 100, 59, 0.48);
-  color: var(--color-accent);
+  border-color: rgba(244, 143, 177, 0.56);
+  background: rgba(255, 220, 232, 0.88);
+  color: var(--color-ink-strong);
 }
 
 .point-summary-card__action--danger {
-  border-color: rgba(141, 62, 47, 0.42);
-  color: var(--color-danger);
+  border-color: rgba(200, 100, 100, 0.48);
+  background: rgba(255, 243, 244, 0.94);
+  color: var(--color-destructive);
+}
+
+.point-summary-card__confirm-cancel {
+  color: var(--color-destructive);
 }
 
 .point-summary-card__input:focus-visible,

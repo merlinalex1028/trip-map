@@ -121,8 +121,12 @@ defineExpose({
   min-width: var(--map-context-popup-min-width);
   max-width: var(--map-context-popup-max-width);
   min-height: 0;
+  padding: 0.3rem;
+  border: 1px solid rgba(199, 171, 200, 0.52);
+  border-radius: calc(var(--radius-surface) + 4px);
+  background: linear-gradient(180deg, rgba(255, 250, 252, 0.96), rgba(232, 244, 251, 0.92));
   overflow: hidden;
-  filter: drop-shadow(0 18px 28px rgba(73, 49, 31, 0.16));
+  box-shadow: var(--shadow-stage);
 }
 
 .map-context-popup__body {
@@ -131,6 +135,7 @@ defineExpose({
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
+  border-radius: var(--radius-surface);
 }
 
 .map-context-popup__arrow {
@@ -139,9 +144,9 @@ defineExpose({
   top: 100%;
   width: 1rem;
   height: 1rem;
-  border-right: 1px solid rgba(200, 100, 59, 0.4);
-  border-bottom: 1px solid rgba(200, 100, 59, 0.4);
-  background: color-mix(in srgb, var(--color-surface) 90%, white 10%);
+  border-right: 1px solid rgba(199, 171, 200, 0.52);
+  border-bottom: 1px solid rgba(199, 171, 200, 0.52);
+  background: linear-gradient(180deg, rgba(255, 250, 252, 0.96), rgba(232, 244, 251, 0.92));
   transform: translateY(-50%) rotate(45deg);
 }
 
