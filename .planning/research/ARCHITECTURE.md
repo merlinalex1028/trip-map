@@ -1,241 +1,445 @@
-# Architecture Patterns: 旅行世界地图 v2.0
+# Architecture Research
 
-**Domain:** 既有 `Vue 3 + Vite + TypeScript` 旅行地图 SPA 的 v2 增量架构
-**Researched:** 2026-03-25
-**Scope:** 仅覆盖城市优先选择、真实城市边界高亮、浮层详情、二次元可爱重设计的集成点
+**Domain:** 旅行地图 v3.0 的 `monorepo + TypeScript server + 中国市级 / 海外一级行政区` 集成架构
+**Researched:** 2026-03-27
 **Confidence:** HIGH
 
-## Recommended Integration
+## Standard Architecture
 
-v2 不要推翻 v1 的 `WorldMapStage -> geo lookup -> map-points -> drawer` 主链路，而是把“地点识别”和“点位创建”拆成两个阶段：
-
-```text
-地图交互
-  -> 解析为 DestinationSelection（城市优先，其次地区/国家）
-  -> map-ui 持有高亮 / popup / transient selection
-  -> 用户确认后才进入 map-points draft / saved 生命周期
-  -> drawer 负责完整详情与编辑
-```
-
-核心原则：
-
-- `map-points` 继续只管持久化点位、draft、view/edit 生命周期，不接管 hover、边界高亮、popup 锚点。
-- `map-ui` 扩展为地图瞬时交互状态中心，负责当前命中的 destination、边界高亮、popup 开关和 notice。
-- 地理边界几何保持为静态只读资产，运行时只引用 `destinationId` / `boundaryId`，绝不把 polygon 写入 `localStorage`。
-
-## New Vs Modified Pieces
-
-### New
-
-| Piece | Type | Responsibility |
-|------|------|----------------|
-| `src/data/geo/city-destinations.index.json` | 数据资产 | 城市级 canonical index；包含 `destinationId`、`countryCode`、`regionName`、`bbox`、`centroid`、`labelAnchor`、`geometryShard` |
-| `src/data/geo/city-boundaries/*.json` | 数据资产 | 经过简化的城市边界几何分片，仅用于命中和高亮渲染 |
-| `src/services/destination-lookup.ts` | 服务 | 在现有国家/地区识别之上补齐“城市优先”的 canonical destination 解析 |
-| `src/services/city-boundary-loader.ts` | 服务 | 按需加载当前选中城市的边界 shard，控制包体与首屏成本 |
-| `src/components/CityBoundaryLayer.vue` | 组件 | 渲染 hover/selected 城市边界高亮，不承载业务判断 |
-| `src/components/MapSelectionPopup.vue` | 组件 | 地图上的轻量详情浮层，展示名称、国家/地区、状态摘要与 CTA |
-| `src/components/MapStageDecorLayer.vue` | 组件 | 二次元可爱视觉装饰层；只做视觉，不参与命中 |
-
-### Modified
-
-| Piece | Current Role | v2 Modification |
-|------|--------------|-----------------|
-| `src/components/WorldMapStage.vue` | 点击底图后直接创建 `draftPoint` | 改为先生成 `DestinationSelection`，驱动 boundary highlight + popup，再由 CTA 进入 draft |
-| `src/components/SeedMarkerLayer.vue` | 渲染 marker 并直接选中点位 | 增加 popup 锚点事件；marker 点击优先打开 popup，drawer 由显式动作进入 |
-| `src/components/PointPreviewDrawer.vue` | 单一详情/编辑表面 | 改成“完整详情与编辑”表面；popup 负责轻量预览，drawer 负责 rich detail / edit |
-| `src/stores/map-ui.ts` | pending hit / notice / recognizing | 扩展为 transient destination selection、highlighted boundary、popup anchor、hover/pinned 状态 |
-| `src/stores/map-points.ts` | draft/view/edit/persist | 改为接受 canonical destination 创建 draft；保留现有 saved/seed 合并与编辑能力 |
-| `src/services/geo-lookup.ts` | 国家/地区识别 + 城市候选增强 | 下沉为 coarse lookup；城市最终命中交给 `destination-lookup`，避免一个文件同时承担粗识别和 UI 语义 |
-| `src/types/geo.ts` | 国家/城市识别结果类型 | 增加 destination/boundary 引用字段，区分 coarse result 与 canonical destination selection |
-| `src/types/map-point.ts` | 点位核心字段 | 增加 `destinationId`、`destinationKind`、`boundaryId`，但不存 geometry |
-| `src/services/point-storage.ts` | `version: 1` 快照 | 升级到 `version: 2`，提供从 v1 到 v2 的迁移与 lazy enrichment |
-| `src/App.vue` | stage + drawer 外壳 | 增加 popup 宿主、视觉皮肤容器 class、不同 surface 的层级协调 |
-
-## Data Assets And Contracts
-
-### Required New Assets
-
-| Asset | Minimum Fields | Notes |
-|------|----------------|------|
-| 城市索引 | `destinationId`, `name`, `countryCode`, `regionName`, `bbox`, `centroid`, `labelAnchor`, `geometryShard` | 作为命中、展示、popup 锚点的统一入口 |
-| 城市边界分片 | `boundaryId`, `destinationId`, `polygon/multipolygon`, `bbox` | 仅选中/hover 时按需加载，不跟点位数据耦合 |
-| 视觉主题 token | 颜色、字体、阴影、插画层 token | 视觉重构应落在 theme/token 层，不污染 geo/store 逻辑 |
-
-### Type Changes
-
-推荐引入两层语义，而不是继续复用 `DraftMapPoint` 承载一切：
-
-1. `CoarseGeoResult`
-   - 国家/地区命中结果
-   - 用于边界容错和 fallback
-2. `DestinationSelection`
-   - canonical 选择结果
-   - 至少包含：
-   - `destinationId`
-   - `destinationKind: 'city' | 'region' | 'country'`
-   - `boundaryId: string | null`
-   - `name`
-   - `countryName`
-   - `countryCode`
-   - `regionName`
-   - `lat/lng`
-   - `x/y`
-   - `precision`
-   - `fallbackNotice`
-   - `popupAnchor`
-
-`MapPointDisplay` / `PersistedMapPoint` 建议新增：
-
-- `destinationId: string | null`
-- `destinationKind: 'city' | 'region' | 'country'`
-- `boundaryId: string | null`
-
-这样 v2 的点位仍保持 v1 的 `lat/lng + x/y` 双坐标，同时能稳定关联到城市边界与 popup 展示语义。
-
-## State Flow Changes
-
-### 1. 城市优先选择流
+### System Overview
 
 ```text
-click map
-  -> WorldMapStage 计算 normalized point
-  -> geo-lookup 做 coarse country/region hit
-  -> destination-lookup 解析 canonical city/region/country
-  -> map-ui.setActiveSelection(selection)
-  -> CityBoundaryLayer 高亮真实城市边界
-  -> MapSelectionPopup 展示轻量详情
-  -> 用户点击“新建地点”后
-  -> map-points.startDraftFromSelection(selection)
-  -> PointPreviewDrawer 打开到 detected-preview / edit
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                  apps/web                                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  App Shell  │  LeafletMapStage  │  Summary Popup  │  Detail Drawer         │
+│      │      │        │           │        │        │        │               │
+│      └──────┴────────┴───────────┴────────┴────────┴────────┘               │
+│                               Pinia / Query Layer                            │
+│      map-ui      selection-store      trip-records-store      boundary-cache │
+└───────────────────────────────┬──────────────────────────────────────────────┘
+                                │ HTTP DTOs
+┌───────────────────────────────┴──────────────────────────────────────────────┐
+│                              packages/contracts                               │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ AdminArea IDs │ Resolve DTOs │ TripRecord DTOs │ Dataset version contracts  │
+└───────────────────────────────┬──────────────────────────────────────────────┘
+                                │ imports
+┌───────────────────────────────┴──────────────────────────────────────────────┐
+│                                 apps/server                                   │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Geo Resolve Module  │  Admin Areas Module  │  Trip Records Module          │
+│          │            │          │           │          │                    │
+│          └────────────┴──────────┴───────────┴──────────┘                    │
+│                     Geo Dataset Registry / Repository Layer                  │
+└───────────────────────┬───────────────────────────────┬──────────────────────┘
+                        │                               │
+         ┌──────────────┘                               └──────────────┐
+         │                                                           │
+┌────────▼────────┐                                         ┌────────▼────────┐
+│ Versioned Geo   │                                         │ Relational DB   │
+│ datasets        │                                         │ trip_records    │
+│ CN city / admin │                                         │ users(optional) │
+│ overseas admin1 │                                         │                 │
+└─────────────────┘                                         └─────────────────┘
 ```
 
-与 v1 的关键变化：点击地图不再立刻制造 `draftPoint`。先有 `selection`，再由显式动作创建 draft，才能让 popup、边界高亮和后续 drawer 不互相打架。
+### Component Responsibilities
 
-### 2. 已有点位选择流
+| Component | Responsibility | Typical Implementation |
+|-----------|----------------|------------------------|
+| `apps/web` map stage | 承载 Leaflet 地图、图层顺序、点击事件、弹层锚点与边界可视化 | Vue 3 SFC + Leaflet bridge component |
+| `apps/web` selection store | 管理当前点击命中、待解析状态、popup/drawer 协调、临时通知 | Pinia store，仅保存 UI 与临时领域状态 |
+| `apps/web` trip records store | 保存已加载旅行记录、触发点亮/取消点亮、承接 optimistic UI | Pinia store + API repository |
+| `apps/web` boundary cache | 缓存已请求过的 GeoJSON 边界，避免重复请求 | 内存 Map + 可选 session cache |
+| `packages/contracts` | 提供前后端共享的 area ID、DTO、枚举、错误码 | 纯 TypeScript types/constants |
+| `apps/server` geo resolve | 输入 `lat/lng`，输出“中国市级 / 海外 admin1” canonical area | NestJS module + read-only service |
+| `apps/server` admin areas | 查询 area 摘要、返回边界 GeoJSON、暴露数据集版本 | NestJS controller + dataset registry |
+| `apps/server` trip records | 用户点亮区域、读取记录、编辑备注/featured | NestJS controller + DB repository |
+
+## Recommended Project Structure
 
 ```text
-click marker
-  -> map-points.selectPointById(id)
-  -> map-ui.pinPopupToPoint(point)
-  -> popup 展示摘要
-  -> 用户点击“查看详情/编辑”
-  -> drawer 进入 view/edit
+apps/
+├── web/
+│   └── src/
+│       ├── app/                    # App shell、全局 providers、路由入口
+│       ├── features/
+│       │   ├── map/
+│       │   │   ├── components/     # LeafletMapStage、popup 宿主
+│       │   │   ├── layers/         # BoundaryHighlightLayer、TripMarkerLayer
+│       │   │   ├── stores/         # map-ui、map-selection、boundary-cache
+│       │   │   └── services/       # map adapters、popup anchoring
+│       │   └── trips/
+│       │       ├── components/     # drawer、summary card
+│       │       ├── stores/         # trip-records
+│       │       └── services/       # repository adapters
+│       ├── services/api/           # resolve-api、admin-area-api、trip-records-api
+│       └── types/                  # 仅保留纯前端 view-model
+├── server/
+│   └── src/
+│       ├── modules/
+│       │   ├── geo-resolve/        # lat/lng -> canonical area
+│       │   ├── admin-areas/        # area summary + geometry
+│       │   └── trip-records/       # CRUD / toggle visited state
+│       ├── dataset/                # 规范化后的 GeoJSON manifest、索引读取
+│       └── common/                 # config、errors、interceptors
+packages/
+├── contracts/                      # 前后端共享 DTO、enum、ID 规则
+└── geo-domain/                     # area kind、dataset version、normalizers
 ```
 
-不要把 marker 的 hover/popup 状态塞进 `map-points`。`map-points` 只需要知道哪个点位是 active；popup 是否显示、显示在哪里，应由 `map-ui` 控制。
+### Structure Rationale
 
-### 3. 抽屉与 popup 协调
+- **`apps/web`:** 保留现有 Vue 3 前端，但把“地图交互”和“旅行记录”拆成 feature 边界，避免继续由 [`map-points.ts`](/Users/huangjingping/i/trip-map/src/stores/map-points.ts) 单文件兼任所有职责。
+- **`apps/server`:** 新增 TypeScript 服务端，承接地理识别、边界提供和持久化，不把大体积 GeoJSON 和 canonical area 规则继续硬塞进前端包。
+- **`packages/contracts`:** 消除“前端猜 server 返回结构”的隐性耦合，尤其是 `areaId`、`areaKind`、`datasetVersion` 这类跨端关键字段。
+- **`packages/geo-domain`:** 共享领域常量与归一化规则，但不共享原始几何数据本体，避免 web bundle 被静态数据拖大。
 
-- popup 是轻量 surface：摘要、状态、CTA。
-- drawer 是重量 surface：长文本、编辑、删除、富内容扩展入口。
-- 任何进入 `drawerMode === 'edit'` 的动作，都应自动关闭 popup pinned 状态，避免两个表面同时争夺焦点。
+## Integration Strategy
 
-## Rendering Layers
+### Current Coupling To Break
 
-推荐 `WorldMapStage` 内部图层顺序：
+当前代码的主耦合链路是：
 
-1. `BaseMapLayer`
-   - 现有世界地图底图
-2. `DecorLayer`
-   - 二次元可爱主题的云朵、星屑、框饰、氛围图形
-   - 必须 `pointer-events: none`
-3. `CityBoundaryLayer`
-   - 当前 hover/selected destination 的边界填充与描边
-4. `PendingInteractionLayer`
-   - 识别中的 ring、命中反馈、anchor debug
-5. `MarkerLayer`
-   - seed/saved/draft markers
-6. `PopupLayer`
-   - 浮层详情；允许 pointer events
-7. `Drawer / global notices`
-   - 继续由 `App.vue` 级别宿主承载
+```text
+WorldMapStage
+  -> 本地 normalized x/y 转 lat/lng
+  -> 本地 geo-lookup
+  -> map-points 直接制造/复用 draft
+  -> point-storage 写入 localStorage
+  -> city-boundaries 本地查 GeoJSON 做整块高亮
+```
 
-关键约束：
+这条链路在 v2 可行，但对 v3 有三个结构性问题：
 
-- 城市边界高亮必须和 marker 分层，不能把 polygon 渲染塞进 marker 组件。
-- 视觉重设计的 decorative elements 必须位于交互层下方，否则会破坏命中区域。
-- popup 锚点优先使用 `selection.popupAnchor` / `labelAnchor`，不要直接用 polygon 几何中心，避免海岸线城市弹层漂到水面上。
+1. [`WorldMapStage.vue`](/Users/huangjingping/i/trip-map/src/components/WorldMapStage.vue) 同时承担地图引擎、地理识别入口、边界渲染与业务状态切换，改成 Leaflet 后会继续膨胀。
+2. [`map-points.ts`](/Users/huangjingping/i/trip-map/src/stores/map-points.ts) 既管领域对象，又管持久化，又管“候选城市确认”，不适合接远程 API。
+3. [`point-storage.ts`](/Users/huangjingping/i/trip-map/src/services/point-storage.ts)、[`geo-lookup.ts`](/Users/huangjingping/i/trip-map/src/services/geo-lookup.ts)、[`city-boundaries.ts`](/Users/huangjingping/i/trip-map/src/services/city-boundaries.ts) 都默认“前端即数据源”，与全栈化目标冲突。
 
-## UI Surface Contract
+### Recommended Domain Pivot
 
-| Surface | Purpose | Source Of Truth |
-|--------|---------|-----------------|
-| `MapSelectionPopup` | 轻量预览、快速 CTA、桌面 hover/tap 反馈 | `map-ui.activeSelection` 或 `map-ui.popupPointId` |
-| `PointPreviewDrawer` | 完整详情、编辑、删除、未来富内容扩展 | `map-points.activePoint` + `drawerMode` |
-| 顶部 notice | 错误、fallback、识别提示 | `map-ui.interactionNotice` |
+v3 不应继续围绕“点位 point”建模，而应切到“行政区 area + 用户记录 record”：
 
-推荐交互规则：
+- `ResolvedAreaSelection`
+  - 表示一次点击后的 canonical 结果
+  - 字段建议：`clickedLatLng`、`areaId`、`areaKind`、`name`、`countryCode`、`countryName`、`parentName`、`centroid`、`datasetVersion`、`matchConfidence`、`recordState`
+- `TripRecord`
+  - 表示用户是否点亮某个行政区，以及补充说明
+  - 字段建议：`id`、`areaId`、`areaKind`、`note`、`isFeatured`、`createdAt`、`updatedAt`
 
-- 桌面端 hover 可以预览 popup，但只有 click/tap 后才 pin。
-- 移动端不依赖 hover；tap 直接 pin popup，再由 CTA 进入 drawer。
-- drawer 打开时，地图仍保持 boundary/marker 选中态，避免用户失去空间上下文。
+这比沿用当前 [`MapPointDisplay`](/Users/huangjingping/i/trip-map/src/types/map-point.ts) 更合适，因为新语义的核心不再是“一个任意 marker 点”，而是“一个被点亮的中国市或海外一级行政区”。
 
-## Persistence And Migration
+## New Vs Modified Areas
 
-### Storage
+### New Modules And Services
 
-- `POINT_STORAGE_KEY` 应升级为 `trip-map:point-state:v2`
-- 快照版本升级为 `version: 2`
-- 新增字段只存引用：
-  - `destinationId`
-  - `destinationKind`
-  - `boundaryId`
+| Area | New Module | Responsibility |
+|------|------------|----------------|
+| Monorepo | `apps/web` | 承载现有前端并为后续目录重构提供宿主 |
+| Monorepo | `apps/server` | 新增 TypeScript backend 服务 |
+| Shared | `packages/contracts` | 共享 `ResolveAreaRequest/Response`、`TripRecordDto`、`AreaSummaryDto` |
+| Shared | `packages/geo-domain` | 共享 `areaKind`、`datasetVersion`、行政区 ID 规则 |
+| Server | `modules/geo-resolve` | 根据点击坐标返回“中国市级 / 海外 admin1”命中结果 |
+| Server | `modules/admin-areas` | 返回 area 摘要、GeoJSON 边界、版本元信息 |
+| Server | `modules/trip-records` | 点亮/取消点亮、查询列表、编辑备注 |
+| Server | `dataset/registry` | 统一读取 DataV.GeoAtlas 与 Natural Earth 预处理产物 |
+| Web | `features/map/stores/map-selection` | 管理当前选中行政区、pending 状态、popup 锚点 |
+| Web | `features/map/stores/boundary-cache` | 缓存已请求的边界 GeoJSON |
+| Web | `services/api/resolve-api` | 调用 server 的 area resolve 接口 |
+| Web | `services/api/admin-area-api` | 获取 area 摘要和边界 |
+| Web | `services/api/trip-records-api` | 获取和更新旅行记录 |
+| Web | `features/map/layers/BoundaryHighlightLayer` | 在 Leaflet 上渲染已点亮与当前选中边界 |
+| Web | `features/map/components/LeafletMapStage` | 替换现有 SVG 地图舞台 |
 
-### Migration Strategy
+### Existing Modules Likely Modified
 
-1. 读取到 v1 快照时先迁移结构，不阻塞启动。
-2. 旧点位通过 `lat/lng` 做 lazy enrichment：
-   - 命中城市边界则补 `destinationId/boundaryId`
-   - 否则保留 `null`，继续按 v1 坐标展示
-3. 迁移失败不能丢点，只能降级为“无 boundary 引用的旧点位”
+| Existing Module | Current Role | v3 Modification |
+|-----------------|-------------|-----------------|
+| [`src/App.vue`](/Users/huangjingping/i/trip-map/src/App.vue) | 应用壳层 + notice + stage 宿主 | 基本保留；改为挂载 `apps/web` 新 feature 结构和全局 query/provider |
+| [`src/components/WorldMapStage.vue`](/Users/huangjingping/i/trip-map/src/components/WorldMapStage.vue) | SVG 底图、点击识别、边界高亮、popup 锚点 | 重写为 Leaflet 宿主，移除本地 `geo-lookup` 和 SVG 投影逻辑 |
+| [`src/components/SeedMarkerLayer.vue`](/Users/huangjingping/i/trip-map/src/components/SeedMarkerLayer.vue) | marker 渲染和点选 | 改为 Leaflet marker layer，或按需求拆成 `TripMarkerLayer` 与 `SelectionMarkerLayer` |
+| [`src/components/map-popup/MapContextPopup.vue`](/Users/huangjingping/i/trip-map/src/components/map-popup/MapContextPopup.vue) | summary surface 宿主 | 继续保留，但输入改为 `ResolvedAreaSelection + TripRecordState` |
+| [`src/components/map-popup/PointSummaryCard.vue`](/Users/huangjingping/i/trip-map/src/components/map-popup/PointSummaryCard.vue) | 城市候选确认 + 详情摘要 | 改为 area 摘要 + 名称右侧点亮/取消点亮动作，不再内建本地城市搜索 |
+| [`src/components/PointPreviewDrawer.vue`](/Users/huangjingping/i/trip-map/src/components/PointPreviewDrawer.vue) | 详情查看与编辑 | 保留表面职责，但编辑对象从 `MapPointDisplay` 切到 `TripRecord` |
+| [`src/stores/map-ui.ts`](/Users/huangjingping/i/trip-map/src/stores/map-ui.ts) | pending hit / notice / recognizing | 保留为纯 UI store，扩展为 map viewport、pending request、surface 协调 |
+| [`src/stores/map-points.ts`](/Users/huangjingping/i/trip-map/src/stores/map-points.ts) | seed/local/saved 合并 + draft 生命周期 + storage 编排 | 拆成 `map-selection` 与 `trip-records` 两个 store，去掉 localStorage 编排主责 |
+| [`src/services/geo-lookup.ts`](/Users/huangjingping/i/trip-map/src/services/geo-lookup.ts) | 前端本地识别 | 下沉到 server；web 仅保留 API client |
+| [`src/services/city-search.ts`](/Users/huangjingping/i/trip-map/src/services/city-search.ts) | 本地城市候选搜索 | 删除或迁到 server resolve 流程，不再作为主要确认路径 |
+| [`src/services/city-boundaries.ts`](/Users/huangjingping/i/trip-map/src/services/city-boundaries.ts) | 直接读取本地 GeoJSON | 改为 `admin-area-api + boundary-cache`，由 server 控制边界版本 |
+| [`src/services/point-storage.ts`](/Users/huangjingping/i/trip-map/src/services/point-storage.ts) | `localStorage` 快照持久化 | 降级为“旧数据迁移适配器”，不再是主存储 |
+| [`src/services/map-projection.ts`](/Users/huangjingping/i/trip-map/src/services/map-projection.ts) | SVG normalized 坐标系 | 从主链路移除，仅在旧数据迁移或回归测试时保留 |
+| [`src/types/map-point.ts`](/Users/huangjingping/i/trip-map/src/types/map-point.ts) | 点位领域模型 | 改造成 `selection` / `trip-record` / `view-model` 三层类型 |
+| [`src/types/geo.ts`](/Users/huangjingping/i/trip-map/src/types/geo.ts) | 前端识别与边界类型 | 拆分为 shared contracts + 前端 view-model types |
 
-这能保证 v2 上线时不破坏已有 `seed + localStorage overlay` 数据。
+## Architectural Patterns
 
-## Integration Risks
+### Pattern 1: Server-Owned Geo Semantics
 
-| Risk | Why It Matters | Mitigation |
-|------|----------------|-----------|
-| 城市边界数据过大 | 首屏慢、交互卡顿、移动端内存升高 | 几何简化、bbox index、按 shard 动态加载 |
-| 城市边界与现有投影不对齐 | 高亮轮廓和 marker 不重合，可信度直接下降 | 统一投影契约；对 seed 城市做 golden-point 对齐测试 |
-| popup 与 drawer 双状态冲突 | 容易出现一个显示旧 selection、一个显示新 activePoint | popup 状态留在 `map-ui`，进入 drawer 时显式同步/关闭 |
-| 识别即建 draft 的旧流程残留 | 会导致点击城市后同时出现 draft、popup、boundary 三套状态 | 先落 selection 模型，再改 draft 入口 |
-| 视觉重构侵入命中层 | 漂亮但不可点，回归 UX-01 类问题 | decorative layer 全部 `pointer-events: none`，交互热区保留独立层 |
+**What:** 行政区识别规则、边界版本和 canonical area ID 由 server 持有，web 通过 API 使用。
+**When to use:** 当 GeoJSON 体积大、数据源要统一版本、且识别语义涉及中国合规市级与海外 admin1 混合规则时。
+**Trade-offs:** server 复杂度上升，但可以显著降低前端 bundle 体积，并避免前后端对 area 语义理解不一致。
 
-## Recommended Build Order
+**Example:**
+```typescript
+// packages/contracts
+export interface ResolveAreaResponse {
+  clickedLatLng: { lat: number; lng: number }
+  area: {
+    areaId: string
+    areaKind: 'cn-city' | 'overseas-admin1'
+    name: string
+    countryCode: string
+    countryName: string
+    parentName: string | null
+    centroid: { lat: number; lng: number }
+    datasetVersion: string
+  } | null
+  recordState: 'lit' | 'unlit'
+}
+```
 
-1. **Destination schema + storage migration**
-   - 先定义 `DestinationSelection` / 点位新增字段 / v2 存储迁移
-   - 这是后续 geo、popup、drawer 的公共契约
-2. **城市边界资产管线**
-   - 准备 `city-destinations.index` 与 boundary shards
-   - 没有 canonical city 数据，后面的“城市优先”都只能停留在文案层
-3. **`destination-lookup` 服务改造**
-   - 把现有 coarse lookup 和最终 destination 解析拆开
-   - 保证点击地图时能稳定产出 selection，而不是直接 draft
-4. **`map-ui` 扩展 + `CityBoundaryLayer`**
-   - 先让地图能高亮真实边界，再做 popup
-   - 这样可以尽早验证 geo 数据与投影一致性
-5. **`MapSelectionPopup` + marker selection 协调**
-   - 把新轻量 surface 接入地图和 marker
-   - 明确 popup 与 drawer 的升级路径
-6. **`map-points` draft 创建入口调整**
-   - 将“创建点位”改为从 selection 显式进入
-   - 收敛 v1 直接建 draft 的旧逻辑
-7. **drawer 重构与视觉主题替换**
-   - 最后做 UI 表面统一和二次元可爱皮肤
-   - 此时 geo、selection、popup 已稳定，视觉改动不会遮盖核心问题
+### Pattern 2: Repository Seam For Local-To-API Migration
+
+**What:** 在 web 端引入 repository 接口，先用 local adapter 复刻旧行为，再切到 HTTP adapter。
+**When to use:** 需要保住现有 popup/drawer UI，但逐步把存储从 `localStorage` 迁到 server。
+**Trade-offs:** 早期会多一层抽象，但这是最稳的迁移缝。
+
+**Example:**
+```typescript
+export interface TripRecordsRepository {
+  list(): Promise<TripRecord[]>
+  lightUp(areaId: string): Promise<TripRecord>
+  unlight(areaId: string): Promise<void>
+  update(recordId: string, patch: { note: string; isFeatured: boolean }): Promise<TripRecord>
+}
+```
+
+### Pattern 3: Boundary Geometry By Reference, Not By Record
+
+**What:** 旅行记录只保存 `areaId`，边界 GeoJSON 通过 `areaId` 单独请求与缓存。
+**When to use:** 需要整块高亮，但不希望把 polygon 持久化进 DB 或前端 store。
+**Trade-offs:** 首次选中某区域需要额外请求；换来更稳定的数据版本控制和更小的记录模型。
+
+## Data Flow
+
+### Request Flow
+
+```text
+[User Clicks Leaflet Map]
+    ↓
+[LeafletMapStage]
+    ↓
+[map-selection store sets pending lat/lng]
+    ↓
+[resolve-api]
+    ↓
+[server geo-resolve module]
+    ↓
+[dataset registry]
+    ↓
+[ResolveAreaResponse]
+    ↓
+[selection store updates current area]
+    ↓
+[boundary-cache fetches geometry if needed]
+    ↓
+[BoundaryHighlightLayer + popup render]
+```
+
+### State Management
+
+```text
+map-ui store
+  -> viewport / popup anchor / notices / pending request
+
+map-selection store
+  -> current resolved area / selected area / boundary fetch state
+
+trip-records store
+  -> server-backed lit areas / optimistic toggle state / drawer editing state
+```
+
+### Key Data Flows
+
+1. **地图点击识别流**
+   - 用户点击 Leaflet
+   - web 只保留 `lat/lng` 与 pending UI
+   - server 返回 canonical `areaId`
+   - web 再按需拉取 boundary GeoJSON
+   - popup 和 drawer 读取同一个 `selection + recordState`
+
+2. **点亮/取消点亮流**
+   - popup 或 drawer 点击名称右侧 action
+   - `trip-records store` 发起 `PUT /trip-records/areas/:areaId` 或 `DELETE /trip-records/areas/:areaId`
+   - 成功后更新已点亮 area 集合
+   - `BoundaryHighlightLayer` 立即根据 `areaId` 集合刷新高亮
+
+3. **应用启动加载流**
+   - web 启动后先读取 server trip records
+   - 再懒加载已在视口内或当前选中的边界
+   - 旧 `localStorage` 若存在，仅作为一次性 migration source，而不是持续 overlay
+
+4. **旧数据迁移流**
+   - 读取旧快照中的点位
+   - 调用 server enrichment：按 `lat/lng` 映射到新的 `areaId`
+   - 成功映射则生成 `TripRecord`
+   - 失败映射则保留在本地 migration report，不直接污染主记录表
+
+## Frontend-Only Data Vs Backend-Owned Data
+
+### Frontend-Only
+
+| Data | Why It Stays In Web |
+|------|---------------------|
+| 地图 viewport、zoom、当前 popup anchor | 纯展示状态，不需要跨设备同步 |
+| pending click、loading/error notice | 瞬时 UI 状态 |
+| boundary GeoJSON 缓存 | 只是网络缓存，不是事实来源 |
+| drawer 打开模式、当前编辑草稿 | 表单临时态 |
+| dev/demo seed data | 如果保留，只能作为开发或演示 fixture，不再是产品主数据源 |
+
+### Backend-Owned
+
+| Data | Why It Belongs To Server |
+|------|--------------------------|
+| `areaId` 体系与行政区层级规则 | 必须统一“中国市级 / 海外 admin1”语义 |
+| resolve 结果与候选逻辑 | 命中规则不能在 web/server 各算一套 |
+| GeoJSON 数据集版本与边界清单 | 需要合规、可替换、可追踪版本 |
+| 用户 trip records | 这是系统记录，不应继续依赖浏览器本地快照 |
+| area summary 元数据 | 名称、父级、国家信息需和边界版本保持一致 |
+
+### Shared But Not Source Of Truth
+
+| Data | Role |
+|------|------|
+| DTO/type definitions | 共享契约，不是实际存储 |
+| `areaKind` / error code / datasetVersion 常量 | 防止跨端魔法字符串漂移 |
+
+## Migration Seams
+
+### Seam 1: `map-points` -> `trip-records repository`
+
+先不要直接把所有 UI 改成 server-first。更稳的做法是：
+
+- 第一步：保留当前 popup / drawer 入口
+- 第二步：把 [`map-points.ts`](/Users/huangjingping/i/trip-map/src/stores/map-points.ts) 的持久化部分抽到 repository
+- 第三步：先接 `LocalStorageTripRecordsRepository`
+- 第四步：再切成 `HttpTripRecordsRepository`
+
+这样 UI 逻辑不需要和后端接入同时重写。
+
+### Seam 2: `geo-lookup` -> `resolve-api`
+
+- 现有 [`WorldMapStage.vue`](/Users/huangjingping/i/trip-map/src/components/WorldMapStage.vue) 里 `handleMapClick` 先改成“只取 Leaflet click 的 `lat/lng`”
+- 把本地 `lookupCountryRegionByCoordinates` 替换成 `resolve-api.resolve(lat, lng)`
+- 这样即使 Leaflet 尚未完全切完，也能先把识别责任迁到 server
+
+### Seam 3: `city-boundaries` -> `boundary-cache`
+
+- 现有 [`city-boundaries.ts`](/Users/huangjingping/i/trip-map/src/services/city-boundaries.ts) 直接读本地 GeoJSON
+- v3 应改成 `boundary-cache.get(areaId)`，内部没有就请求 server
+- `BoundaryHighlightLayer` 只认 `GeoJSONFeatureCollection`，不关心数据来自本地还是远端
+
+### Seam 4: `point-storage` -> one-time migration adapter
+
+- [`point-storage.ts`](/Users/huangjingping/i/trip-map/src/services/point-storage.ts) 不应继续做长期 overlay
+- 它在 v3 最合理的角色是：
+  - 读取旧版快照
+  - 生成 migration candidates
+  - 完成迁移后退出主运行时路径
+
+## Suggested Build Order
+
+1. **Monorepo skeleton + shared contracts**
+   - 先把现有前端搬到 `apps/web`
+   - 新建 `apps/server` 和 `packages/contracts`
+   - 这是所有后续模块能稳定联调的基础
+
+2. **Canonical area model + dataset registry**
+   - 先定义 `areaId`、`areaKind`、`datasetVersion`
+   - 把中国市级与海外 admin1 的预处理结果统一成同一套摘要结构
+   - 这是整个 milestone 风险最高、也最值得先验证的依赖
+
+3. **Server read-only geo APIs**
+   - 先做 `resolve`、`area summary`、`boundary geometry` 三类只读接口
+   - 不要一开始就把 DB、鉴权、写接口全部捆在一起
+   - 这样能尽早验证行政区命中与 Leaflet 边界渲染是否成立
+
+4. **Web map engine switch to Leaflet**
+   - 用 read-only geo APIs 驱动新 `LeafletMapStage`
+   - 保留现有 popup / drawer 风格与主交互表面
+   - 先打通“点击 -> 命中 -> 高亮 -> 查看”的主链路
+
+5. **Trip records persistence module**
+   - 在 server 落 trip record 表与接口
+   - web 的 `trip-records repository` 从 local adapter 切到 HTTP adapter
+   - 点亮/取消点亮动作此时再接入真正后端写链路
+
+6. **Legacy local migration and cleanup**
+   - 读取旧 `localStorage` 快照做一次性导入
+   - 清理 `map-projection.ts`、`geo-lookup.ts`、`city-search.ts` 在主链路中的遗留调用
+   - 最后再移除旧的 `seed + overlay` 主存储路径
+
+## Anti-Patterns
+
+### Anti-Pattern 1: 继续把 GeoJSON 和识别逻辑塞在前端
+
+**What people do:** 只是把底图从 SVG 换成 Leaflet，但仍让 web 本地读取所有边界并自己做 resolve。
+**Why it's wrong:** 包体会继续膨胀，合规数据和版本也无法由 server 统一治理，前后端迟早会出现 area 语义漂移。
+**Do this instead:** web 只负责地图交互；server 持有 canonical area 规则与边界数据。
+
+### Anti-Pattern 2: 保留“point-centric” 记录模型不动
+
+**What people do:** 继续以 `point.id/x/y` 作为主键，仅额外挂一个 `boundaryId`。
+**Why it's wrong:** v3 的核心语义是行政区是否点亮，不再是一个任意落点 marker；继续 point-centric 会把“一个行政区多个点”“取消点亮动作”都做乱。
+**Do this instead:** 改为 `TripRecord(areaId)`，marker 只是视图投影，不是领域主键。
+
+### Anti-Pattern 3: 一步到位同时重写地图、后端、数据迁移
+
+**What people do:** 试图在一个阶段里同时切 monorepo、Leaflet、server、DB、旧数据导入。
+**Why it's wrong:** 出问题时无法定位是地图、数据集、接口还是迁移造成的。
+**Do this instead:** 先切 read-only geo 主链路，再切写链路，最后做迁移收尾。
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| 阿里云 `DataV.GeoAtlas` 数据产物 | 预处理后进入 server dataset registry | 不建议直接在浏览器端消费原始数据源 |
+| `Natural Earth` admin1 数据 | 预处理后进入 server dataset registry | 与中国市级数据统一成同一份 `AreaSummary` 契约 |
+| Leaflet | 仅作为 web 地图引擎 | 领域判断不能写进 Leaflet layer 本身 |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `apps/web` ↔ `apps/server` | HTTP + shared DTOs | 不允许 web 直接 import server dataset files |
+| `selection store` ↔ `trip-records store` | store action / computed state | `selection` 管“当前命中”，`trip-records` 管“用户是否点亮” |
+| `BoundaryHighlightLayer` ↔ `boundary-cache` | composable / service | 图层只渲染，不负责请求策略 |
+| `popup/drawer` ↔ `trip-records repository` | store actions | UI 不直接写 HTTP 调用 |
+| `dataset registry` ↔ `trip-records module` | shared area ID lookup | trip record 只存 area 引用，不存 geometry |
 
 ## Sources
 
 - [PROJECT.md](/Users/huangjingping/i/trip-map/.planning/PROJECT.md)
-- [STATE.md](/Users/huangjingping/i/trip-map/.planning/STATE.md)
-- [v1.0-REQUIREMENTS.md](/Users/huangjingping/i/trip-map/.planning/milestones/v1.0-REQUIREMENTS.md)
+- [package.json](/Users/huangjingping/i/trip-map/package.json)
+- [pnpm-workspace.yaml](/Users/huangjingping/i/trip-map/pnpm-workspace.yaml)
 - [App.vue](/Users/huangjingping/i/trip-map/src/App.vue)
 - [WorldMapStage.vue](/Users/huangjingping/i/trip-map/src/components/WorldMapStage.vue)
-- [SeedMarkerLayer.vue](/Users/huangjingping/i/trip-map/src/components/SeedMarkerLayer.vue)
 - [PointPreviewDrawer.vue](/Users/huangjingping/i/trip-map/src/components/PointPreviewDrawer.vue)
+- [MapContextPopup.vue](/Users/huangjingping/i/trip-map/src/components/map-popup/MapContextPopup.vue)
+- [PointSummaryCard.vue](/Users/huangjingping/i/trip-map/src/components/map-popup/PointSummaryCard.vue)
+- [SeedMarkerLayer.vue](/Users/huangjingping/i/trip-map/src/components/SeedMarkerLayer.vue)
 - [map-points.ts](/Users/huangjingping/i/trip-map/src/stores/map-points.ts)
 - [map-ui.ts](/Users/huangjingping/i/trip-map/src/stores/map-ui.ts)
 - [geo-lookup.ts](/Users/huangjingping/i/trip-map/src/services/geo-lookup.ts)
 - [point-storage.ts](/Users/huangjingping/i/trip-map/src/services/point-storage.ts)
+- [city-boundaries.ts](/Users/huangjingping/i/trip-map/src/services/city-boundaries.ts)
+- [map-projection.ts](/Users/huangjingping/i/trip-map/src/services/map-projection.ts)
+- [map-point.ts](/Users/huangjingping/i/trip-map/src/types/map-point.ts)
+- [geo.ts](/Users/huangjingping/i/trip-map/src/types/geo.ts)
+
+---
+*Architecture research for: 全栈化与行政区地图重构*
+*Researched: 2026-03-27*

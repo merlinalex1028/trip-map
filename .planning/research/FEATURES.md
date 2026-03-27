@@ -1,120 +1,179 @@
-# Feature Landscape: 旅行世界地图 v2.0
+# Feature Research
 
-**Scope:** 仅覆盖本 milestone 新增能力：城市优先选择、真实城市边界高亮、浮动 popup 详情、原创二次元可爱视觉改版
-**Researched:** 2026-03-25
-**Overall confidence:** MEDIUM
+**Domain:** 旅行地图 v3.0 全栈化与行政区地图重构
+**Researched:** 2026-03-27
+**Confidence:** MEDIUM-HIGH
 
 ## Scope Guardrails
 
-- 复用 `v1` 已有世界地图、点位 CRUD、本地持久化、响应式 drawer。
-- 本文件不覆盖富内容、同步、分享、账号、社交、统计系统。
-- 目标是把“城市级选择体验”做成主交互，而不是把产品扩成通用地图平台。
+- 只覆盖本 milestone 新增能力：`web/server` monorepo、选定职责后移到 API、中国市级 vs 海外一级行政区语义、`Leaflet` 渲染、地点面板内联点亮/取消点亮。
+- 默认复用已交付的桌面主链路：城市/地点选中、popup + drawer 分工、本地交互节奏、可爱风视觉方向。
+- 目标是做一次“边界清晰的全栈增量”，不是把产品扩成 GIS 平台、地图编辑器或完整云平台。
 
-## Table Stakes
+## Feature Landscape
 
-| Theme | Feature | User-facing behavior | Complexity | Prerequisites | Notes |
-|-------|---------|----------------------|------------|---------------|-------|
-| 城市优先选择 | 城市候选优先入口 | 用户可以从城市候选或搜索结果开始选点，也可以点地图后优先获得城市级候选，而不是被迫精准点击极小区域 | MEDIUM | 城市数据索引、名称标准化 | 同类旅行记录产品普遍支持按城市检索或直接标记城市 |
-| 城市优先选择 | 明确的城市失败回退 | 当系统无法可靠命中城市时，必须明确提示并回退到国家/地区级，而不是静默创建错误城市 | HIGH | 城市命中置信度、回退规则 | 这是从 `v1` 国家级识别升级到城市优先时的可信度底线 |
-| 城市优先选择 | 同名城市消歧 | 同名城市或边界附近点击时，用户可以看到带国家/州信息的候选列表并确认最终城市 | HIGH | 稳定 `cityId`、所属上级区域元数据 | 没有消歧，城市优先会快速失去可信度 |
-| 城市优先选择 | 已有城市复用 | 用户再次选中已记录城市时，系统优先回到现有点位或进入编辑，而不是盲目创建重复记录 | MEDIUM | 城市 identity 映射、已有点位索引 | 这是城市级产品比国家级更容易暴露的重复问题 |
-| 边界高亮 | 真实城市面域高亮 | 选中城市后，地图高亮真实城市边界的填充和描边，而不是只亮一个 pin | HIGH | 城市边界 polygon 数据、选中态渲染层 | 这是本 milestone 最关键的“看得见的升级” |
-| 边界高亮 | 稳定的选中态切换 | hover、selected、关闭 popup、切换城市后，高亮状态切换一致且不会残留错误面域 | MEDIUM | 单一选中态源、边界 layer 状态管理 | 需要避免多处状态分别控制导致闪烁或残影 |
-| Popup 详情 | 轻量浮动摘要卡 | 选中城市后出现浮动 popup，展示城市名、国家/地区、访问状态、简介摘要等最小必要信息 | MEDIUM | 选中城市状态、popup 锚点策略 | popup 应该是“确认与预览”，不是完整编辑器 |
-| Popup 详情 | popup 到 drawer 的接力 | popup 内提供查看详情、编辑、切换状态等快捷动作，复杂编辑继续复用现有 drawer | MEDIUM | 与现有 drawer 的状态联动 | 这样能新增轻量反馈，又不复制一套表单 |
-| Popup 详情 | 小屏安全展示 | 在移动端，popup 必须自动避开边缘或退化为底部 peek 卡片，不能遮挡主要地图内容或跑出屏幕 | MEDIUM | 响应式定位、边界碰撞处理 | 地图产品的 popup 在移动端最容易出现遮挡问题 |
-| 可爱视觉改版 | 统一的视觉语言 | marker、边界高亮、popup、drawer、按钮、空状态要使用同一套颜色、圆角、插画和字体语气 | MEDIUM | 设计 token、组件样式收口 | 不统一就会像“旧 UI 上贴新皮肤” |
-| 可爱视觉改版 | 可爱但不牺牲可读性 | 新风格必须保留足够对比度、可点击热区、状态区分和地图可读性 | MEDIUM | 颜色与尺寸规范、可访问性检查 | 视觉改版不能压过地图交互本身 |
+### Table Stakes (Users Expect These)
 
-## Differentiators
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| `web` / `server` 可独立运行的 monorepo 拆分 | 既然 milestone 明确引入后端，用户和后续开发都默认前后端边界清楚，而不是继续把一切塞回前端 | MEDIUM | 最小可用形态应至少有两个 app 和一个共享契约层；共享内容优先放 `types/contracts/constants`，避免一开始就抽象共享业务逻辑 |
+| 旅行记录与点亮状态迁移到 API 持久化 | 如果已经引入服务端，最基本的写路径就不应继续只依赖浏览器本地覆盖层 | MEDIUM | 第一批后移职责通常只包含 place CRUD、illuminate/unilluminate、读取已保存记录；不要在同一里程碑把所有地理识别都一起搬走 |
+| 稳定的地点身份模型：`CN_CITY` vs `OVERSEAS_ADMIN1` | 这是新语义的核心；没有稳定 identity，前端高亮、后端存储、重复去重都会错位 | HIGH | 建议至少固化 `placeId`、`placeType`、`countryCode`、`displayName`、`boundaryId`；中国和海外必须显式区分层级，不能只靠名称猜测 |
+| 中国市级 / 海外一级行政区的明确选择与展示 | 这是本 milestone 对用户最直观的新承诺；缺失后产品语义会重新变模糊 | HIGH | 地点面板、popup、持久化模型都应明确显示层级；中国命中到市级，海外命中到 admin1，不混成“城市/地区”泛称 |
+| 明确的回退与消歧规则 | 行政区边界、同名地名和数据缺口在这类产品里是常态；没有回退规则，用户会直接失去信任 | HIGH | 中国需要处理同名市与上级行政区辅助信息；海外 admin1 缺失或不可靠时，应有受控 fallback，而不是默默创建错误地区 |
+| 合规且可落地的边界数据链路 | 新语义成立的前提是边界数据来源本身可靠且可持续维护 | HIGH | 中国侧使用阿里云 `DataV.GeoAtlas`，海外侧使用 `Natural Earth admin-1`；需要在预处理阶段建立统一字段和稳定主键 |
+| `Leaflet` 上的 GeoJSON 面域渲染与状态切换 | 新地图引擎至少要把“选中 / 已点亮 / 当前查看”这几个状态稳定渲染出来 | HIGH | 典型实现是 `GeoJSON` layer + feature 级样式更新；需要保证 popup 在高亮层之上，且关闭/切换后不残留旧高亮 |
+| 中国与海外数据坐标/投影的一致性校验 | 混用两套行政区数据时，坐标体系不统一会直接造成选中错位和边界漂移 | HIGH | 这是实现型 table stake，不做会导致地图语义看起来“假”；阿里云文档显示 DataV 组件主要使用 `GCJ-02`，而 `Natural Earth` 是通用 `WGS84` 语义，需在落地前统一并验证 |
+| 地点面板标题右侧的点亮 / 取消点亮动作 | 用户已经有“选中一个地点然后马上切换去过状态”的明确预期；把它埋进深层编辑会显得变慢 | MEDIUM | 这是本里程碑最直接的效率改进；按钮应幂等、文案明确，并在请求中显示 loading / disabled 状态 |
+| 点亮动作与地图高亮的单次同步闭环 | 用户按下点亮后，应立即看到面板状态、地图边界和持久化结果保持一致 | MEDIUM | 一个常见且合理的增量做法是 optimistic UI + 失败回滚；至少要保证成功后 map/panel/popup 三处状态同源 |
+| 保持现有 popup + drawer 分工不倒退 | 这次重构不应把已经跑通的主链路重新打散 | MEDIUM | popup 继续做摘要与快捷操作，drawer 继续做完整详情；内联点亮动作是增强，不是替换整个详情编辑模型 |
 
-| Theme | Feature | User-facing behavior | Complexity | Prerequisites | Notes |
-|-------|---------|----------------------|------------|---------------|-------|
-| 城市优先选择 | 视口/最近使用快捷城市 | 用户在当前地图区域或最近使用列表中快速选择城市，而不是每次都重新搜 | MEDIUM | 城市索引、最近选择记录 | 这是“城市优先”从能用到顺手的关键增强 |
-| 城市优先选择 | 宽容命中区 | 对小城市、狭长城市或边界附近点击，系统通过最近边界/候选规则给出更宽容的命中体验 | HIGH | 城市边界数据、距离或面积启发式 | 可明显改善“点不中城市”的主观感受 |
-| 边界高亮 | 城市状态视觉语法 | 未记录、已记录、当前选中、待确认等状态在边界和 marker 上有统一且一眼可懂的视觉差异 | MEDIUM | 状态模型、设计 token | 比单纯换颜色更有产品完成度 |
-| Popup 详情 | 低摩擦快捷动作 | popup 内直接提供“标记去过/取消点亮/查看详情”等 1-2 个高频动作 | MEDIUM | 点位状态更新链路 | 能减少每次都打开 drawer 的操作成本 |
-| Popup 详情 | 智能定位与避让 | popup 根据边界中心、点击点或 marker 自动选择锚点，尽量不挡住当前城市 | HIGH | popup offset、边缘碰撞处理 | 这是地图 popup 看起来“专业”的细节 |
-| 可爱视觉改版 | 角色化空状态与成功反馈 | 空地图、首次添加、保存成功等时刻有统一的原创可爱插画或轻动画反馈 | MEDIUM | 插画资产、动效规范 | 适合强化“二次元可爱”记忆点，但应控制在少量关键时刻 |
-| 可爱视觉改版 | 地图友好的装饰性动效 | 选中城市或保存成功时提供短促、克制的 halo/sparkle 动效，而不是持续占据注意力 | MEDIUM | 动效 token、性能预算 | 差异化强，但必须受性能和干扰度约束 |
+### Differentiators (Competitive Advantage)
 
-## Anti-Features
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| 共享契约包驱动的前后端协作 | 比“前端手写一套类型、后端再写一套”更稳，后续 roadmap 扩展成本低很多 | MEDIUM | 可以是共享 DTO / schema / enum，不必一步到位做完整代码生成；重点是消除 `placeType`、`boundaryId` 这类关键字段漂移 |
+| API 只接管“稳定职责”，交互识别仍保留在最合适的一侧 | 这是比“全部后端化”更成熟的增量策略，能在不重写核心交互的情况下完成全栈化 | HIGH | 一个好切法通常是：server 负责持久化、规范地点身份、返回已保存状态；web 继续承担 Leaflet 交互、面域预览、临时选中状态 |
+| 面板中显式展示地理语义标签 | 用户能立刻看懂当前命中的是“中国市级”还是“海外一级行政区”，降低误解成本 | LOW | 例如地点名旁补充 `中国·市级` / `海外·一级行政区` 标签；属于低成本高收益的表达型增强 |
+| 按需加载或预简化 GeoJSON | 能在保持真实边界高亮的同时，避免 `Leaflet` 因大面数据而拖慢桌面交互 | HIGH | 不是 launch blocker，但会显著改善体验；适合放在主链路打通后作为增强项 |
+| 面板内联点亮后即时反馈到地图，不必打开深层编辑 | 对“浏览地图时快速标记去过”这个高频动作非常友好 | MEDIUM | 和已有 popup + drawer 分工天然契合，属于真正贴合当前产品形态的增量，而不是额外开一条新流程 |
+| 边界优先的高亮表达而不是回退成 marker-only | 能保持项目最有辨识度的“真实区域被点亮”的产品语义 | MEDIUM | 这会让 v3.0 即便切到新地图引擎，也仍然像同一个产品，而不是重新变成通用打点地图 |
 
-| Anti-Feature | Why Avoid Now | What to Do Instead |
-|--------------|---------------|--------------------|
-| 全量全球地点搜索到乡镇/POI/景点级 | 数据清洗、别名、排序和性能成本会快速失控，远超“城市优先”范围 | 先只支持受控的城市级数据集和明确的覆盖范围 |
-| 在线 geocoding / autocomplete API | 与项目“本地离线识别”方向冲突，并引入网络依赖、成本与隐私问题 | 继续坚持本地城市索引和本地边界数据 |
-| 全面改造成 slippy map（连续缩放、拖拽、倾斜、瓦片体系） | 这是地图引擎级重构，不是本 milestone 的核心问题 | 在现有固定世界地图上先把城市识别、边界高亮和 popup 做稳 |
-| 让 popup 承担完整编辑表单 | 会复制 drawer 能力，导致两套编辑入口长期分裂 | popup 只做摘要和高频快捷动作，完整编辑继续进入 drawer |
-| 用户手动画城市边界或修正 polygon | 会把产品拖向 GIS 工具，复杂度和错误处理都显著上升 | 对无法稳定命中的情况提供候选确认或国家级回退 |
-| 统计面板、排行榜、成就系统 | 很容易膨胀成另一条产品线，且不直接解决本 milestone 核心体验 | 先把选城市、看边界、看详情这条主链路完成 |
-| bucket list、路线规划、行程时间线 | 虽然和城市选择相邻，但会把模型从“旅行足迹”扩展到“旅行规划” | 本期最多保留简单状态切换，不做规划系统 |
-| 每个城市一套独立插画、Live2D mascot、重动效主题皮肤 | 资产生产成本过高，极易拖慢交付并影响性能 | 做一套统一的原创可爱视觉规范和少量复用插画 |
-| 全站所有界面同步重设计 | 范围过大，且风险会扩散到与 milestone 无关的区域 | 只重做与地图主链路直接相关的界面表面：地图、marker、popup、drawer、按钮、空状态 |
+### Anti-Features (Commonly Requested, Often Problematic)
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| 一次性把所有地理识别、边界查询、静态数据读取都搬到后端 | 听起来“更全栈”“更统一” | 会把 milestone 从边界清晰的增量，推成高风险平台重构；同时失去当前离线/本地识别的稳定基线 | 先只把记录持久化、地点 identity、已保存状态这些稳定职责放到 API，识别链路按需逐步迁移 |
+| 海外也直接承诺城市级甚至 POI 级精度 | 看起来更强、更完整 | 会瞬间引入全球多层级地名、别名、边界和精度问题，完全超出本里程碑边界 | 明确收口为“中国市级 / 海外一级行政区”，把更细粒度海外覆盖放到后续研究 |
+| 在本 milestone 同时做账号、登录、多人同步 | “既然后端都有了，顺便把用户系统做了” | 会把所有数据模型、权限模型和 UI 入口都扩大，直接稀释本 milestone 的主题 | 先做单用户 API 化；等 server 边界稳定后，再决定是否进入账号体系 |
+| 把 popup 改成完整编辑器 | 少一次跳转，看起来更快 | 会打破当前 popup 摘要 / drawer 深编辑的清晰分工，造成两套详情入口长期并存 | popup 保持摘要与快捷动作，完整编辑继续交给 drawer |
+| 引入向量瓦片、3D、复杂地图底图平台 | “既然换 Leaflet，不如顺便把地图体系全升级” | 这会把注意力从行政区语义和点亮主链路拉走，投入和调试面都急剧扩大 | 先用 `Leaflet + GeoJSON` 把行政区语义跑稳，再评估是否需要更重的地图基础设施 |
+| 提供手工修边界、改 polygon、上传自定义 GeoJSON | 能覆盖数据缺口，看起来更灵活 | 产品会快速滑向专业 GIS 工具，交互、校验和数据治理都失控 | 对异常命中先做消歧、fallback 和数据预处理，不把人工地图编辑纳入本 milestone |
+| 把所有边界数据都改成必须走 API 实时下发 | 容易让“后端化”看起来更彻底 | 如果数据本身是稳定静态资产，强制 API 化会增加无谓的部署、缓存和性能复杂度 | 优先区分“静态边界资产”和“动态用户数据”；静态数据可先保留构建产物或受控静态分发 |
 
 ## Feature Dependencies
 
 ```text
-城市数据标准化
-  -> 城市搜索/候选入口
-  -> 同名城市消歧
-  -> 稳定 cityId
+Monorepo apps split
+  -> shared contracts/types
+  -> stable API boundary
 
-稳定 cityId
-  -> 已有城市复用
-  -> 城市边界 lookup
-  -> popup 内容绑定
+shared contracts/types
+  -> place identity model
+  -> records API
+  -> illuminate/unilluminate mutation
 
-城市边界 polygon 数据
-  -> 真实边界高亮
-  -> 宽容命中区
-  -> popup 智能定位
+boundary data ingestion + normalization
+  -> China city / overseas admin1 semantics
+  -> stable boundaryId
+  -> Leaflet GeoJSON rendering
 
-popup 摘要卡
-  -> 高频快捷动作
-  -> 打开现有 drawer 做完整编辑
+place identity model
+  -> dedupe / reopen existing place
+  -> panel semantic labels
+  -> persisted illuminated state
 
-视觉 token / 插画规范
-  -> marker 改版
-  -> 边界高亮风格
-  -> popup / drawer 改版
-  -> 可选的轻动效反馈
+Leaflet GeoJSON rendering
+  -> selected / illuminated / current-view styles
+  -> inline illuminate visual feedback
+  -> popup / drawer continuity
+
+records API + mutation flow
+  -> optimistic illuminate toggle
+  -> refresh after save
+  -> cross-surface state consistency
+
+full server-side geospatialization
+  -> conflicts with scoped milestone increment
+
+overseas city-level promise
+  -> conflicts with approved "China city / overseas admin1" scope
 ```
 
-## MVP Recommendation
+### Dependency Notes
 
-优先顺序建议：
+- **Monorepo split requires shared contracts/types:** 不先收口关键字段，后续前后端会很快在 `placeType`、`boundaryId`、点亮状态上产生漂移。
+- **Boundary ingestion requires normalization before Leaflet rendering:** 中国与海外数据源即使都叫 GeoJSON，字段、层级和坐标约束也不天然一致，必须先做数据统一。
+- **Place identity model requires semantic clarity:** 只有 identity 足够稳定，已保存地点复用、去重、高亮和 API 持久化才会可靠。
+- **Leaflet rendering enhances inline illuminate toggle:** 面板按钮之所以有价值，是因为它能立即驱动真实行政区边界的视觉反馈，而不是只改一条文本状态。
+- **Full server-side geospatialization conflicts with this milestone:** 这会把工作从“后移选定职责”升级为“重做整个识别平台”，不适合与当前目标绑定交付。
+- **Overseas city-level conflicts with current scope:** 一旦海外也承诺城市级，数据质量、命名消歧和交互复杂度都会跳级增长。
 
-1. 城市候选解析、同名消歧、失败回退先做稳。
-2. 真实城市边界高亮与状态切换紧接着落地。
-3. 浮动 popup 只做摘要与快捷动作，并与现有 drawer 打通。
-4. 在交互链路稳定后，再统一 marker、popup、边界与 drawer 的可爱视觉语言。
-5. 最后再加最近使用城市、智能避让、轻动效、角色化反馈等差异化增强。
+## MVP Definition
 
-明确延后：
+### Launch With (v3.0)
 
-- 富内容 popup
-- 统计/成就/排行榜
-- bucket list 与路线规划
-- 导入导出、分享、同步
-- 全量地图引擎重构
+- [ ] `web` / `server` 两个 app 的 monorepo 结构跑通，并有最小共享契约层
+- [ ] 旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作走 API
+- [ ] 明确的地点 identity 模型，能表达中国市级与海外一级行政区
+- [ ] 中国 `GeoAtlas` 与海外 `Natural Earth admin-1` 数据经过预处理后可稳定驱动选择与高亮
+- [ ] `Leaflet` 上完成 GeoJSON 行政区渲染，并稳定表达选中态与已点亮态
+- [ ] 地点面板内提供名称右侧的点亮 / 取消点亮按钮，且与地图高亮同步
+- [ ] 现有 popup + drawer 分工保留，不因地图引擎或 API 化而退化
+
+### Add After Validation (v3.1)
+
+- [ ] 边界数据按需加载、预简化或缓存优化，在不改语义的前提下提升性能
+- [ ] 更顺滑的 optimistic update、错误重试和局部回滚体验
+- [ ] API 返回更丰富的地点展示元数据，减少前端本地拼装逻辑
+- [ ] 常用地点 / 最近操作地点的小范围快捷入口
+
+### Future Consideration (v4+)
+
+- [ ] 账号体系、跨设备同步、多人数据隔离
+- [ ] 海外 finer-grained 覆盖，例如城市级扩展或更细行政层级
+- [ ] 服务端主导的地理识别管线、批量导入、数据治理后台
+- [ ] 分享、导出、统计、成就等围绕旅行记录的外围产品能力
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Monorepo 拆分与共享契约层 | HIGH | MEDIUM | P1 |
+| 旅行记录与点亮状态 API 化 | HIGH | MEDIUM | P1 |
+| 中国市级 / 海外 admin1 的 identity 模型 | HIGH | HIGH | P1 |
+| 边界数据预处理与统一主键 | HIGH | HIGH | P1 |
+| `Leaflet` GeoJSON 高亮与状态切换 | HIGH | HIGH | P1 |
+| 地点面板内联点亮 / 取消点亮 | HIGH | MEDIUM | P1 |
+| 按需加载 / 预简化 GeoJSON | MEDIUM | HIGH | P2 |
+| 更强的 optimistic update 与重试体验 | MEDIUM | MEDIUM | P2 |
+| API 返回展示增强元数据 | MEDIUM | MEDIUM | P2 |
+| 账号与同步体系 | MEDIUM | HIGH | P3 |
+| 海外城市级扩展 | MEDIUM | HIGH | P3 |
+
+**Priority key:**
+- P1: 本 milestone 必须交付
+- P2: 主链路稳定后可追加
+- P3: 明确延后，不应混入本 milestone
+
+## Ecosystem Pattern Analysis
+
+| Pattern | Ecosystem Signal | Our Approach |
+|---------|------------------|--------------|
+| Monorepo 的典型落地 | 业界主流 monorepo 文档普遍建议以 `apps + packages` 划分 app 与共享包，而不是在初期抽象出大量共享运行时逻辑 | 采用增量式 `web/server + shared contracts`，先解决边界和协作问题，不做大规模共享业务抽象 |
+| REST API 的责任切分 | NestJS 当前官方文档仍强调 controller 处理请求入口、provider 封装业务职责，适合先承接稳定的持久化与领域逻辑 | 先把记录、点亮状态、地点 identity 等稳定职责放入 API，避免一口气迁移全部交互和识别逻辑 |
+| GeoJSON 行政区交互 | Leaflet 官方示例直接以 `GeoJSON` layer、feature 级样式和交互回调来实现区域高亮与点击反馈 | 以行政区面域为主表达，不退回 marker-only；保留 popup / drawer 的既有交互节奏 |
+| 中国 / 海外边界数据拼接 | 当前官方资料表明 `GeoAtlas` 更适合作为中国侧行政区边界来源，`Natural Earth admin-1` 是海外一级行政区的常见基础数据 | 按“中国市级 / 海外一级行政区”收口语义，在数据预处理阶段统一字段、ID 和坐标约束，不承诺全球城市级 |
 
 ## Sources
 
-- [`.planning/PROJECT.md`](/Users/huangjingping/i/trip-map/.planning/PROJECT.md) — 项目边界与既有能力基线
-- [`.planning/milestones/v1.0-REQUIREMENTS.md`](/Users/huangjingping/i/trip-map/.planning/milestones/v1.0-REQUIREMENTS.md) — 既有 requirement 基线，确认哪些能力应复用而非重做
-- `Been` 产品页（MEDIUM）: https://been.travel/ — 当前同类产品把“countries / cities / regions”并列为用户可标记层级
-- `Visited Cities` 产品页（MEDIUM）: https://www.visitedcities.com/ — 强调“pin the exact cities, towns, and villages”与城市级追踪是卖点
-- `Visited Cities` Google Play（MEDIUM）: https://play.google.com/store/apps/details?hl=en_US&id=com.bolsos.visited — 当前同类产品默认用户期望城市级追踪、wishlist、stats
-- `Visited App` App Store / 官网（MEDIUM）: https://apps.apple.com/us/app/visited-travel-tracker-map/id846983349 , https://visitedapp.com/ — 说明旅行地图产品常见扩展方向，但这些不应自动进入本 milestone
-- `Countries Been`（MEDIUM）: https://www.countriesbeen.com/ — 展示城市数量级和浏览器本地保存/跨设备扩展是相邻方向，但非本期核心
-- `Polarsteps` 计划目的地帮助文档（MEDIUM）: https://support.polarsteps.com/hc/en-us/articles/24265886208914-How-do-I-plan-my-trip — 体现“输入搜索或地图选点”是常见 destination 选择模式
-- `MapLibre GL JS` popup 与 polygon 示例（HIGH）: https://maplibre.org/maplibre-gl-js/docs/examples/display-a-popup-on-click/ , https://maplibre.org/maplibre-gl-js/docs/examples/show-polygon-information-on-click/ , https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/ — 支持 popup、polygon click、offset/padding 等交互模式
-- `MapLibre Style Spec` feature-state（HIGH）: https://maplibre.org/maplibre-style-spec/expressions/ — 支持 hover/selected 等边界状态渲染
-- `Google Maps` marker accessibility（HIGH）: https://developers.google.com/maps/documentation/javascript/advanced-markers/accessible-markers — 支持可点击、可聚焦、增大热区、键盘触发等交互可达性原则
-- `Microsoft Azure Maps` accessibility（MEDIUM）: https://learn.microsoft.com/en-us/azure/azure-maps/map-accessibility — 支持 popup 键盘可达、颜色对比、避免仅依赖 hover 的地图 UX 原则
+- 项目上下文（HIGH）: `.planning/PROJECT.md`
+- Leaflet GeoJSON 教程（HIGH）: https://leafletjs.com/examples/geojson/
+- Leaflet Choropleth 示例（HIGH）: https://leafletjs.com/examples/choropleth/
+- Leaflet Reference（HIGH）: https://leafletjs.com/reference.html
+- NestJS Controllers（HIGH）: https://docs.nestjs.com/controllers
+- NestJS Providers（HIGH）: https://docs.nestjs.com/providers
+- Turborepo Structuring a Repository（MEDIUM）: https://turborepo.com/docs/crafting-your-repository/structuring-a-repository
+- Natural Earth Admin-1 States, Provinces（HIGH）: https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/
+- 阿里云 DataV.GeoAtlas 小部件文档（HIGH）: https://help.aliyun.com/zh/datav/datav-7-0/user-guide/datav-geoatlas-widgets/
 
 ## Confidence Notes
 
-- `城市优先选择 / popup / 边界高亮`: MEDIUM-HIGH。竞品模式与地图 SDK 文档较一致。
-- `可爱视觉改版`: MEDIUM。外部资料更适合提供可读性和可访问性约束，具体“原创二次元可爱”风格仍应由产品方向主导。
+- **Monorepo / API 边界:** MEDIUM-HIGH。官方框架文档和当前项目边界都比较明确，但“哪些职责现在就后移”仍带有产品取舍成分。
+- **中国市级 / 海外 admin1 语义:** HIGH。来自当前 milestone 目标与官方数据源边界，结论稳定。
+- **Leaflet GeoJSON 交互:** HIGH。官方教程和参考文档对区域样式、交互和状态管理支持明确。
+- **中国与海外坐标统一要求:** MEDIUM。数据源官方文档足以证明存在差异约束，但具体转换方案仍需要实施阶段验证。
+
+---
+*Feature research for: 旅行地图 v3.0 全栈化与行政区地图重构*
+*Researched: 2026-03-27*
