@@ -14,6 +14,22 @@ const hoveredPointId = shallowRef<string | null>(null)
 const focusedPointId = shallowRef<string | null>(null)
 const hasSelection = computed(() => Boolean(props.selectedPointId))
 
+function getMarkerState(point: MapPointDisplay) {
+  if (point.id === props.selectedPointId) {
+    return 'selected'
+  }
+
+  if (point.source === 'detected') {
+    return 'draft'
+  }
+
+  if (point.source === 'saved') {
+    return 'saved'
+  }
+
+  return 'neutral'
+}
+
 function handlePointSelect(point: MapPointDisplay) {
   selectPointById(point.id)
 }
@@ -64,6 +80,7 @@ function handlePointBlur(pointId: string) {
       v-for="point in points"
       :key="point.id"
       class="seed-marker"
+      :data-marker-state="getMarkerState(point)"
       :class="{
         'seed-marker--selected': point.id === props.selectedPointId,
         'seed-marker--dimmed': hasSelection && point.id !== props.selectedPointId,
@@ -151,59 +168,60 @@ function handlePointBlur(pointId: string) {
 .seed-marker__dot {
   width: 0.8rem;
   height: 0.8rem;
-  border-radius: 999px;
-  border: 1px solid rgba(63, 47, 36, 0.35);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-state-neutral-outline);
   background:
-    radial-gradient(circle at 30% 30%, rgba(255, 246, 221, 0.95), rgba(200, 100, 59, 0.9));
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), var(--color-state-neutral));
   box-shadow:
-    0 0 0 5px rgba(200, 100, 59, 0.08),
-    0 0 14px rgba(200, 100, 59, 0.14);
+    0 0 0 5px rgba(216, 200, 188, 0.26),
+    0 0 14px rgba(125, 113, 133, 0.14);
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    border-color 160ms ease;
+    transform var(--motion-quick) ease,
+    box-shadow var(--motion-quick) ease,
+    border-color var(--motion-quick) ease;
 }
 
 .seed-marker__button:hover .seed-marker__dot,
 .seed-marker__button:focus-visible .seed-marker__dot {
   transform: scale(1.05);
   box-shadow:
-    0 0 0 6px rgba(200, 100, 59, 0.12),
-    0 0 18px rgba(200, 100, 59, 0.2);
+    0 0 0 6px rgba(216, 200, 188, 0.34),
+    0 0 18px rgba(125, 113, 133, 0.2);
 }
 
 .seed-marker--saved .seed-marker__dot {
+  border-color: rgba(132, 199, 216, 0.82);
   background:
-    radial-gradient(circle at 30% 30%, rgba(255, 246, 221, 0.98), rgba(111, 122, 91, 0.95));
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.96), var(--color-state-saved));
   box-shadow:
-    0 0 0 4px rgba(111, 122, 91, 0.08),
-    0 0 10px rgba(111, 122, 91, 0.12);
+    0 0 0 4px rgba(132, 199, 216, 0.14),
+    0 0 12px rgba(132, 199, 216, 0.2);
 }
 
 .seed-marker--draft .seed-marker__dot {
-  border-color: rgba(200, 100, 59, 0.6);
+  border-color: rgba(244, 143, 177, 0.72);
   background:
-    radial-gradient(circle at 30% 30%, rgba(255, 249, 232, 0.98), rgba(200, 100, 59, 0.98));
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.98), var(--color-state-selected));
   box-shadow:
-    0 0 0 6px rgba(200, 100, 59, 0.16),
-    0 0 18px rgba(200, 100, 59, 0.24);
-  animation: draft-marker-pulse 1.45s ease-in-out infinite;
+    0 0 0 6px rgba(255, 220, 232, 0.42),
+    0 0 18px rgba(244, 143, 177, 0.26);
+  animation: draft-marker-pulse 1.75s ease-in-out infinite;
 }
 
 .seed-marker--dimmed .seed-marker__dot {
   opacity: 0.62;
   box-shadow:
-    0 0 0 4px rgba(111, 122, 91, 0.06),
-    0 0 8px rgba(73, 49, 31, 0.08);
+    0 0 0 4px rgba(216, 200, 188, 0.12),
+    0 0 8px rgba(125, 113, 133, 0.1);
 }
 
 .seed-marker--selected .seed-marker__dot,
 .seed-marker__button--selected .seed-marker__dot {
-  border-color: rgba(200, 100, 59, 0.9);
+  border-color: rgba(244, 143, 177, 0.96);
   box-shadow:
-    0 0 0 3px rgba(252, 247, 236, 0.9),
-    0 0 0 7px rgba(200, 100, 59, 0.26),
-    0 0 16px rgba(200, 100, 59, 0.24);
+    0 0 0 3px rgba(255, 255, 255, 0.9),
+    0 0 0 7px rgba(255, 220, 232, 0.58),
+    0 0 18px rgba(244, 143, 177, 0.3);
 }
 
 .seed-marker__label {
@@ -214,17 +232,29 @@ function handlePointBlur(pointId: string) {
   width: max-content;
   max-width: 10rem;
   padding: 0.35rem 0.55rem;
-  border: 1px solid rgba(200, 100, 59, 0.45);
-  background: rgba(252, 247, 236, 0.92);
+  border: 1px solid var(--color-state-neutral-outline);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 250, 252, 0.92);
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   line-height: 1.2;
-  box-shadow: 0 8px 18px rgba(73, 49, 31, 0.08);
+  box-shadow: 0 8px 18px rgba(120, 86, 122, 0.12);
   pointer-events: none;
 }
 
+.seed-marker--saved .seed-marker__label {
+  border-color: rgba(132, 199, 216, 0.72);
+  background: rgba(223, 244, 248, 0.92);
+}
+
 .seed-marker--selected .seed-marker__label {
-  border-color: rgba(200, 100, 59, 0.72);
+  border-color: rgba(244, 143, 177, 0.82);
+  background: rgba(255, 220, 232, 0.92);
+}
+
+.seed-marker--draft .seed-marker__label {
+  border-color: rgba(244, 143, 177, 0.62);
+  background: rgba(255, 236, 244, 0.92);
 }
 
 @keyframes draft-marker-pulse {
@@ -232,15 +262,25 @@ function handlePointBlur(pointId: string) {
   100% {
     transform: scale(1);
     box-shadow:
-      0 0 0 7px rgba(200, 100, 59, 0.18),
-      0 0 20px rgba(200, 100, 59, 0.28);
+      0 0 0 7px rgba(255, 220, 232, 0.34),
+      0 0 20px rgba(244, 143, 177, 0.24);
   }
 
   50% {
     transform: scale(1.08);
     box-shadow:
-      0 0 0 9px rgba(200, 100, 59, 0.22),
-      0 0 24px rgba(200, 100, 59, 0.34);
+      0 0 0 9px rgba(255, 220, 232, 0.42),
+      0 0 24px rgba(244, 143, 177, 0.32);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seed-marker__dot {
+    transition: none;
+  }
+
+  .seed-marker--draft .seed-marker__dot {
+    animation: none;
   }
 }
 </style>

@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 
+import seedMarkerLayerSource from './SeedMarkerLayer.vue?raw'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
 
 function createPoint(overrides: Record<string, unknown> = {}) {
@@ -75,6 +76,33 @@ describe('SeedMarkerLayer', () => {
     expect(buttons[0].classes()).toContain('seed-marker__button--selected')
   })
 
+  it('exposes explicit marker semantic hooks for selected, draft, saved, and neutral states', () => {
+    const wrapper = mount(SeedMarkerLayer, {
+      props: {
+        points: [
+          createPoint({ id: 'saved-japan', source: 'saved' }),
+          createPoint({ id: 'detected-kyoto', name: 'Kyoto', source: 'detected', x: 0.66, y: 0.48 }),
+          createPoint({ id: 'seed-oslo', name: 'Oslo', source: 'seed', x: 0.44, y: 0.34 }),
+          createPoint({ id: 'saved-lisbon', name: 'Lisbon', source: 'saved', x: 0.41, y: 0.39 })
+        ],
+        selectedPointId: 'saved-lisbon'
+      }
+    })
+
+    expect(wrapper.get('[data-point-id="saved-japan"]').element.closest('.seed-marker')?.getAttribute('data-marker-state')).toBe(
+      'saved'
+    )
+    expect(
+      wrapper.get('[data-point-id="detected-kyoto"]').element.closest('.seed-marker')?.getAttribute('data-marker-state')
+    ).toBe('draft')
+    expect(wrapper.get('[data-point-id="seed-oslo"]').element.closest('.seed-marker')?.getAttribute('data-marker-state')).toBe(
+      'neutral'
+    )
+    expect(wrapper.get('[data-point-id="saved-lisbon"]').element.closest('.seed-marker')?.getAttribute('data-marker-state')).toBe(
+      'selected'
+    )
+  })
+
   it('reveals labels for focus-visible interactions without keeping all labels on screen', async () => {
     const wrapper = mount(SeedMarkerLayer, {
       props: {
@@ -97,5 +125,12 @@ describe('SeedMarkerLayer', () => {
     await wrapper.findAll('.seed-marker__button')[1].trigger('blur')
 
     expect(wrapper.text()).not.toContain('Osaka')
+  })
+
+  it('keeps the marker hit target and reduced-motion pulse guardrails in component styles', () => {
+    expect(seedMarkerLayerSource).toContain('width: 44px;')
+    expect(seedMarkerLayerSource).toContain('height: 44px;')
+    expect(seedMarkerLayerSource).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(seedMarkerLayerSource).toContain('animation: draft-marker-pulse 1.75s ease-in-out infinite;')
   })
 })
