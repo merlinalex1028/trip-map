@@ -1,6 +1,8 @@
 import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_HONG_KONG,
 } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 
@@ -15,43 +17,49 @@ const ambiguousResolve = (() => {
   return PHASE12_AMBIGUOUS_RESOLVE
 })()
 
-function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
+function createDraftPoint(
+  place:
+    | typeof PHASE12_RESOLVED_BEIJING
+    | typeof PHASE12_RESOLVED_HONG_KONG
+    | typeof PHASE12_RESOLVED_CALIFORNIA = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<DraftMapPoint> = {},
+): DraftMapPoint {
+  const isCalifornia = place.placeId === PHASE12_RESOLVED_CALIFORNIA.placeId
+
   return {
-    id: 'detected-jp-1',
-    name: 'Japan',
-    countryName: 'Japan',
-    countryCode: 'JP',
-    precision: 'country',
+    id: `detected-${place.placeId}`,
+    name: place.displayName,
+    countryName: place.parentLabel,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
+    precision: 'city-high',
     cityId: null,
-    cityName: null,
-    cityContextLabel: 'Japan',
-    boundaryId: null,
-    boundaryDatasetVersion: null,
-    fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录',
-    x: 0.7,
-    y: 0.45,
-    lat: 35,
-    lng: 135,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
+    fallbackNotice: null,
+    x: isCalifornia ? 0.15 : 0.74,
+    y: isCalifornia ? 0.44 : 0.31,
+    lat: isCalifornia ? 36.7783 : 39.9042,
+    lng: isCalifornia ? -119.4179 : 116.4074,
     source: 'detected',
     isFeatured: false,
     description: '识别成功，下一阶段可补充地点内容。',
-    coordinatesLabel: '35.0000°N, 135.0000°E',
+    coordinatesLabel: isCalifornia ? '36.7783°N, 119.4179°W' : '39.9042°N, 116.4074°E',
     ...overrides
   }
 }
 
 function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisplay {
   return {
-    ...createDraftPoint({
-      id: 'saved-jp-kyoto',
-      name: 'Kyoto',
-      precision: 'city-high',
-      cityId: 'jp-kyoto',
-      cityName: 'Kyoto',
-      cityContextLabel: 'Japan · Kansai',
-      boundaryId: 'jp-kyoto-boundary',
-      boundaryDatasetVersion: 'test-v1',
-      fallbackNotice: null
+    ...createDraftPoint(PHASE12_RESOLVED_BEIJING, {
+      id: `saved-${PHASE12_RESOLVED_BEIJING.placeId}`,
     }),
     source: 'saved',
     ...overrides
@@ -59,7 +67,7 @@ function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisp
 }
 
 function createCanonicalDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
-  return createDraftPoint({
+  return createDraftPoint(PHASE12_RESOLVED_BEIJING, {
     id: 'pending-beijing',
     name: '待确认地点',
     countryName: '待确认',
@@ -136,17 +144,7 @@ describe('PointSummaryCard', () => {
       props: {
         surface: {
           mode: 'detected-preview',
-          point: createDraftPoint({
-            id: 'detected-jp-kyoto',
-            name: 'Kyoto',
-            precision: 'city-high',
-            cityId: 'jp-kyoto',
-            cityName: 'Kyoto',
-            cityContextLabel: 'Japan · Kansai',
-            boundaryId: 'jp-kyoto-boundary',
-            boundaryDatasetVersion: 'test-v1',
-            fallbackNotice: null
-          }),
+          point: createDraftPoint(PHASE12_RESOLVED_CALIFORNIA),
           boundarySupportState: 'supported'
         } satisfies SummarySurfaceState
       }
@@ -218,6 +216,58 @@ describe('PointSummaryCard', () => {
         } satisfies SummarySurfaceState
       }
     })
+    const hongKongWrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint({
+            id: `saved-${PHASE12_RESOLVED_HONG_KONG.placeId}`,
+            name: PHASE12_RESOLVED_HONG_KONG.displayName,
+            countryName: PHASE12_RESOLVED_HONG_KONG.parentLabel,
+            cityName: PHASE12_RESOLVED_HONG_KONG.displayName,
+            cityContextLabel: PHASE12_RESOLVED_HONG_KONG.subtitle,
+            placeId: PHASE12_RESOLVED_HONG_KONG.placeId,
+            placeKind: PHASE12_RESOLVED_HONG_KONG.placeKind,
+            datasetVersion: PHASE12_RESOLVED_HONG_KONG.datasetVersion,
+            typeLabel: PHASE12_RESOLVED_HONG_KONG.typeLabel,
+            parentLabel: PHASE12_RESOLVED_HONG_KONG.parentLabel,
+            subtitle: PHASE12_RESOLVED_HONG_KONG.subtitle,
+            boundaryId: PHASE12_RESOLVED_HONG_KONG.boundaryId,
+            boundaryDatasetVersion: PHASE12_RESOLVED_HONG_KONG.datasetVersion
+          }),
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState
+      }
+    })
+    const californiaWrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint({
+            id: `saved-${PHASE12_RESOLVED_CALIFORNIA.placeId}`,
+            name: PHASE12_RESOLVED_CALIFORNIA.displayName,
+            countryName: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
+            countryCode: '__canonical__',
+            cityName: PHASE12_RESOLVED_CALIFORNIA.displayName,
+            cityContextLabel: PHASE12_RESOLVED_CALIFORNIA.subtitle,
+            placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+            placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
+            datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+            typeLabel: PHASE12_RESOLVED_CALIFORNIA.typeLabel,
+            parentLabel: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
+            subtitle: PHASE12_RESOLVED_CALIFORNIA.subtitle,
+            boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+            boundaryDatasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+            lat: 36.7783,
+            lng: -119.4179,
+            x: 0.15,
+            y: 0.44,
+            coordinatesLabel: '36.7783°N, 119.4179°W'
+          }),
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState
+      }
+    })
     const candidateWrapper = mount(PointSummaryCard, {
       props: {
         surface: {
@@ -232,19 +282,25 @@ describe('PointSummaryCard', () => {
             statusHint: candidate.candidateHint
           })),
           canonicalCandidates: [
-            ...ambiguousResolve.candidates,
-            {
-              ...PHASE12_RESOLVED_BEIJING,
-              candidateHint: 'extra candidate should be hidden'
-            }
+            { ...PHASE12_RESOLVED_BEIJING, candidateHint: '点击点位接近北京市中心' },
+            { ...PHASE12_RESOLVED_HONG_KONG, candidateHint: '港岛与九龙附近候选' },
+            { ...PHASE12_RESOLVED_CALIFORNIA, candidateHint: '跨洋 admin1 候选' },
+            { ...PHASE12_RESOLVED_BEIJING, placeId: 'cn-admin-extra', candidateHint: 'extra candidate should be hidden' }
           ],
           recommendedPlaceId: ambiguousResolve.recommendedPlaceId
         } as SummarySurfaceState
       }
     })
 
+    expect(beijingWrapper.text()).toContain('北京')
     expect(beijingWrapper.text()).toContain('直辖市')
     expect(beijingWrapper.text()).toContain('中国 · 直辖市')
+    expect(hongKongWrapper.text()).toContain('香港')
+    expect(hongKongWrapper.text()).toContain('特别行政区')
+    expect(hongKongWrapper.text()).toContain('中国 · 特别行政区')
+    expect(californiaWrapper.text()).toContain('California')
+    expect(californiaWrapper.text()).toContain('一级行政区')
+    expect(californiaWrapper.text()).toContain('United States · 一级行政区')
     expect(candidateWrapper.findAll('.point-summary-card__candidate-action')).toHaveLength(3)
     expect(candidateWrapper.find('[data-candidate-recommended="true"]').exists()).toBe(true)
   })

@@ -1,5 +1,7 @@
 import {
   PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_HONG_KONG,
 } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -7,9 +9,8 @@ import { nextTick } from 'vue'
 
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 import PointSummaryCard from './map-popup/PointSummaryCard.vue'
-import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
-import type { SummarySurfaceState } from '../types/map-point'
+import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../types/map-point'
 
 function installStorageMock() {
   const storage = new Map<string, string>()
@@ -33,62 +34,64 @@ function installStorageMock() {
   })
 }
 
-function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
-  const boundary = getBoundaryByCityId(cityId)
-
-  if (!boundary) {
-    throw new Error(`Missing boundary fixture for ${cityId}`)
-  }
-
-  const isPortugal = cityId.startsWith('pt-')
+function createCanonicalDraft(
+  place:
+    | typeof PHASE12_RESOLVED_BEIJING
+    | typeof PHASE12_RESOLVED_HONG_KONG
+    | typeof PHASE12_RESOLVED_CALIFORNIA = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<DraftMapPoint> = {}
+): DraftMapPoint {
+  const isCalifornia = place.placeId === PHASE12_RESOLVED_CALIFORNIA.placeId
 
   return {
-    id: `detected-${cityId}`,
-    name: boundary.cityName,
-    countryName: isPortugal ? 'Portugal' : 'Japan',
-    countryCode: isPortugal ? 'PT' : 'JP',
+    id: `detected-${place.placeId}`,
+    name: place.displayName,
+    countryName: place.parentLabel,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
     precision: 'city-high' as const,
-    cityId,
-    cityName: boundary.cityName,
-    cityContextLabel: isPortugal ? 'Portugal' : 'Japan · Kansai',
-    boundaryId: boundary.boundaryId,
-    boundaryDatasetVersion: boundary.datasetVersion,
+    cityId: null,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
     fallbackNotice: null,
-    lat: isPortugal ? 38.7223 : 35.0116,
-    lng: isPortugal ? -9.1393 : 135.7681,
-    x: isPortugal ? 0.47 : 0.68,
-    y: isPortugal ? 0.37 : 0.42,
+    lat: isCalifornia ? 36.7783 : 39.9042,
+    lng: isCalifornia ? -119.4179 : 116.4074,
+    x: isCalifornia ? 0.15 : 0.74,
+    y: isCalifornia ? 0.44 : 0.31,
     source: 'detected' as const,
     isFeatured: false,
     description: '识别成功，下一阶段可补充地点内容。',
-    coordinatesLabel: isPortugal ? '38.7223°N, 9.1393°W' : '35.0116°N, 135.7681°E',
+    coordinatesLabel: isCalifornia ? '36.7783°N, 119.4179°W' : '39.9042°N, 116.4074°E',
     ...overrides
   }
 }
 
-function createCanonicalDraft(overrides: Record<string, unknown> = {}) {
-  return createCityDraft('jp-kyoto', {
-    id: `detected-${PHASE12_RESOLVED_BEIJING.placeId}`,
-    name: PHASE12_RESOLVED_BEIJING.displayName,
-    countryName: PHASE12_RESOLVED_BEIJING.parentLabel,
-    countryCode: 'CN',
-    cityId: null,
-    cityName: PHASE12_RESOLVED_BEIJING.displayName,
-    cityContextLabel: PHASE12_RESOLVED_BEIJING.subtitle,
-    placeId: PHASE12_RESOLVED_BEIJING.placeId,
-    placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
-    datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
-    typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
-    parentLabel: PHASE12_RESOLVED_BEIJING.parentLabel,
-    subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
-    boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-    boundaryDatasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
-    lat: 39.9042,
-    lng: 116.4074,
-    x: 0.74,
-    y: 0.31,
-    coordinatesLabel: '39.9042°N, 116.4074°E',
-    ...overrides,
+function mountDrawerForCanonicalPlace(
+  place:
+    | typeof PHASE12_RESOLVED_BEIJING
+    | typeof PHASE12_RESOLVED_HONG_KONG
+    | typeof PHASE12_RESOLVED_CALIFORNIA
+) {
+  const localPinia = createPinia()
+  setActivePinia(localPinia)
+  const store = useMapPointsStore()
+
+  store.startDraftFromDetection(createCanonicalDraft(place))
+  store.saveDraftAsPoint()
+  store.openDrawerView()
+
+  return mount(PointPreviewDrawer, {
+    attachTo: document.body,
+    global: {
+      plugins: [localPinia]
+    }
   })
 }
 
@@ -134,7 +137,7 @@ describe('PointPreviewDrawer', () => {
 
   it('accepts anchored popup styles when rendered as a map popup shell', async () => {
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_HONG_KONG))
     store.saveDraftAsPoint()
     store.openDrawerView()
 
@@ -161,7 +164,7 @@ describe('PointPreviewDrawer', () => {
 
   it('closes the deep drawer on Escape when there are no unsaved edits', async () => {
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_HONG_KONG))
     store.saveDraftAsPoint()
     store.openDrawerView()
 
@@ -176,12 +179,31 @@ describe('PointPreviewDrawer', () => {
 
     expect(store.drawerMode).toBeNull()
     expect(store.summaryMode).toBe('view')
-    expect(store.activePoint?.cityId).toBe('jp-kyoto')
+    expect(store.activePoint?.placeId).toBe(PHASE12_RESOLVED_HONG_KONG.placeId)
   })
 
-  it('renders the same canonical summary combo in popup and drawer for one point', async () => {
+  it('renders real admin labels and subtitles for Beijing, Hong Kong, and California in the drawer', async () => {
+    const beijingWrapper = mountDrawerForCanonicalPlace(PHASE12_RESOLVED_BEIJING)
+    const hongKongWrapper = mountDrawerForCanonicalPlace(PHASE12_RESOLVED_HONG_KONG)
+    const californiaWrapper = mountDrawerForCanonicalPlace(PHASE12_RESOLVED_CALIFORNIA)
+
+    await nextTick()
+
+    expect(beijingWrapper.text()).toContain('北京')
+    expect(beijingWrapper.text()).toContain('直辖市')
+    expect(beijingWrapper.text()).toContain('中国 · 直辖市')
+    expect(hongKongWrapper.text()).toContain('香港')
+    expect(hongKongWrapper.text()).toContain('特别行政区')
+    expect(hongKongWrapper.text()).toContain('中国 · 特别行政区')
+    expect(californiaWrapper.text()).toContain('California')
+    expect(californiaWrapper.text()).toContain('一级行政区')
+    expect(californiaWrapper.text()).toContain('United States · 一级行政区')
+  })
+
+  it('renders the same canonical title, type label, and subtitle in popup and drawer for one point', async () => {
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_BEIJING))
     store.saveDraftAsPoint()
     store.openDrawerView()
 
@@ -195,7 +217,7 @@ describe('PointPreviewDrawer', () => {
       props: {
         surface: {
           mode: 'view',
-          point: store.activePoint!,
+          point: store.activePoint as MapPointDisplay,
           boundarySupportState: 'supported'
         } satisfies SummarySurfaceState
       }
@@ -203,12 +225,15 @@ describe('PointPreviewDrawer', () => {
 
     await nextTick()
 
+    expect(popupWrapper.get('.point-summary-card__title').text()).toBe(
+      drawerWrapper.get('.point-preview-drawer__name').text()
+    )
     expect(popupWrapper.get('[data-place-type-label="true"]').text()).toBe(
       drawerWrapper.get('[data-place-type-label="true"]').text()
     )
     expect(popupWrapper.get('[data-place-subtitle="true"]').text()).toBe(
       drawerWrapper.get('[data-place-subtitle="true"]').text()
     )
-    expect(drawerWrapper.text()).toContain('中国 · 直辖市')
+    expect(drawerWrapper.get('[data-place-subtitle="true"]').text()).toBe('中国 · 直辖市')
   })
 })
