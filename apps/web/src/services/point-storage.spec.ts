@@ -1,3 +1,5 @@
+import { PHASE12_RESOLVED_BEIJING } from '@trip-map/contracts'
+
 import { seedPoints } from '../data/seed-points'
 import type { PersistedMapPoint } from '../types/map-point'
 import {
@@ -5,7 +7,7 @@ import {
   loadPointStorageSnapshot,
   mergeSeedAndLocalPoints,
   POINT_STORAGE_KEY,
-  savePointStorageSnapshot
+  savePointStorageSnapshot,
 } from './point-storage'
 
 function installStorageMock() {
@@ -20,41 +22,47 @@ function installStorageMock() {
     },
     clear: () => {
       storage.clear()
-    }
+    },
   }
 
   vi.stubGlobal('localStorage', localStorageMock)
   Object.defineProperty(window, 'localStorage', {
     configurable: true,
-    value: localStorageMock
+    value: localStorageMock,
   })
-
-  return localStorageMock
 }
 
 function createSavedPoint(): PersistedMapPoint {
   return {
-    id: 'saved-japan',
-    name: 'Japan',
-    countryName: 'Japan',
-    countryCode: 'JP',
+    id: 'saved-beijing',
+    name: PHASE12_RESOLVED_BEIJING.displayName,
+    countryName: '中国',
+    countryCode: 'CN',
     precision: 'city-high',
-    cityId: 'jp-kyoto',
-    cityName: 'Kyoto',
-    cityContextLabel: 'Japan · Kansai',
-    boundaryId: null,
-    boundaryDatasetVersion: null,
+    cityId: null,
+    cityName: PHASE12_RESOLVED_BEIJING.displayName,
+    cityContextLabel: PHASE12_RESOLVED_BEIJING.subtitle,
+    placeId: PHASE12_RESOLVED_BEIJING.placeId,
+    placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
+    datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+    typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
+    parentLabel: PHASE12_RESOLVED_BEIJING.parentLabel,
+    subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
+    boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+    boundaryDatasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
     fallbackNotice: null,
-    lat: 35,
-    lng: 135,
-    x: 0.7,
-    y: 0.45,
+    lat: 39.9042,
+    lng: 116.4074,
+    clickLat: 39.9042,
+    clickLng: 116.4074,
+    x: 0.74,
+    y: 0.31,
     source: 'saved',
     isFeatured: true,
-    description: 'saved point',
-    coordinatesLabel: '35.0000°N, 135.0000°E',
-    createdAt: '2026-03-24T00:00:00.000Z',
-    updatedAt: '2026-03-24T00:00:00.000Z'
+    description: 'canonical saved point',
+    coordinatesLabel: '39.9042°N, 116.4074°E',
+    createdAt: '2026-03-30T00:00:00.000Z',
+    updatedAt: '2026-03-30T00:00:00.000Z',
   }
 }
 
@@ -67,203 +75,64 @@ describe('point-storage service', () => {
     vi.unstubAllGlobals()
   })
 
-  it('saves and loads a ready snapshot', () => {
+  it('persists canonical summary identity and raw click coordinates in a v2 snapshot', () => {
     const snapshot = {
-      version: 1 as const,
-      userPoints: [
-        {
-          ...createSavedPoint(),
-          boundaryId: 'jp-kyoto-city',
-          boundaryDatasetVersion: '2026-03-phase8-v1'
-        }
-      ],
+      version: 2 as const,
+      userPoints: [createSavedPoint()],
       seedOverrides: [],
-      deletedSeedIds: []
+      deletedSeedIds: [],
     }
 
     savePointStorageSnapshot(snapshot)
 
+    expect(POINT_STORAGE_KEY).toBe('trip-map:point-state:v2')
     expect(loadPointStorageSnapshot()).toEqual({
       status: 'ready',
-      snapshot
+      snapshot,
     })
   })
 
-  it('loads legacy version-1 snapshots that are missing new city fields', () => {
+  it('marks legacy version-1 snapshots as incompatible instead of migrating them', () => {
     window.localStorage.setItem(
       POINT_STORAGE_KEY,
       JSON.stringify({
         version: 1,
-        userPoints: [
-          {
-            id: 'saved-legacy',
-            name: 'Portugal',
-            countryName: 'Portugal',
-            countryCode: 'PT',
-            lat: 38.7223,
-            lng: -9.1393,
-            x: 0.34,
-            y: 0.28,
-            source: 'saved',
-            isFeatured: false,
-            description: 'legacy',
-            coordinatesLabel: '38.7223°N, 9.1393°W',
-            createdAt: '2026-03-24T00:00:00.000Z',
-            updatedAt: '2026-03-24T00:00:00.000Z'
-          }
-        ],
+        userPoints: [createSavedPoint()],
         seedOverrides: [],
-        deletedSeedIds: []
-      })
+        deletedSeedIds: [],
+      }),
     )
 
     expect(loadPointStorageSnapshot()).toEqual({
-      status: 'ready',
-      snapshot: {
-        version: 1,
-        userPoints: [
-          {
-            id: 'saved-legacy',
-            name: 'Portugal',
-            countryName: 'Portugal',
-            countryCode: 'PT',
-            precision: 'country',
-            cityId: null,
-            cityName: null,
-            cityContextLabel: null,
-            boundaryId: null,
-            boundaryDatasetVersion: null,
-            fallbackNotice: null,
-            lat: 38.7223,
-            lng: -9.1393,
-            x: 0.34,
-            y: 0.28,
-            source: 'saved',
-            isFeatured: false,
-            description: 'legacy',
-            coordinatesLabel: '38.7223°N, 9.1393°W',
-            createdAt: '2026-03-24T00:00:00.000Z',
-            updatedAt: '2026-03-24T00:00:00.000Z'
-          }
-        ],
-        seedOverrides: [],
-        deletedSeedIds: []
-      }
+      status: 'incompatible',
+      snapshot: null,
     })
   })
 
-  it('preserves cityId and cityContextLabel when saving and loading a city record', () => {
-    const snapshot = {
-      version: 1 as const,
-      userPoints: [
-        {
-          ...createSavedPoint(),
-          boundaryId: 'jp-kyoto-city',
-          boundaryDatasetVersion: '2026-03-phase8-v1'
-        }
-      ],
+  it('preserves canonical fields when saving and loading user points', () => {
+    savePointStorageSnapshot({
+      version: 2,
+      userPoints: [createSavedPoint()],
       seedOverrides: [],
-      deletedSeedIds: []
-    }
-
-    savePointStorageSnapshot(snapshot)
+      deletedSeedIds: [],
+    })
 
     const result = loadPointStorageSnapshot()
 
     expect(result.status).toBe('ready')
     expect(result.snapshot?.userPoints[0]).toEqual(
       expect.objectContaining({
-        cityId: 'jp-kyoto',
-        cityContextLabel: 'Japan · Kansai',
-        boundaryId: 'jp-kyoto-city',
-        boundaryDatasetVersion: '2026-03-phase8-v1',
-        lat: 35,
-        lng: 135,
-        x: 0.7,
-        y: 0.45
-      })
+        placeId: PHASE12_RESOLVED_BEIJING.placeId,
+        placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
+        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+        datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+        clickLat: 39.9042,
+        clickLng: 116.4074,
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '中国 · 直辖市',
+      }),
     )
-  })
-
-  it('rehydrates the exact city and boundary identity for a saved v2 city record', () => {
-    const snapshot = {
-      version: 1 as const,
-      userPoints: [
-        {
-          ...createSavedPoint(),
-          id: 'saved-kyoto-v2',
-          name: 'Kyoto',
-          boundaryId: 'jp-kyoto-city',
-          boundaryDatasetVersion: '2026-03-phase8-v1'
-        }
-      ],
-      seedOverrides: [],
-      deletedSeedIds: []
-    }
-
-    savePointStorageSnapshot(snapshot)
-
-    const result = loadPointStorageSnapshot()
-
-    expect(result.status).toBe('ready')
-    expect(result.snapshot?.userPoints[0]).toEqual(
-      expect.objectContaining({
-        id: 'saved-kyoto-v2',
-        name: 'Kyoto',
-        cityId: 'jp-kyoto',
-        boundaryId: 'jp-kyoto-city',
-        boundaryDatasetVersion: '2026-03-phase8-v1'
-      })
-    )
-  })
-
-  it('fails closed when both cityId and boundaryId are absent on restore', () => {
-    window.localStorage.setItem(
-      POINT_STORAGE_KEY,
-      JSON.stringify({
-        version: 1,
-        userPoints: [
-          {
-            id: 'saved-no-boundary',
-            name: 'Open Water',
-            countryName: 'Atlantic',
-            countryCode: 'ZZ',
-            precision: 'country',
-            cityId: null,
-            cityName: null,
-            cityContextLabel: null,
-            lat: 0,
-            lng: 0,
-            x: 0.5,
-            y: 0.5,
-            source: 'saved',
-            isFeatured: false,
-            description: 'legacy null city',
-            coordinatesLabel: '0.0000°N, 0.0000°E',
-            createdAt: '2026-03-24T00:00:00.000Z',
-            updatedAt: '2026-03-24T00:00:00.000Z'
-          }
-        ],
-        seedOverrides: [],
-        deletedSeedIds: []
-      })
-    )
-
-    expect(loadPointStorageSnapshot()).toEqual({
-      status: 'ready',
-      snapshot: {
-        version: 1,
-        userPoints: [
-          expect.objectContaining({
-            cityId: null,
-            boundaryId: null,
-            boundaryDatasetVersion: null
-          })
-        ],
-        seedOverrides: [],
-        deletedSeedIds: []
-      }
-    })
   })
 
   it('applies seed overrides and deletedSeedIds when merging display points', () => {
@@ -276,15 +145,17 @@ describe('point-storage service', () => {
           name: 'Kyoto Updated',
           description: 'updated description',
           isFeatured: true,
-          updatedAt: '2026-03-24T00:00:00.000Z'
-        }
+          updatedAt: '2026-03-24T00:00:00.000Z',
+        },
       ],
-      ['seed-cairo']
+      ['seed-cairo'],
     )
 
     expect(merged.some((point) => point.id === 'seed-cairo')).toBe(false)
     expect(merged.find((point) => point.id === 'seed-kyoto')?.name).toBe('Kyoto Updated')
-    expect(merged.find((point) => point.id === 'saved-japan')?.name).toBe('Japan')
+    expect(merged.find((point) => point.id === 'saved-beijing')?.placeId).toBe(
+      PHASE12_RESOLVED_BEIJING.placeId,
+    )
   })
 
   it('marks corrupt JSON as corrupt', () => {
@@ -292,33 +163,16 @@ describe('point-storage service', () => {
 
     expect(loadPointStorageSnapshot()).toEqual({
       status: 'corrupt',
-      snapshot: null
-    })
-  })
-
-  it('marks wrong version snapshots as incompatible', () => {
-    window.localStorage.setItem(
-      POINT_STORAGE_KEY,
-      JSON.stringify({
-        version: 2,
-        userPoints: [],
-        seedOverrides: [],
-        deletedSeedIds: []
-      })
-    )
-
-    expect(loadPointStorageSnapshot()).toEqual({
-      status: 'incompatible',
-      snapshot: null
+      snapshot: null,
     })
   })
 
   it('clears the snapshot from localStorage', () => {
     savePointStorageSnapshot({
-      version: 1,
+      version: 2,
       userPoints: [createSavedPoint()],
       seedOverrides: [],
-      deletedSeedIds: []
+      deletedSeedIds: [],
     })
 
     clearPointStorageSnapshot()

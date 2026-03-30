@@ -1,620 +1,246 @@
+import {
+  PHASE12_AMBIGUOUS_RESOLVE,
+  PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
+} from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { getBoundaryByCityId } from '../services/city-boundaries'
-import { useMapUiStore } from './map-ui'
+import { POINT_STORAGE_KEY } from '../services/point-storage'
+import type { DraftMapPoint } from '../types/map-point'
 import { useMapPointsStore } from './map-points'
+
+if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
+  throw new Error('Expected ambiguous canonical resolve fixture')
+}
+
+function installStorageMock() {
+  const storage = new Map<string, string>()
+  const localStorageMock = {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      storage.set(key, value)
+    },
+    removeItem: (key: string) => {
+      storage.delete(key)
+    },
+    clear: () => {
+      storage.clear()
+    },
+  }
+
+  vi.stubGlobal('localStorage', localStorageMock)
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: localStorageMock,
+  })
+}
+
+function createCanonicalDraft(
+  place = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<DraftMapPoint> = {},
+): DraftMapPoint {
+  return {
+    id: `detected-${place.placeId}`,
+    name: place.displayName,
+    countryName: place.parentLabel,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
+    precision: 'city-high',
+    cityId: null,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
+    fallbackNotice: null,
+    lat: place.regionSystem === 'CN' ? 39.9042 : 36.7783,
+    lng: place.regionSystem === 'CN' ? 116.4074 : -119.4179,
+    clickLat: place.regionSystem === 'CN' ? 39.9042 : 36.7783,
+    clickLng: place.regionSystem === 'CN' ? 116.4074 : -119.4179,
+    x: place.regionSystem === 'CN' ? 0.74 : 0.15,
+    y: place.regionSystem === 'CN' ? 0.31 : 0.44,
+    source: 'detected',
+    isFeatured: false,
+    description: 'canonical draft',
+    coordinatesLabel:
+      place.regionSystem === 'CN' ? '39.9042°N, 116.4074°E' : '36.7783°N, 119.4179°W',
+    ...overrides,
+  }
+}
 
 describe('map-points store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-
-    const storage = new Map<string, string>()
-    const localStorageMock = {
-      getItem: (key: string) => storage.get(key) ?? null,
-      setItem: (key: string, value: string) => {
-        storage.set(key, value)
-      },
-      removeItem: (key: string) => {
-        storage.delete(key)
-      },
-      clear: () => {
-        storage.clear()
-      }
-    }
-
-    vi.stubGlobal('localStorage', localStorageMock)
-    Object.defineProperty(window, 'localStorage', {
-      configurable: true,
-      value: localStorageMock
-    })
+    installStorageMock()
   })
 
   afterEach(() => {
     vi.unstubAllGlobals()
   })
 
-  function createDraft(id: string, name: string) {
-    return {
-      id,
-      name,
-      countryName: name,
-      countryCode: 'JP',
-      precision: 'city-high' as const,
-      cityId: 'jp-kyoto',
-      cityName: 'Kyoto',
-      cityContextLabel: 'Japan · Kansai',
+  it('keeps pending canonical candidates in summary mode without creating a fallback draft', () => {
+    const store = useMapPointsStore()
+    const pendingDraft = createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
+      id: 'pending-click',
+      name: '待确认地点',
+      placeId: null,
+      placeKind: null,
+      datasetVersion: null,
+      typeLabel: null,
+      parentLabel: null,
+      subtitle: null,
       boundaryId: null,
       boundaryDatasetVersion: null,
-      fallbackNotice: null,
-      lat: 35,
-      lng: 135,
-      x: 0.7,
-      y: 0.45,
-      source: 'detected' as const,
-      isFeatured: false,
-      description: 'draft description',
-      coordinatesLabel: '35.0000°N, 135.0000°E'
-    }
-  }
-
-  function createCandidate(overrides: Record<string, unknown> = {}) {
-    return {
-      cityId: 'jp-kyoto',
-      cityName: 'Kyoto',
-      contextLabel: 'Japan · Kansai',
-      matchLevel: 'high' as const,
-      distanceKm: 2.4,
-      statusHint: '更接近点击位置' as const,
-      ...overrides
-    }
-  }
-
-  function createFallbackDraft(id: string, name = 'Japan') {
-    return {
-      ...createDraft(id, name),
-      name,
-      countryName: name,
-      precision: 'country' as const,
-      cityId: null,
       cityName: null,
-      cityContextLabel: name,
-      boundaryId: null,
-      boundaryDatasetVersion: null,
-      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
-    }
-  }
+      cityContextLabel: PHASE12_AMBIGUOUS_RESOLVE.prompt,
+      fallbackNotice: PHASE12_AMBIGUOUS_RESOLVE.prompt,
+      countryCode: '__canonical__',
+      countryName: '待确认',
+    })
 
-  function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
-    const boundary = getBoundaryByCityId(cityId)
-
-    if (!boundary) {
-      throw new Error(`Missing boundary fixture for ${cityId}`)
-    }
-
-    return {
-      ...createDraft(`detected-${cityId}`, boundary.cityName),
-      countryCode: cityId.startsWith('pt-') ? 'PT' : 'JP',
-      name: boundary.cityName,
-      cityId,
-      cityName: boundary.cityName,
-      cityContextLabel: cityId.startsWith('pt-') ? 'Portugal' : 'Japan · Kansai',
-      boundaryId: boundary.boundaryId,
-      boundaryDatasetVersion: boundary.datasetVersion,
-      ...overrides
-    }
-  }
-
-  it('creates and replaces a draft point from detected results', () => {
-    const store = useMapPointsStore()
-
-    store.bootstrapPoints()
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
-
-    expect(store.draftPoint?.id).toBe('detected-jp-1')
-    expect(store.selectedPointId).toBe('detected-jp-1')
-    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(true)
-
-    store.replaceDraftFromDetection(createDraft('detected-jp-2', 'Tokyo'))
-
-    expect(store.draftPoint?.id).toBe('detected-jp-2')
-    expect(store.selectedPointId).toBe('detected-jp-2')
-    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
-  })
-
-  it('keeps candidate selection in summary mode without opening the deep drawer', () => {
-    const store = useMapPointsStore()
-    const fallbackPoint = createFallbackDraft('detected-jp-fallback')
-    const cityCandidates = [createCandidate()]
-
-    store.startPendingCitySelection(fallbackPoint, cityCandidates)
+    store.startPendingCanonicalSelection({
+      draftPoint: pendingDraft,
+      prompt: PHASE12_AMBIGUOUS_RESOLVE.prompt,
+      recommendedPlaceId: PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId,
+      candidates: PHASE12_AMBIGUOUS_RESOLVE.candidates,
+      click: PHASE12_AMBIGUOUS_RESOLVE.click,
+    })
 
     expect(store.summaryMode).toBe('candidate-select')
-    expect(store.drawerMode).toBeNull()
-    expect(store.summarySurfaceState).toEqual({
-      mode: 'candidate-select',
-      fallbackPoint,
-      cityCandidates
-    })
-  })
-
-  it('switches summary mode to detected preview for new drafts and view for reused saved points', () => {
-    const store = useMapPointsStore()
-    const fallbackPoint = createFallbackDraft('detected-jp-fallback')
-
-    store.startPendingCitySelection(fallbackPoint, [createCandidate()])
-    store.confirmPendingCitySelection(createCandidate())
-
-    expect(store.summaryMode).toBe('detected-preview')
-    expect(store.summarySurfaceState?.mode).toBe('detected-preview')
-    if (store.summarySurfaceState?.mode !== 'detected-preview') {
-      throw new Error('expected detected-preview summary surface')
-    }
-    expect(store.summarySurfaceState.point.cityId).toBe('jp-kyoto')
-
-    store.saveDraftAsPoint()
-    store.clearActivePoint()
-
-    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
-    const savedPoint = store.saveDraftAsPoint()
-    store.startPendingCitySelection(createFallbackDraft('detected-pt-fallback', 'Portugal'), [
-      createCandidate({
-        cityId: 'pt-lisbon',
-        cityName: 'Lisbon',
-        contextLabel: 'Portugal'
-      })
-    ])
-
-    const decision = store.confirmPendingCitySelection(
-      createCandidate({
-        cityId: 'pt-lisbon',
-        cityName: 'Lisbon',
-        contextLabel: 'Portugal'
-      })
+    expect(store.draftPoint).toBeNull()
+    expect(store.pendingCanonicalSelection?.recommendedPlaceId).toBe(
+      PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId,
     )
-
-    expect(decision?.type).toBe('reused')
-    expect(decision?.point.id).toBe(savedPoint?.id)
-    expect(store.summaryMode).toBe('view')
-    expect(store.summarySurfaceState).toMatchObject({
-      mode: 'view',
-      point: {
-        id: savedPoint?.id,
-        cityId: 'pt-lisbon'
-      }
-    })
+    expect(store.summarySurfaceState?.mode).toBe('candidate-select')
+    expect(store.summarySurfaceState?.fallbackPoint).toEqual(
+      expect.objectContaining({
+        fallbackNotice: PHASE12_AMBIGUOUS_RESOLVE.prompt,
+        clickLat: PHASE12_AMBIGUOUS_RESOLVE.click.lat,
+        clickLng: PHASE12_AMBIGUOUS_RESOLVE.click.lng,
+      }),
+    )
+    expect(store.summarySurfaceState?.cityCandidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          cityId: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.placeId,
+          cityName: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.displayName,
+        }),
+      ]),
+    )
   })
 
-  it('opens and closes the deep drawer without clearing summary state or boundary selection', () => {
+  it('reuses saved points by canonical placeId instead of legacy cityId', () => {
     const store = useMapPointsStore()
-    const boundaryId = getBoundaryByCityId('pt-lisbon')?.boundaryId ?? null
 
-    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
+    store.startDraftFromDetection(
+      createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
+        cityId: null,
+        cityName: null,
+        cityContextLabel: 'legacy city field intentionally empty',
+      }),
+    )
     const savedPoint = store.saveDraftAsPoint()
 
-    expect(store.summaryMode).toBe('view')
-    expect(store.drawerMode).toBeNull()
-    expect(store.selectedBoundaryId).toBe(boundaryId)
-
-    store.openDrawerView()
-
-    expect(store.summaryMode).toBe('view')
-    expect(store.drawerMode).toBe('view')
-    expect(store.selectedBoundaryId).toBe(boundaryId)
-    expect(store.summarySurfaceState).toMatchObject({
-      mode: 'view',
-      point: {
-        id: savedPoint?.id
-      }
-    })
-
-    store.closeDrawer()
-
-    expect(store.summaryMode).toBe('view')
-    expect(store.drawerMode).toBeNull()
-    expect(store.selectedBoundaryId).toBe(boundaryId)
-    expect(store.summarySurfaceState).toMatchObject({
-      mode: 'view',
-      point: {
-        id: savedPoint?.id
-      }
-    })
-  })
-
-  it('toggles featured state for active draft, saved, and seed points', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createDraft('detected-featured', 'Kyoto'))
-    expect(store.activePoint?.isFeatured).toBe(false)
-
-    store.toggleActivePointFeatured()
-    expect(store.activePoint?.isFeatured).toBe(true)
-
-    const savedPoint = store.saveDraftAsPoint()
-    expect(savedPoint?.isFeatured).toBe(true)
-
-    store.toggleActivePointFeatured()
-    expect(store.activePoint?.isFeatured).toBe(false)
-
-    store.selectPointById('seed-kyoto')
-    const initialSeedFeatured = store.activePoint?.isFeatured
-
-    store.toggleActivePointFeatured()
-
-    expect(store.activePoint?.source).toBe('seed')
-    expect(store.activePoint?.isFeatured).toBe(!initialSeedFeatured)
-  })
-
-  it('reuses saved points for search candidates through the same confirm flow as default candidates', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createCityDraft('pt-lisbon'))
-    const savedPoint = store.saveDraftAsPoint()
-
-    store.startPendingCitySelection(createFallbackDraft('detected-search-fallback'), [createCandidate()])
-
-    const searchCandidate = createCandidate({
-      cityId: 'pt-lisbon',
-      cityName: 'Lisbon',
-      contextLabel: 'Portugal',
-      statusHint: '搜索结果'
-    })
-
-    expect(store.findSavedPointByCityId('pt-lisbon')?.id).toBe(savedPoint?.id)
-
-    const decision = store.confirmPendingCitySelection(searchCandidate)
-
-    expect(decision?.type).toBe('reused')
-    expect(decision?.point.id).toBe(savedPoint?.id)
-    expect(store.summaryMode).toBe('view')
-    expect(store.summarySurfaceState).toMatchObject({
-      mode: 'view',
-      point: {
-        id: savedPoint?.id,
-        cityId: 'pt-lisbon'
-      }
-    })
-  })
-
-  it('clears an existing draft when selecting a saved or seed point', () => {
-    const store = useMapPointsStore()
-
-    store.bootstrapPoints()
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
-
-    store.selectPointById('seed-kyoto')
-
-    expect(store.draftPoint).toBeNull()
-    expect(store.selectedPointId).toBe('seed-kyoto')
-    expect(store.activePoint?.id).toBe('seed-kyoto')
-    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
-  })
-
-  it('discards the active draft when clearing the active point', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
-
-    store.clearActivePoint()
-
-    expect(store.draftPoint).toBeNull()
-    expect(store.selectedPointId).toBeNull()
-    expect(store.drawerMode).toBeNull()
-    expect(store.displayPoints.some((point) => point.id === 'detected-jp-1')).toBe(false)
-  })
-
-  it('converts a draft to a saved user point', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Japan'))
-    const savedPoint = store.saveDraftAsPoint()
-
-    expect(savedPoint?.id.startsWith('saved-')).toBe(true)
-    expect(savedPoint?.cityId).toBe('jp-kyoto')
-    expect(savedPoint?.cityName).toBe('Kyoto')
-    expect(savedPoint?.cityContextLabel).toBe('Japan · Kansai')
-    expect(store.draftPoint).toBeNull()
-    expect(store.userPoints).toHaveLength(1)
-    expect(store.activePoint?.source).toBe('saved')
-  })
-
-  it('keeps city metadata and fallbackNotice after save and bootstrap', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection({
-      ...createDraft('detected-jp-3', 'Kyoto'),
-      fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
-    })
-    store.saveDraftAsPoint()
-
-    setActivePinia(createPinia())
-
-    const rehydratedStore = useMapPointsStore()
-    rehydratedStore.bootstrapPoints()
-
-    expect(rehydratedStore.userPoints[0].cityName).toBe('Kyoto')
-    expect(rehydratedStore.userPoints[0].fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
-  })
-
-  it('finds a saved point by exact cityId', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createDraft('detected-jp-1', 'Kyoto'))
-    const savedPoint = store.saveDraftAsPoint()
+    const decision = store.openSavedPointForPlaceOrStartDraft(
+      createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
+        id: 'detected-beijing-second-click',
+        cityId: 'legacy-city-id-should-not-match',
+      }),
+    )
 
     expect(savedPoint).not.toBeNull()
-    expect(store.findSavedPointByCityId('jp-kyoto')?.id).toBe(savedPoint?.id)
-    expect(store.findSavedPointByCityId('jp-osaka')).toBeNull()
+    expect(decision.type).toBe('reused')
+    expect(decision.point.id).toBe(savedPoint?.id)
+    expect(store.activePoint?.placeId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+    expect(store.activePoint?.cityId).toBeNull()
   })
 
-  it('reuses an existing saved point by cityId before creating a duplicate draft', () => {
+  it('keeps pending, active, and saved surfaces on the same canonical identity fields', () => {
     const store = useMapPointsStore()
-    const mapUiStore = useMapUiStore()
+    const draftPoint = createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA)
 
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
-    const savedPoint = store.saveDraftAsPoint()
-    store.startPendingCitySelection(createDraft('detected-jp-2', 'Japan retry'), [createCandidate()])
-
-    const decision = store.confirmPendingCitySelection(createCandidate())
-
-    expect(decision?.type).toBe('reused')
-    expect(decision?.point.id).toBe(savedPoint?.id)
-    expect(store.draftPoint).toBeNull()
-    expect(store.pendingCitySelection).toBeNull()
-    expect(store.selectedPointId).toBe(savedPoint?.id ?? null)
-    expect(store.activePoint?.boundaryId).toBe(savedPoint?.boundaryId ?? null)
-    expect(store.selectedBoundaryId).toBe(savedPoint?.boundaryId ?? null)
-    expect(store.userPoints).toHaveLength(1)
-    expect(mapUiStore.interactionNotice?.message).toBe('已打开你记录过的Kyoto')
-  })
-
-  it('drops the strong boundary highlight when clearing an active saved city while preserving saved weak highlights', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
-    store.saveDraftAsPoint()
-    store.startDraftFromDetection(
-      createCityDraft('pt-lisbon', {
-        countryName: 'Portugal',
-        countryCode: 'PT',
-        lat: 38.7223,
-        lng: -9.1393,
-        x: 0.47,
-        y: 0.37,
-        coordinatesLabel: '38.7223°N, 9.1393°W'
-      })
-    )
-    const lisbonPoint = store.saveDraftAsPoint()
-
-    store.selectPointById(lisbonPoint!.id)
-    expect(store.selectedBoundaryId).toBe(getBoundaryByCityId('pt-lisbon')?.boundaryId ?? null)
-
-    store.clearActivePoint()
-
-    expect(store.selectedBoundaryId).toBeNull()
-    expect(store.savedBoundaryIds).toEqual([
-      getBoundaryByCityId('jp-kyoto')?.boundaryId,
-      getBoundaryByCityId('pt-lisbon')?.boundaryId
-    ])
-  })
-
-  it('starts a new draft from the selected city candidate when no saved city exists', () => {
-    const store = useMapPointsStore()
-
-    store.startPendingCitySelection(createDraft('detected-jp-1', 'Japan'), [createCandidate()])
-    const decision = store.confirmPendingCitySelection(createCandidate())
-
-    expect(decision?.type).toBe('created-draft')
-    expect(store.summaryMode).toBe('detected-preview')
-    expect(store.drawerMode).toBeNull()
-    expect(store.activePoint?.name).toBe('Kyoto')
-    expect(store.activePoint?.cityId).toBe('jp-kyoto')
-    expect(store.activePoint?.cityContextLabel).toBe('Japan · Kansai')
-    expect(store.activePoint?.fallbackNotice).toBeNull()
-  })
-
-  it('attaches exact boundary identity when confirming a concrete city candidate', () => {
-    const store = useMapPointsStore()
-    const boundary = getBoundaryByCityId('jp-kyoto')
-
-    expect(boundary).not.toBeNull()
-
-    store.startPendingCitySelection(
-      {
-        ...createDraft('detected-jp-fallback', 'Japan'),
-        name: 'Japan',
-        cityId: null,
-        cityName: null,
-        cityContextLabel: 'Japan',
-        precision: 'country',
-        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
-      },
-      [createCandidate()]
-    )
-
-    const decision = store.confirmPendingCitySelection(createCandidate())
-
-    expect(decision?.type).toBe('created-draft')
-    expect(store.draftPoint?.boundaryId).toBe(boundary?.boundaryId ?? null)
-    expect(store.draftPoint?.boundaryDatasetVersion).toBe(boundary?.datasetVersion ?? null)
-    expect(store.selectedBoundaryId).toBe(boundary?.boundaryId ?? null)
-    expect(store.savedBoundaryIds).toEqual([])
-  })
-
-  it('keeps Budapest boundary support through confirm, save, and reopen', () => {
-    const store = useMapPointsStore()
-    const budapestBoundary = getBoundaryByCityId('hu-budapest')
-
-    store.startPendingCitySelection(
-      {
-        ...createDraft('detected-hu-fallback', 'Hungary'),
-        name: 'Hungary',
-        countryName: 'Hungary',
-        countryCode: 'HU',
-        precision: 'country',
-        cityId: null,
-        cityName: null,
-        cityContextLabel: 'Hungary',
+    store.startPendingCanonicalSelection({
+      draftPoint: createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA, {
+        id: 'pending-california',
+        name: 'California click',
+        placeId: null,
+        placeKind: null,
+        datasetVersion: null,
+        typeLabel: null,
+        parentLabel: null,
+        subtitle: null,
         boundaryId: null,
-        boundaryDatasetVersion: null
+        boundaryDatasetVersion: null,
+        fallbackNotice: '需要确认一级行政区',
+      }),
+      prompt: '请确认一级行政区',
+      recommendedPlaceId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+      candidates: [PHASE12_RESOLVED_CALIFORNIA],
+      click: {
+        lat: 36.7783,
+        lng: -119.4179,
       },
-      [
-        createCandidate({
-          cityId: 'hu-budapest',
-          cityName: 'Budapest',
-          contextLabel: 'Hungary · Budapest'
-        })
-      ]
+    })
+
+    expect(store.summarySurfaceState).toEqual(
+      expect.objectContaining({
+        mode: 'candidate-select',
+        cityCandidates: [
+          expect.objectContaining({
+            cityId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+          }),
+        ],
+      }),
     )
 
-    const decision = store.confirmPendingCitySelection(
-      createCandidate({
-        cityId: 'hu-budapest',
-        cityName: 'Budapest',
-        contextLabel: 'Hungary · Budapest'
-      })
-    )
+    store.startDraftFromDetection(draftPoint)
 
-    expect(decision?.type).toBe('created-draft')
-    expect(store.draftPoint?.boundaryId).toBe(budapestBoundary?.boundaryId ?? null)
-    expect(store.activeBoundaryCoverageState).toBe('supported')
+    expect(store.activePoint).toEqual(
+      expect.objectContaining({
+        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+        placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
+        datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+        clickLat: 36.7783,
+        clickLng: -119.4179,
+      }),
+    )
 
     const savedPoint = store.saveDraftAsPoint()
 
-    expect(savedPoint?.boundaryId).toBe(budapestBoundary?.boundaryId ?? null)
-
-    store.clearActivePoint()
-    store.selectPointById(savedPoint!.id)
-
-    expect(store.activePoint?.cityId).toBe('hu-budapest')
-    expect(store.selectedBoundaryId).toBe(budapestBoundary?.boundaryId ?? null)
-    expect(store.activeBoundaryCoverageState).toBe('supported')
+    expect(savedPoint).toEqual(
+      expect.objectContaining({
+        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+        placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
+        datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+        clickLat: 36.7783,
+        clickLng: -119.4179,
+      }),
+    )
+    expect(store.selectedBoundaryId).toBe(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
+    expect(store.savedBoundaryIds).toEqual([PHASE12_RESOLVED_CALIFORNIA.boundaryId])
   })
 
-  it('continues with the fallback country draft from pending city selection', () => {
-    const store = useMapPointsStore()
-
-    store.startPendingCitySelection(
-      {
-        ...createDraft('detected-pt-1', 'Portugal'),
-        countryCode: 'PT',
-        cityId: null,
-        cityName: null,
-        cityContextLabel: 'Portugal',
-        precision: 'country',
-        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
-      },
-      [createCandidate({ cityId: 'pt-lisbon', cityName: 'Lisbon', contextLabel: 'Portugal' })]
+  it('marks legacy version-1 local snapshots as incompatible during bootstrap', () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        userPoints: [],
+        seedOverrides: [],
+        deletedSeedIds: [],
+      }),
     )
 
-    const fallbackPoint = store.continuePendingWithFallback()
-
-    expect(fallbackPoint?.name).toBe('Portugal')
-    expect(store.pendingCitySelection).toBeNull()
-    expect(store.summaryMode).toBe('detected-preview')
-    expect(store.drawerMode).toBeNull()
-    expect(store.activePoint?.fallbackNotice).toBe('未能可靠确认城市，已提供国家/地区继续记录')
-  })
-
-  it('derives saved weak-highlight ids and selected strong-highlight id from point state', () => {
     const store = useMapPointsStore()
-
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
-    const kyotoPoint = store.saveDraftAsPoint()
-
-    store.startDraftFromDetection(
-      createCityDraft('pt-lisbon', {
-        countryName: 'Portugal',
-        countryCode: 'PT',
-        lat: 38.7223,
-        lng: -9.1393,
-        x: 0.47,
-        y: 0.37,
-        coordinatesLabel: '38.7223°N, 9.1393°W'
-      })
-    )
-    const lisbonPoint = store.saveDraftAsPoint()
-
-    expect(kyotoPoint).not.toBeNull()
-    expect(lisbonPoint).not.toBeNull()
-
-    store.selectPointById(kyotoPoint!.id)
-
-    expect(store.selectedBoundaryId).toBe(getBoundaryByCityId('jp-kyoto')?.boundaryId ?? null)
-    expect(store.savedBoundaryIds).toEqual([
-      getBoundaryByCityId('jp-kyoto')?.boundaryId,
-      getBoundaryByCityId('pt-lisbon')?.boundaryId
-    ])
-  })
-
-  it('fails closed for fallback and legacy points that have no boundary identity', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection({
-      ...createDraft('detected-legacy-country', 'Japan'),
-      name: 'Japan',
-      precision: 'country',
-      cityId: null,
-      cityName: null,
-      cityContextLabel: 'Japan',
-      boundaryId: null,
-      boundaryDatasetVersion: null
-    })
-    const legacyPoint = store.saveDraftAsPoint()
-
-    store.selectPointById(legacyPoint!.id)
-
-    expect(store.selectedBoundaryId).toBeNull()
-    expect(store.savedBoundaryIds).toEqual([])
-    expect(store.activeBoundaryCoverageState).toBe('not-applicable')
-
-    store.startPendingCitySelection(
-      {
-        ...createDraft('detected-pt-fallback', 'Portugal'),
-        countryName: 'Portugal',
-        countryCode: 'PT',
-        cityId: null,
-        cityName: null,
-        cityContextLabel: 'Portugal',
-        precision: 'country',
-        fallbackNotice: '未能可靠确认城市，已提供国家/地区继续记录'
-      },
-      [createCandidate({ cityId: 'pt-lisbon', cityName: 'Lisbon', contextLabel: 'Portugal' })]
-    )
-
-    store.continuePendingWithFallback()
-
-    expect(store.selectedBoundaryId).toBeNull()
-    expect(store.savedBoundaryIds).toEqual([])
-    expect(store.activeBoundaryCoverageState).toBe('not-applicable')
-  })
-
-  it('marks unsupported city records as missing boundary coverage', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection({
-      ...createDraft('detected-cl-santiago', 'Santiago'),
-      name: 'Santiago',
-      countryName: 'Chile',
-      countryCode: 'CL',
-      cityId: 'cl-santiago',
-      cityName: 'Santiago',
-      cityContextLabel: 'Chile · Santiago',
-      boundaryId: null,
-      boundaryDatasetVersion: null,
-      fallbackNotice: null
-    })
-
-    expect(store.activeBoundaryCoverageState).toBe('missing')
-    expect(store.selectedBoundaryId).toBeNull()
-  })
-
-  it('hides a seed point from the merged display points', () => {
-    const store = useMapPointsStore()
-
     store.bootstrapPoints()
-    store.hideSeedPoint('seed-kyoto')
 
-    expect(store.deletedSeedIds).toContain('seed-kyoto')
-    expect(store.displayPoints.some((point) => point.id === 'seed-kyoto')).toBe(false)
+    expect(store.storageHealth).toBe('incompatible')
+    expect(store.userPoints).toEqual([])
   })
 })

@@ -4,10 +4,10 @@ import type {
   SeedPointOverride
 } from '../types/map-point'
 
-export const POINT_STORAGE_KEY = 'trip-map:point-state:v1'
+export const POINT_STORAGE_KEY = 'trip-map:point-state:v2'
 
 export interface PointStorageSnapshot {
-  version: 1
+  version: 2
   userPoints: PersistedMapPoint[]
   seedOverrides: SeedPointOverride[]
   deletedSeedIds: string[]
@@ -27,6 +27,14 @@ export type PointStorageLoadResult =
 
 function isValidPrecision(value: unknown): value is PersistedMapPoint['precision'] {
   return value === 'country' || value === 'region' || value === 'city-high' || value === 'city-possible'
+}
+
+function isValidPlaceKind(value: unknown): value is NonNullable<PersistedMapPoint['placeKind']> {
+  return value === 'CN_ADMIN' || value === 'OVERSEAS_ADMIN1'
+}
+
+function normalizeNullableString(value: unknown) {
+  return typeof value === 'string' ? value : null
 }
 
 function normalizePersistedPoint(value: unknown): PersistedMapPoint | null {
@@ -58,16 +66,28 @@ function normalizePersistedPoint(value: unknown): PersistedMapPoint | null {
       countryName: point.countryName,
       countryCode: point.countryCode,
       precision: isValidPrecision(point.precision) ? point.precision : 'country',
-      cityId: typeof point.cityId === 'string' ? point.cityId : null,
-      cityName: typeof point.cityName === 'string' ? point.cityName : null,
-      cityContextLabel: typeof point.cityContextLabel === 'string' ? point.cityContextLabel : null,
-      boundaryId: typeof point.boundaryId === 'string' ? point.boundaryId : null,
-      boundaryDatasetVersion: typeof point.boundaryDatasetVersion === 'string' ? point.boundaryDatasetVersion : null,
-      fallbackNotice: typeof point.fallbackNotice === 'string' ? point.fallbackNotice : null,
+      cityId: normalizeNullableString(point.cityId),
+      cityName: normalizeNullableString(point.cityName),
+      cityContextLabel: normalizeNullableString(point.cityContextLabel),
+      placeId: normalizeNullableString(point.placeId),
+      placeKind: isValidPlaceKind(point.placeKind) ? point.placeKind : null,
+      datasetVersion:
+        normalizeNullableString(point.datasetVersion) ??
+        normalizeNullableString(point.boundaryDatasetVersion),
+      typeLabel: normalizeNullableString(point.typeLabel),
+      parentLabel: normalizeNullableString(point.parentLabel),
+      subtitle: normalizeNullableString(point.subtitle),
+      boundaryId: normalizeNullableString(point.boundaryId),
+      boundaryDatasetVersion:
+        normalizeNullableString(point.boundaryDatasetVersion) ??
+        normalizeNullableString(point.datasetVersion),
+      fallbackNotice: normalizeNullableString(point.fallbackNotice),
       x: point.x,
       y: point.y,
       lat: point.lat,
       lng: point.lng,
+      clickLat: typeof point.clickLat === 'number' ? point.clickLat : point.lat,
+      clickLng: typeof point.clickLng === 'number' ? point.clickLng : point.lng,
       source: 'saved',
       isFeatured: point.isFeatured,
       description: point.description,
@@ -127,7 +147,7 @@ export function loadPointStorageSnapshot(): PointStorageLoadResult {
       }
     }
 
-    if (parsed.version !== 1) {
+    if (parsed.version !== 2) {
       return {
         status: 'incompatible',
         snapshot: null
@@ -160,7 +180,7 @@ export function loadPointStorageSnapshot(): PointStorageLoadResult {
     return {
       status: 'ready',
       snapshot: {
-        version: 1,
+        version: 2,
         userPoints: normalizedUserPoints,
         seedOverrides: parsed.seedOverrides,
         deletedSeedIds: parsed.deletedSeedIds
@@ -181,11 +201,27 @@ export function savePointStorageSnapshot(snapshot: PointStorageSnapshot) {
 
   const normalizedSnapshot: PointStorageSnapshot = {
     ...snapshot,
+    version: 2,
     userPoints: snapshot.userPoints.map((point) => ({
       ...point,
-      boundaryId: typeof point.boundaryId === 'string' ? point.boundaryId : null,
+      cityId: normalizeNullableString(point.cityId),
+      cityName: normalizeNullableString(point.cityName),
+      cityContextLabel: normalizeNullableString(point.cityContextLabel),
+      placeId: normalizeNullableString(point.placeId),
+      placeKind: isValidPlaceKind(point.placeKind) ? point.placeKind : null,
+      datasetVersion:
+        normalizeNullableString(point.datasetVersion) ??
+        normalizeNullableString(point.boundaryDatasetVersion),
+      typeLabel: normalizeNullableString(point.typeLabel),
+      parentLabel: normalizeNullableString(point.parentLabel),
+      subtitle: normalizeNullableString(point.subtitle),
+      boundaryId: normalizeNullableString(point.boundaryId),
       boundaryDatasetVersion:
-        typeof point.boundaryDatasetVersion === 'string' ? point.boundaryDatasetVersion : null
+        normalizeNullableString(point.boundaryDatasetVersion) ??
+        normalizeNullableString(point.datasetVersion),
+      fallbackNotice: normalizeNullableString(point.fallbackNotice),
+      clickLat: typeof point.clickLat === 'number' ? point.clickLat : point.lat,
+      clickLng: typeof point.clickLng === 'number' ? point.clickLng : point.lng
     }))
   }
 

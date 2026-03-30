@@ -1,14 +1,15 @@
+import type { CanonicalPlaceCandidate } from '@trip-map/contracts'
 import { nanoid } from 'nanoid'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
 import { seedPoints } from '../data/seed-points'
-import { getBoundaryByCityId, hasBoundaryCoverageForCityId } from '../services/city-boundaries'
+import { hasBoundaryCoverageForCityId } from '../services/city-boundaries'
 import {
   clearPointStorageSnapshot,
   loadPointStorageSnapshot,
   mergeSeedAndLocalPoints,
-  savePointStorageSnapshot
+  savePointStorageSnapshot,
 } from '../services/point-storage'
 import type { GeoCityCandidate } from '../types/geo'
 import type {
@@ -20,7 +21,7 @@ import type {
   PointStorageHealth,
   SeedPointOverride,
   SummaryMode,
-  SummarySurfaceState
+  SummarySurfaceState,
 } from '../types/map-point'
 import { useMapUiStore } from './map-ui'
 
@@ -28,18 +29,7 @@ function buildEditableSnapshot(point: MapPointDisplay): EditablePointSnapshot {
   return {
     name: point.name,
     description: point.description,
-    isFeatured: point.isFeatured
-  }
-}
-
-function toPersistedMapPoint(point: MapPointDisplay): PersistedMapPoint {
-  const now = new Date().toISOString()
-
-  return {
-    ...point,
-    source: 'saved',
-    createdAt: now,
-    updatedAt: now
+    isFeatured: point.isFeatured,
   }
 }
 
@@ -48,9 +38,30 @@ interface SavedPointReuseDecision {
   point: MapPointDisplay
 }
 
-interface PendingCitySelection {
-  fallbackPoint: DraftMapPoint
-  cityCandidates: GeoCityCandidate[]
+export interface PendingCanonicalSelection {
+  draftPoint: DraftMapPoint
+  prompt: string
+  recommendedPlaceId: string | null
+  candidates: CanonicalPlaceCandidate[]
+  click: {
+    lat: number
+    lng: number
+  }
+}
+
+function toCandidateProjection(candidate: CanonicalPlaceCandidate): GeoCityCandidate {
+  return {
+    cityId: candidate.placeId,
+    cityName: candidate.displayName,
+    contextLabel: candidate.subtitle,
+    matchLevel: 'high',
+    distanceKm: 0,
+    statusHint: candidate.candidateHint,
+  }
+}
+
+function hasCanonicalIdentity(point: Pick<MapPointDisplay, 'placeId' | 'placeKind'>) {
+  return Boolean(point.placeId && point.placeKind)
 }
 
 export const useMapPointsStore = defineStore('map-points', () => {
@@ -59,7 +70,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
   const seedOverrides = shallowRef<SeedPointOverride[]>([])
   const deletedSeedIds = shallowRef<string[]>([])
   const draftPoint = shallowRef<DraftMapPoint | null>(null)
-  const pendingCitySelection = shallowRef<PendingCitySelection | null>(null)
+  const pendingCanonicalSelection = shallowRef<PendingCanonicalSelection | null>(null)
   const selectedPointId = shallowRef<string | null>(null)
   const summaryMode = shallowRef<SummaryMode | null>(null)
   const drawerMode = shallowRef<DrawerMode | null>(null)
@@ -72,7 +83,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       seedPoints,
       userPoints.value,
       seedOverrides.value,
-      deletedSeedIds.value
+      deletedSeedIds.value,
     )
 
     if (draftPoint.value) {
@@ -91,23 +102,33 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const activeBoundaryCoverageState = computed<'supported' | 'missing' | 'not-applicable'>(() => {
-    if (!activePoint.value?.cityId) {
+    if (!activePoint.value) {
       return 'not-applicable'
     }
 
-    if (activePoint.value.boundaryId || hasBoundaryCoverageForCityId(activePoint.value.cityId)) {
+    if (activePoint.value.boundaryId) {
       return 'supported'
     }
 
-    return 'missing'
+    if (hasCanonicalIdentity(activePoint.value)) {
+      return 'missing'
+    }
+
+    if (activePoint.value.cityId && hasBoundaryCoverageForCityId(activePoint.value.cityId)) {
+      return 'supported'
+    }
+
+    return 'not-applicable'
   })
 
   const summarySurfaceState = computed<SummarySurfaceState | null>(() => {
-    if (summaryMode.value === 'candidate-select' && pendingCitySelection.value) {
+    if (summaryMode.value === 'candidate-select' && pendingCanonicalSelection.value) {
       return {
         mode: 'candidate-select',
-        fallbackPoint: pendingCitySelection.value.fallbackPoint,
-        cityCandidates: pendingCitySelection.value.cityCandidates
+        fallbackPoint: pendingCanonicalSelection.value.draftPoint,
+        cityCandidates: pendingCanonicalSelection.value.candidates.map((candidate) =>
+          toCandidateProjection(candidate),
+        ),
       }
     }
 
@@ -118,7 +139,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       return {
         mode: summaryMode.value,
         point: activePoint.value,
-        boundarySupportState: activeBoundaryCoverageState.value
+        boundarySupportState: activeBoundaryCoverageState.value,
       }
     }
 
@@ -137,10 +158,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
   function persistSnapshot() {
     savePointStorageSnapshot({
-      version: 1,
+      version: 2,
       userPoints: userPoints.value,
       seedOverrides: seedOverrides.value,
-      deletedSeedIds: deletedSeedIds.value
+      deletedSeedIds: deletedSeedIds.value,
     })
   }
 
@@ -167,8 +188,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function clearActivePoint() {
-    if (pendingCitySelection.value) {
-      pendingCitySelection.value = null
+    if (pendingCanonicalSelection.value) {
+      pendingCanonicalSelection.value = null
       selectedPointId.value = null
       summaryMode.value = null
       drawerMode.value = null
@@ -188,7 +209,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function startDraftFromDetection(point: DraftMapPoint) {
-    pendingCitySelection.value = null
+    pendingCanonicalSelection.value = null
     draftPoint.value = point
     selectedPointId.value = point.id
     summaryMode.value = 'detected-preview'
@@ -197,19 +218,18 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function replaceDraftFromDetection(point: DraftMapPoint) {
-    pendingCitySelection.value = null
-    draftPoint.value = point
-    selectedPointId.value = point.id
-    summaryMode.value = 'detected-preview'
-    drawerMode.value = null
-    editableSnapshot.value = buildEditableSnapshot(point)
+    startDraftFromDetection(point)
   }
 
-  function startPendingCitySelection(fallbackPoint: DraftMapPoint, cityCandidates: GeoCityCandidate[]) {
+  function startPendingCanonicalSelection(selection: PendingCanonicalSelection) {
     draftPoint.value = null
-    pendingCitySelection.value = {
-      fallbackPoint,
-      cityCandidates
+    pendingCanonicalSelection.value = {
+      ...selection,
+      draftPoint: {
+        ...selection.draftPoint,
+        clickLat: selection.click.lat,
+        clickLng: selection.click.lng,
+      },
     }
     selectedPointId.value = null
     summaryMode.value = 'candidate-select'
@@ -219,7 +239,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
   function discardDraft() {
     draftPoint.value = null
-    pendingCitySelection.value = null
+    pendingCanonicalSelection.value = null
     editableSnapshot.value = null
     selectedPointId.value = null
     summaryMode.value = null
@@ -231,15 +251,20 @@ export const useMapPointsStore = defineStore('map-points', () => {
       seedPoints,
       userPoints.value,
       seedOverrides.value,
-      deletedSeedIds.value
+      deletedSeedIds.value,
     )
     const persistedPoint = persistedDisplayPoints.find((item) => item.id === id) ?? null
 
-    if (draftPoint.value && draftPoint.value.id !== id && persistedPoint && persistedPoint.source !== 'detected') {
+    if (
+      draftPoint.value &&
+      draftPoint.value.id !== id &&
+      persistedPoint &&
+      persistedPoint.source !== 'detected'
+    ) {
       draftPoint.value = null
     }
 
-    pendingCitySelection.value = null
+    pendingCanonicalSelection.value = null
 
     const point = displayPoints.value.find((item) => item.id === id) ?? null
 
@@ -302,7 +327,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       id: `saved-${nanoid(8)}`,
       source: 'saved',
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
     }
 
     userPoints.value = [...userPoints.value, nextPoint]
@@ -317,33 +342,21 @@ export const useMapPointsStore = defineStore('map-points', () => {
     return nextPoint
   }
 
-  function buildDraftFromCandidate(
-    fallbackPoint: DraftMapPoint,
-    candidate: GeoCityCandidate
-  ): DraftMapPoint {
-    const boundary = getBoundaryByCityId(candidate.cityId)
-
-    return {
-      ...fallbackPoint,
-      id: `detected-${candidate.cityId}-${Math.round(fallbackPoint.lat * 100)}-${Math.round(fallbackPoint.lng * 100)}`,
-      name: candidate.cityName,
-      precision: 'city-high',
-      cityId: candidate.cityId,
-      cityName: candidate.cityName,
-      cityContextLabel: candidate.contextLabel,
-      boundaryId: boundary?.boundaryId ?? null,
-      boundaryDatasetVersion: boundary?.datasetVersion ?? null,
-      fallbackNotice: null
-    }
+  function findSavedPointByPlaceId(placeId: string) {
+    return userPoints.value.find((point) => point.placeId === placeId) ?? null
   }
 
-  function findSavedPointByCityId(cityId: string) {
-    return userPoints.value.find((point) => point.cityId === cityId) ?? null
+  function findSavedPointByCityId(identifier: string) {
+    return (
+      findSavedPointByPlaceId(identifier) ??
+      userPoints.value.find((point) => point.cityId === identifier) ??
+      null
+    )
   }
 
-  function openSavedPointForCityOrStartDraft(point: DraftMapPoint): SavedPointReuseDecision {
-    pendingCitySelection.value = null
-    const savedPoint = point.cityId ? findSavedPointByCityId(point.cityId) : null
+  function openSavedPointForPlaceOrStartDraft(point: DraftMapPoint): SavedPointReuseDecision {
+    pendingCanonicalSelection.value = null
+    const savedPoint = point.placeId ? findSavedPointByPlaceId(point.placeId) : null
 
     if (savedPoint) {
       draftPoint.value = null
@@ -354,7 +367,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
       return {
         type: 'reused',
-        point: savedPoint
+        point: savedPoint,
       }
     }
 
@@ -362,42 +375,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     return {
       type: 'created-draft',
-      point
+      point,
     }
-  }
-
-  function confirmPendingCitySelection(candidate: GeoCityCandidate) {
-    if (!pendingCitySelection.value) {
-      return null
-    }
-
-    const decision = openSavedPointForCityOrStartDraft(
-      buildDraftFromCandidate(pendingCitySelection.value.fallbackPoint, candidate)
-    )
-
-    if (decision.type === 'reused') {
-      mapUiStore.setInteractionNotice({
-        tone: 'info',
-        message: `已打开你记录过的${decision.point.name}`
-      })
-    } else {
-      mapUiStore.clearInteractionNotice()
-    }
-
-    return decision
-  }
-
-  function continuePendingWithFallback() {
-    if (!pendingCitySelection.value) {
-      return null
-    }
-
-    const fallbackPoint = pendingCitySelection.value.fallbackPoint
-
-    mapUiStore.clearInteractionNotice()
-    startDraftFromDetection(fallbackPoint)
-
-    return fallbackPoint
   }
 
   function updateSavedPoint(id: string, snapshot: EditablePointSnapshot) {
@@ -410,7 +389,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
         name: snapshot.name,
         description: snapshot.description,
         isFeatured: snapshot.isFeatured,
-        updatedAt: now
+        updatedAt: now,
       }
       const remainingOverrides = seedOverrides.value.filter((override) => override.id !== id)
 
@@ -424,7 +403,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
         return {
           ...point,
           ...snapshot,
-          updatedAt: now
+          updatedAt: now,
         }
       })
     }
@@ -453,7 +432,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
       draftPoint.value = {
         ...draftPoint.value,
-        isFeatured: nextIsFeatured
+        isFeatured: nextIsFeatured,
       }
       editableSnapshot.value = buildEditableSnapshot(draftPoint.value)
       return
@@ -462,7 +441,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     updateSavedPoint(activePoint.value.id, {
       name: activePoint.value.name,
       description: activePoint.value.description,
-      isFeatured: nextIsFeatured
+      isFeatured: nextIsFeatured,
     })
   }
 
@@ -502,7 +481,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     seedOverrides.value = []
     deletedSeedIds.value = []
     draftPoint.value = null
-    pendingCitySelection.value = null
+    pendingCanonicalSelection.value = null
     selectedPointId.value = null
     summaryMode.value = null
     drawerMode.value = null
@@ -515,7 +494,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     seedOverrides,
     deletedSeedIds,
     draftPoint,
-    pendingCitySelection,
+    pendingCanonicalSelection,
     selectedPointId,
     summaryMode,
     drawerMode,
@@ -531,7 +510,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     clearActivePoint,
     startDraftFromDetection,
     replaceDraftFromDetection,
-    startPendingCitySelection,
+    startPendingCanonicalSelection,
     discardDraft,
     selectPointById,
     openDrawerView,
@@ -540,15 +519,13 @@ export const useMapPointsStore = defineStore('map-points', () => {
     exitEditMode,
     saveDraftAsPoint,
     findSavedPointByCityId,
-    openSavedPointForCityOrStartDraft,
-    confirmPendingCitySelection,
-    continuePendingWithFallback,
+    openSavedPointForPlaceOrStartDraft,
     updateSavedPoint,
     toggleActivePointFeatured,
     deleteUserPoint,
     hideSeedPoint,
     restoreSeedPoint,
-    clearCorruptStorageState
+    clearCorruptStorageState,
   }
 })
 
