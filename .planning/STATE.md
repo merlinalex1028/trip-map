@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 11-monorepo-06-PLAN.md
-last_updated: "2026-03-30T05:52:12Z"
+stopped_at: Completed 11-monorepo-09-PLAN.md
+last_updated: "2026-03-30T06:10:58.436Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 10
-  completed_plans: 6
-  percent: 50
+  completed_plans: 7
+  percent: 70
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 11 (monorepo) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Last activity: 2026-03-30
 
-Progress: [█████░░░░░] 50%
+Progress: [███████░░░] 70%
 
 ## Last Shipped Milestone
 
@@ -66,6 +66,7 @@ Progress: [█████░░░░░] 50%
 | Phase 11-monorepo P07 | 14min | 1 tasks | 13 files |
 | Phase 11-monorepo P05 | 22min | 1 tasks | 9 files |
 | Phase 11-monorepo P06 | 81min | 1 tasks | 13 files |
+| Phase 11-monorepo P09 | 6min | 1 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: 11-05 让 legacy-entry 直接挂载 apps/web/src/App.vue，bootstrap bridge 仅保留样式与 legacy supporting runtime 桥接职责。
 - [Phase 11-monorepo]: 11-06 使用 Prisma 连接 Supabase-hosted PostgreSQL，但 server 代码继续保持标准 PostgreSQL/Prisma 边界，不引入 Supabase SDK。
 - [Phase 11-monorepo]: 当前开发环境通过 Supabase CLI 验证过的 session pooler URL 跑 migration 与 runtime，保证本机网络下的可达性与真实 smoke 验证。
+- [Phase 11-monorepo]: 11-09 keeps Pinia stores and popup anchoring package-local inside apps/web, rewiring only the app shell and top-level runtime consumers.
+- [Phase 11-monorepo]: WorldMapStage now resolves its stores, composable, services, and types from apps/web while deferring root asset ownership and bridge cleanup to later plans.
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T05:52:12Z
-Stopped at: Completed 11-monorepo-06-PLAN.md
+Last session: 2026-03-30T06:10:58.432Z
+Stopped at: Completed 11-monorepo-09-PLAN.md
 Resume file: None
