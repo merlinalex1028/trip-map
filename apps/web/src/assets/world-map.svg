@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 800" role="img" aria-labelledby="title desc">
+  <title id="title">World map</title>
+  <desc id="desc">Projection-faithful equirectangular world map used for geographic click recognition.</desc>
+  <defs>
+    <linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f5ecda" />
+      <stop offset="100%" stop-color="#ddc8a0" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#fff8e8" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#fff8e8" stop-opacity="0" />
+    </radialGradient>
+    <filter id="paper-grain" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="9" />
+      <feColorMatrix type="saturate" values="0" />
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.06" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="1600" height="800" fill="#efe1c0" />
+  <rect x="40" y="80" width="1520" height="640" rx="16" fill="url(#ocean)" stroke="#a38757" stroke-width="2" />
+  <rect x="40" y="80" width="1520" height="640" rx="16" fill="url(#glow)" />
+  <g fill="none" stroke="#b19462" stroke-width="1.5" opacity="0.45">
+    <path d="M160 80H1440M160 240H1440M160 400H1440M160 560H1440M160 720H1440" />
+    <path d="M160 80V720M480 80V720M800 80V720M1120 80V720M1440 80V720" />
+  </g>
+  <g fill="#ccb083" stroke="#a08259" stroke-width="4" opacity="0.88">
+    <path d="M220 200c120-34 214-18 286 30 54 36 56 86 28 122-24 30-80 54-120 60-94 14-168-12-224-64-52-48-44-108 30-148z" />
+    <path d="M650 190c88-28 174-18 240 22 80 48 86 124 38 172-44 44-120 64-204 56-58-6-118-24-162-60-56-44-56-128 2-190 24-26 54-44 86-52z" />
+    <path d="M1020 228c58-32 140-44 214-26 96 24 166 100 148 168-18 70-114 124-232 130-108 6-202-30-246-92-40-56-12-132 58-180 18-12 38-22 58-30z" />
+    <path d="M1180 520c46-22 100-26 144-6 44 20 70 62 54 98-18 42-78 70-144 72-62 0-118-22-140-62-20-38 14-82 86-102z" />
+    <path d="M450 520c54-24 120-26 168-4 52 24 74 72 54 112-22 42-82 68-154 66-74-2-132-28-150-70-16-36 14-82 82-104z" />
+    <path d="M815 566c28-12 58-12 80 2 24 14 34 40 22 62-12 24-42 40-76 40-34 0-62-14-76-34-16-24-8-52 20-70 10-6 20-10 30-14z" />
+  </g>
+  <rect width="1600" height="800" fill="#60442d" opacity="0.04" filter="url(#paper-grain)" />
+</svg>

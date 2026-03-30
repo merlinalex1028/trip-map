@@ -3,7 +3,7 @@ import type { VirtualElement } from '@floating-ui/dom'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 
-import worldMapUrl from '../../../../src/assets/world-map.svg'
+import worldMapUrl from '../assets/world-map.svg'
 import { usePopupAnchoring } from '../composables/usePopupAnchoring'
 import { getBoundaryById } from '../services/city-boundaries'
 import {

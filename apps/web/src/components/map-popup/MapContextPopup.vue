@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch, type CSSProperties } from 'vue'
 
-import type { GeoCityCandidate } from '../../../../../src/types/geo'
-import type { MapPointDisplay, SummarySurfaceState } from '../../../../../src/types/map-point'
+import type { GeoCityCandidate } from '../../types/geo'
+import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 import PointSummaryCard from './PointSummaryCard.vue'
 
 const props = withDefaults(

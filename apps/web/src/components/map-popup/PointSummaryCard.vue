@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 
-import { searchOfflineCities } from '../../../../../src/services/city-search'
-import type { GeoCityCandidate } from '../../../../../src/types/geo'
-import type { MapPointDisplay, SummarySurfaceState } from '../../../../../src/types/map-point'
+import { searchOfflineCities } from '../../services/city-search'
+import type { GeoCityCandidate } from '../../types/geo'
+import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 interface CandidateListItem {
   candidate: GeoCityCandidate

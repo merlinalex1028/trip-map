@@ -1,0 +1,51 @@
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  --font-body-size: 16px;
+  --font-label-size: 14px;
+  --font-heading-size: 24px;
+  --font-display-size: 40px;
+
+  --font-weight-body: 400;
+  --font-weight-label: 600;
+  --font-weight-heading: 600;
+
+  --font-body-line-height: 1.5;
+  --font-label-line-height: 1.4;
+  --font-heading-line-height: 1.2;
+  --font-display-line-height: 1.1;
+
+  --color-page: #fff7fb;
+  --color-surface: #e8f4fb;
+  --color-accent: #f48fb1;
+  --color-destructive: #c86464;
+  --color-frame: #c7abc8;
+  --color-ink-strong: #4f4358;
+  --color-ink-muted: #7d7185;
+
+  --color-state-selected: #f48fb1;
+  --color-state-selected-wash: #ffdce8;
+  --color-state-saved: #84c7d8;
+  --color-state-saved-wash: #dff4f8;
+  --color-state-fallback: #b8c6d9;
+  --color-state-fallback-wash: #eef3f8;
+  --color-state-neutral: #f5eee8;
+  --color-state-neutral-outline: #d8c8bc;
+
+  --radius-surface: 24px;
+  --radius-control: 18px;
+  --radius-pill: 999px;
+
+  --shadow-surface: 0 18px 36px rgba(120, 86, 122, 0.14);
+  --shadow-stage: 0 24px 48px rgba(120, 86, 122, 0.16);
+  --shadow-dusty: var(--shadow-surface);
+
+  --motion-quick: 140ms;
+  --motion-emphasis: 180ms;
+}
