@@ -24,11 +24,11 @@
 - [x] 已保存城市与当前选中城市会以真实城市边界整体高亮，并在 reopen / switch / close / fallback 时保持身份一致 — v2.0
 - [x] 用户可以在地图内 anchored popup 完成高频摘要操作，再按需进入 deep drawer 查看和编辑完整详情 — v2.0
 - [x] 当前桌面主链路已统一为原创可爱风视觉，并保持未记录 / 已记录 / 当前选中 / 低置信回退四态可辨识 — v2.0
+- [x] 当前单体前端应用已演进为 `web + server + contracts` 的 monorepo 结构，并明确了前后端边界 — Phase 11
+- [x] TypeScript 后端服务已落地为 `NestJS + Prisma + PostgreSQL` 基线，并验证了可移植的持久化链路 — Phase 11
 
 ### Active
 
-- [ ] 将当前单体前端应用演进为 `web + server` 的 monorepo 结构，并明确前后端边界
-- [ ] 引入 TypeScript 后端服务，优先调研并评估 `NestJS` 及相关数据库/存储方案
 - [ ] 将地点识别与点亮语义重构为“中国市级 / 海外一级行政区”，并切换到 `Leaflet`
 - [ ] 中国境内边界数据使用阿里云 `DataV.GeoAtlas` 合规市级 GeoJSON，境外使用 `Natural Earth` 一级行政区数据
 - [ ] 选中地点后在面板中提供名称右侧的点亮/取消点亮动作，并通过 GeoJSON 整个行政区边界呈现点亮状态
@@ -36,8 +36,9 @@
 ## Current State
 
 - `v2.0` 已归档，milestone audit 为 `passed`，Phase 7-10 与 16 个 v2 requirements 全部完成。
-- 当前代码库已具备城市优先选择、真实边界点亮、desktop anchored popup + deep drawer 主链路，以及统一视觉系统。
-- 当前源码规模约为 `8855` 行 `ts/vue`，自动化回归为 `14` 个 test files / `115` 个 tests 通过。
+- Phase 11 已完成：代码库现在是 `pnpm workspace + turbo` 驱动的 `apps/web + apps/server + packages/contracts` monorepo，并通过 `BackendBaselinePanel` 验证了 `web -> server -> PostgreSQL` 的真实 smoke path。
+- 当前代码库已具备城市优先选择、真实边界点亮、desktop anchored popup + deep drawer 主链路，以及可移植的 TypeScript 服务端持久化基线。
+- 当前自动化回归已扩展到 monorepo 级 `pnpm build`、`pnpm test`、`pnpm typecheck` 全通过。
 
 ## Current Milestone: v3.0 全栈化与行政区地图重构
 
@@ -93,6 +94,7 @@
 | `v2.0` 晚期正式收口为 desktop-only 主链路 | 让 Phase 09/10 文档、实现与验收范围重新一致，避免继续维护已移除的移动端壳层 | ✓ Shipped in v2.0 |
 | 项目内用户可见表面优先使用圆角 | 更符合可爱风方向，也能统一卡片、弹窗、按钮与标签的亲和感 | ✓ Shipped in v2.0 |
 | `v3.0` 将以 monorepo + TypeScript backend 作为研究起点 | 新 milestone 已明确包含服务端引入与前后端职责重划，需要先用同语言生态稳定建模 | — Pending |
+| `v3.0` Phase 11 以 `pnpm workspace + turbo`、`@trip-map/contracts`、`NestJS + Prisma + PostgreSQL` 固定全栈基线 | 先稳定 monorepo、共享契约与最小真实写链路，后续 Phase 12-15 才能专注在 canonical 语义与 Leaflet 主链路 | ✓ Completed in Phase 11 |
 | `v3.0` 地图语义切换为“中国市级 / 海外一级行政区” | 这是数据合规性、识别精度与实现复杂度之间的当前最优平衡点 | — Pending |
 
 ## Archived Milestone Snapshot
@@ -125,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current shipped state
 
 ---
-*Last updated: 2026-03-27 after v3.0 milestone start*
+*Last updated: 2026-03-30 after Phase 11 completion*
