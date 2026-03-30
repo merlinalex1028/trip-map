@@ -9,7 +9,7 @@ export class CreateSmokeRecordDto implements SmokeRecordCreateRequest {
   @IsString()
   boundaryId!: string
 
-  @IsIn(['CN_CITY', 'OVERSEAS_ADMIN1'])
+  @IsIn(['CN_ADMIN', 'OVERSEAS_ADMIN1'])
   placeKind!: SmokeRecordCreateRequest['placeKind']
 
   @IsString()
@@ -17,6 +17,29 @@ export class CreateSmokeRecordDto implements SmokeRecordCreateRequest {
 
   @IsString()
   displayName!: string
+
+  @IsIn(['CN', 'OVERSEAS'])
+  regionSystem!: SmokeRecordCreateRequest['regionSystem']
+
+  @IsIn([
+    'MUNICIPALITY',
+    'SAR',
+    'PREFECTURE_LEVEL_CITY',
+    'AUTONOMOUS_PREFECTURE',
+    'LEAGUE',
+    'AREA',
+    'ADMIN1',
+  ])
+  adminType!: SmokeRecordCreateRequest['adminType']
+
+  @IsString()
+  typeLabel!: string
+
+  @IsString()
+  parentLabel!: string
+
+  @IsString()
+  subtitle!: string
 
   @IsOptional()
   @IsString()
