@@ -1,17 +1,15 @@
-import { NestFactory } from '@nestjs/core'
-import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import request from 'supertest'
+import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 
 import { PHASE11_CONTRACTS_VERSION } from '@trip-map/contracts'
 
-import { AppModule } from '../src/app.module.js'
+import { createApp } from '../src/main.js'
 
 describe('GET /health', () => {
-  let app: Awaited<ReturnType<typeof NestFactory.create>>
+  let app: NestFastifyApplication
 
   beforeAll(async () => {
-    app = await NestFactory.create(AppModule, new FastifyAdapter())
+    app = await createApp()
     await app.init()
     await app.getHttpAdapter().getInstance().ready()
   })
@@ -21,10 +19,13 @@ describe('GET /health', () => {
   })
 
   it('returns the shared health contract payload', async () => {
-    const response = await request(app.getHttpServer()).get('/health')
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health',
+    })
 
-    expect(response.status).toBe(200)
-    expect(response.body).toEqual({
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toEqual({
       status: 'ok',
       service: 'server',
       contractsVersion: PHASE11_CONTRACTS_VERSION,

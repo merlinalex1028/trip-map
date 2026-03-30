@@ -1,17 +1,15 @@
-import { NestFactory } from '@nestjs/core'
-import { FastifyAdapter } from '@nestjs/platform-fastify'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import request from 'supertest'
+import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 
 import { PHASE11_SMOKE_RECORD_REQUEST } from '@trip-map/contracts'
 
-import { AppModule } from '../src/app.module.js'
+import { createApp } from '../src/main.js'
 
 describe('POST /records/smoke', () => {
-  let app: Awaited<ReturnType<typeof NestFactory.create>>
+  let app: NestFastifyApplication
 
   beforeAll(async () => {
-    app = await NestFactory.create(AppModule, new FastifyAdapter())
+    app = await createApp()
     await app.init()
     await app.getHttpAdapter().getInstance().ready()
   })
@@ -21,32 +19,36 @@ describe('POST /records/smoke', () => {
   })
 
   it('accepts the shared canonical place fields', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/records/smoke')
-      .send({
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records/smoke',
+      payload: {
         ...PHASE11_SMOKE_RECORD_REQUEST,
         note: 'Smoke test note'
-      })
+      }
+    })
 
-    expect(response.status).toBe(201)
-    expect(response.body).toMatchObject({
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
       ...PHASE11_SMOKE_RECORD_REQUEST,
       note: 'Smoke test note'
     })
-    expect(response.body.id).toEqual(expect.any(String))
-    expect(response.body.createdAt).toEqual(expect.any(String))
-    expect(response.body.updatedAt).toEqual(expect.any(String))
+    expect(response.json().id).toEqual(expect.any(String))
+    expect(response.json().createdAt).toEqual(expect.any(String))
+    expect(response.json().updatedAt).toEqual(expect.any(String))
   })
 
   it('rejects unknown fields via forbidNonWhitelisted validation', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/records/smoke')
-      .send({
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records/smoke',
+      payload: {
         ...PHASE11_SMOKE_RECORD_REQUEST,
         unknownField: true
-      })
+      }
+    })
 
-    expect(response.status).toBe(400)
-    expect(response.body.message).toContain('property unknownField should not exist')
+    expect(response.statusCode).toBe(400)
+    expect(response.json().message).toContain('property unknownField should not exist')
   })
 })
