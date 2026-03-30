@@ -205,6 +205,6 @@ describe('PointSummaryCard', () => {
 
     expect(notices).toHaveLength(2)
     expect(notices[0]?.text()).toContain('当前仅能按国家/地区保留这个点位。')
-    expect(notices[1]?.text()).toContain('当前城市暂不支持边界高亮')
+    expect(notices[1]?.text()).toContain('当前地点暂不支持边界高亮')
   })
 })

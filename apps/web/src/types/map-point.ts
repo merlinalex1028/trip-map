@@ -1,4 +1,4 @@
-import type { PlaceKind } from '@trip-map/contracts'
+import type { CanonicalPlaceCandidate, PlaceKind } from '@trip-map/contracts'
 
 import type { GeoCityCandidate, GeoPrecision } from './geo'
 
@@ -71,6 +71,8 @@ export type SummarySurfaceState =
       mode: 'candidate-select'
       fallbackPoint: DraftMapPoint
       cityCandidates: GeoCityCandidate[]
+      canonicalCandidates: CanonicalPlaceCandidate[]
+      recommendedPlaceId: string | null
     }
   | {
       mode: 'detected-preview' | 'view'

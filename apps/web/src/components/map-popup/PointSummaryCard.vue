@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 
-import { searchOfflineCities } from '../../services/city-search'
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 interface CandidateListItem {
   candidate: GeoCityCandidate
+  canonicalCandidate: {
+    displayName: string
+    typeLabel: string
+    subtitle: string
+    candidateHint: string
+  }
   statusHint: string
+  isRecommended: boolean
 }
 
 const props = defineProps<{
@@ -27,7 +33,6 @@ const emit = defineEmits<{
   hidePoint: []
 }>()
 
-const searchQuery = shallowRef('')
 const destructiveAction = shallowRef<'delete' | 'hide' | null>(null)
 
 const isCandidateMode = computed(() => props.surface.mode === 'candidate-select')
@@ -40,6 +45,31 @@ const detailSurface = computed(() =>
 const summaryPoint = computed(() => detailSurface.value?.point ?? null)
 const fallbackPoint = computed(() => candidateSurface.value?.fallbackPoint ?? null)
 const summaryMode = computed(() => props.surface.mode)
+const summaryTitle = computed(() => {
+  if (props.surface.mode === 'candidate-select') {
+    return props.surface.fallbackPoint.name
+  }
+
+  return props.surface.point.name
+})
+const summaryTypeLabel = computed(() => {
+  if (props.surface.mode === 'candidate-select') {
+    return props.surface.fallbackPoint.typeLabel ?? null
+  }
+
+  return props.surface.point.typeLabel ?? null
+})
+const summarySubtitle = computed(() => {
+  if (props.surface.mode === 'candidate-select') {
+    return props.surface.fallbackPoint.subtitle ?? props.surface.fallbackPoint.cityContextLabel ?? null
+  }
+
+  return (
+    props.surface.point.subtitle ??
+    props.surface.point.cityContextLabel ??
+    props.surface.point.countryName
+  )
+})
 const recordSource = computed(() => {
   if (props.surface.mode === 'candidate-select') {
     return props.surface.fallbackPoint.source ?? 'none'
@@ -49,29 +79,25 @@ const recordSource = computed(() => {
 })
 
 const candidateItems = computed<CandidateListItem[]>(() => {
-  if (!candidateSurface.value || !fallbackPoint.value) {
+  if (!candidateSurface.value) {
     return []
   }
 
-  const normalizedQuery = searchQuery.value.trim()
-  const candidates = normalizedQuery
-    ? searchOfflineCities({
-        query: normalizedQuery,
-        origin: {
-          lat: fallbackPoint.value.lat,
-          lng: fallbackPoint.value.lng
-        },
-        countryCode: fallbackPoint.value.countryCode,
-        limit: 3
-      })
-    : candidateSurface.value.cityCandidates.slice(0, 3)
-
-  return candidates.map((candidate: GeoCityCandidate) => {
-    const existingPoint = props.findSavedPointByCityId?.(candidate.cityId) ?? null
+  return candidateSurface.value.canonicalCandidates.slice(0, 3).map((candidate) => {
+    const existingPoint = props.findSavedPointByCityId?.(candidate.placeId) ?? null
 
     return {
-      candidate,
-      statusHint: existingPoint ? '已存在记录' : candidate.statusHint
+      candidate: {
+        cityId: candidate.placeId,
+        cityName: candidate.displayName,
+        contextLabel: candidate.subtitle,
+        matchLevel: 'high',
+        distanceKm: 0,
+        statusHint: candidate.candidateHint,
+      },
+      canonicalCandidate: candidate,
+      statusHint: existingPoint ? '已存在记录' : candidate.candidateHint,
+      isRecommended: candidate.placeId === candidateSurface.value?.recommendedPlaceId,
     }
   })
 })
@@ -81,7 +107,7 @@ const boundarySupportNotice = computed(() => {
     return null
   }
 
-  return '当前城市暂不支持边界高亮，将仅保存城市身份与文本信息'
+  return '当前地点暂不支持边界高亮，将仅保存 canonical 地点身份与文本信息'
 })
 
 function getCandidateStatus(statusHint: string) {
@@ -182,23 +208,30 @@ function handleConfirmDestructiveAction() {
       <p class="point-summary-card__badge">
         {{
           surface.mode === 'candidate-select'
-            ? '确认城市'
+            ? '确认地点'
             : surface.mode === 'detected-preview'
               ? '识别结果'
               : '查看地点'
         }}
       </p>
-      <h2 :class="['point-summary-card__title', titleClass]" tabindex="-1">
-        {{ isCandidateMode ? fallbackPoint?.name : summaryPoint?.name }}
-      </h2>
-      <p class="point-summary-card__meta">
-        {{ isCandidateMode ? fallbackPoint?.countryName : summaryPoint?.countryName }}
-      </p>
+      <div class="point-summary-card__title-row">
+        <h2 :class="['point-summary-card__title', titleClass]" tabindex="-1">
+          {{ summaryTitle }}
+        </h2>
+        <span
+          v-if="summaryTypeLabel"
+          class="point-summary-card__type-label"
+          data-place-type-label="true"
+        >
+          {{ summaryTypeLabel }}
+        </span>
+      </div>
       <p
-        v-if="isCandidateMode ? fallbackPoint?.cityContextLabel : summaryPoint?.cityContextLabel"
-        class="point-summary-card__meta point-summary-card__meta--context"
+        v-if="summarySubtitle"
+        class="point-summary-card__meta point-summary-card__meta--subtitle"
+        data-place-subtitle="true"
       >
-        {{ isCandidateMode ? fallbackPoint?.cityContextLabel : summaryPoint?.cityContextLabel }}
+        {{ summarySubtitle }}
       </p>
     </header>
 
@@ -220,35 +253,58 @@ function handleConfirmDestructiveAction() {
         </p>
 
         <div v-if="isCandidateMode" class="point-summary-card__section">
-          <label class="point-summary-card__field">
-            <span class="point-summary-card__field-label">搜索城市</span>
-            <input
-              v-model="searchQuery"
-              class="point-summary-card__input"
-              type="text"
-              placeholder="搜索城市"
-            />
-          </label>
-
           <div class="point-summary-card__candidate-list">
-            <button
-              v-for="item in candidateItems"
-              :key="item.candidate.cityId"
-              class="point-summary-card__candidate-action"
-              :data-candidate-status="getCandidateStatus(item.statusHint)"
-              data-cta-tone="selected"
-              type="button"
-              @click="handleCandidateConfirm(item.candidate)"
-            >
-              <span class="point-summary-card__candidate-city">{{ item.candidate.cityName }}</span>
-              <span class="point-summary-card__candidate-context">{{ item.candidate.contextLabel }}</span>
-              <span class="point-summary-card__candidate-hint">{{ item.statusHint }}</span>
-              <span class="point-summary-card__candidate-cta">确认城市</span>
-            </button>
+            <template v-for="item in candidateItems" :key="item.candidate.cityId">
+              <button
+                v-if="item.isRecommended"
+                class="point-summary-card__candidate-action"
+                :data-candidate-status="getCandidateStatus(item.statusHint)"
+                data-candidate-recommended="true"
+                data-cta-tone="selected"
+                type="button"
+                @click="handleCandidateConfirm(item.candidate)"
+              >
+                <span class="point-summary-card__candidate-headline">
+                  <span class="point-summary-card__candidate-city">
+                    {{ item.canonicalCandidate.displayName }}
+                  </span>
+                  <span class="point-summary-card__candidate-type">
+                    {{ item.canonicalCandidate.typeLabel }}
+                  </span>
+                </span>
+                <span class="point-summary-card__candidate-context">
+                  {{ item.canonicalCandidate.subtitle }}
+                </span>
+                <span class="point-summary-card__candidate-hint">{{ item.statusHint }}</span>
+                <span class="point-summary-card__candidate-cta">确认地点</span>
+              </button>
+              <button
+                v-else
+                class="point-summary-card__candidate-action"
+                :data-candidate-status="getCandidateStatus(item.statusHint)"
+                data-cta-tone="selected"
+                type="button"
+                @click="handleCandidateConfirm(item.candidate)"
+              >
+                <span class="point-summary-card__candidate-headline">
+                  <span class="point-summary-card__candidate-city">
+                    {{ item.canonicalCandidate.displayName }}
+                  </span>
+                  <span class="point-summary-card__candidate-type">
+                    {{ item.canonicalCandidate.typeLabel }}
+                  </span>
+                </span>
+                <span class="point-summary-card__candidate-context">
+                  {{ item.canonicalCandidate.subtitle }}
+                </span>
+                <span class="point-summary-card__candidate-hint">{{ item.statusHint }}</span>
+                <span class="point-summary-card__candidate-cta">确认地点</span>
+              </button>
+            </template>
           </div>
 
           <p v-if="!candidateItems.length" class="point-summary-card__empty">
-            没有匹配城市，请按国家/地区继续记录。
+            暂无可确认候选地点，请稍后重试。
           </p>
         </div>
 
@@ -260,18 +316,7 @@ function handleConfirmDestructiveAction() {
 
     <footer class="point-summary-card__footer" data-popup-section="footer">
       <div class="point-summary-card__actions">
-        <template v-if="surface.mode === 'candidate-select'">
-          <button
-            class="point-summary-card__action point-summary-card__action--primary"
-            data-cta-tone="selected"
-            type="button"
-            @click="handleContinueWithFallback"
-          >
-            按国家/地区继续记录
-          </button>
-        </template>
-
-        <template v-else-if="surface.mode === 'detected-preview'">
+        <template v-if="surface.mode === 'detected-preview'">
           <button
             class="point-summary-card__action point-summary-card__action--primary"
             data-cta-tone="selected"
@@ -360,6 +405,8 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__scroll-region,
 .point-summary-card__section,
 .point-summary-card__candidate-list,
+.point-summary-card__title-row,
+.point-summary-card__candidate-headline,
 .point-summary-card__footer,
 .point-summary-card__actions,
 .point-summary-card__confirm-row,
@@ -400,6 +447,25 @@ function handleConfirmDestructiveAction() {
   font-size: var(--font-heading-size);
   font-weight: var(--font-weight-heading);
   line-height: var(--font-heading-line-height);
+}
+
+.point-summary-card__title-row,
+.point-summary-card__candidate-headline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.point-summary-card__type-label,
+.point-summary-card__candidate-type {
+  width: fit-content;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(132, 199, 216, 0.48);
+  border-radius: var(--radius-pill);
+  background: rgba(223, 244, 248, 0.92);
+  color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-weight-label);
+  line-height: var(--font-label-line-height);
 }
 
 .point-summary-card__meta,

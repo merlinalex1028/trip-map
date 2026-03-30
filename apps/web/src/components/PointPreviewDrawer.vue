@@ -67,7 +67,10 @@ const drawerBadge = computed(() => {
 })
 
 const drawerTitle = computed(() => activePoint.value?.name ?? '')
-const drawerCountry = computed(() => activePoint.value?.countryName ?? '')
+const drawerTypeLabel = computed(() => activePoint.value?.typeLabel ?? null)
+const drawerSubtitle = computed(
+  () => activePoint.value?.subtitle ?? activePoint.value?.cityContextLabel ?? activePoint.value?.countryName ?? '',
+)
 const drawerCoordinates = computed(() => activePoint.value?.coordinatesLabel ?? '')
 const drawerFallbackNotice = computed(() => activePoint.value?.fallbackNotice ?? null)
 
@@ -76,7 +79,7 @@ const drawerBoundarySupportNotice = computed(() => {
     return null
   }
 
-  return '当前城市暂不支持边界高亮，将仅保存城市身份与文本信息'
+  return '当前地点暂不支持边界高亮，将仅保存 canonical 地点身份与文本信息'
 })
 
 const hasUnsavedChanges = computed(() => {
@@ -257,15 +260,30 @@ defineExpose({
       <button class="point-preview-drawer__close" type="button" @click="handleClose">
         关闭面板
       </button>
-      <h2
-        :id="drawerTitleId"
-        ref="title"
-        class="point-preview-drawer__name"
-        tabindex="-1"
+      <div class="point-preview-drawer__title-row">
+        <h2
+          :id="drawerTitleId"
+          ref="title"
+          class="point-preview-drawer__name"
+          tabindex="-1"
+        >
+          {{ drawerTitle }}
+        </h2>
+        <span
+          v-if="drawerTypeLabel"
+          class="point-preview-drawer__type-label"
+          data-place-type-label="true"
+        >
+          {{ drawerTypeLabel }}
+        </span>
+      </div>
+      <p
+        v-if="drawerSubtitle"
+        class="point-preview-drawer__subtitle"
+        data-place-subtitle="true"
       >
-        {{ drawerTitle }}
-      </h2>
-      <p class="point-preview-drawer__country">{{ drawerCountry }}</p>
+        {{ drawerSubtitle }}
+      </p>
       <p class="point-preview-drawer__coordinate">{{ drawerCoordinates }}</p>
       <p
         v-if="drawerFallbackNotice"
@@ -371,6 +389,14 @@ defineExpose({
   gap: var(--space-sm) var(--space-md);
 }
 
+.point-preview-drawer__title-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
 .point-preview-drawer__close:focus-visible,
 .point-preview-drawer__input:focus-visible,
 .point-preview-drawer__textarea:focus-visible,
@@ -394,7 +420,7 @@ defineExpose({
 }
 
 .point-preview-drawer__name,
-.point-preview-drawer__country,
+.point-preview-drawer__subtitle,
 .point-preview-drawer__coordinate,
 .point-preview-drawer__description {
   margin: 0;
@@ -414,14 +440,25 @@ defineExpose({
 }
 
 .point-preview-drawer__name {
-  grid-column: 1 / -1;
   color: var(--color-ink-strong);
   font-size: var(--font-heading-size);
   font-weight: var(--font-weight-heading);
   line-height: var(--font-heading-line-height);
 }
 
-.point-preview-drawer__country,
+.point-preview-drawer__type-label {
+  width: fit-content;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(132, 199, 216, 0.48);
+  border-radius: var(--radius-pill);
+  background: rgba(223, 244, 248, 0.92);
+  color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-weight-label);
+  line-height: var(--font-label-line-height);
+}
+
+.point-preview-drawer__subtitle,
 .point-preview-drawer__coordinate {
   grid-column: 1 / -1;
   color: var(--color-ink-muted);

@@ -129,6 +129,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
         cityCandidates: pendingCanonicalSelection.value.candidates.map((candidate) =>
           toCandidateProjection(candidate),
         ),
+        canonicalCandidates: pendingCanonicalSelection.value.candidates,
+        recommendedPlaceId: pendingCanonicalSelection.value.recommendedPlaceId,
       }
     }
 
