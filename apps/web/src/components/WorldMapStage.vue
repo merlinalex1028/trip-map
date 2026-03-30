@@ -4,8 +4,8 @@ import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 
 import worldMapUrl from '../../../../src/assets/world-map.svg'
-import { usePopupAnchoring } from '../../../../src/composables/usePopupAnchoring'
-import { getBoundaryById } from '../../../../src/services/city-boundaries'
+import { usePopupAnchoring } from '../composables/usePopupAnchoring'
+import { getBoundaryById } from '../services/city-boundaries'
 import {
   clampNormalizedPoint,
   formatCoordinatesLabel,
@@ -13,16 +13,16 @@ import {
   normalizedPointToGeoCoordinates,
   normalizedPointToViewBoxPoint,
   WORLD_PROJECTION_CONFIG
-} from '../../../../src/services/map-projection'
-import { useMapPointsStore } from '../../../../src/stores/map-points'
-import { useMapUiStore } from '../../../../src/stores/map-ui'
+} from '../services/map-projection'
+import { useMapPointsStore } from '../stores/map-points'
+import { useMapUiStore } from '../stores/map-ui'
 import type {
   GeoBoundaryCoordinate,
   GeoBoundaryPolygon,
   NormalizedCityBoundary,
   NormalizedPoint
-} from '../../../../src/types/geo'
-import type { DraftMapPoint, SummarySurfaceState } from '../../../../src/types/map-point'
+} from '../types/geo'
+import type { DraftMapPoint, SummarySurfaceState } from '../types/map-point'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 import SeedMarkerLayer from './SeedMarkerLayer.vue'
@@ -376,14 +376,14 @@ onMounted(() => {
 })
 
 let recognitionSequence = 0
-let geoLookupModulePromise: Promise<typeof import('../../../../src/services/geo-lookup')> | null = null
+let geoLookupModulePromise: Promise<typeof import('../services/geo-lookup')> | null = null
 
 function isMarkerClick(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest('.seed-marker__button'))
 }
 
 function loadGeoLookupModule() {
-  geoLookupModulePromise ??= import('../../../../src/services/geo-lookup')
+  geoLookupModulePromise ??= import('../services/geo-lookup')
 
   return geoLookupModulePromise
 }

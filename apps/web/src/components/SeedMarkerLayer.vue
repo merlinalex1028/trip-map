@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 
-import { useMapPointsStore } from '../../../../src/stores/map-points'
-import type { MapPointDisplay } from '../../../../src/types/map-point'
+import { useMapPointsStore } from '../stores/map-points'
+import type { MapPointDisplay } from '../types/map-point'
 
 const props = defineProps<{
   points: MapPointDisplay[]

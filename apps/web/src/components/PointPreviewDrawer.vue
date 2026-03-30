@@ -2,8 +2,8 @@
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, reactive, useTemplateRef, watch, type CSSProperties } from 'vue'
 
-import { useMapPointsStore } from '../../../../src/stores/map-points'
-import type { EditablePointSnapshot } from '../../../../src/types/map-point'
+import { useMapPointsStore } from '../stores/map-points'
+import type { EditablePointSnapshot } from '../types/map-point'
 
 const props = withDefaults(
   defineProps<{
