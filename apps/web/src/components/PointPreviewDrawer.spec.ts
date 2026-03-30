@@ -10,7 +10,7 @@ import { nextTick } from 'vue'
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
 import PointSummaryCard from './map-popup/PointSummaryCard.vue'
 import { useMapPointsStore } from '../stores/map-points'
-import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../types/map-point'
+import type { DraftMapPoint } from '../types/map-point'
 
 function installStorageMock() {
   const storage = new Map<string, string>()
@@ -207,6 +207,12 @@ describe('PointPreviewDrawer', () => {
     store.saveDraftAsPoint()
     store.openDrawerView()
 
+    const popupSurface = store.summarySurfaceState
+
+    if (popupSurface?.mode !== 'view') {
+      throw new Error('expected store summary surface to stay in view mode')
+    }
+
     const drawerWrapper = mount(PointPreviewDrawer, {
       attachTo: document.body,
       global: {
@@ -215,11 +221,7 @@ describe('PointPreviewDrawer', () => {
     })
     const popupWrapper = mount(PointSummaryCard, {
       props: {
-        surface: {
-          mode: 'view',
-          point: store.activePoint as MapPointDisplay,
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
+        surface: popupSurface
       }
     })
 
@@ -235,5 +237,28 @@ describe('PointPreviewDrawer', () => {
       drawerWrapper.get('[data-place-subtitle="true"]').text()
     )
     expect(drawerWrapper.get('[data-place-subtitle="true"]').text()).toBe('中国 · 直辖市')
+  })
+
+  it('shows the unsupported boundary notice when reopening a saved canonical California point', async () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA))
+    const savedPoint = store.saveDraftAsPoint()
+    store.clearActivePoint()
+    store.selectPointById(savedPoint!.id)
+    store.openDrawerView()
+
+    const wrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).toContain(
+      '当前地点暂不支持边界高亮，将仅保存 canonical 地点身份与文本信息'
+    )
   })
 })

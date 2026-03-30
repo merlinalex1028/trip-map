@@ -2,6 +2,7 @@ import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_FAILED_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
 } from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -10,6 +11,7 @@ import { computed, nextTick, shallowRef } from 'vue'
 import WorldMapStage from './WorldMapStage.vue'
 import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
+import type { DraftMapPoint } from '../types/map-point'
 
 const popupAnchoringMock = vi.hoisted(() => ({
   cleanup: vi.fn(),
@@ -114,6 +116,44 @@ function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}
     isFeatured: false,
     description: 'saved point',
     coordinatesLabel: isPortugal ? '38.7223°N, 9.1393°W' : '35.0116°N, 135.7681°E',
+    ...overrides,
+  }
+}
+
+function createCanonicalDraft(
+  place = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<DraftMapPoint> = {},
+): DraftMapPoint {
+  const isCalifornia = place.placeId === PHASE12_RESOLVED_CALIFORNIA.placeId
+
+  return {
+    id: `detected-${place.placeId}`,
+    name: place.displayName,
+    countryName: place.parentLabel,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
+    precision: 'city-high',
+    cityId: null,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
+    fallbackNotice: null,
+    lat: isCalifornia ? 36.7783 : 39.9042,
+    lng: isCalifornia ? -119.4179 : 116.4074,
+    clickLat: isCalifornia ? 36.7783 : 39.9042,
+    clickLng: isCalifornia ? -119.4179 : 116.4074,
+    x: isCalifornia ? 0.15 : 0.74,
+    y: isCalifornia ? 0.44 : 0.31,
+    source: 'detected',
+    isFeatured: false,
+    description: 'canonical draft',
+    coordinatesLabel: isCalifornia ? '36.7783°N, 119.4179°W' : '39.9042°N, 116.4074°E',
     ...overrides,
   }
 }
@@ -312,6 +352,56 @@ describe('WorldMapStage', () => {
     )
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
       getBoundaryByCityId('jp-kyoto')?.boundaryId ?? '',
+    )
+  })
+
+  it('restores the same renderable canonical boundary after save, close, and reopen for Beijing', async () => {
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_BEIJING))
+    const savedPoint = mapPointsStore.saveDraftAsPoint()
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      'cn-beijing-municipality',
+    )
+
+    mapPointsStore.clearActivePoint()
+    await nextTick()
+    expect(wrapper.find('.world-map-stage__boundary--selected').exists()).toBe(false)
+
+    mapPointsStore.selectPointById(savedPoint!.id)
+    await nextTick()
+
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      'cn-beijing-municipality',
+    )
+  })
+
+  it('keeps unsupported canonical California points out of the selected boundary layer', () => {
+    const mapPointsStore = useMapPointsStore()
+
+    mapPointsStore.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA))
+    mapPointsStore.saveDraftAsPoint()
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    expect(wrapper.find('.world-map-stage__boundary--selected').exists()).toBe(false)
+    expect(mapPointsStore.activeBoundaryCoverageState).toBe('missing')
+    expect(mapPointsStore.summarySurfaceState).toEqual(
+      expect.objectContaining({
+        mode: 'view',
+        boundarySupportState: 'missing',
+      }),
     )
   })
 })
