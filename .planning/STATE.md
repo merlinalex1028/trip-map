@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 11-monorepo-08-PLAN.md
-last_updated: "2026-03-30T06:24:51.667Z"
+stopped_at: Completed 11-monorepo-10-PLAN.md
+last_updated: "2026-03-30T06:37:48.161Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 80
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 11 (monorepo) — EXECUTING
-Plan: 9 of 10
+Plan: 10 of 10
 Status: Ready to execute
 Last activity: 2026-03-30
 
@@ -68,6 +68,7 @@ Progress: [████████░░] 80%
 | Phase 11-monorepo P06 | 81min | 1 tasks | 13 files |
 | Phase 11-monorepo P09 | 6min | 1 tasks | 7 files |
 | Phase 11-monorepo P08 | 4min | 1 tasks | 10 files |
+| Phase 11-monorepo P10 | 9min | 1 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: WorldMapStage now resolves its stores, composable, services, and types from apps/web while deferring root asset ownership and bridge cleanup to later plans.
 - [Phase 11-monorepo]: 11-08 只迁 non-UI regression specs 与 mountComposable helper 到 apps/web，UI specs 与 bridge cleanup 继续留给后续计划。
 - [Phase 11-monorepo]: apps/web 在显式传入 .spec.ts 文件时仅运行请求的 package-local specs，默认 mixed-suite 发现规则保持不变。
+- [Phase 11-monorepo]: apps/web/src/main.ts now owns the production bootstrap directly, so global CSS and the world-map asset must be imported from package-local paths instead of lingering in a dead bridge file.
+- [Phase 11-monorepo]: The package-local UI regression entry focuses on targeted v2.0 shell/map/popup/drawer/marker behaviors, avoiding unrelated churn in repo-root legacy specs while making apps/web verification self-contained.
 
 ### Pending Todos
 
@@ -109,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T06:24:30.110Z
-Stopped at: Completed 11-monorepo-08-PLAN.md
+Last session: 2026-03-30T06:37:48.158Z
+Stopped at: Completed 11-monorepo-10-PLAN.md
 Resume file: None
