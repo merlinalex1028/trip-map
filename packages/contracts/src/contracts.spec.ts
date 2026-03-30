@@ -13,6 +13,11 @@ import type {
 import {
   PHASE11_CONTRACTS_VERSION,
   PHASE11_SMOKE_RECORD_REQUEST,
+  PHASE12_AMBIGUOUS_RESOLVE,
+  PHASE12_FAILED_RESOLVE,
+  PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_HONG_KONG,
 } from './index'
 
 describe('@trip-map/contracts', () => {
@@ -150,6 +155,47 @@ describe('@trip-map/contracts', () => {
       'subtitle',
     ])
     expect(keys).toHaveLength(10)
+  })
+
+  it('ships Phase 12 canonical fixtures with explicit admin semantics', () => {
+    expect(PHASE12_RESOLVED_BEIJING.typeLabel).toBe('直辖市')
+    expect(PHASE12_RESOLVED_HONG_KONG.typeLabel).toBe('特别行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
+
+    expectTypeOf<(typeof PHASE12_AMBIGUOUS_RESOLVE)['recommendedPlaceId']>().toEqualTypeOf<
+      string | null
+    >()
+    expect(PHASE12_AMBIGUOUS_RESOLVE.status).toBe('ambiguous')
+    expect(PHASE12_AMBIGUOUS_RESOLVE.candidates.length).toBeLessThanOrEqual(3)
+    expect(
+      PHASE12_AMBIGUOUS_RESOLVE.candidates.every((candidate) =>
+        Object.prototype.hasOwnProperty.call(candidate, 'candidateHint'),
+      ),
+    ).toBe(true)
+
+    expect(PHASE12_FAILED_RESOLVE.status).toBe('failed')
+    expect(Object.keys(PHASE12_FAILED_RESOLVE)).toContain('reason')
+    expect(Object.keys(PHASE12_FAILED_RESOLVE)).not.toContain('place')
+    expect(Object.keys(PHASE12_FAILED_RESOLVE)).not.toContain('candidates')
+  })
+
+  it('keeps CanonicalResolveResponse aligned with the three resolve branches', () => {
+    const responses: CanonicalResolveResponse[] = [
+      {
+        status: 'resolved',
+        click: { lat: 39.9042, lng: 116.4074 },
+        place: PHASE12_RESOLVED_BEIJING,
+      },
+      PHASE12_AMBIGUOUS_RESOLVE,
+      PHASE12_FAILED_RESOLVE,
+    ]
+
+    expect(responses).toHaveLength(3)
+    expect(responses.map((response) => response.status)).toEqual([
+      'resolved',
+      'ambiguous',
+      'failed',
+    ])
   })
 
   it('stays framework-free and only exports thin contract shapes', () => {
