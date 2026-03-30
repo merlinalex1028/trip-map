@@ -10,6 +10,6 @@ export default mergeConfig(viteConfig, defineConfig({
     globals: true,
     include: cliSpecFilters.length > 0
       ? cliSpecFilters
-      : ['src/**/*.spec.ts', '../../src/**/*.spec.ts']
+      : ['src/**/*.spec.ts']
   }
 }))
