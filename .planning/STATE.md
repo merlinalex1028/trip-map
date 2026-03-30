@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: verification gaps found
-stopped_at: Phase 12 verification found canonical boundary highlight gaps
-last_updated: "2026-03-30T10:50:58.000Z"
+status: ready
+stopped_at: Completed 12-canonical-05-PLAN.md
+last_updated: "2026-03-30T11:17:19.599Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 14
-  completed_plans: 14
-  percent: 86
+  completed_phases: 2
+  total_plans: 15
+  completed_plans: 15
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 12 — canonical gap closure
+**Current focus:** Phase 13 — 行政区数据与几何交付
 
 ## Current Position
 
-Phase: 12 (canonical) — VERIFICATION GAPS
-Plan: 4 of 4
-Status: Verification gaps found — gap plan required
-Last activity: 2026-03-30
+Phase: 13 (geometry-delivery) — READY
+Plan: 0 of TBD
+Status: Ready for next phase planning
+Last activity: 2026-03-30 -- Completed Phase 12 plan 12-05
 
 Progress: [██████████] 100%
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 12 P02 | 10min | 2 tasks | 10 files |
 | Phase 12-canonical P03 | 12min | 2 tasks | 10 files |
 | Phase 12-canonical P04 | 6min | 2 tasks | 6 files |
+| Phase 12-canonical P05 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 12-canonical]: apps/web 补 package-local .vue shim 满足计划要求的 tsc --noEmit，而不改根 TypeScript 配置。
 - [Phase 12-canonical]: UI regressions now assert canonical title/type/subtitle fields directly instead of city-first aliases.
 - [Phase 12-canonical]: Drawer parity tests use the real store handoff path to compare popup and drawer canonical summaries for one saved point.
+- [Phase 12-canonical]: web 侧通过显式 canonical boundary 映射表衔接 server boundaryId 与现有可渲染 geometry，不改写持久化字段合同。
+- [Phase 12-canonical]: canonical boundary support 统一由真实几何命中决定，legacy city 点位继续保留 cityId coverage 兜底。
+- [Phase 12-canonical]: popup 与 drawer 的 boundary 支持态回归必须走 store 派生结果，不再在 spec 里手工注入 supported。
 
 ### Pending Todos
 
@@ -129,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T10:50:58.000Z
-Stopped at: Phase 12 verification found canonical boundary highlight gaps
-Resume file: .planning/phases/12-canonical/12-VERIFICATION.md
+Last session: 2026-03-30T11:16:09.085Z
+Stopped at: Completed 12-canonical-05-PLAN.md
+Resume file: None
