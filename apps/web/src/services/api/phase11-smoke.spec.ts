@@ -1,5 +1,7 @@
 import { PHASE11_SMOKE_RECORD_REQUEST } from '@trip-map/contracts'
 
+import viteConfig from '../../vite.config'
+
 describe('phase11 smoke api adapter', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
@@ -63,6 +65,19 @@ describe('phase11 smoke api adapter', () => {
       boundaryId: PHASE11_SMOKE_RECORD_REQUEST.boundaryId,
       placeKind: PHASE11_SMOKE_RECORD_REQUEST.placeKind,
       datasetVersion: PHASE11_SMOKE_RECORD_REQUEST.datasetVersion,
+    })
+  })
+})
+
+describe('apps/web dev proxy config', () => {
+  it('proxies /api requests to the local server during development', () => {
+    const proxy = viteConfig.server?.proxy
+
+    expect(proxy).toBeDefined()
+    expect(proxy).toHaveProperty('/api')
+    expect(proxy?.['/api']).toMatchObject({
+      target: 'http://127.0.0.1:4000',
+      changeOrigin: true,
     })
   })
 })

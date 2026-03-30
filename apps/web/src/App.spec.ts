@@ -43,6 +43,32 @@ function installStorageMock() {
   })
 }
 
+function installFetchMock() {
+  const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
+    const url = String(input)
+
+    if (url.endsWith('/api/health')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          status: 'ok',
+          service: 'server',
+          contractsVersion: 'phase11-v1',
+          database: 'up'
+        })
+      })
+    }
+
+    return Promise.reject(new Error(`Unexpected fetch request: ${url}`))
+  })
+
+  vi.stubGlobal('fetch', fetchMock)
+  Object.defineProperty(window, 'fetch', {
+    configurable: true,
+    value: fetchMock
+  })
+}
+
 function createBoundaryAwareDraft(cityId: string) {
   const boundary = getBoundaryByCityId(cityId)
 
@@ -78,6 +104,7 @@ function createBoundaryAwareDraft(cityId: string) {
 describe('App shell', () => {
   beforeEach(() => {
     installStorageMock()
+    installFetchMock()
   })
 
   afterEach(() => {
@@ -94,9 +121,11 @@ describe('App shell', () => {
     })
 
     expect(wrapper.find('.poster-shell').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'BackendBaselinePanel' }).exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
     expect(wrapper.find('.poster-title-block__ribbon').exists()).toBe(true)
     expect(wrapper.text()).toContain('旅行世界地图')
+    expect(wrapper.text()).toContain('创建 smoke record')
   })
 
   it('shows the storage recovery warning and clears it on demand', async () => {

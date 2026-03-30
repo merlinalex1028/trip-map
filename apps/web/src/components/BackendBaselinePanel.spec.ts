@@ -17,7 +17,7 @@ describe('BackendBaselinePanel', () => {
     fetchHealthStatus.mockResolvedValue({
       status: 'ok',
       service: 'server',
-      contractsVersion: 'contracts-version-under-test',
+      contractsVersion: 'phase11-v1',
       database: 'up',
     })
     createSmokeRecord.mockResolvedValue({
@@ -44,7 +44,7 @@ describe('BackendBaselinePanel', () => {
     expect(fetchHealthStatus).toHaveBeenCalledTimes(1)
     expect(wrapper.text()).toContain('server')
     expect(wrapper.text()).toContain('up')
-    expect(wrapper.text()).toContain('contracts-version-under-test')
+    expect(wrapper.text()).toContain('phase11-v1')
   })
 
   it('creates a smoke record and renders the returned canonical fields', async () => {
