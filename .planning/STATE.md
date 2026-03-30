@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: executing
-stopped_at: Completed 12-03-PLAN.md
-last_updated: "2026-03-30T10:15:59.579Z"
+status: verifying
+stopped_at: Completed 12-04-PLAN.md
+last_updated: "2026-03-30T10:41:43.309Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 86
 ---
 
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 Phase: 12 (canonical) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-30
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Last Shipped Milestone
 
@@ -73,6 +73,7 @@ Progress: [█████████░] 86%
 | Phase 12 P01 | 4min | 2 tasks | 5 files |
 | Phase 12 P02 | 10min | 2 tasks | 10 files |
 | Phase 12-canonical P03 | 12min | 2 tasks | 10 files |
+| Phase 12-canonical P04 | 6min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 12-canonical]: web 继续复用 candidate-select popup 结构，但 server candidate 通过 placeId 兼容投影进入旧 UI 候选模型。
 - [Phase 12-canonical]: canonical reopened/reuse 链路统一使用 placeId，cityId 只保留兼容字段。
 - [Phase 12-canonical]: apps/web 补 package-local .vue shim 满足计划要求的 tsc --noEmit，而不改根 TypeScript 配置。
+- [Phase 12-canonical]: UI regressions now assert canonical title/type/subtitle fields directly instead of city-first aliases.
+- [Phase 12-canonical]: Drawer parity tests use the real store handoff path to compare popup and drawer canonical summaries for one saved point.
 
 ### Pending Todos
 
@@ -126,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T10:15:59.576Z
-Stopped at: Completed 12-03-PLAN.md
+Last session: 2026-03-30T10:41:43.306Z
+Stopped at: Completed 12-04-PLAN.md
 Resume file: None

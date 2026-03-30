@@ -13,7 +13,7 @@
 ## Phases
 
 - [x] **Phase 11: Monorepo 与契约基线** - 拆出 `web + server + contracts`，把 PostgreSQL 与共享契约定为 v3.0 基线 (completed 2026-03-30)
-- [ ] **Phase 12: Canonical 地点语义** - 让 `server` 成为中国市级 / 海外一级行政区解析的唯一真源
+- [x] **Phase 12: Canonical 地点语义** - 让 `server` 成为中国市级 / 海外一级行政区解析的唯一真源 (completed 2026-03-30)
 - [ ] **Phase 13: 行政区数据与几何交付** - 固定中国与海外独立数据集、版本清单与静态几何交付策略
 - [ ] **Phase 14: Leaflet 地图主链路迁移** - 在 `Leaflet` 中恢复双图层地图、popup 与 drawer 的连续主链路
 - [ ] **Phase 15: 服务端记录与点亮闭环** - 把旅行记录与点亮动作切到 `server` API，并收口旧本地数据路径
@@ -57,8 +57,8 @@ Plans:
 Plans:
 - [x] `12-01-PLAN.md` — 固定 canonical taxonomy、resolve union 与 Phase 12 fixtures/contracts 回归
 - [x] `12-02-PLAN.md` — 在 `apps/server` 落地 authoritative `/places/resolve` 与 `/places/confirm`
-- [ ] `12-03-PLAN.md` — 把 `apps/web` 的 store、snapshot 与地图点击链路切到 canonical summary
-- [ ] `12-04-PLAN.md` — 统一 popup/drawer 的真实类型展示并补齐 Phase 12 UI 回归
+- [x] `12-03-PLAN.md` — 把 `apps/web` 的 store、snapshot 与地图点击链路切到 canonical summary
+- [x] `12-04-PLAN.md` — 统一 popup/drawer 的真实类型展示并补齐 Phase 12 UI 回归
 
 ### Phase 13: 行政区数据与几何交付
 **Goal**: 用户使用的中国与海外行政区边界都来自可追踪的数据清单，并以版本化静态几何资产稳定交付  
@@ -102,7 +102,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
-| 12. Canonical 地点语义 | 3/4 | In Progress|  |
+| 12. Canonical 地点语义 | 4/4 | Complete   | 2026-03-30 |
 | 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
