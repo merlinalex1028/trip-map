@@ -5,6 +5,10 @@ import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from
 
 import worldMapUrl from '../assets/world-map.svg'
 import { usePopupAnchoring } from '../composables/usePopupAnchoring'
+import {
+  confirmCanonicalPlace,
+  resolveCanonicalPlace,
+} from '../services/api/canonical-places'
 import { getBoundaryById } from '../services/city-boundaries'
 import {
   clampNormalizedPoint,
@@ -19,6 +23,7 @@ import { useMapUiStore } from '../stores/map-ui'
 import type {
   GeoBoundaryCoordinate,
   GeoBoundaryPolygon,
+  GeoCityCandidate,
   NormalizedCityBoundary,
   NormalizedPoint
 } from '../types/geo'
@@ -51,6 +56,7 @@ const {
   draftPoint,
   displayPoints,
   drawerMode,
+  pendingCanonicalSelection,
   savedBoundaryIds,
   selectedBoundaryId,
   selectedPointId,
@@ -67,16 +73,14 @@ const {
   startRecognition
 } = mapUiStore
 const {
-  clearActivePoint,
-  confirmPendingCitySelection,
-  continuePendingWithFallback,
   deleteUserPoint,
   enterEditMode,
   findSavedPointByCityId,
   hideSeedPoint,
+  openSavedPointForPlaceOrStartDraft,
   openDrawerView,
   saveDraftAsPoint,
-  startPendingCitySelection,
+  startPendingCanonicalSelection,
   toggleActivePointFeatured
 } = mapPointsStore
 
@@ -376,22 +380,177 @@ onMounted(() => {
 })
 
 let recognitionSequence = 0
-let geoLookupModulePromise: Promise<typeof import('../services/geo-lookup')> | null = null
 
 function isMarkerClick(target: EventTarget | null) {
   return target instanceof HTMLElement && Boolean(target.closest('.seed-marker__button'))
-}
-
-function loadGeoLookupModule() {
-  geoLookupModulePromise ??= import('../services/geo-lookup')
-
-  return geoLookupModulePromise
 }
 
 function nextAnimationFrame() {
   return new Promise<void>((resolve) => {
     window.requestAnimationFrame(() => resolve())
   })
+}
+
+function toCanonicalCountryName(parentLabel: string) {
+  return parentLabel.split(' · ')[0] ?? parentLabel
+}
+
+function buildCanonicalDraftPoint(
+  place: {
+    placeId: string
+    boundaryId: string
+    placeKind: DraftMapPoint['placeKind']
+    datasetVersion: string
+    displayName: string
+    regionSystem: 'CN' | 'OVERSEAS'
+    typeLabel: string
+    parentLabel: string
+    subtitle: string
+  },
+  geo: { lat: number; lng: number },
+  normalizedPoint: NormalizedPoint
+): DraftMapPoint {
+  const countryName = toCanonicalCountryName(place.parentLabel)
+
+  return {
+    id: `detected-${place.placeId}-${Math.round(geo.lat * 100)}-${Math.round(geo.lng * 100)}`,
+    name: place.displayName,
+    countryName,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
+    precision: 'city-high',
+    cityId: null,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
+    fallbackNotice: null,
+    lat: geo.lat,
+    lng: geo.lng,
+    clickLat: geo.lat,
+    clickLng: geo.lng,
+    x: normalizedPoint.x,
+    y: normalizedPoint.y,
+    source: 'detected',
+    isFeatured: false,
+    coordinatesLabel: formatCoordinatesLabel(geo),
+    description: '识别成功，下一阶段可补充地点内容。'
+  }
+}
+
+function buildPendingCanonicalDraft(
+  geo: { lat: number; lng: number },
+  normalizedPoint: NormalizedPoint,
+  prompt: string
+): DraftMapPoint {
+  return {
+    id: `pending-${Math.round(geo.lat * 100)}-${Math.round(geo.lng * 100)}`,
+    name: '待确认地点',
+    countryName: '待确认',
+    countryCode: '__canonical__',
+    precision: 'city-high',
+    cityId: null,
+    cityName: null,
+    cityContextLabel: prompt,
+    placeId: null,
+    placeKind: null,
+    datasetVersion: null,
+    typeLabel: null,
+    parentLabel: null,
+    subtitle: null,
+    boundaryId: null,
+    boundaryDatasetVersion: null,
+    fallbackNotice: prompt,
+    lat: geo.lat,
+    lng: geo.lng,
+    clickLat: geo.lat,
+    clickLng: geo.lng,
+    x: normalizedPoint.x,
+    y: normalizedPoint.y,
+    source: 'detected',
+    isFeatured: false,
+    coordinatesLabel: formatCoordinatesLabel(geo),
+    description: '请确认 server 返回的 canonical 候选地点。'
+  }
+}
+
+function applyResolvedPlace(
+  place: Parameters<typeof buildCanonicalDraftPoint>[0],
+  geo: { lat: number; lng: number },
+  normalizedPoint: NormalizedPoint,
+  options: {
+    hadDraft?: boolean
+  } = {}
+) {
+  const decision = openSavedPointForPlaceOrStartDraft(
+    buildCanonicalDraftPoint(place, geo, normalizedPoint)
+  )
+
+  if (decision.type === 'reused') {
+    setInteractionNotice({
+      tone: 'info',
+      message: `已打开你记录过的${decision.point.name}`
+    })
+    return
+  }
+
+  if (options.hadDraft) {
+    setInteractionNotice({
+      tone: 'info',
+      message: '当前未保存地点将被丢弃，并切换到新位置'
+    })
+    return
+  }
+
+  clearInteractionNotice()
+}
+
+async function handleConfirmCandidate(candidate: GeoCityCandidate) {
+  const pendingSelection = pendingCanonicalSelection.value
+
+  if (!pendingSelection) {
+    return
+  }
+
+  try {
+    const response = await confirmCanonicalPlace({
+      lat: pendingSelection.click.lat,
+      lng: pendingSelection.click.lng,
+      candidatePlaceId: candidate.cityId
+    })
+    const normalizedPoint = geoCoordinatesToNormalizedPoint(response.click)
+
+    if (response.status === 'resolved') {
+      applyResolvedPlace(response.place, response.click, normalizedPoint)
+      return
+    }
+
+    if (response.status === 'ambiguous') {
+      startPendingCanonicalSelection({
+        draftPoint: buildPendingCanonicalDraft(response.click, normalizedPoint, response.prompt),
+        prompt: response.prompt,
+        recommendedPlaceId: response.recommendedPlaceId,
+        candidates: response.candidates,
+        click: response.click
+      })
+      return
+    }
+
+    setInteractionNotice({
+      tone: 'info',
+      message: response.message
+    })
+  } catch {
+    setInteractionNotice({
+      tone: 'warning',
+      message: '确认地点失败，请稍后重试'
+    })
+  }
 }
 
 async function handleMapClick(event: MouseEvent) {
@@ -419,70 +578,47 @@ async function handleMapClick(event: MouseEvent) {
   }
 
   try {
-    const { isLowConfidenceBoundaryHit, lookupCountryRegionByCoordinates } = await loadGeoLookupModule()
-    const detectionResult = lookupCountryRegionByCoordinates(geo)
-
-    if (!detectionResult) {
-      clearPendingGeoHit()
-      finishRecognition()
-      setInteractionNotice({
-        tone: 'warning',
-        message: '请点击有效陆地区域'
-      })
-      return
-    }
-
-    if (isLowConfidenceBoundaryHit(geo, detectionResult)) {
-      clearPendingGeoHit()
-      finishRecognition()
-      setInteractionNotice({
-        tone: 'info',
-        message: '请点击更靠近目标区域的位置'
-      })
-      return
-    }
-
-    const detectedPoint = geoCoordinatesToNormalizedPoint({
-      lat: detectionResult.lat,
-      lng: detectionResult.lng
-    })
-    const fallbackDraftPoint: DraftMapPoint = {
-      id: `detected-${detectionResult.countryCode}-${Math.round(detectionResult.lat * 100)}-${Math.round(
-        detectionResult.lng * 100
-      )}`,
-      name: detectionResult.displayName,
-      countryName: detectionResult.regionName ?? detectionResult.countryName,
-      countryCode: detectionResult.countryCode,
-      precision: detectionResult.precision,
-      cityId: null,
-      cityName: null,
-      cityContextLabel:
-        detectionResult.cityCandidates[0]?.contextLabel ??
-        (detectionResult.regionName ?? detectionResult.countryName),
-      boundaryId: null,
-      boundaryDatasetVersion: null,
-      fallbackNotice: detectionResult.fallbackNotice,
-      lat: detectionResult.lat,
-      lng: detectionResult.lng,
-      x: detectedPoint.x,
-      y: detectedPoint.y,
-      source: 'detected',
-      isFeatured: false,
-      coordinatesLabel: formatCoordinatesLabel(detectionResult),
-      description: '识别成功，下一阶段可补充地点内容。'
-    }
+    const response = await resolveCanonicalPlace(geo)
     const hadDraft = Boolean(draftPoint.value)
 
-    startPendingCitySelection(fallbackDraftPoint, detectionResult.cityCandidates)
-
-    if (hadDraft) {
-      setInteractionNotice({
-        tone: 'info',
-        message: '当前未保存地点将被丢弃，并切换到新位置'
-      })
-    } else {
-      clearInteractionNotice()
+    if (response.status === 'resolved') {
+      applyResolvedPlace(
+        response.place,
+        response.click,
+        geoCoordinatesToNormalizedPoint(response.click),
+        { hadDraft }
+      )
+      finishRecognition()
+      clearPendingGeoHit()
+      return
     }
+
+    if (response.status === 'ambiguous') {
+      startPendingCanonicalSelection({
+        draftPoint: buildPendingCanonicalDraft(response.click, normalizedPoint, response.prompt),
+        prompt: response.prompt,
+        recommendedPlaceId: response.recommendedPlaceId,
+        candidates: response.candidates,
+        click: response.click
+      })
+
+      if (hadDraft) {
+        setInteractionNotice({
+          tone: 'info',
+          message: '当前未保存地点将被丢弃，并切换到新位置'
+        })
+      } else {
+        clearInteractionNotice()
+      }
+      finishRecognition()
+      clearPendingGeoHit()
+      return
+    }
+
+    setInteractionNotice({
+      tone: 'info',
+      message: response.message
+    })
     finishRecognition()
     clearPendingGeoHit()
   } catch {
@@ -490,7 +626,7 @@ async function handleMapClick(event: MouseEvent) {
     finishRecognition()
     setInteractionNotice({
       tone: 'warning',
-      message: '识别数据加载失败，请稍后重试'
+      message: '识别请求失败，请稍后重试'
     })
   }
 }
@@ -574,8 +710,7 @@ async function handleMapClick(event: MouseEvent) {
           :anchor-source="popupAnchor.source"
           :floating-styles="popupFloatingStyles"
           :find-saved-point-by-city-id="findSavedPointByCityId"
-          @confirm-candidate="confirmPendingCitySelection"
-          @continue-fallback="continuePendingWithFallback"
+          @confirm-candidate="handleConfirmCandidate"
           @save-point="saveDraftAsPoint"
           @open-detail="openDrawerView"
           @edit-point="enterEditMode"

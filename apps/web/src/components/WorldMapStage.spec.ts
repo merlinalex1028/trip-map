@@ -1,3 +1,8 @@
+import {
+  PHASE12_AMBIGUOUS_RESOLVE,
+  PHASE12_FAILED_RESOLVE,
+  PHASE12_RESOLVED_BEIJING,
+} from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { computed, nextTick, shallowRef } from 'vue'
@@ -5,36 +10,33 @@ import { computed, nextTick, shallowRef } from 'vue'
 import WorldMapStage from './WorldMapStage.vue'
 import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
-import type { GeoCoordinates, GeoDetectionResult } from '../types/geo'
 
 const popupAnchoringMock = vi.hoisted(() => ({
-  cleanup: vi.fn()
+  cleanup: vi.fn(),
 }))
 
-const lookupCountryRegionByCoordinates = vi.fn<
-  (geo: GeoCoordinates) => GeoDetectionResult | null
->()
-const isLowConfidenceBoundaryHit = vi.fn<
-  (geo: GeoCoordinates, result: GeoDetectionResult | null) => boolean
->(() => false)
+const canonicalPlacesMock = vi.hoisted(() => ({
+  resolveCanonicalPlace: vi.fn(),
+  confirmCanonicalPlace: vi.fn(),
+}))
 
-vi.mock('../services/geo-lookup', () => ({
-  lookupCountryRegionByCoordinates,
-  isLowConfidenceBoundaryHit
+vi.mock('../services/api/canonical-places', () => ({
+  resolveCanonicalPlace: canonicalPlacesMock.resolveCanonicalPlace,
+  confirmCanonicalPlace: canonicalPlacesMock.confirmCanonicalPlace,
 }))
 
 vi.mock('../composables/usePopupAnchoring', () => ({
   usePopupAnchoring: () => ({
     floatingStyles: computed(() => ({
       left: '24px',
-      top: '32px'
+      top: '32px',
     })),
     placement: shallowRef('top-start'),
     collisionState: computed(() => 'stable' as const),
     availableHeight: computed(() => 320),
     updatePosition: vi.fn(),
-    cleanup: popupAnchoringMock.cleanup
-  })
+    cleanup: popupAnchoringMock.cleanup,
+  }),
 }))
 
 function installStorageMock() {
@@ -49,13 +51,13 @@ function installStorageMock() {
     },
     clear: () => {
       storage.clear()
-    }
+    },
   }
 
   vi.stubGlobal('localStorage', localStorageMock)
   Object.defineProperty(window, 'localStorage', {
     configurable: true,
-    value: localStorageMock
+    value: localStorageMock,
   })
 }
 
@@ -70,45 +72,9 @@ function installFrame(surface: HTMLDivElement) {
       bottom: 800,
       x: 0,
       y: 0,
-      toJSON: () => ({})
-    })
+      toJSON: () => ({}),
+    }),
   })
-}
-
-function createDetectionResult(overrides: Partial<GeoDetectionResult> = {}): GeoDetectionResult {
-  return {
-    kind: 'country',
-    countryCode: 'JP',
-    countryName: 'Japan',
-    regionName: null,
-    displayName: 'Japan',
-    precision: 'city-high',
-    cityId: 'jp-kyoto',
-    cityName: 'Kyoto',
-    cityCandidates: [
-      {
-        cityId: 'jp-kyoto',
-        cityName: 'Kyoto',
-        contextLabel: 'Japan · Kansai',
-        matchLevel: 'high',
-        distanceKm: 2.2,
-        statusHint: '更接近点击位置'
-      },
-      {
-        cityId: 'jp-osaka',
-        cityName: 'Osaka',
-        contextLabel: 'Japan · Kansai',
-        matchLevel: 'possible',
-        distanceKm: 18.5,
-        statusHint: '可能位置，需要确认'
-      }
-    ],
-    fallbackNotice: null,
-    lat: 35.0116,
-    lng: 135.7681,
-    confidence: 0.99,
-    ...overrides
-  }
 }
 
 function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}) {
@@ -129,18 +95,26 @@ function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}
     cityId,
     cityName: boundary.cityName,
     cityContextLabel: isPortugal ? 'Portugal' : 'Japan · Kansai',
+    placeId: cityId,
+    placeKind: 'OVERSEAS_ADMIN1' as const,
+    datasetVersion: boundary.datasetVersion,
+    typeLabel: '一级行政区',
+    parentLabel: isPortugal ? 'Portugal' : 'Japan',
+    subtitle: isPortugal ? 'Portugal · 一级行政区' : 'Japan · 一级行政区',
     boundaryId: boundary.boundaryId,
     boundaryDatasetVersion: boundary.datasetVersion,
     fallbackNotice: null,
     lat: isPortugal ? 38.7223 : 35.0116,
     lng: isPortugal ? -9.1393 : 135.7681,
+    clickLat: isPortugal ? 38.7223 : 35.0116,
+    clickLng: isPortugal ? -9.1393 : 135.7681,
     x: isPortugal ? 0.47 : 0.68,
     y: isPortugal ? 0.37 : 0.42,
     source: 'detected' as const,
     isFeatured: false,
     description: 'saved point',
     coordinatesLabel: isPortugal ? '38.7223°N, 9.1393°W' : '35.0116°N, 135.7681°E',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -151,16 +125,9 @@ describe('WorldMapStage', () => {
     pinia = createPinia()
     setActivePinia(pinia)
     installStorageMock()
-    lookupCountryRegionByCoordinates.mockReset()
-    lookupCountryRegionByCoordinates.mockImplementation((geo: GeoCoordinates) =>
-      createDetectionResult({
-        lat: geo.lat,
-        lng: geo.lng
-      })
-    )
-    isLowConfidenceBoundaryHit.mockReset()
-    isLowConfidenceBoundaryHit.mockReturnValue(false)
     popupAnchoringMock.cleanup.mockReset()
+    canonicalPlacesMock.resolveCanonicalPlace.mockReset()
+    canonicalPlacesMock.confirmCanonicalPlace.mockReset()
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
       callback(0)
       return 0
@@ -171,11 +138,17 @@ describe('WorldMapStage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('opens the candidate-select summary flow instead of immediately creating a draft', async () => {
+  it('calls /places/resolve and creates a canonical draft for resolved responses', async () => {
+    canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue({
+      status: 'resolved',
+      click: { lat: 39.9042, lng: 116.4074 },
+      place: PHASE12_RESOLVED_BEIJING,
+    })
+
     const wrapper = mount(WorldMapStage, {
       global: {
-        plugins: [pinia]
-      }
+        plugins: [pinia],
+      },
     })
 
     const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
@@ -183,17 +156,97 @@ describe('WorldMapStage', () => {
 
     await wrapper.get('.world-map-stage__surface').trigger('click', {
       clientX: 1180,
-      clientY: 360
+      clientY: 360,
+    })
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+
+    expect(canonicalPlacesMock.resolveCanonicalPlace).toHaveBeenCalledTimes(1)
+    expect(mapPointsStore.summaryMode).toBe('detected-preview')
+    expect(mapPointsStore.draftPoint).toEqual(
+      expect.objectContaining({
+        placeId: PHASE12_RESOLVED_BEIJING.placeId,
+        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+        placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
+        datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+      }),
+    )
+  })
+
+  it('renders server ambiguous candidates and confirms them through /places/confirm', async () => {
+    if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
+      throw new Error('Expected ambiguous resolve fixture')
+    }
+
+    canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue(PHASE12_AMBIGUOUS_RESOLVE)
+    canonicalPlacesMock.confirmCanonicalPlace.mockResolvedValue({
+      status: 'resolved',
+      click: PHASE12_AMBIGUOUS_RESOLVE.click,
+      place: PHASE12_AMBIGUOUS_RESOLVE.candidates[0],
+    })
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+    installFrame(surface)
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', {
+      clientX: 1180,
+      clientY: 360,
     })
     await flushPromises()
 
     const mapPointsStore = useMapPointsStore()
 
     expect(mapPointsStore.summaryMode).toBe('candidate-select')
-    expect(mapPointsStore.drawerMode).toBeNull()
     expect(mapPointsStore.draftPoint).toBeNull()
-    expect(mapPointsStore.pendingCitySelection?.cityCandidates).toHaveLength(2)
-    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe('candidate-select')
+    expect(mapPointsStore.pendingCanonicalSelection?.candidates).toHaveLength(3)
+
+    await wrapper.get('.point-summary-card__candidate-action').trigger('click')
+    await flushPromises()
+
+    expect(canonicalPlacesMock.confirmCanonicalPlace).toHaveBeenCalledWith({
+      lat: PHASE12_AMBIGUOUS_RESOLVE.click.lat,
+      lng: PHASE12_AMBIGUOUS_RESOLVE.click.lng,
+      candidatePlaceId: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.placeId,
+    })
+    expect(mapPointsStore.summaryMode).toBe('detected-preview')
+    expect(mapPointsStore.activePoint).toEqual(
+      expect.objectContaining({
+        placeId: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.placeId,
+      }),
+    )
+  })
+
+  it('shows failed notices without creating a draft or fallback record', async () => {
+    canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue(PHASE12_FAILED_RESOLVE)
+
+    const wrapper = mount(WorldMapStage, {
+      global: {
+        plugins: [pinia],
+      },
+    })
+
+    const surface = wrapper.get('.world-map-stage__surface').element as HTMLDivElement
+    installFrame(surface)
+
+    await wrapper.get('.world-map-stage__surface').trigger('click', {
+      clientX: 1180,
+      clientY: 360,
+    })
+    await flushPromises()
+
+    const mapPointsStore = useMapPointsStore()
+
+    expect(canonicalPlacesMock.resolveCanonicalPlace).toHaveBeenCalledTimes(1)
+    expect(mapPointsStore.draftPoint).toBeNull()
+    expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
+    expect(wrapper.find('[data-region="point-summary-card"]').exists()).toBe(false)
   })
 
   it('renders saved and selected city boundaries with the selected city on the stronger layer', () => {
@@ -208,10 +261,12 @@ describe('WorldMapStage', () => {
         cityContextLabel: 'Japan · Kanto',
         lat: 35.6762,
         lng: 139.6503,
+        clickLat: 35.6762,
+        clickLng: 139.6503,
         x: 0.69,
         y: 0.41,
-        coordinatesLabel: '35.6762°N, 139.6503°E'
-      })
+        coordinatesLabel: '35.6762°N, 139.6503°E',
+      }),
     )
     const tokyoPoint = mapPointsStore.saveDraftAsPoint()
 
@@ -221,15 +276,19 @@ describe('WorldMapStage', () => {
 
     const wrapper = mount(WorldMapStage, {
       global: {
-        plugins: [pinia]
-      }
+        plugins: [pinia],
+      },
     })
 
     expect(wrapper.find('.world-map-stage__boundary-layer').exists()).toBe(true)
     expect(wrapper.findAll('.world-map-stage__boundary--saved')).toHaveLength(2)
-    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(tokyoBoundary?.boundaryId ?? '')
+    expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
+      tokyoBoundary?.boundaryId ?? '',
+    )
     expect(
-      wrapper.get(`[data-highlight-state="saved"][data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"]`).classes()
+      wrapper
+        .get(`[data-highlight-state="saved"][data-boundary-id="${lisbonBoundary?.boundaryId ?? ''}"]`)
+        .classes(),
     ).toContain('world-map-stage__boundary--saved')
   })
 
@@ -242,15 +301,17 @@ describe('WorldMapStage', () => {
 
     const wrapper = mount(WorldMapStage, {
       global: {
-        plugins: [pinia]
-      }
+        plugins: [pinia],
+      },
     })
 
     await nextTick()
 
-    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(true)
+    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(
+      true,
+    )
     expect(wrapper.get('.world-map-stage__boundary--selected').attributes('data-boundary-id')).toBe(
-      getBoundaryByCityId('jp-kyoto')?.boundaryId ?? ''
+      getBoundaryByCityId('jp-kyoto')?.boundaryId ?? '',
     )
   })
 })
