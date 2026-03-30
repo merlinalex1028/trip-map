@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: executing
-stopped_at: Completed 11-monorepo-10-PLAN.md
-last_updated: "2026-03-30T06:38:57.079Z"
+status: verifying
+stopped_at: Completed 11-monorepo-04-PLAN.md
+last_updated: "2026-03-30T07:10:39.056Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 90
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 Phase: 11 (monorepo) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-30
 
 Progress: [█████████░] 90%
@@ -69,6 +69,7 @@ Progress: [█████████░] 90%
 | Phase 11-monorepo P09 | 6min | 1 tasks | 7 files |
 | Phase 11-monorepo P08 | 4min | 1 tasks | 10 files |
 | Phase 11-monorepo P10 | 9min | 1 tasks | 14 files |
+| Phase 11-monorepo P04 | 28min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: apps/web 在显式传入 .spec.ts 文件时仅运行请求的 package-local specs，默认 mixed-suite 发现规则保持不变。
 - [Phase 11-monorepo]: apps/web/src/main.ts now owns the production bootstrap directly, so global CSS and the world-map asset must be imported from package-local paths instead of lingering in a dead bridge file.
 - [Phase 11-monorepo]: The package-local UI regression entry focuses on targeted v2.0 shell/map/popup/drawer/marker behaviors, avoiding unrelated churn in repo-root legacy specs while making apps/web verification self-contained.
+- [Phase 11-monorepo]: 11-04 keeps backend baseline UI additive in apps/web above WorldMapStage so backend proof does not disturb the shipped v2 map shell.
+- [Phase 11-monorepo]: 11-04 isolates server smoke e2e datasetVersion variants so root pnpm test stays deterministic against the shared PostgreSQL instance.
 
 ### Pending Todos
 
@@ -112,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T06:38:57.075Z
-Stopped at: Completed 11-monorepo-10-PLAN.md
+Last session: 2026-03-30T07:10:39.052Z
+Stopped at: Completed 11-monorepo-04-PLAN.md
 Resume file: None
