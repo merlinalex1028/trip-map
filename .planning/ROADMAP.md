@@ -52,13 +52,14 @@ Plans:
   2. 同一地点在 popup、drawer、已保存记录和地图高亮中保持同一个 canonical 身份，不会出现名称、边界和保存结果对不上的情况。
   3. 用户关闭再重开同一记录后，系统仍能还原同一地点与边界，不会因为展示名或数据版本变化被识别成另一条地点。
   4. 当点击结果无法可靠命中到中国市级或海外一级行政区时，界面会给出明确 fallback 或失败反馈，而不是静默创建错误地点。
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 - [x] `12-01-PLAN.md` — 固定 canonical taxonomy、resolve union 与 Phase 12 fixtures/contracts 回归
 - [x] `12-02-PLAN.md` — 在 `apps/server` 落地 authoritative `/places/resolve` 与 `/places/confirm`
 - [x] `12-03-PLAN.md` — 把 `apps/web` 的 store、snapshot 与地图点击链路切到 canonical summary
 - [x] `12-04-PLAN.md` — 统一 popup/drawer 的真实类型展示并补齐 Phase 12 UI 回归
+- [ ] `12-05-PLAN.md` — 为 canonical boundaryId 增加 web 几何映射与真实 support-state，并补齐 canonical highlight/reopen 回归
 
 ### Phase 13: 行政区数据与几何交付
 **Goal**: 用户使用的中国与海外行政区边界都来自可追踪的数据清单，并以版本化静态几何资产稳定交付  
