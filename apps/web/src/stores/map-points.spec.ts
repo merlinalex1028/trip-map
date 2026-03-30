@@ -9,9 +9,13 @@ import { POINT_STORAGE_KEY } from '../services/point-storage'
 import type { DraftMapPoint } from '../types/map-point'
 import { useMapPointsStore } from './map-points'
 
-if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
-  throw new Error('Expected ambiguous canonical resolve fixture')
-}
+const ambiguousResolve = (() => {
+  if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
+    throw new Error('Expected ambiguous canonical resolve fixture')
+  }
+
+  return PHASE12_AMBIGUOUS_RESOLVE
+})()
 
 function installStorageMock() {
   const storage = new Map<string, string>()
@@ -96,38 +100,42 @@ describe('map-points store', () => {
       boundaryId: null,
       boundaryDatasetVersion: null,
       cityName: null,
-      cityContextLabel: PHASE12_AMBIGUOUS_RESOLVE.prompt,
-      fallbackNotice: PHASE12_AMBIGUOUS_RESOLVE.prompt,
+      cityContextLabel: ambiguousResolve.prompt,
+      fallbackNotice: ambiguousResolve.prompt,
       countryCode: '__canonical__',
       countryName: '待确认',
     })
 
     store.startPendingCanonicalSelection({
       draftPoint: pendingDraft,
-      prompt: PHASE12_AMBIGUOUS_RESOLVE.prompt,
-      recommendedPlaceId: PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId,
-      candidates: PHASE12_AMBIGUOUS_RESOLVE.candidates,
-      click: PHASE12_AMBIGUOUS_RESOLVE.click,
+      prompt: ambiguousResolve.prompt,
+      recommendedPlaceId: ambiguousResolve.recommendedPlaceId,
+      candidates: ambiguousResolve.candidates,
+      click: ambiguousResolve.click,
     })
 
     expect(store.summaryMode).toBe('candidate-select')
     expect(store.draftPoint).toBeNull()
     expect(store.pendingCanonicalSelection?.recommendedPlaceId).toBe(
-      PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId,
+      ambiguousResolve.recommendedPlaceId,
     )
     expect(store.summarySurfaceState?.mode).toBe('candidate-select')
-    expect(store.summarySurfaceState?.fallbackPoint).toEqual(
+    if (store.summarySurfaceState?.mode !== 'candidate-select') {
+      throw new Error('expected candidate-select surface')
+    }
+
+    expect(store.summarySurfaceState.fallbackPoint).toEqual(
       expect.objectContaining({
-        fallbackNotice: PHASE12_AMBIGUOUS_RESOLVE.prompt,
-        clickLat: PHASE12_AMBIGUOUS_RESOLVE.click.lat,
-        clickLng: PHASE12_AMBIGUOUS_RESOLVE.click.lng,
+        fallbackNotice: ambiguousResolve.prompt,
+        clickLat: ambiguousResolve.click.lat,
+        clickLng: ambiguousResolve.click.lng,
       }),
     )
-    expect(store.summarySurfaceState?.cityCandidates).toEqual(
+    expect(store.summarySurfaceState.cityCandidates).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          cityId: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.placeId,
-          cityName: PHASE12_AMBIGUOUS_RESOLVE.candidates[0]?.displayName,
+          cityId: ambiguousResolve.candidates[0]?.placeId,
+          cityName: ambiguousResolve.candidates[0]?.displayName,
         }),
       ]),
     )
@@ -179,7 +187,7 @@ describe('map-points store', () => {
       }),
       prompt: '请确认一级行政区',
       recommendedPlaceId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-      candidates: [PHASE12_RESOLVED_CALIFORNIA],
+      candidates: [{ ...PHASE12_RESOLVED_CALIFORNIA, candidateHint: 'California canonical candidate' }],
       click: {
         lat: 36.7783,
         lng: -119.4179,

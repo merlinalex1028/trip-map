@@ -36,7 +36,7 @@ export interface GeoCityCandidate {
   contextLabel: string
   matchLevel: GeoCityMatchLevel
   distanceKm: number
-  statusHint: '更接近点击位置' | '可能位置，需要确认'
+  statusHint: string
 }
 
 export interface GeoDetectionResult {
