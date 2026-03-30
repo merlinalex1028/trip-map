@@ -6,8 +6,10 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
 import PointPreviewDrawer from './PointPreviewDrawer.vue'
+import PointSummaryCard from './map-popup/PointSummaryCard.vue'
 import { getBoundaryByCityId } from '../services/city-boundaries'
 import { useMapPointsStore } from '../stores/map-points'
+import type { SummarySurfaceState } from '../types/map-point'
 
 function installStorageMock() {
   const storage = new Map<string, string>()
@@ -175,5 +177,38 @@ describe('PointPreviewDrawer', () => {
     expect(store.drawerMode).toBeNull()
     expect(store.summaryMode).toBe('view')
     expect(store.activePoint?.cityId).toBe('jp-kyoto')
+  })
+
+  it('renders the same canonical summary combo in popup and drawer for one point', async () => {
+    const store = useMapPointsStore()
+    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.saveDraftAsPoint()
+    store.openDrawerView()
+
+    const drawerWrapper = mount(PointPreviewDrawer, {
+      attachTo: document.body,
+      global: {
+        plugins: [pinia]
+      }
+    })
+    const popupWrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'view',
+          point: store.activePoint!,
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState
+      }
+    })
+
+    await nextTick()
+
+    expect(popupWrapper.get('[data-place-type-label="true"]').text()).toBe(
+      drawerWrapper.get('[data-place-type-label="true"]').text()
+    )
+    expect(popupWrapper.get('[data-place-subtitle="true"]').text()).toBe(
+      drawerWrapper.get('[data-place-subtitle="true"]').text()
+    )
+    expect(drawerWrapper.text()).toContain('中国 · 直辖市')
   })
 })

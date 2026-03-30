@@ -207,4 +207,45 @@ describe('PointSummaryCard', () => {
     expect(notices[0]?.text()).toContain('当前仅能按国家/地区保留这个点位。')
     expect(notices[1]?.text()).toContain('当前地点暂不支持边界高亮')
   })
+
+  it('locks real admin labels and candidate limit for canonical popup surfaces', () => {
+    const beijingWrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint(),
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState
+      }
+    })
+    const candidateWrapper = mount(PointSummaryCard, {
+      props: {
+        surface: {
+          mode: 'candidate-select',
+          fallbackPoint: createCanonicalDraftPoint(),
+          cityCandidates: ambiguousResolve.candidates.map((candidate) => ({
+            cityId: candidate.placeId,
+            cityName: candidate.displayName,
+            contextLabel: candidate.subtitle,
+            matchLevel: 'high' as const,
+            distanceKm: 0,
+            statusHint: candidate.candidateHint
+          })),
+          canonicalCandidates: [
+            ...ambiguousResolve.candidates,
+            {
+              ...PHASE12_RESOLVED_BEIJING,
+              candidateHint: 'extra candidate should be hidden'
+            }
+          ],
+          recommendedPlaceId: ambiguousResolve.recommendedPlaceId
+        } as SummarySurfaceState
+      }
+    })
+
+    expect(beijingWrapper.text()).toContain('直辖市')
+    expect(beijingWrapper.text()).toContain('中国 · 直辖市')
+    expect(candidateWrapper.findAll('.point-summary-card__candidate-action')).toHaveLength(3)
+    expect(candidateWrapper.find('[data-candidate-recommended="true"]').exists()).toBe(true)
+  })
 })
