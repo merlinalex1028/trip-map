@@ -4,8 +4,8 @@ import { onUnmounted, watch } from 'vue'
 
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import WorldMapStage from './components/WorldMapStage.vue'
-import { useMapPointsStore } from './stores/map-points'
-import { useMapUiStore } from './stores/map-ui'
+import { useMapPointsStore } from '../../../src/stores/map-points'
+import { useMapUiStore } from '../../../src/stores/map-ui'
 
 const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
