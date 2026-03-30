@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-30T10:05:49.976Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-03-30T10:15:59.579Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 86
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 12 (canonical) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-03-30
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 86%
 | Phase 11-monorepo P04 | 28min | 2 tasks | 11 files |
 | Phase 12 P01 | 4min | 2 tasks | 5 files |
 | Phase 12 P02 | 10min | 2 tasks | 10 files |
+| Phase 12-canonical P03 | 12min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,9 @@ Recent decisions affecting current work:
 - [Phase 12]: Canonical resolve contracts use resolved/ambiguous/failed unions so failed results never carry fallback place payloads.
 - [Phase 12]: Phase 12 server resolve stays fixture-backed inside apps/server so Phase 13 can swap the data source without changing HTTP contracts.
 - [Phase 12]: /places/confirm always replays the same click against the authoritative candidate set and rejects out-of-set candidatePlaceId with CANDIDATE_MISMATCH.
+- [Phase 12-canonical]: web 继续复用 candidate-select popup 结构，但 server candidate 通过 placeId 兼容投影进入旧 UI 候选模型。
+- [Phase 12-canonical]: canonical reopened/reuse 链路统一使用 placeId，cityId 只保留兼容字段。
+- [Phase 12-canonical]: apps/web 补 package-local .vue shim 满足计划要求的 tsc --noEmit，而不改根 TypeScript 配置。
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T10:05:49.974Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-03-30T10:15:59.576Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None

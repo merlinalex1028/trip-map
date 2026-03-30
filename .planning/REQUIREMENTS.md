@@ -17,9 +17,9 @@
 
 - [x] **PLC-01**: 中国境内地点以市级行政区作为正式记录语义，海外地点以一级行政区作为正式记录语义
 - [x] **PLC-02**: 系统为每个可记录地点生成稳定的 canonical `placeId`，而不是依赖展示名称或临时拼接字符串作为主键
-- [ ] **PLC-03**: 系统会持久化 `placeKind`、`boundaryId`、`datasetVersion` 和原始点击坐标，以支持后续重开和版本兼容
+- [x] **PLC-03**: 系统会持久化 `placeKind`、`boundaryId`、`datasetVersion` 和原始点击坐标，以支持后续重开和版本兼容
 - [x] **PLC-04**: 当地点无法可靠命中到中国市级或海外一级行政区时，系统会给出明确 fallback，而不是静默创建错误地点
-- [ ] **PLC-05**: 用户在 popup、drawer、已保存记录和地图高亮中看到的是同一个 canonical 地点身份，不会出现名称、边界和保存结果不一致
+- [x] **PLC-05**: 用户在 popup、drawer、已保存记录和地图高亮中看到的是同一个 canonical 地点身份，不会出现名称、边界和保存结果不一致
 
 ### Geo Data & Delivery
 
@@ -88,9 +88,9 @@
 | ARC-04 | Phase 11 | Complete |
 | PLC-01 | Phase 12 | Complete |
 | PLC-02 | Phase 12 | Complete |
-| PLC-03 | Phase 12 | Pending |
+| PLC-03 | Phase 12 | Complete |
 | PLC-04 | Phase 12 | Complete |
-| PLC-05 | Phase 12 | Pending |
+| PLC-05 | Phase 12 | Complete |
 | GEOX-03 | Phase 13 | Pending |
 | GEOX-04 | Phase 13 | Pending |
 | GEOX-05 | Phase 13 | Pending |
