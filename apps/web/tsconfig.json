@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "types": ["vite/client", "vitest/globals"],
+    "paths": {
+      "vue": ["./node_modules/vue"],
+      "pinia": ["./node_modules/pinia"],
+      "nanoid": ["./node_modules/nanoid"],
+      "d3-geo": ["./node_modules/@types/d3-geo"],
+      "@floating-ui/dom": ["./node_modules/@floating-ui/dom"],
+      "@vue/test-utils": ["./node_modules/@vue/test-utils"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "src/**/*.d.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "../../src/**/*.ts",
+    "../../src/**/*.vue"
+  ],
+  "exclude": ["../../src/**/*.spec.ts"]
+}
