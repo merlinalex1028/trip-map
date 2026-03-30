@@ -42,6 +42,7 @@ pnpm-debug.log*
 
 # Vite cache
 .vite/
+.turbo/
 
 # Playwright
 test-results/

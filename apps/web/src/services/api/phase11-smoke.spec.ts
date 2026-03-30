@@ -1,6 +1,6 @@
 import { PHASE11_SMOKE_RECORD_REQUEST } from '@trip-map/contracts'
 
-import viteConfig from '../../vite.config'
+import viteConfig from '../../../vite.config'
 
 describe('phase11 smoke api adapter', () => {
   afterEach(() => {

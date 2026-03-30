@@ -39,6 +39,11 @@ process.env.DATABASE_URL = normalizeDatabaseUrl(process.env.DATABASE_URL)
 process.env.DIRECT_URL = normalizeDatabaseUrl(process.env.DIRECT_URL)
 process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABASE_URL)
 
+const smokeRequest = {
+  ...PHASE11_SMOKE_RECORD_REQUEST,
+  datasetVersion: `${PHASE11_SMOKE_RECORD_REQUEST.datasetVersion}-postgres-suite`,
+}
+
 describe('POST /records/smoke with PostgreSQL', () => {
   let app: NestFastifyApplication
   const prisma = new PrismaClient()
@@ -49,7 +54,7 @@ describe('POST /records/smoke with PostgreSQL', () => {
     await app.getHttpAdapter().getInstance().ready()
     await prisma.smokeRecord.deleteMany({
       where: {
-        datasetVersion: PHASE11_SMOKE_RECORD_REQUEST.datasetVersion,
+        datasetVersion: smokeRequest.datasetVersion,
       },
     })
   })
@@ -57,7 +62,7 @@ describe('POST /records/smoke with PostgreSQL', () => {
   afterAll(async () => {
     await prisma.smokeRecord.deleteMany({
       where: {
-        datasetVersion: PHASE11_SMOKE_RECORD_REQUEST.datasetVersion,
+        datasetVersion: smokeRequest.datasetVersion,
       },
     })
     await prisma.$disconnect()
@@ -68,19 +73,19 @@ describe('POST /records/smoke with PostgreSQL', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/records/smoke',
-      payload: PHASE11_SMOKE_RECORD_REQUEST,
+      payload: smokeRequest,
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json()).toMatchObject(PHASE11_SMOKE_RECORD_REQUEST)
+    expect(response.json()).toMatchObject(smokeRequest)
 
     const storedRows = await prisma.smokeRecord.findMany({
       where: {
-        datasetVersion: PHASE11_SMOKE_RECORD_REQUEST.datasetVersion,
+        datasetVersion: smokeRequest.datasetVersion,
       },
     })
 
     expect(storedRows).toHaveLength(1)
-    expect(storedRows[0]).toMatchObject(PHASE11_SMOKE_RECORD_REQUEST)
+    expect(storedRows[0]).toMatchObject(smokeRequest)
   })
 })
