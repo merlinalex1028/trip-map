@@ -1,9 +1,9 @@
 ---
 phase: 12
 slug: canonical
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: revised
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-30
 ---
 
@@ -19,7 +19,7 @@ created: 2026-03-30
 |----------|-------|
 | **Framework** | `vitest` |
 | **Config file** | `apps/web/vitest.config.ts`, `apps/server/vitest.config.ts`, `packages/contracts/vitest.config.ts` |
-| **Quick run command** | `pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts && pnpm --dir apps/web exec vitest run src/stores/map-points.spec.ts src/components/map-popup/PointSummaryCard.spec.ts` |
+| **Quick run command** | `pnpm --dir packages/contracts exec vitest run src/contracts.spec.ts && pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts && pnpm --dir apps/web exec vitest run src/stores/map-points.spec.ts src/components/map-popup/PointSummaryCard.spec.ts` |
 | **Full suite command** | `pnpm test && pnpm typecheck` |
 | **Estimated runtime** | ~90 seconds |
 
@@ -27,7 +27,7 @@ created: 2026-03-30
 
 ## Sampling Rate
 
-- **After every task commit:** Run `pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts` or the affected targeted `apps/web` / `packages/contracts` specs
+- **After every task commit:** Run that task's exact `<automated>` command from its plan
 - **After every plan wave:** Run `pnpm test`
 - **Before `$gsd-verify-work`:** Full suite must be green
 - **Max feedback latency:** 90 seconds
@@ -38,10 +38,14 @@ created: 2026-03-30
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 12-01-01 | 01 | 1 | PLC-02 | contract | `pnpm --dir packages/contracts exec vitest run src/contracts.spec.ts` | ✅ extend | ⬜ pending |
-| 12-02-01 | 02 | 1 | ARC-02, PLC-01, PLC-04 | e2e | `pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts` | ❌ W0 | ⬜ pending |
-| 12-03-01 | 03 | 2 | PLC-03, PLC-05 | store + storage | `pnpm --dir apps/web exec vitest run src/stores/map-points.spec.ts src/services/point-storage.spec.ts` | ✅ extend | ⬜ pending |
-| 12-03-02 | 03 | 2 | UIX-04, PLC-05 | component | `pnpm --dir apps/web exec vitest run src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/WorldMapStage.spec.ts` | ✅ extend | ⬜ pending |
+| 12-01-01 | 01 | 1 | PLC-01, PLC-02 | contract types | `pnpm --dir packages/contracts exec vitest run src/contracts.spec.ts` | ✅ extend | ⬜ pending |
+| 12-01-02 | 01 | 1 | PLC-04, UIX-04 | fixtures + contract assertions | `pnpm --dir packages/contracts exec vitest run src/contracts.spec.ts` | ✅ extend | ⬜ pending |
+| 12-02-01 | 02 | 2 | ARC-02, PLC-01, PLC-04 | server module + bootstrap e2e | `pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts` | ❌ create in-task | ⬜ pending |
+| 12-02-02 | 02 | 2 | ARC-02, PLC-02, PLC-04 | authoritative resolve e2e | `pnpm --dir apps/server exec vitest run test/canonical-resolve.e2e-spec.ts` | ✅ extend | ⬜ pending |
+| 12-03-01 | 03 | 2 | PLC-03, PLC-05 | store + storage | `pnpm --dir apps/web exec vitest run src/services/point-storage.spec.ts src/stores/map-points.spec.ts` | ✅ extend | ⬜ pending |
+| 12-03-02 | 03 | 2 | ARC-02, PLC-03, PLC-05 | component + store integration | `pnpm --dir apps/web exec vitest run src/components/WorldMapStage.spec.ts src/stores/map-points.spec.ts src/services/point-storage.spec.ts` | ✅ extend | ⬜ pending |
+| 12-04-01 | 04 | 3 | UIX-04, PLC-05 | component render | `pnpm --dir apps/web exec vitest run src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts` | ✅ extend | ⬜ pending |
+| 12-04-02 | 04 | 3 | UIX-04, PLC-05 | component regression | `pnpm --dir apps/web exec vitest run src/components/map-popup/PointSummaryCard.spec.ts src/components/PointPreviewDrawer.spec.ts` | ✅ extend | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,11 +53,10 @@ created: 2026-03-30
 
 ## Wave 0 Requirements
 
-- [ ] `apps/server/test/canonical-resolve.e2e-spec.ts` — server authoritative resolve coverage for `ARC-02`, `PLC-01`, `PLC-04`
-- [ ] `packages/contracts/src/contracts.spec.ts` — extend contract coverage for resolve union and canonical subtype fields
-- [ ] `apps/web/src/stores/map-points.spec.ts` — canonical identity propagation across popup / drawer / saved state
-- [ ] `apps/web/src/services/point-storage.spec.ts` — persistence and reopen coverage for `placeId`, `boundaryId`, `placeKind`, `datasetVersion`, `lat/lng`
-- [ ] `apps/web/src/components/map-popup/PointSummaryCard.spec.ts` and `apps/web/src/components/PointPreviewDrawer.spec.ts` — UI type label and subtitle semantics for `UIX-04`
+无额外 Wave 0 任务。本次修订后每个计划任务都拥有可在该任务内直接运行的 `<automated>` 校验：
+
+- `12-02-01` 先创建 `apps/server/test/canonical-resolve.e2e-spec.ts` 的最小可运行版本，再运行同一文件的 e2e 命令
+- 其余 7 个任务全部复用已有或在任务内扩展的 spec，不再存在“先引用、后创建”的缺口
 
 ---
 
@@ -68,11 +71,11 @@ created: 2026-03-30
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 90s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 90s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** revised and aligned with plans on 2026-03-30
