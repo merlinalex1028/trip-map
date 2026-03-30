@@ -8,10 +8,10 @@
 
 ### Architecture & Monorepo
 
-- [ ] **ARC-01**: 项目代码库拆分为 `apps/web`、`apps/server` 和最小共享契约层，使前后端可以独立运行与构建
+- [x] **ARC-01**: 项目代码库拆分为 `apps/web`、`apps/server` 和最小共享契约层，使前后端可以独立运行与构建
 - [ ] **ARC-02**: `server` 从 `v3.0` 开始成为 canonical area resolve 的权威来源，前端不再长期保留另一套主判定逻辑
 - [ ] **ARC-03**: 系统以 PostgreSQL 兼容数据库作为正式持久化基础，并允许采用 `Supabase` 这类托管 PostgreSQL 方案而不把业务模型绑定到平台私有能力
-- [ ] **ARC-04**: 前后端通过共享契约明确 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 等关键字段，避免多端语义漂移
+- [x] **ARC-04**: 前后端通过共享契约明确 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 等关键字段，避免多端语义漂移
 
 ### Canonical Place Model
 
@@ -82,10 +82,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARC-01 | Phase 11 | Pending |
+| ARC-01 | Phase 11 | Complete |
 | ARC-02 | Phase 12 | Pending |
 | ARC-03 | Phase 11 | Pending |
-| ARC-04 | Phase 11 | Pending |
+| ARC-04 | Phase 11 | Complete |
 | PLC-01 | Phase 12 | Pending |
 | PLC-02 | Phase 12 | Pending |
 | PLC-03 | Phase 12 | Pending |
