@@ -103,7 +103,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
-| 12. Canonical 地点语义 | 5/5 | Complete   | 2026-03-30 |
+| 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
 | 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
