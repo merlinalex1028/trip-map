@@ -234,6 +234,26 @@ describe('map-points store', () => {
     expect(store.savedBoundaryIds).toEqual([PHASE12_RESOLVED_CALIFORNIA.boundaryId])
   })
 
+  it('marks PHASE12_RESOLVED_BEIJING as supported only when canonical boundary geometry resolves', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_BEIJING))
+    expect(store.activeBoundaryCoverageState).toBe('supported')
+
+    store.saveDraftAsPoint()
+    expect(store.activeBoundaryCoverageState).toBe('supported')
+  })
+
+  it('marks PHASE12_RESOLVED_CALIFORNIA as missing when canonical boundary geometry is unavailable', () => {
+    const store = useMapPointsStore()
+
+    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA))
+    expect(store.activeBoundaryCoverageState).toBe('missing')
+
+    store.saveDraftAsPoint()
+    expect(store.activeBoundaryCoverageState).toBe('missing')
+  })
+
   it('marks legacy version-1 local snapshots as incompatible during bootstrap', () => {
     window.localStorage.setItem(
       POINT_STORAGE_KEY,

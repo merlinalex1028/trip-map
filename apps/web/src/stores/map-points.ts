@@ -4,7 +4,10 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
 import { seedPoints } from '../data/seed-points'
-import { hasBoundaryCoverageForCityId } from '../services/city-boundaries'
+import {
+  hasBoundaryCoverageForBoundaryId,
+  hasBoundaryCoverageForCityId,
+} from '../services/city-boundaries'
 import {
   clearPointStorageSnapshot,
   loadPointStorageSnapshot,
@@ -106,7 +109,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       return 'not-applicable'
     }
 
-    if (activePoint.value.boundaryId) {
+    if (hasBoundaryCoverageForBoundaryId(activePoint.value.boundaryId)) {
       return 'supported'
     }
 

@@ -106,4 +106,25 @@ describe('city-boundaries service', () => {
     expect(getBoundaryByCityId('fr-paris')?.boundaryId).toBe('fr-paris-commune')
     expect(getBoundaryByCityId('ar-buenos-aires')?.boundaryId).toBe('ar-buenos-aires-autonomous-city')
   })
+
+  it('maps canonical boundary ids to renderable web boundary ids when geometry exists', () => {
+    expect(getBoundaryById('datav-cn-beijing')).toEqual(
+      expect.objectContaining({
+        boundaryId: 'cn-beijing-municipality',
+        cityId: 'cn-beijing',
+      }),
+    )
+    expect(getBoundaryById('datav-cn-hong-kong')).toEqual(
+      expect.objectContaining({
+        boundaryId: 'hk-hong-kong-island-cluster',
+        cityId: 'hk-hong-kong',
+      }),
+    )
+  })
+
+  it('returns null for canonical boundary ids without renderable geometry coverage', () => {
+    expect(getBoundaryById('datav-cn-aba')).toBeNull()
+    expect(getBoundaryById('datav-cn-tianjin')).toBeNull()
+    expect(getBoundaryById('ne-admin1-us-california')).toBeNull()
+  })
 })

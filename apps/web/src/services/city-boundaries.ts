@@ -29,8 +29,36 @@ const boundaryIdByCityId = cityBoundaryFeatures.reduce<Map<string, string>>((map
   return map
 }, new Map())
 
+export const CANONICAL_BOUNDARY_ID_TO_RENDERABLE_ID: Record<string, string | null> = {
+  'datav-cn-beijing': 'cn-beijing-municipality',
+  'datav-cn-hong-kong': 'hk-hong-kong-island-cluster',
+  'datav-cn-aba': null,
+  'datav-cn-tianjin': null,
+  'datav-cn-langfang': null,
+  'ne-admin1-us-ca': null,
+  'ne-admin1-us-california': null,
+}
+
 export function hasBoundaryCoverageForCityId(cityId: string): boolean {
   return boundaryIdByCityId.has(cityId)
+}
+
+export function resolveRenderableBoundaryId(boundaryId: string): string | null {
+  if (boundaryId in CANONICAL_BOUNDARY_ID_TO_RENDERABLE_ID) {
+    return CANONICAL_BOUNDARY_ID_TO_RENDERABLE_ID[boundaryId]
+  }
+
+  return boundaryId
+}
+
+export function hasBoundaryCoverageForBoundaryId(boundaryId: string | null | undefined): boolean {
+  if (!boundaryId) {
+    return false
+  }
+
+  const renderableBoundaryId = resolveRenderableBoundaryId(boundaryId)
+
+  return renderableBoundaryId ? boundaryFeatureById.has(renderableBoundaryId) : false
 }
 
 export const curatedCitiesMissingBoundaryCoverage = curatedCityIds.filter(
@@ -58,7 +86,13 @@ export function normalizeBoundaryGeometry(
 }
 
 export function getBoundaryById(boundaryId: string): NormalizedCityBoundary | null {
-  const feature = boundaryFeatureById.get(boundaryId)
+  const renderableBoundaryId = resolveRenderableBoundaryId(boundaryId)
+
+  if (!renderableBoundaryId) {
+    return null
+  }
+
+  const feature = boundaryFeatureById.get(renderableBoundaryId)
 
   if (!feature) {
     return null
