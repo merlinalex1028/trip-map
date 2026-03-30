@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: ready_to_plan
-stopped_at: Phase 11 complete; next up Phase 12
-last_updated: "2026-03-30T07:31:59.762Z"
+status: Ready to discuss / plan next phase
+stopped_at: Phase 12 context gathered
+last_updated: "2026-03-30T08:36:53.014Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
@@ -116,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T07:31:59.762Z
-Stopped at: Phase 11 complete; next up Phase 12
-Resume file: None
+Last session: 2026-03-30T08:36:53.011Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-canonical/12-CONTEXT.md
