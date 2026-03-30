@@ -95,7 +95,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 11. Monorepo 与契约基线 | 2/10 | In Progress|  |
+| 11. Monorepo 与契约基线 | 3/10 | In Progress|  |
 | 12. Canonical 地点语义 | 0/TBD | Not started | - |
 | 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
