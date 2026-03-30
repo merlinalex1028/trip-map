@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: verifying
 stopped_at: Completed 11-monorepo-04-PLAN.md
-last_updated: "2026-03-30T07:10:39.056Z"
+last_updated: "2026-03-30T07:12:36.516Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
@@ -102,6 +102,7 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: The package-local UI regression entry focuses on targeted v2.0 shell/map/popup/drawer/marker behaviors, avoiding unrelated churn in repo-root legacy specs while making apps/web verification self-contained.
 - [Phase 11-monorepo]: 11-04 keeps backend baseline UI additive in apps/web above WorldMapStage so backend proof does not disturb the shipped v2 map shell.
 - [Phase 11-monorepo]: 11-04 isolates server smoke e2e datasetVersion variants so root pnpm test stays deterministic against the shared PostgreSQL instance.
+- [Phase 11-monorepo]: 11-04 routes web health and smoke requests through createApiUrl plus a /api Vite proxy instead of hardcoded backend origins in Vue components.
 
 ### Pending Todos
 
