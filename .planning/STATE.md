@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 11-monorepo-05-PLAN.md
-last_updated: "2026-03-30T04:23:40.748Z"
+stopped_at: Completed 11-monorepo-06-PLAN.md
+last_updated: "2026-03-30T05:52:12Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 10
-  completed_plans: 5
-  percent: 40
+  completed_plans: 6
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 11 (monorepo) — EXECUTING
-Plan: 6 of 10
+Plan: 7 of 10
 Status: Ready to execute
 Last activity: 2026-03-30
 
-Progress: [████░░░░░░] 40%
+Progress: [█████░░░░░] 50%
 
 ## Last Shipped Milestone
 
@@ -44,7 +44,7 @@ Progress: [████░░░░░░] 40%
 
 **Velocity:**
 
-- Total plans completed: 35
+- Total plans completed: 36
 - Average duration: n/a
 - Total execution time: n/a
 
@@ -65,6 +65,7 @@ Progress: [████░░░░░░] 40%
 | Phase 11-monorepo P03 | 3min | 1 tasks | 14 files |
 | Phase 11-monorepo P07 | 14min | 1 tasks | 13 files |
 | Phase 11-monorepo P05 | 22min | 1 tasks | 9 files |
+| Phase 11-monorepo P06 | 81min | 1 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: apps/web point-storage adds a loadStoredPoints compatibility export to satisfy the moved-module contract without changing snapshot-based behavior.
 - [Phase 11-monorepo]: 11-05 只迁移 app shell 与顶层交互组件到 apps/web，supporting modules 继续通过显式 legacy bridge 保留在 root src。
 - [Phase 11-monorepo]: 11-05 让 legacy-entry 直接挂载 apps/web/src/App.vue，bootstrap bridge 仅保留样式与 legacy supporting runtime 桥接职责。
+- [Phase 11-monorepo]: 11-06 使用 Prisma 连接 Supabase-hosted PostgreSQL，但 server 代码继续保持标准 PostgreSQL/Prisma 边界，不引入 Supabase SDK。
+- [Phase 11-monorepo]: 当前开发环境通过 Supabase CLI 验证过的 session pooler URL 跑 migration 与 runtime，保证本机网络下的可达性与真实 smoke 验证。
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T04:23:40.746Z
-Stopped at: Completed 11-monorepo-05-PLAN.md
+Last session: 2026-03-30T05:52:12Z
+Stopped at: Completed 11-monorepo-06-PLAN.md
 Resume file: None
