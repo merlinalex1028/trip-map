@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 11-monorepo-01-PLAN.md
-last_updated: "2026-03-30T03:26:39.731Z"
+stopped_at: Completed 11-monorepo-02-PLAN.md
+last_updated: "2026-03-30T03:41:00.807Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 10
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 11 (monorepo) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-03-30
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: Stable
 
 | Phase 11-monorepo P01 | 777 | 2 tasks | 14 files |
+| Phase 11-monorepo P02 | 12min | 1 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - `v3.0` 不迁移旧 `localStorage` 数据，也不再保留历史 seed 点位。
 - [Phase 11-monorepo]: 根 package.json 只保留 turbo 代理脚本，不再承载 Vite/Vue 单应用运行入口。
 - [Phase 11-monorepo]: @trip-map/contracts 只暴露类型、常量与 fixture；不引入 Pinia、Vue、Nest 或 Prisma 运行时依赖。
+- [Phase 11-monorepo]: apps/web now owns Vite/Vitest/typecheck dependency resolution for legacy imports; the root package stays orchestrator-only.
+- [Phase 11-monorepo]: 11-02 keeps apps/web as the sole web shell while legacy root src remains behind an explicit temporary legacy-entry bridge.
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T03:26:39.726Z
-Stopped at: Completed 11-monorepo-01-PLAN.md
+Last session: 2026-03-30T03:40:31.252Z
+Stopped at: Completed 11-monorepo-02-PLAN.md
 Resume file: None
