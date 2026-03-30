@@ -1,21 +1,32 @@
-import { Injectable } from '@nestjs/common'
-import { randomUUID } from 'node:crypto'
+import { Inject, Injectable } from '@nestjs/common'
 
 import type {
   SmokeRecordCreateRequest,
   SmokeRecordResponse,
 } from '@trip-map/contracts'
 
+import { RecordsRepository } from './records.repository.js'
+
 @Injectable()
 export class RecordsService {
-  createSmoke(input: SmokeRecordCreateRequest): SmokeRecordResponse {
-    const now = new Date().toISOString()
+  constructor(
+    @Inject(RecordsRepository)
+    private readonly recordsRepository: RecordsRepository,
+  ) {}
+
+  async createSmoke(input: SmokeRecordCreateRequest): Promise<SmokeRecordResponse> {
+    const record = await this.recordsRepository.createSmokeRecord(input)
 
     return {
-      id: randomUUID(),
-      ...input,
-      createdAt: now,
-      updatedAt: now,
+      id: record.id,
+      placeId: record.placeId,
+      boundaryId: record.boundaryId,
+      placeKind: input.placeKind,
+      datasetVersion: record.datasetVersion,
+      displayName: record.displayName,
+      note: record.note ?? undefined,
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
     }
   }
 }

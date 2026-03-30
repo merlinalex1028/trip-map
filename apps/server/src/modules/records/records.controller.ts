@@ -25,9 +25,9 @@ export class RecordsController {
     forbidNonWhitelisted: true,
     expectedType: CreateSmokeRecordDto,
   }))
-  createSmoke(
+  async createSmoke(
     @Body() body: CreateSmokeRecordDto,
-  ): SmokeRecordResponse {
+  ): Promise<SmokeRecordResponse> {
     return this.recordsService.createSmoke(body)
   }
 }

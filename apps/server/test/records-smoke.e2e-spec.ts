@@ -1,15 +1,43 @@
-import { config as loadEnv } from 'dotenv'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
+import { fileURLToPath } from 'node:url'
 
 import { PHASE11_SMOKE_RECORD_REQUEST } from '@trip-map/contracts'
 
 import { createApp } from '../src/main.js'
 
-loadEnv({
-  path: new URL('../.env', import.meta.url),
-})
+try {
+  process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
+}
+catch {
+  // The test runner may inject envs directly.
+}
+
+function normalizeDatabaseUrl(value: string | undefined): string | undefined {
+  if (!value) {
+    return value
+  }
+
+  try {
+    new URL(value)
+    return value
+  }
+  catch {
+    const match = value.match(/^(postgres(?:ql)?):\/\/([^:]+):([^@]+)@(.*)$/)
+
+    if (!match) {
+      return value
+    }
+
+    const [, protocol, user, password, rest] = match
+    return `${protocol}://${user}:${encodeURIComponent(password)}@${rest}`
+  }
+}
+
+process.env.DATABASE_URL = normalizeDatabaseUrl(process.env.DATABASE_URL)
+process.env.DIRECT_URL = normalizeDatabaseUrl(process.env.DIRECT_URL)
+process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABASE_URL)
 
 describe('POST /records/smoke with PostgreSQL', () => {
   let app: NestFastifyApplication
