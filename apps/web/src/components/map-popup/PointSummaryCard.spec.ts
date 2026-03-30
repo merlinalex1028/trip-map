@@ -1,7 +1,19 @@
+import {
+  PHASE12_AMBIGUOUS_RESOLVE,
+  PHASE12_RESOLVED_BEIJING,
+} from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 
 import PointSummaryCard from './PointSummaryCard.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+
+const ambiguousResolve = (() => {
+  if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
+    throw new Error('Expected ambiguous canonical resolve fixture')
+  }
+
+  return PHASE12_AMBIGUOUS_RESOLVE
+})()
 
 function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
   return {
@@ -46,45 +58,76 @@ function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisp
   }
 }
 
+function createCanonicalDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
+  return createDraftPoint({
+    id: 'pending-beijing',
+    name: '待确认地点',
+    countryName: '待确认',
+    countryCode: '__canonical__',
+    cityId: null,
+    cityName: null,
+    cityContextLabel: ambiguousResolve.prompt,
+    placeId: null,
+    placeKind: null,
+    datasetVersion: null,
+    typeLabel: null,
+    parentLabel: null,
+    subtitle: null,
+    boundaryId: null,
+    boundaryDatasetVersion: null,
+    fallbackNotice: ambiguousResolve.prompt,
+    lat: ambiguousResolve.click.lat,
+    lng: ambiguousResolve.click.lng,
+    clickLat: ambiguousResolve.click.lat,
+    clickLng: ambiguousResolve.click.lng,
+    ...overrides
+  })
+}
+
 describe('PointSummaryCard', () => {
-  it('renders candidate actions with search input, fallback CTA, and saved reuse hint', async () => {
+  it('renders canonical candidate labels and recommended marker without fallback CTA', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: {
           mode: 'candidate-select',
-          fallbackPoint: createDraftPoint(),
-          cityCandidates: [
-            {
-              cityId: 'jp-kyoto',
-              cityName: 'Kyoto',
-              contextLabel: 'Japan · Kansai',
-              matchLevel: 'high',
-              distanceKm: 1.5,
-              statusHint: '更接近点击位置'
-            },
-            {
-              cityId: 'jp-osaka',
-              cityName: 'Osaka',
-              contextLabel: 'Japan · Kansai',
-              matchLevel: 'possible',
-              distanceKm: 21,
-              statusHint: '可能位置，需要确认'
-            }
-          ]
-        } satisfies SummarySurfaceState,
-        findSavedPointByCityId: (cityId: string) => (cityId === 'jp-kyoto' ? createViewPoint() : null)
+          fallbackPoint: createCanonicalDraftPoint(),
+          cityCandidates: ambiguousResolve.candidates.map((candidate) => ({
+            cityId: candidate.placeId,
+            cityName: candidate.displayName,
+            contextLabel: candidate.subtitle,
+            matchLevel: 'high' as const,
+            distanceKm: 0,
+            statusHint: candidate.candidateHint
+          })),
+          canonicalCandidates: ambiguousResolve.candidates,
+          recommendedPlaceId: ambiguousResolve.recommendedPlaceId
+        } as SummarySurfaceState,
+        findSavedPointByCityId: (cityId: string) =>
+          cityId === ambiguousResolve.candidates[0]?.placeId
+            ? createViewPoint({
+                id: 'saved-beijing',
+                name: PHASE12_RESOLVED_BEIJING.displayName,
+                countryName: PHASE12_RESOLVED_BEIJING.parentLabel,
+                placeId: PHASE12_RESOLVED_BEIJING.placeId,
+                typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
+                subtitle: PHASE12_RESOLVED_BEIJING.subtitle
+              })
+            : null
       }
     })
 
     expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe('candidate-select')
-    expect(wrapper.find('input[placeholder="搜索城市"]').exists()).toBe(true)
-    expect(wrapper.text()).toContain('按国家/地区继续记录')
+    expect(wrapper.text()).toContain('北京')
+    expect(wrapper.text()).toContain('直辖市')
+    expect(wrapper.text()).toContain('中国 · 直辖市')
+    expect(wrapper.find('[data-candidate-recommended="true"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('按国家/地区继续记录')
     expect(wrapper.text()).toContain('已存在记录')
 
     await wrapper.findAll('.point-summary-card__candidate-action')[0]?.trigger('click')
 
     expect(wrapper.emitted('confirmCandidate')?.[0]?.[0]).toMatchObject({
-      cityId: 'jp-kyoto'
+      cityId: ambiguousResolve.candidates[0]?.placeId
     })
   })
 

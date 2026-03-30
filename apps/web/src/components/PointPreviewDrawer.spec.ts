@@ -1,3 +1,6 @@
+import {
+  PHASE12_RESOLVED_BEIJING,
+} from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
@@ -61,6 +64,32 @@ function createCityDraft(cityId: string, overrides: Record<string, unknown> = {}
   }
 }
 
+function createCanonicalDraft(overrides: Record<string, unknown> = {}) {
+  return createCityDraft('jp-kyoto', {
+    id: `detected-${PHASE12_RESOLVED_BEIJING.placeId}`,
+    name: PHASE12_RESOLVED_BEIJING.displayName,
+    countryName: PHASE12_RESOLVED_BEIJING.parentLabel,
+    countryCode: 'CN',
+    cityId: null,
+    cityName: PHASE12_RESOLVED_BEIJING.displayName,
+    cityContextLabel: PHASE12_RESOLVED_BEIJING.subtitle,
+    placeId: PHASE12_RESOLVED_BEIJING.placeId,
+    placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
+    datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+    typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
+    parentLabel: PHASE12_RESOLVED_BEIJING.parentLabel,
+    subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
+    boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+    boundaryDatasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+    lat: 39.9042,
+    lng: 116.4074,
+    x: 0.74,
+    y: 0.31,
+    coordinatesLabel: '39.9042°N, 116.4074°E',
+    ...overrides,
+  })
+}
+
 describe('PointPreviewDrawer', () => {
   let pinia: ReturnType<typeof createPinia>
 
@@ -75,9 +104,9 @@ describe('PointPreviewDrawer', () => {
     vi.unstubAllGlobals()
   })
 
-  it('stays hidden for summary-only state and renders only after the drawer handoff', async () => {
+  it('stays hidden for summary-only state and renders canonical type label plus subtitle after the drawer handoff', async () => {
     const store = useMapPointsStore()
-    store.startDraftFromDetection(createCityDraft('jp-kyoto'))
+    store.startDraftFromDetection(createCanonicalDraft())
     store.saveDraftAsPoint()
 
     const wrapper = mount(PointPreviewDrawer, {
@@ -94,7 +123,9 @@ describe('PointPreviewDrawer', () => {
     await nextTick()
 
     expect(wrapper.find('.point-preview-drawer').exists()).toBe(true)
-    expect(wrapper.text()).toContain('Kyoto')
+    expect(wrapper.text()).toContain('北京')
+    expect(wrapper.text()).toContain('直辖市')
+    expect(wrapper.text()).toContain('中国 · 直辖市')
     expect(wrapper.text()).toContain('编辑地点')
     expect(wrapper.get('.point-preview-drawer').attributes('data-drawer-mode')).toBe('view')
   })
