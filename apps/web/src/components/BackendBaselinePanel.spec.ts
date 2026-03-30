@@ -2,8 +2,10 @@ import { flushPromises, mount } from '@vue/test-utils'
 
 import BackendBaselinePanel from './BackendBaselinePanel.vue'
 
-const fetchHealthStatus = vi.fn()
-const createSmokeRecord = vi.fn()
+const { fetchHealthStatus, createSmokeRecord } = vi.hoisted(() => ({
+  fetchHealthStatus: vi.fn(),
+  createSmokeRecord: vi.fn(),
+}))
 
 vi.mock('../services/api/phase11-smoke', () => ({
   fetchHealthStatus,

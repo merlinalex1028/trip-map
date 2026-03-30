@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { onUnmounted, watch } from 'vue'
 
+import BackendBaselinePanel from './components/BackendBaselinePanel.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import WorldMapStage from './components/WorldMapStage.vue'
 import { useMapPointsStore } from './stores/map-points'
@@ -73,6 +74,7 @@ onUnmounted(() => {
         </button>
       </div>
       <section class="poster-shell__experience">
+        <BackendBaselinePanel class="poster-shell__backend-panel" />
         <WorldMapStage class="poster-shell__stage" />
       </section>
     </main>
@@ -204,6 +206,8 @@ onUnmounted(() => {
 .poster-shell__experience {
   position: relative;
   min-height: 0;
+  display: grid;
+  gap: var(--space-md);
   padding: var(--space-md);
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
@@ -233,5 +237,10 @@ onUnmounted(() => {
   inset: 18px;
   border: 1px dashed rgba(199, 171, 200, 0.45);
   border-radius: calc(var(--radius-surface) - 10px);
+}
+
+.poster-shell__backend-panel {
+  position: relative;
+  z-index: 1;
 }
 </style>
