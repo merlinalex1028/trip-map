@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 11-monorepo-09-PLAN.md
-last_updated: "2026-03-30T06:10:58.436Z"
+stopped_at: Completed 11-monorepo-08-PLAN.md
+last_updated: "2026-03-30T06:24:51.667Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 10
-  completed_plans: 7
-  percent: 70
+  completed_plans: 8
+  percent: 80
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 11 (monorepo) — EXECUTING
-Plan: 8 of 10
+Plan: 9 of 10
 Status: Ready to execute
 Last activity: 2026-03-30
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Last Shipped Milestone
 
@@ -67,6 +67,7 @@ Progress: [███████░░░] 70%
 | Phase 11-monorepo P05 | 22min | 1 tasks | 9 files |
 | Phase 11-monorepo P06 | 81min | 1 tasks | 13 files |
 | Phase 11-monorepo P09 | 6min | 1 tasks | 7 files |
+| Phase 11-monorepo P08 | 4min | 1 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: 当前开发环境通过 Supabase CLI 验证过的 session pooler URL 跑 migration 与 runtime，保证本机网络下的可达性与真实 smoke 验证。
 - [Phase 11-monorepo]: 11-09 keeps Pinia stores and popup anchoring package-local inside apps/web, rewiring only the app shell and top-level runtime consumers.
 - [Phase 11-monorepo]: WorldMapStage now resolves its stores, composable, services, and types from apps/web while deferring root asset ownership and bridge cleanup to later plans.
+- [Phase 11-monorepo]: 11-08 只迁 non-UI regression specs 与 mountComposable helper 到 apps/web，UI specs 与 bridge cleanup 继续留给后续计划。
+- [Phase 11-monorepo]: apps/web 在显式传入 .spec.ts 文件时仅运行请求的 package-local specs，默认 mixed-suite 发现规则保持不变。
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T06:10:58.432Z
-Stopped at: Completed 11-monorepo-09-PLAN.md
+Last session: 2026-03-30T06:24:30.110Z
+Stopped at: Completed 11-monorepo-08-PLAN.md
 Resume file: None
