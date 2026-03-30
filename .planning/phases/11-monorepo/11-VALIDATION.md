@@ -42,12 +42,14 @@ created: 2026-03-30
 | 11-01-02 | 01 | 1 | ARC-01, ARC-04 | contracts unit + typecheck | `pnpm --filter @trip-map/contracts test && pnpm --filter @trip-map/contracts typecheck` | ❌ planned | ⬜ pending |
 | 11-02-01 | 02 | 2 | ARC-01 | web package bootstrap | `pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
 | 11-03-01 | 03 | 2 | ARC-01, ARC-04 | server contract boundary | `pnpm -C apps/server test -- test/health.e2e-spec.ts test/records-contract.e2e-spec.ts && pnpm -C apps/server typecheck` | ❌ planned | ⬜ pending |
-| 11-05-01 | 05 | 3 | ARC-01 | app runtime shell relocation | `pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
+| 11-05-01 | 05 | 3 | ARC-01 | app shell + top-level component relocation | `test -f apps/web/src/App.vue && test -f apps/web/src/components/WorldMapStage.vue && rg -n 'WorldMapStage|PointPreviewDrawer|MapContextPopup|PointSummaryCard' apps/web/src/App.vue apps/web/src/components` | ❌ planned | ⬜ pending |
 | 11-06-01 | 06 | 3 | ARC-03, API-04 | Prisma install + migrate + smoke persistence | `pnpm -C apps/server exec prisma generate --schema prisma/schema.prisma && pnpm -C apps/server exec prisma migrate deploy --schema prisma/schema.prisma && pnpm -C apps/server test -- test/records-smoke.e2e-spec.ts && pnpm -C apps/server exec prisma validate --schema prisma/schema.prisma` | ❌ planned | ⬜ pending |
-| 11-07-01 | 07 | 3 | ARC-01, ARC-04 | web services/data/types/assets relocation | `pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
-| 11-08-01 | 08 | 4 | ARC-01 | spec migration + bridge cleanup | `pnpm -C apps/web test && pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
-| 11-04-01 | 04 | 5 | ARC-01, ARC-04 | web smoke adapter | `pnpm -C apps/web test -- src/components/BackendBaselinePanel.spec.ts src/services/api/phase11-smoke.spec.ts` | ❌ planned | ⬜ pending |
-| 11-04-02 | 04 | 5 | ARC-01, ARC-04 | cross-workspace regression | `pnpm -C apps/web test && pnpm build && pnpm test && pnpm typecheck` | ❌ planned | ⬜ pending |
+| 11-07-01 | 07 | 3 | ARC-01, ARC-04 | web services/data/types relocation | `test -f apps/web/src/services/point-storage.ts && test -f apps/web/src/types/map-point.ts && rg -n 'loadStoredPoints|datasetVersion|FeatureCollection' apps/web/src/services apps/web/src/data apps/web/src/types` | ❌ planned | ⬜ pending |
+| 11-09-01 | 09 | 4 | ARC-01 | Pinia/composable runtime wiring | `pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
+| 11-08-01 | 08 | 5 | ARC-01 | non-UI spec/test-helper migration | `pnpm -C apps/web test -- src/services/map-projection.spec.ts src/services/point-storage.spec.ts src/services/city-boundaries.spec.ts src/services/geo-lookup.spec.ts src/services/city-search.spec.ts src/data/geo/city-candidates.spec.ts src/composables/usePopupAnchoring.spec.ts src/stores/map-points.spec.ts` | ❌ planned | ⬜ pending |
+| 11-10-01 | 10 | 6 | ARC-01 | UI regression + bootstrap cleanup + styles/assets | `pnpm -C apps/web test -- src/App.spec.ts src/components/SeedMarkerLayer.spec.ts src/components/WorldMapStage.spec.ts src/components/PointPreviewDrawer.spec.ts src/components/map-popup/PointSummaryCard.spec.ts src/components/map-popup/MapContextPopup.spec.ts && pnpm -C apps/web build && pnpm -C apps/web typecheck` | ❌ planned | ⬜ pending |
+| 11-04-01 | 04 | 7 | ARC-01, ARC-04 | web smoke adapter | `pnpm -C apps/web test -- src/components/BackendBaselinePanel.spec.ts src/services/api/phase11-smoke.spec.ts` | ❌ planned | ⬜ pending |
+| 11-04-02 | 04 | 7 | ARC-01, ARC-04 | cross-workspace regression | `pnpm -C apps/web test && pnpm build && pnpm test && pnpm typecheck` | ❌ planned | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -60,7 +62,7 @@ created: 2026-03-30
 - [ ] `apps/server/test/records-smoke.e2e-spec.ts` — 覆盖最小 `web -> server -> DB` 真实链路
 - [ ] `packages/contracts` 的 typecheck / contract smoke 脚本 — 约束 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 字段不漂移
 - [ ] `apps/web` API adapter 测试，例如 `src/services/api/*.spec.ts` — 确认 web 使用 contracts DTO
-- [ ] `apps/web/src/legacy-entry.ts` 与后续 removal — 支撑 `apps/web` package shell 先落地、再在 11-08 移除过渡桥
+- [ ] `apps/web/src/legacy-entry.ts` 与后续 removal — 支撑 `apps/web` package shell 先落地、再在 11-10 移除过渡桥
 - [ ] `turbo.json` 与各 package 的 `build/test/typecheck/dev` 脚本
 - [ ] `.env.example` 或等效环境说明，至少包含 `DATABASE_URL`、`DIRECT_URL`、`VITE_API_BASE_URL` 或 proxy 约定
 

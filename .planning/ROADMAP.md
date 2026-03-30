@@ -29,17 +29,19 @@
   2. 用户触发的同一条请求链路中，前端与服务端一致使用 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 等关键字段，不会因为契约漂移看到错名或错边界。
   3. 验收者把环境切换到任意 PostgreSQL 兼容实例时，核心读写链路仍可运行，不要求依赖 Supabase 私有能力。
   4. 首发环境在不启用 `PostGIS`、`Redis`、`BullMQ` 或对象存储的前提下，仍能支撑 v3.0 主链路。
-**Plans**: 8 plans
+**Plans**: 10 plans
 
 Plans:
 - [ ] `11-01-PLAN.md` — 建立 `pnpm workspace + turbo` 根编排层，并创建薄 `packages/contracts` 契约包
 - [ ] `11-02-PLAN.md` — 搭建 `apps/web` package/config/bootstrap 壳层，并显式桥接 legacy root app
 - [ ] `11-03-PLAN.md` — 搭建 `apps/server` 的 NestJS bootstrap、health 与 contract-backed route 边界
 - [ ] `11-04-PLAN.md` — 打通最小 `web -> server -> DB/contracts` smoke path 与联合验证
-- [ ] `11-05-PLAN.md` — 迁移 web app shell、交互组件与 Pinia/composable runtime 到 `apps/web`
+- [ ] `11-05-PLAN.md` — 迁移 web app shell 与顶层交互组件到 `apps/web`
 - [ ] `11-06-PLAN.md` — 为 `apps/server` 接入 Prisma/PostgreSQL 持久化、DI wiring 与 DB-backed smoke 验证
-- [ ] `11-07-PLAN.md` — 迁移 web services、data、types、styles 与 assets 到 `apps/web`
-- [ ] `11-08-PLAN.md` — 迁移 web specs/test-helper 并移除 `legacy-entry` 过渡桥
+- [ ] `11-07-PLAN.md` — 迁移 web services、geo data 与 web-local types 到 `apps/web`
+- [ ] `11-08-PLAN.md` — 迁移 web 的 non-UI specs/test-helper 到 `apps/web`
+- [ ] `11-09-PLAN.md` — 迁移 Pinia/composable runtime glue，并把 app shell rewiring 到 package-local supporting modules
+- [ ] `11-10-PLAN.md` — 迁移剩余 UI regression、styles/assets，并移除 `legacy-entry` 过渡桥
 
 ### Phase 12: Canonical 地点语义
 **Goal**: 用户点击地图后，`server` 会返回稳定的 canonical 地点结果，并明确区分中国市级与海外一级行政区语义  
@@ -93,7 +95,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 11. Monorepo 与契约基线 | 0/8 | Not started | - |
+| 11. Monorepo 与契约基线 | 0/10 | Not started | - |
 | 12. Canonical 地点语义 | 0/TBD | Not started | - |
 | 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
