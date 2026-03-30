@@ -15,10 +15,10 @@
 
 ### Canonical Place Model
 
-- [ ] **PLC-01**: 中国境内地点以市级行政区作为正式记录语义，海外地点以一级行政区作为正式记录语义
-- [ ] **PLC-02**: 系统为每个可记录地点生成稳定的 canonical `placeId`，而不是依赖展示名称或临时拼接字符串作为主键
+- [x] **PLC-01**: 中国境内地点以市级行政区作为正式记录语义，海外地点以一级行政区作为正式记录语义
+- [x] **PLC-02**: 系统为每个可记录地点生成稳定的 canonical `placeId`，而不是依赖展示名称或临时拼接字符串作为主键
 - [ ] **PLC-03**: 系统会持久化 `placeKind`、`boundaryId`、`datasetVersion` 和原始点击坐标，以支持后续重开和版本兼容
-- [ ] **PLC-04**: 当地点无法可靠命中到中国市级或海外一级行政区时，系统会给出明确 fallback，而不是静默创建错误地点
+- [x] **PLC-04**: 当地点无法可靠命中到中国市级或海外一级行政区时，系统会给出明确 fallback，而不是静默创建错误地点
 - [ ] **PLC-05**: 用户在 popup、drawer、已保存记录和地图高亮中看到的是同一个 canonical 地点身份，不会出现名称、边界和保存结果不一致
 
 ### Geo Data & Delivery
@@ -50,7 +50,7 @@
 - [ ] **UIX-01**: 用户选中地点后，仍然通过现有 popup + drawer 的双层表面完成摘要查看与深度编辑，不因全栈化或换图引擎而退化
 - [ ] **UIX-02**: 地点面板标题右侧提供明确的“点亮 / 取消点亮”按钮，不使用 checkbox 作为主要交互形式
 - [ ] **UIX-03**: 用户点击点亮 / 取消点亮后，可以立即看到按钮文案、状态色和地图边界高亮同步变化
-- [ ] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
+- [x] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
 - [ ] **UIX-05**: popup、drawer、地图高亮和 API 返回状态在成功、失败、加载中三种情况下都保持一致反馈
 
 ## Future Requirements
@@ -86,10 +86,10 @@
 | ARC-02 | Phase 12 | Pending |
 | ARC-03 | Phase 11 | Complete |
 | ARC-04 | Phase 11 | Complete |
-| PLC-01 | Phase 12 | Pending |
-| PLC-02 | Phase 12 | Pending |
+| PLC-01 | Phase 12 | Complete |
+| PLC-02 | Phase 12 | Complete |
 | PLC-03 | Phase 12 | Pending |
-| PLC-04 | Phase 12 | Pending |
+| PLC-04 | Phase 12 | Complete |
 | PLC-05 | Phase 12 | Pending |
 | GEOX-03 | Phase 13 | Pending |
 | GEOX-04 | Phase 13 | Pending |
@@ -109,7 +109,7 @@
 | UIX-01 | Phase 14 | Pending |
 | UIX-02 | Phase 15 | Pending |
 | UIX-03 | Phase 15 | Pending |
-| UIX-04 | Phase 12 | Pending |
+| UIX-04 | Phase 12 | Complete |
 | UIX-05 | Phase 15 | Pending |
 
 **Coverage:**

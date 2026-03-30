@@ -55,7 +55,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] `12-01-PLAN.md` — 固定 canonical taxonomy、resolve union 与 Phase 12 fixtures/contracts 回归
+- [x] `12-01-PLAN.md` — 固定 canonical taxonomy、resolve union 与 Phase 12 fixtures/contracts 回归
 - [ ] `12-02-PLAN.md` — 在 `apps/server` 落地 authoritative `/places/resolve` 与 `/places/confirm`
 - [ ] `12-03-PLAN.md` — 把 `apps/web` 的 store、snapshot 与地图点击链路切到 canonical summary
 - [ ] `12-04-PLAN.md` — 统一 popup/drawer 的真实类型展示并补齐 Phase 12 UI 回归
@@ -102,7 +102,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
-| 12. Canonical 地点语义 | 0/TBD | Not started | - |
+| 12. Canonical 地点语义 | 1/4 | In Progress|  |
 | 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |

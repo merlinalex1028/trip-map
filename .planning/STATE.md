@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: Ready to discuss / plan next phase
-stopped_at: Phase 12 context gathered
-last_updated: "2026-03-30T08:36:53.014Z"
+status: executing
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-03-30T09:50:20.455Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 10
-  completed_plans: 10
-  percent: 90
+  total_plans: 14
+  completed_plans: 11
+  percent: 79
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 12 — canonical-地点语义
+**Current focus:** Phase 12 — canonical
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Ready to discuss / plan next phase
+Phase: 12 (canonical) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-03-30
 
-Progress: [█████████░] 90%
+Progress: [████████░░] 79%
 
 ## Last Shipped Milestone
 
@@ -70,6 +70,7 @@ Progress: [█████████░] 90%
 | Phase 11-monorepo P08 | 4min | 1 tasks | 10 files |
 | Phase 11-monorepo P10 | 9min | 1 tasks | 14 files |
 | Phase 11-monorepo P04 | 28min | 2 tasks | 11 files |
+| Phase 12 P01 | 4min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: 11-04 keeps backend baseline UI additive in apps/web above WorldMapStage so backend proof does not disturb the shipped v2 map shell.
 - [Phase 11-monorepo]: 11-04 isolates server smoke e2e datasetVersion variants so root pnpm test stays deterministic against the shared PostgreSQL instance.
 - [Phase 11-monorepo]: 11-04 routes web health and smoke requests through createApiUrl plus a /api Vite proxy instead of hardcoded backend origins in Vue components.
+- [Phase 12]: CanonicalPlaceSummary keeps stable identity separate from region/admin display metadata for all Phase 12 surfaces.
+- [Phase 12]: Canonical resolve contracts use resolved/ambiguous/failed unions so failed results never carry fallback place payloads.
 
 ### Pending Todos
 
@@ -116,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T08:36:53.011Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-canonical/12-CONTEXT.md
+Last session: 2026-03-30T09:50:20.452Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: None
