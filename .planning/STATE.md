@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 12-01-PLAN.md
-last_updated: "2026-03-30T09:50:20.455Z"
+stopped_at: Completed 12-02-PLAN.md
+last_updated: "2026-03-30T10:05:49.976Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 14
-  completed_plans: 11
-  percent: 79
+  completed_plans: 12
+  percent: 86
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 12 (canonical) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-03-30
 
-Progress: [████████░░] 79%
+Progress: [█████████░] 86%
 
 ## Last Shipped Milestone
 
@@ -71,6 +71,7 @@ Progress: [████████░░] 79%
 | Phase 11-monorepo P10 | 9min | 1 tasks | 14 files |
 | Phase 11-monorepo P04 | 28min | 2 tasks | 11 files |
 | Phase 12 P01 | 4min | 2 tasks | 5 files |
+| Phase 12 P02 | 10min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Recent decisions affecting current work:
 - [Phase 11-monorepo]: 11-04 routes web health and smoke requests through createApiUrl plus a /api Vite proxy instead of hardcoded backend origins in Vue components.
 - [Phase 12]: CanonicalPlaceSummary keeps stable identity separate from region/admin display metadata for all Phase 12 surfaces.
 - [Phase 12]: Canonical resolve contracts use resolved/ambiguous/failed unions so failed results never carry fallback place payloads.
+- [Phase 12]: Phase 12 server resolve stays fixture-backed inside apps/server so Phase 13 can swap the data source without changing HTTP contracts.
+- [Phase 12]: /places/confirm always replays the same click against the authoritative candidate set and rejects out-of-set candidatePlaceId with CANDIDATE_MISMATCH.
 
 ### Pending Todos
 
@@ -119,6 +122,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T09:50:20.452Z
-Stopped at: Completed 12-01-PLAN.md
+Last session: 2026-03-30T10:05:49.974Z
+Stopped at: Completed 12-02-PLAN.md
 Resume file: None
