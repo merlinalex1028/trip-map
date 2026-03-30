@@ -1,23 +1,64 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 
-import * as contracts from './index'
+import type {
+  CanonicalPlaceRef,
+  HealthStatusResponse,
+  PlaceKind,
+  SmokeRecordCreateRequest,
+  SmokeRecordResponse,
+} from './index'
+import {
+  PHASE11_CONTRACTS_VERSION,
+  PHASE11_SMOKE_RECORD_REQUEST,
+} from './index'
 
 describe('@trip-map/contracts', () => {
   it('exports the canonical contracts from one entrypoint', () => {
-    expect(contracts).toMatchObject({
-      PHASE11_CONTRACTS_VERSION: 'phase11-v1',
-      PHASE11_SMOKE_RECORD_REQUEST: {
-        placeId: 'phase11-demo-place',
-        boundaryId: 'phase11-demo-boundary',
-        placeKind: 'OVERSEAS_ADMIN1',
-        datasetVersion: 'phase11-smoke-v1',
-        displayName: 'Phase 11 Demo Place',
-      },
+    expect(PHASE11_CONTRACTS_VERSION).toBe('phase11-v1')
+    expect(PHASE11_SMOKE_RECORD_REQUEST).toEqual({
+      placeId: 'phase11-demo-place',
+      boundaryId: 'phase11-demo-boundary',
+      placeKind: 'OVERSEAS_ADMIN1',
+      datasetVersion: 'phase11-smoke-v1',
+      displayName: 'Phase 11 Demo Place',
     })
+
+    expectTypeOf<PlaceKind>().toEqualTypeOf<'CN_CITY' | 'OVERSEAS_ADMIN1'>()
+    expectTypeOf<CanonicalPlaceRef>().toMatchTypeOf<{
+      placeId: string
+      boundaryId: string
+      placeKind: 'CN_CITY' | 'OVERSEAS_ADMIN1'
+      datasetVersion: string
+    }>()
+    expectTypeOf<SmokeRecordCreateRequest>().toMatchTypeOf<{
+      placeId: string
+      boundaryId: string
+      placeKind: 'CN_CITY' | 'OVERSEAS_ADMIN1'
+      datasetVersion: string
+      displayName: string
+      note?: string
+    }>()
+    expectTypeOf<SmokeRecordResponse>().toMatchTypeOf<{
+      id: string
+      createdAt: string
+      updatedAt: string
+      placeId: string
+      boundaryId: string
+      placeKind: 'CN_CITY' | 'OVERSEAS_ADMIN1'
+      datasetVersion: string
+      displayName: string
+      note?: string
+    }>()
+    expectTypeOf<HealthStatusResponse>().toMatchTypeOf<{
+      status: 'ok'
+      service: 'server'
+      contractsVersion: string
+      database: 'up' | 'down'
+    }>()
   })
 
   it('uses canonical field names without legacy aliases', () => {
-    const keys = Object.keys(contracts.PHASE11_SMOKE_RECORD_REQUEST)
+    const keys = Object.keys(PHASE11_SMOKE_RECORD_REQUEST)
 
     expect(keys).toEqual([
       'placeId',
@@ -26,14 +67,11 @@ describe('@trip-map/contracts', () => {
       'datasetVersion',
       'displayName',
     ])
-    expect(keys).not.toContain('boundaryDatasetVersion')
+    expect(keys).toHaveLength(5)
   })
 
   it('stays framework-free and only exports thin contract shapes', () => {
-    expect(contracts).toHaveProperty('HealthStatusResponse')
-    expect(contracts).toHaveProperty('SmokeRecordCreateRequest')
-    expect(contracts).toHaveProperty('SmokeRecordResponse')
-    expect(contracts).toHaveProperty('CanonicalPlaceRef')
-    expect(contracts).toHaveProperty('PlaceKind')
+    expect(typeof PHASE11_CONTRACTS_VERSION).toBe('string')
+    expect(PHASE11_SMOKE_RECORD_REQUEST.placeKind).toBe('OVERSEAS_ADMIN1')
   })
 })
