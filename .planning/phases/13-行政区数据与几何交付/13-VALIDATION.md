@@ -40,8 +40,8 @@ created: 2026-03-31
 |---------|------|------|--------------|-----------|-------------------|--------|
 | 13-01-01 | 01 | 1 | GEOX-06, API-03 | contracts | `pnpm --filter @trip-map/contracts test` | ⬜ pending |
 | 13-01-02 | 01 | 1 | GEOX-06, API-03 | contracts | `pnpm --filter @trip-map/contracts test` | ⬜ pending |
-| 13-02-01 | 02 | 2 | GEOX-03, GEOX-04, GEOX-06 | build | `pnpm --filter @trip-map/web run geo:build` | ⬜ pending |
-| 13-02-02 | 02 | 2 | GEOX-07, GEOX-06 | build | `pnpm --filter @trip-map/web run geo:build` | ⬜ pending |
+| 13-02-01 | 02 | 2 | GEOX-03, GEOX-04, GEOX-06 | build | `pnpm --filter @trip-map/web run geo:build:check` | ⬜ pending |
+| 13-02-02 | 02 | 2 | GEOX-07, GEOX-06 | build | `pnpm --filter @trip-map/web run geo:build:check` | ⬜ pending |
 | 13-03-01 | 03 | 3 | GEOX-05, GEOX-06 | build | `pnpm --filter @trip-map/web run geo:build` | ⬜ pending |
 | 13-03-02 | 03 | 3 | GEOX-05, GEOX-07 | integration | `pnpm --filter @trip-map/web test src/services/geometry-manifest.spec.ts src/services/geometry-validation.spec.ts` | ⬜ pending |
 | 13-04-01 | 04 | 4 | API-03, GEOX-06 | e2e | `pnpm --filter @trip-map/server test test/canonical-resolve.e2e-spec.ts` | ⬜ pending |
