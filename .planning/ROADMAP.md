@@ -14,7 +14,7 @@
 
 - [x] **Phase 11: Monorepo 与契约基线** - 拆出 `web + server + contracts`，把 PostgreSQL 与共享契约定为 v3.0 基线 (completed 2026-03-30)
 - [x] **Phase 12: Canonical 地点语义** - 让 `server` 成为中国市级 / 海外一级行政区解析的唯一真源 (completed 2026-03-30)
-- [ ] **Phase 13: 行政区数据与几何交付** - 固定中国与海外独立数据集、版本清单与静态几何交付策略
+- [x] **Phase 13: 行政区数据与几何交付** - 固定中国与海外独立数据集、版本清单与静态几何交付策略 (completed 2026-03-31)
 - [ ] **Phase 14: Leaflet 地图主链路迁移** - 在 `Leaflet` 中恢复双图层地图、popup 与 drawer 的连续主链路
 - [ ] **Phase 15: 服务端记录与点亮闭环** - 把旅行记录与点亮动作切到 `server` API，并收口旧本地数据路径
 
@@ -110,6 +110,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
-| 13. 行政区数据与几何交付 | 2/4 | In Progress|  |
+| 13. 行政区数据与几何交付 | 4/4 | Complete   | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |

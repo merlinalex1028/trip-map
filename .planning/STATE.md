@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-03-31T07:26:34.863Z"
+status: verifying
+stopped_at: Completed 13-04-PLAN.md
+last_updated: "2026-03-31T07:37:08.379Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 19
   percent: 100
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 Phase: 13 (行政区数据与几何交付) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-31
 
 Progress: [██████████] 100%
@@ -78,6 +78,7 @@ Progress: [██████████] 100%
 | Phase 13 P01 | 8 | 2 tasks | 7 files |
 | Phase 13-行政区数据与几何交付 P02 | 5min | 2 tasks | 9 files |
 | Phase 13-行政区数据与几何交付 P03 | 376 | 2 tasks | 13 files |
+| Phase 13 P04 | 10min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,8 @@ Recent decisions affecting current work:
 - [Phase 13]: ResolvedCanonicalPlace extends CanonicalPlaceSummary with geometryRef; CanonicalResolveResponse resolved/ambiguous branches carry geometryRef; geometryDatasetVersion is distinct from datasetVersion
 - [Phase 13-行政区数据与几何交付]: gcoord loaded via createRequire in .mjs scripts because gcoord@1.0.7 is CJS; source snapshots are minimal vendored GeoJSON covering the 6 authoritative fixture boundary IDs; geo:build:check uses .tmp to avoid writing official assets
 - [Phase 13]: generated manifest is the single authoritative source consumed by geometry-manifest.ts service; GEOMETRY_DATASET_VERSION duplicated in web service to avoid over-importing contracts for a string literal
+- [Phase 13]: Server uses GEOMETRY_MANIFEST lookup by boundaryId to inject geometryRef; fixture no longer hand-codes assetKey — single source of truth maintained
+- [Phase 13]: Web geometry-loader uses promise-cache keyed by geometryDatasetVersion:assetKey to prevent duplicate in-flight fetches for the same shard
 
 ### Pending Todos
 
@@ -139,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T07:26:34.860Z
-Stopped at: Completed 13-03-PLAN.md
+Last session: 2026-03-31T07:37:08.376Z
+Stopped at: Completed 13-04-PLAN.md
 Resume file: None
