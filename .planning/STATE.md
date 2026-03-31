@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: planning
-stopped_at: Completed 12-canonical-05-PLAN.md
-last_updated: "2026-03-30T11:26:00.008Z"
-last_activity: 2026-03-30
+status: executing
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-03-31T07:08:27.971Z"
+last_activity: 2026-03-31
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 19
+  completed_plans: 16
   percent: 100
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 13
-Plan: Not started
-Status: Ready for next phase planning
-Last activity: 2026-03-30
+Phase: 13 (行政区数据与几何交付) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-03-31
 
 Progress: [██████████] 100%
 
@@ -75,6 +75,7 @@ Progress: [██████████] 100%
 | Phase 12-canonical P03 | 12min | 2 tasks | 10 files |
 | Phase 12-canonical P04 | 6min | 2 tasks | 6 files |
 | Phase 12-canonical P05 | 5min | 2 tasks | 6 files |
+| Phase 13 P01 | 8 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,7 @@ Recent decisions affecting current work:
 - [Phase 12-canonical]: web 侧通过显式 canonical boundary 映射表衔接 server boundaryId 与现有可渲染 geometry，不改写持久化字段合同。
 - [Phase 12-canonical]: canonical boundary support 统一由真实几何命中决定，legacy city 点位继续保留 cityId coverage 兜底。
 - [Phase 12-canonical]: popup 与 drawer 的 boundary 支持态回归必须走 store 派生结果，不再在 spec 里手工注入 supported。
+- [Phase 13]: ResolvedCanonicalPlace extends CanonicalPlaceSummary with geometryRef; CanonicalResolveResponse resolved/ambiguous branches carry geometryRef; geometryDatasetVersion is distinct from datasetVersion
 
 ### Pending Todos
 
@@ -133,6 +135,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T11:16:09.085Z
-Stopped at: Completed 12-canonical-05-PLAN.md
+Last session: 2026-03-31T07:08:27.969Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None

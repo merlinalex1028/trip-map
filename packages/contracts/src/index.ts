@@ -1,4 +1,5 @@
 export * from './fixtures'
+export * from './geometry'
 export * from './health'
 export * from './place'
 export * from './records'

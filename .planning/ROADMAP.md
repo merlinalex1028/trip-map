@@ -64,21 +64,27 @@ Plans:
 ### Phase 13: 行政区数据与几何交付
 **Goal**: 用户使用的中国与海外行政区边界都来自可追踪的数据清单，并以版本化静态几何资产稳定交付  
 **Depends on**: Phase 12  
-**Requirements**: GEOX-03, GEOX-04, GEOX-05, GEOX-06, GEOX-07, API-03  
+**Requirements**: GEOX-03, GEOX-04, GEOX-06, GEOX-07, API-03  
 **Success Criteria** (what must be TRUE):
   1. 用户在地图中看到的中国边界来自阿里云 `DataV.GeoAtlas` 市级数据，海外边界来自去除中国后的 `Natural Earth admin-1` 数据，且两套来源与版本可独立追踪。
   2. 前端可以按需获取地点摘要、边界引用或几何资源入口，并命中对应版本的静态几何资产完成缓存，不需要把整套 GeoJSON 预先塞进数据库。
-  3. 中国图层与海外图层在 `Leaflet` 中保持分离加载，不会在数据层被预合并，也不会让中国区域在海外图层中重复出现。
+  3. 中国与海外几何资产在 manifest、shard 和 loader 层保持分离交付，不会在数据层被预合并，也不会让中国区域混入海外资产。
   4. 用户点击、popup 锚点与边界渲染在中国和海外场景下都不出现明显坐标错位。
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] `13-01-PLAN.md` — 固定 `geometryRef` / manifest 共享契约与 Phase 13 fixture 基线
+- [ ] `13-02-PLAN.md` — 固定 source catalog、vendored snapshot 与 WGS84 归一化/build pipeline
+- [ ] `13-03-PLAN.md` — 生成版本化 manifest/shard 资产并补齐 manifest service 与坐标验证
+- [ ] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
 
 ### Phase 14: Leaflet 地图主链路迁移
 **Goal**: 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验  
 **Depends on**: Phase 13  
-**Requirements**: MAP-04, MAP-05, MAP-06, MAP-08, UIX-01  
+**Requirements**: GEOX-05, MAP-04, MAP-05, MAP-06, MAP-08, UIX-01  
 **Success Criteria** (what must be TRUE):
   1. 用户在 `Leaflet` 地图上仍可完成点击、选中、查看 popup 摘要和进入 drawer 深度查看，不因换图引擎而退化主链路。
-  2. 地图会同时渲染海外一级行政区图层与中国市级图层，并在视觉和交互上表现为同一套产品体验。
+  2. 地图会在 `Leaflet` 中直接加载海外一级行政区图层与中国市级图层，不在消费端退回合并总包或单图层替代方案，并在视觉和交互上表现为同一套产品体验。
   3. 当前选中地点始终以完整行政区 GeoJSON 边界高亮呈现，而不是退回单点 marker 作为主表达。
   4. 用户切换选中对象、关闭 popup 或重开已有记录时，地图不会残留旧高亮，也不会出现双重选中状态。
 **Plans**: TBD
@@ -104,6 +110,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
-| 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
+| 13. 行政区数据与几何交付 | 1/4 | In Progress|  |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |

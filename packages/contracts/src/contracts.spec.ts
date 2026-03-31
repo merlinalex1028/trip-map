@@ -5,8 +5,13 @@ import type {
   CanonicalPlaceRef,
   CanonicalResolveFailedReason,
   CanonicalResolveResponse,
+  GeometryLayer,
+  GeometryManifestEntry,
+  GeometryRef,
+  GeometrySourceDataset,
   HealthStatusResponse,
   PlaceKind,
+  ResolvedCanonicalPlace,
   SmokeRecordCreateRequest,
   SmokeRecordResponse,
 } from './index'
@@ -201,5 +206,83 @@ describe('@trip-map/contracts', () => {
   it('stays framework-free and only exports thin contract shapes', () => {
     expect(typeof PHASE11_CONTRACTS_VERSION).toBe('string')
     expect(PHASE11_SMOKE_RECORD_REQUEST.placeKind).toBe('OVERSEAS_ADMIN1')
+  })
+
+  it('exports Phase 13 geometry types: GeometryLayer and GeometrySourceDataset', () => {
+    expectTypeOf<GeometryLayer>().toEqualTypeOf<'CN' | 'OVERSEAS'>()
+    expectTypeOf<GeometrySourceDataset>().toEqualTypeOf<
+      'DATAV_GEOATLAS_CN' | 'NATURAL_EARTH_ADMIN1'
+    >()
+  })
+
+  it('exports Phase 13 GeometryRef with all required fields', () => {
+    expectTypeOf<GeometryRef>().toMatchTypeOf<{
+      boundaryId: string
+      layer: 'CN' | 'OVERSEAS'
+      geometryDatasetVersion: string
+      assetKey: string
+      renderableId: string | null
+    }>()
+  })
+
+  it('exports Phase 13 GeometryManifestEntry extending GeometryRef', () => {
+    expectTypeOf<GeometryManifestEntry>().toMatchTypeOf<{
+      boundaryId: string
+      layer: 'CN' | 'OVERSEAS'
+      geometryDatasetVersion: string
+      assetKey: string
+      renderableId: string | null
+      sourceDataset: 'DATAV_GEOATLAS_CN' | 'NATURAL_EARTH_ADMIN1'
+      sourceVersion: string
+      sourceFeatureId: string
+    }>()
+  })
+
+  it('resolved and ambiguous branches carry geometryRef via ResolvedCanonicalPlace', () => {
+    expectTypeOf<ResolvedCanonicalPlace>().toMatchTypeOf<{
+      geometryRef: GeometryRef
+    }>()
+
+    expectTypeOf<CanonicalResolveResponse>().toMatchTypeOf<
+      | {
+          status: 'resolved'
+          click: { lat: number; lng: number }
+          place: ResolvedCanonicalPlace
+        }
+      | {
+          status: 'ambiguous'
+          click: { lat: number; lng: number }
+          prompt: string
+          recommendedPlaceId: string | null
+          candidates: Array<ResolvedCanonicalPlace & { candidateHint: string }>
+        }
+      | {
+          status: 'failed'
+          click: { lat: number; lng: number }
+          reason: CanonicalResolveFailedReason
+          message: string
+        }
+    >()
+  })
+
+  it('PHASE12_RESOLVED_BEIJING fixture has correct geometryRef', () => {
+    expect(PHASE12_RESOLVED_BEIJING.geometryRef.assetKey).toBe('cn/beijing.json')
+    expect(PHASE12_RESOLVED_BEIJING.geometryRef.layer).toBe('CN')
+    expect(PHASE12_RESOLVED_BEIJING.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+  })
+
+  it('PHASE12_RESOLVED_HONG_KONG fixture has correct geometryRef.assetKey', () => {
+    expect(PHASE12_RESOLVED_HONG_KONG.geometryRef.assetKey).toBe('cn/hong-kong.json')
+  })
+
+  it('PHASE12_RESOLVED_CALIFORNIA fixture has correct geometryRef', () => {
+    expect(PHASE12_RESOLVED_CALIFORNIA.geometryRef.assetKey).toBe('overseas/us.json')
+    expect(PHASE12_RESOLVED_CALIFORNIA.geometryRef.renderableId).toBe('ne-admin1-us-california')
+  })
+
+  it('ambiguous candidates all carry geometryRef', () => {
+    expect(
+      PHASE12_AMBIGUOUS_RESOLVE.candidates.every((candidate) => 'geometryRef' in candidate),
+    ).toBe(true)
   })
 })

@@ -1,7 +1,7 @@
-import type { CanonicalPlaceSummary } from './place'
 import type {
   CanonicalPlaceCandidate,
   CanonicalResolveResponse,
+  ResolvedCanonicalPlace,
 } from './resolve'
 import type { SmokeRecordCreateRequest } from './records'
 
@@ -18,7 +18,7 @@ export const PHASE11_SMOKE_RECORD_REQUEST: SmokeRecordCreateRequest = {
   subtitle: 'Phase 11 Demo Country · 一级行政区',
 }
 
-export const PHASE12_RESOLVED_BEIJING: CanonicalPlaceSummary = {
+export const PHASE12_RESOLVED_BEIJING: ResolvedCanonicalPlace = {
   placeId: 'cn-admin-beijing',
   boundaryId: 'datav-cn-beijing',
   placeKind: 'CN_ADMIN',
@@ -29,9 +29,16 @@ export const PHASE12_RESOLVED_BEIJING: CanonicalPlaceSummary = {
   typeLabel: '直辖市',
   parentLabel: '中国',
   subtitle: '中国 · 直辖市',
+  geometryRef: {
+    boundaryId: 'datav-cn-beijing',
+    layer: 'CN',
+    geometryDatasetVersion: '2026-03-31-geo-v1',
+    assetKey: 'cn/beijing.json',
+    renderableId: 'datav-cn-beijing',
+  },
 }
 
-export const PHASE12_RESOLVED_HONG_KONG: CanonicalPlaceSummary = {
+export const PHASE12_RESOLVED_HONG_KONG: ResolvedCanonicalPlace = {
   placeId: 'cn-admin-hong-kong',
   boundaryId: 'datav-cn-hong-kong',
   placeKind: 'CN_ADMIN',
@@ -42,9 +49,16 @@ export const PHASE12_RESOLVED_HONG_KONG: CanonicalPlaceSummary = {
   typeLabel: '特别行政区',
   parentLabel: '中国',
   subtitle: '中国 · 特别行政区',
+  geometryRef: {
+    boundaryId: 'datav-cn-hong-kong',
+    layer: 'CN',
+    geometryDatasetVersion: '2026-03-31-geo-v1',
+    assetKey: 'cn/hong-kong.json',
+    renderableId: 'datav-cn-hong-kong',
+  },
 }
 
-export const PHASE12_RESOLVED_CALIFORNIA: CanonicalPlaceSummary = {
+export const PHASE12_RESOLVED_CALIFORNIA: ResolvedCanonicalPlace = {
   placeId: 'overseas-admin1-california',
   boundaryId: 'ne-admin1-us-ca',
   placeKind: 'OVERSEAS_ADMIN1',
@@ -55,6 +69,33 @@ export const PHASE12_RESOLVED_CALIFORNIA: CanonicalPlaceSummary = {
   typeLabel: '一级行政区',
   parentLabel: 'United States',
   subtitle: 'United States · 一级行政区',
+  geometryRef: {
+    boundaryId: 'ne-admin1-us-california',
+    layer: 'OVERSEAS',
+    geometryDatasetVersion: '2026-03-31-geo-v1',
+    assetKey: 'overseas/us.json',
+    renderableId: 'ne-admin1-us-california',
+  },
+}
+
+export const PHASE12_RESOLVED_ABA: ResolvedCanonicalPlace = {
+  placeId: 'cn-admin-aba',
+  boundaryId: 'datav-cn-aba',
+  placeKind: 'CN_ADMIN',
+  datasetVersion: 'phase12-canonical-v1',
+  displayName: '阿坝',
+  regionSystem: 'CN',
+  adminType: 'AUTONOMOUS_PREFECTURE',
+  typeLabel: '自治州',
+  parentLabel: '中国 · 四川',
+  subtitle: '中国 · 四川 · 自治州',
+  geometryRef: {
+    boundaryId: 'datav-cn-aba',
+    layer: 'CN',
+    geometryDatasetVersion: '2026-03-31-geo-v1',
+    assetKey: 'cn/sichuan.json',
+    renderableId: 'datav-cn-aba',
+  },
 }
 
 const PHASE12_AMBIGUOUS_CANDIDATES: CanonicalPlaceCandidate[] = [
@@ -74,6 +115,13 @@ const PHASE12_AMBIGUOUS_CANDIDATES: CanonicalPlaceCandidate[] = [
     parentLabel: '中国',
     subtitle: '中国 · 直辖市',
     candidateHint: '点击点位位于北京与天津边界附近',
+    geometryRef: {
+      boundaryId: 'datav-cn-tianjin',
+      layer: 'CN',
+      geometryDatasetVersion: '2026-03-31-geo-v1',
+      assetKey: 'cn/tianjin.json',
+      renderableId: 'datav-cn-tianjin',
+    },
   },
   {
     placeId: 'cn-admin-langfang',
@@ -87,6 +135,13 @@ const PHASE12_AMBIGUOUS_CANDIDATES: CanonicalPlaceCandidate[] = [
     parentLabel: '中国 · 河北',
     subtitle: '中国 · 地级市',
     candidateHint: '点击点位也可能落在廊坊交界区域',
+    geometryRef: {
+      boundaryId: 'datav-cn-langfang',
+      layer: 'CN',
+      geometryDatasetVersion: '2026-03-31-geo-v1',
+      assetKey: 'cn/hebei.json',
+      renderableId: 'datav-cn-langfang',
+    },
   },
 ]
 

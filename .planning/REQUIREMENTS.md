@@ -25,8 +25,8 @@
 
 - [ ] **GEOX-03**: 中国行政区边界数据使用阿里云 `DataV.GeoAtlas` 的合规市级 GeoJSON 作为正式来源
 - [ ] **GEOX-04**: 海外行政区边界数据使用去除中国区域后的 `Natural Earth admin-1` GeoJSON 作为正式来源
-- [ ] **GEOX-05**: 系统不在底层预合并中国与海外 GeoJSON，而是在前端 `Leaflet` 中直接加载两个独立图层
-- [ ] **GEOX-06**: 系统会对中国与海外数据建立统一的字段、ID 与版本清单，但保持两套来源与图层边界可追踪
+- [ ] **GEOX-05**: 系统不在底层预合并中国与海外 GeoJSON，并在前端 `Leaflet` 中直接加载两个独立图层
+- [x] **GEOX-06**: 系统会对中国与海外数据建立统一的字段、ID 与版本清单，但保持两套来源与图层边界可追踪
 - [ ] **GEOX-07**: 系统会验证并固定中国与海外数据在 `Leaflet` 渲染中的坐标适配规则，避免中国边界与点击位置发生错位
 
 ### Map Experience
@@ -41,7 +41,7 @@
 
 - [ ] **API-01**: 用户的旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作，都通过 `server` API 持久化
 - [ ] **API-02**: 点亮 / 取消点亮动作以 canonical `placeId` 为目标，而不是依赖前端临时点位或展示名
-- [ ] **API-03**: 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界
+- [x] **API-03**: 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界
 - [ ] **API-04**: 首发版本默认不要求引入 `PostGIS`、`Redis`、`BullMQ` 或对象存储，只有在实际规模证明需要时再升级基础设施
 - [ ] **API-05**: `v3.0` 启动后系统不再读取、迁移或兼容旧 `localStorage` 旅行数据，统一以新的服务端数据模型为准
 
@@ -93,8 +93,8 @@
 | PLC-05 | Phase 12 | Complete |
 | GEOX-03 | Phase 13 | Pending |
 | GEOX-04 | Phase 13 | Pending |
-| GEOX-05 | Phase 13 | Pending |
-| GEOX-06 | Phase 13 | Pending |
+| GEOX-05 | Phase 14 | Pending |
+| GEOX-06 | Phase 13 | Complete |
 | GEOX-07 | Phase 13 | Pending |
 | MAP-04 | Phase 14 | Pending |
 | MAP-05 | Phase 14 | Pending |
@@ -103,7 +103,7 @@
 | MAP-08 | Phase 14 | Pending |
 | API-01 | Phase 15 | Pending |
 | API-02 | Phase 15 | Pending |
-| API-03 | Phase 13 | Pending |
+| API-03 | Phase 13 | Complete |
 | API-04 | Phase 11 | Complete |
 | API-05 | Phase 15 | Pending |
 | UIX-01 | Phase 14 | Pending |
