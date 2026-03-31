@@ -50,3 +50,4 @@ playwright-report/
 
 # Planning / workspace metadata (optional, uncomment if you don't want these in git)
 # .planning/
+.tmp/
