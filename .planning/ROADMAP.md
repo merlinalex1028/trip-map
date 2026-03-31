@@ -70,12 +70,13 @@ Plans:
   2. 前端可以按需获取地点摘要、边界引用或几何资源入口，并命中对应版本的静态几何资产完成缓存，不需要把整套 GeoJSON 预先塞进数据库。
   3. 中国图层与海外图层在 `Leaflet` 中保持分离加载，不会在数据层被预合并，也不会让中国区域在海外图层中重复出现。
   4. 用户点击、popup 锚点与边界渲染在中国和海外场景下都不出现明显坐标错位。
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [ ] `13-01-PLAN.md` — 固定 `geometryRef` / manifest 共享契约与 Phase 13 fixture 基线
-- [ ] `13-02-PLAN.md` — 落 source catalog、WGS84 归一化脚本、generated manifest 与版本化 shard 资产
-- [ ] `13-03-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
+- [ ] `13-02-PLAN.md` — 固定 source catalog、vendored snapshot 与 WGS84 归一化/build pipeline
+- [ ] `13-03-PLAN.md` — 生成版本化 manifest/shard 资产并补齐 manifest service 与坐标验证
+- [ ] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
 
 ### Phase 14: Leaflet 地图主链路迁移
 **Goal**: 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验  
@@ -109,6 +110,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
-| 13. 行政区数据与几何交付 | 0/TBD | Not started | - |
+| 13. 行政区数据与几何交付 | 0/4 | Not started | - |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
