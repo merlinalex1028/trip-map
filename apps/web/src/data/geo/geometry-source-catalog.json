@@ -1,0 +1,26 @@
+{
+  "version": "1",
+  "generatedAt": "2026-03-31",
+  "sources": {
+    "DATAV_GEOATLAS_CN": {
+      "sourceVersion": "datav-geoatlas-2026-03-31-snapshot",
+      "snapshotDate": "2026-03-31",
+      "coordinateSystem": "GCJ02",
+      "sourcePath": "apps/web/src/data/geo/sources/datav-cn-2026-03-31.geo.json",
+      "checksum": "sha256:027490f34c5fd8b50600a7116511b5a463dfdb6c88c5696f90088b7ac1fbbe1d",
+      "description": "Alibaba Cloud DataV.GeoAtlas China administrative boundaries snapshot — GCJ-02 coordinate system",
+      "sourceUrl": "https://datav.aliyun.com/portal/school/atlas/area_selector",
+      "license": "Alibaba Cloud DataV GeoAtlas"
+    },
+    "NATURAL_EARTH_ADMIN1": {
+      "sourceVersion": "natural-earth-5.1.1",
+      "snapshotDate": "2026-03-31",
+      "coordinateSystem": "WGS84",
+      "sourcePath": "apps/web/src/data/geo/sources/natural-earth-admin1-5.1.1.geo.json",
+      "checksum": "sha256:01255617906ef8e0e09f6e47cb219d0d6a23927aba62ea9738b12887742adfbe",
+      "description": "Natural Earth admin-1 states/provinces v5.1.1 — WGS84 coordinate system, China (adm0_a3=CHN) excluded in build pipeline",
+      "sourceUrl": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/",
+      "license": "Public Domain — https://www.naturalearthdata.com/about/terms-of-use/"
+    }
+  }
+}

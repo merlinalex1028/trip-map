@@ -1,0 +1,145 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 110000,
+        "name": "北京市",
+        "center": [116.405285, 39.904989],
+        "centroid": [116.41995, 40.18994],
+        "childrenNum": 16,
+        "level": "city",
+        "parent": { "adcode": 100000 },
+        "subFeatureIndex": 0,
+        "acroutes": [100000]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [116.0, 39.6],
+              [116.8, 39.6],
+              [116.8, 40.8],
+              [116.0, 40.8],
+              [116.0, 39.6]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 810000,
+        "name": "香港特别行政区",
+        "center": [114.173355, 22.320048],
+        "centroid": [114.16528, 22.35063],
+        "childrenNum": 0,
+        "level": "city",
+        "parent": { "adcode": 100000 },
+        "subFeatureIndex": 1,
+        "acroutes": [100000]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [113.83, 22.15],
+              [114.44, 22.15],
+              [114.44, 22.56],
+              [113.83, 22.56],
+              [113.83, 22.15]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 513200,
+        "name": "阿坝藏族羌族自治州",
+        "center": [102.224653, 31.899792],
+        "centroid": [102.61467, 32.22756],
+        "childrenNum": 13,
+        "level": "city",
+        "parent": { "adcode": 510000 },
+        "subFeatureIndex": 2,
+        "acroutes": [100000, 510000]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [100.3, 30.5],
+              [104.3, 30.5],
+              [104.3, 34.2],
+              [100.3, 34.2],
+              [100.3, 30.5]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 120000,
+        "name": "天津市",
+        "center": [117.190182, 39.125596],
+        "centroid": [117.35572, 39.18231],
+        "childrenNum": 16,
+        "level": "city",
+        "parent": { "adcode": 100000 },
+        "subFeatureIndex": 3,
+        "acroutes": [100000]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [116.7, 38.55],
+              [118.05, 38.55],
+              [118.05, 40.25],
+              [116.7, 40.25],
+              [116.7, 38.55]
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 131000,
+        "name": "廊坊市",
+        "center": [116.713873, 39.529508],
+        "centroid": [116.55672, 39.49822],
+        "childrenNum": 10,
+        "level": "city",
+        "parent": { "adcode": 130000 },
+        "subFeatureIndex": 4,
+        "acroutes": [100000, 130000]
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [116.1, 38.9],
+              [117.15, 38.9],
+              [117.15, 40.05],
+              [116.1, 40.05],
+              [116.1, 38.9]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
