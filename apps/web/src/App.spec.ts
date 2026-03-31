@@ -147,11 +147,9 @@ describe('App shell', () => {
     })
 
     expect(wrapper.find('.poster-shell').exists()).toBe(true)
-    expect(wrapper.findComponent({ name: 'BackendBaselinePanel' }).exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
     expect(wrapper.find('.poster-title-block__ribbon').exists()).toBe(true)
     expect(wrapper.text()).toContain('旅行世界地图')
-    expect(wrapper.text()).toContain('创建 smoke record')
   })
 
   it('shows the storage recovery warning and clears it on demand', async () => {

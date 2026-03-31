@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia'
 import { onUnmounted, watch } from 'vue'
 
-import BackendBaselinePanel from './components/BackendBaselinePanel.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import LeafletMapStage from './components/LeafletMapStage.vue'
 import { useMapPointsStore } from './stores/map-points'
@@ -74,7 +73,6 @@ onUnmounted(() => {
         </button>
       </div>
       <section class="poster-shell__experience">
-        <BackendBaselinePanel class="poster-shell__backend-panel" />
         <LeafletMapStage class="poster-shell__stage" />
       </section>
     </main>
@@ -237,10 +235,5 @@ onUnmounted(() => {
   inset: 18px;
   border: 1px dashed rgba(199, 171, 200, 0.45);
   border-radius: calc(var(--radius-surface) - 10px);
-}
-
-.poster-shell__backend-panel {
-  position: relative;
-  z-index: 1;
 }
 </style>
