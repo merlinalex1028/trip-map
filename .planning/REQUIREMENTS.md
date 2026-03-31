@@ -23,11 +23,11 @@
 
 ### Geo Data & Delivery
 
-- [ ] **GEOX-03**: 中国行政区边界数据使用阿里云 `DataV.GeoAtlas` 的合规市级 GeoJSON 作为正式来源
-- [ ] **GEOX-04**: 海外行政区边界数据使用去除中国区域后的 `Natural Earth admin-1` GeoJSON 作为正式来源
+- [x] **GEOX-03**: 中国行政区边界数据使用阿里云 `DataV.GeoAtlas` 的合规市级 GeoJSON 作为正式来源
+- [x] **GEOX-04**: 海外行政区边界数据使用去除中国区域后的 `Natural Earth admin-1` GeoJSON 作为正式来源
 - [ ] **GEOX-05**: 系统不在底层预合并中国与海外 GeoJSON，并在前端 `Leaflet` 中直接加载两个独立图层
 - [x] **GEOX-06**: 系统会对中国与海外数据建立统一的字段、ID 与版本清单，但保持两套来源与图层边界可追踪
-- [ ] **GEOX-07**: 系统会验证并固定中国与海外数据在 `Leaflet` 渲染中的坐标适配规则，避免中国边界与点击位置发生错位
+- [x] **GEOX-07**: 系统会验证并固定中国与海外数据在 `Leaflet` 渲染中的坐标适配规则，避免中国边界与点击位置发生错位
 
 ### Map Experience
 
@@ -91,11 +91,11 @@
 | PLC-03 | Phase 12 | Complete |
 | PLC-04 | Phase 12 | Complete |
 | PLC-05 | Phase 12 | Complete |
-| GEOX-03 | Phase 13 | Pending |
-| GEOX-04 | Phase 13 | Pending |
+| GEOX-03 | Phase 13 | Complete |
+| GEOX-04 | Phase 13 | Complete |
 | GEOX-05 | Phase 14 | Pending |
 | GEOX-06 | Phase 13 | Complete |
-| GEOX-07 | Phase 13 | Pending |
+| GEOX-07 | Phase 13 | Complete |
 | MAP-04 | Phase 14 | Pending |
 | MAP-05 | Phase 14 | Pending |
 | MAP-06 | Phase 14 | Pending |
