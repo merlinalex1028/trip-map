@@ -32,10 +32,10 @@
 ### Map Experience
 
 - [x] **MAP-04**: 前端地图主引擎切换为 `Leaflet`，并保持现有主链路所需的点击、选中、高亮和弹层交互能力
-- [ ] **MAP-05**: 地图会同时渲染海外一级行政区图层与中国市级图层，并在视觉与交互上保持统一体验
+- [x] **MAP-05**: 地图会同时渲染海外一级行政区图层与中国市级图层，并在视觉与交互上保持统一体验
 - [x] **MAP-06**: 用户选中地点后，地图会以该行政区完整 GeoJSON 边界进行高亮，而不是退回单点 marker 作为主表达
 - [ ] **MAP-07**: 用户点亮或取消点亮地点后，地图边界样式会立即与当前记录状态同步
-- [ ] **MAP-08**: 地图切换选中对象、关闭 popup、重开已有记录时，不会残留错误高亮或出现双重选中状态
+- [x] **MAP-08**: 地图切换选中对象、关闭 popup、重开已有记录时，不会残留错误高亮或出现双重选中状态
 
 ### Records & API
 
@@ -97,10 +97,10 @@
 | GEOX-06 | Phase 13 | Complete |
 | GEOX-07 | Phase 13 | Complete |
 | MAP-04 | Phase 14 | Complete |
-| MAP-05 | Phase 14 | Pending |
+| MAP-05 | Phase 14 | Complete |
 | MAP-06 | Phase 14 | Complete |
 | MAP-07 | Phase 15 | Pending |
-| MAP-08 | Phase 14 | Pending |
+| MAP-08 | Phase 14 | Complete |
 | API-01 | Phase 15 | Pending |
 | API-02 | Phase 15 | Pending |
 | API-03 | Phase 13 | Complete |
