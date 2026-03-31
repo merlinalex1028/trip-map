@@ -8,7 +8,7 @@
 
 ## Overview
 
-`v3.0` 只围绕这次 milestone 的 requirement 做增量重构，不把项目扩成 GIS 平台或大规模基础设施改造。路线图按“先定 monorepo 与契约边界，再定 canonical 地点语义，再固化几何交付，之后切 Leaflet 主链路，最后切旅行记录与点亮写链路”的顺序推进，并明确遵守这些约束：`server` 从 `v3.0` 起拥有 canonical area resolve，几何先用版本化静态资产交付，中国与海外 GeoJSON 不在数据层合并，`Leaflet` 直接加载海外 admin1 与中国市级两层，且不迁移旧 `localStorage` 数据或历史 seed 点位。
+`v3.0` 只围绕这次 milestone 的 requirement 做增量重构，不把项目扩成 GIS 平台或大规模基础设施改造。路线图按"先定 monorepo 与契约边界，再定 canonical 地点语义，再固化几何交付，之后切 Leaflet 主链路，最后切旅行记录与点亮写链路"的顺序推进，并明确遵守这些约束：`server` 从 `v3.0` 起拥有 canonical area resolve，几何先用版本化静态资产交付，中国与海外 GeoJSON 不在数据层合并，`Leaflet` 直接加载海外 admin1 与中国市级两层，且不迁移旧 `localStorage` 数据或历史 seed 点位。
 
 ## Phases
 
@@ -21,9 +21,9 @@
 ## Phase Details
 
 ### Phase 11: Monorepo 与契约基线
-**Goal**: 用户可以通过拆分后的 `web` 与 `server` 应用访问同一套 v3.0 基线，且核心数据契约与持久化底座已经稳定  
-**Depends on**: Phase 10  
-**Requirements**: ARC-01, ARC-03, ARC-04, API-04  
+**Goal**: 用户可以通过拆分后的 `web` 与 `server` 应用访问同一套 v3.0 基线，且核心数据契约与持久化底座已经稳定
+**Depends on**: Phase 10
+**Requirements**: ARC-01, ARC-03, ARC-04, API-04
 **Success Criteria** (what must be TRUE):
   1. 用户访问 v3.0 应用时，`apps/web` 可以通过独立运行的 `apps/server` 正常完成主链路访问，前后端不再耦合在单体前端里。
   2. 用户触发的同一条请求链路中，前端与服务端一致使用 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 等关键字段，不会因为契约漂移看到错名或错边界。
@@ -44,11 +44,11 @@ Plans:
 - [x] `11-10-PLAN.md` — 迁移剩余 UI regression、styles/assets，并移除 `legacy-entry` 过渡桥
 
 ### Phase 12: Canonical 地点语义
-**Goal**: 用户点击地图后，`server` 会返回稳定的 canonical 地点结果，并明确区分中国市级与海外一级行政区语义  
-**Depends on**: Phase 11  
-**Requirements**: ARC-02, PLC-01, PLC-02, PLC-03, PLC-04, PLC-05, UIX-04  
+**Goal**: 用户点击地图后，`server` 会返回稳定的 canonical 地点结果，并明确区分中国市级与海外一级行政区语义
+**Depends on**: Phase 11
+**Requirements**: ARC-02, PLC-01, PLC-02, PLC-03, PLC-04, PLC-05, UIX-04
 **Success Criteria** (what must be TRUE):
-  1. 用户点击中国地点时得到市级结果，点击海外地点时得到一级行政区结果，界面会明确显示对应层级，而不是继续统一伪装成“城市”。
+  1. 用户点击中国地点时得到市级结果，点击海外地点时得到一级行政区结果，界面会明确显示对应层级，而不是继续统一伪装成"城市"。
   2. 同一地点在 popup、drawer、已保存记录和地图高亮中保持同一个 canonical 身份，不会出现名称、边界和保存结果对不上的情况。
   3. 用户关闭再重开同一记录后，系统仍能还原同一地点与边界，不会因为展示名或数据版本变化被识别成另一条地点。
   4. 当点击结果无法可靠命中到中国市级或海外一级行政区时，界面会给出明确 fallback 或失败反馈，而不是静默创建错误地点。
@@ -62,9 +62,9 @@ Plans:
 - [x] `12-05-PLAN.md` — 为 canonical boundaryId 增加 web 几何映射与真实 support-state，并补齐 canonical highlight/reopen 回归
 
 ### Phase 13: 行政区数据与几何交付
-**Goal**: 用户使用的中国与海外行政区边界都来自可追踪的数据清单，并以版本化静态几何资产稳定交付  
-**Depends on**: Phase 12  
-**Requirements**: GEOX-03, GEOX-04, GEOX-06, GEOX-07, API-03  
+**Goal**: 用户使用的中国与海外行政区边界都来自可追踪的数据清单，并以版本化静态几何资产稳定交付
+**Depends on**: Phase 12
+**Requirements**: GEOX-03, GEOX-04, GEOX-06, GEOX-07, API-03
 **Success Criteria** (what must be TRUE):
   1. 用户在地图中看到的中国边界来自阿里云 `DataV.GeoAtlas` 市级数据，海外边界来自去除中国后的 `Natural Earth admin-1` 数据，且两套来源与版本可独立追踪。
   2. 前端可以按需获取地点摘要、边界引用或几何资源入口，并命中对应版本的静态几何资产完成缓存，不需要把整套 GeoJSON 预先塞进数据库。
@@ -79,24 +79,29 @@ Plans:
 - [ ] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
 
 ### Phase 14: Leaflet 地图主链路迁移
-**Goal**: 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验  
-**Depends on**: Phase 13  
-**Requirements**: GEOX-05, MAP-04, MAP-05, MAP-06, MAP-08, UIX-01  
+**Goal**: 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验
+**Depends on**: Phase 13
+**Requirements**: GEOX-05, MAP-04, MAP-05, MAP-06, MAP-08, UIX-01
 **Success Criteria** (what must be TRUE):
   1. 用户在 `Leaflet` 地图上仍可完成点击、选中、查看 popup 摘要和进入 drawer 深度查看，不因换图引擎而退化主链路。
   2. 地图会在 `Leaflet` 中直接加载海外一级行政区图层与中国市级图层，不在消费端退回合并总包或单图层替代方案，并在视觉和交互上表现为同一套产品体验。
   3. 当前选中地点始终以完整行政区 GeoJSON 边界高亮呈现，而不是退回单点 marker 作为主表达。
   4. 用户切换选中对象、关闭 popup 或重开已有记录时，地图不会残留旧高亮，也不会出现双重选中状态。
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
 
+Plans:
+- [ ] `14-01-PLAN.md` — 安装 Leaflet、配置 Vitest，创建 useLeafletMap / useGeoJsonLayers / useLeafletPopupAnchor 三个核心 composable
+- [ ] `14-02-PLAN.md` — 构建 LeafletMapStage.vue，实现完整的点击→识别→popup→drawer→高亮主链路，并替换 App.vue 中的 WorldMapStage
+- [ ] `14-03-PLAN.md` — 编写 LeafletMapStage 回归测试，退役旧 WorldMapStage 测试，视觉验收
+
 ### Phase 15: 服务端记录与点亮闭环
-**Goal**: 用户的旅行记录与点亮动作都通过 `server` API 持久化，并在界面上即时同步状态变化  
-**Depends on**: Phase 14  
-**Requirements**: API-01, API-02, API-05, MAP-07, UIX-02, UIX-03, UIX-05  
+**Goal**: 用户的旅行记录与点亮动作都通过 `server` API 持久化，并在界面上即时同步状态变化
+**Depends on**: Phase 14
+**Requirements**: API-01, API-02, API-05, MAP-07, UIX-02, UIX-03, UIX-05
 **Success Criteria** (what must be TRUE):
   1. 用户的旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作都通过 `server` API 持久化，并以 canonical `placeId` 作为目标身份。
-  2. 地点标题右侧提供明确的“点亮 / 取消点亮”按钮，用户点击后能立即看到按钮文案、状态色和地图边界高亮同步变化。
+  2. 地点标题右侧提供明确的"点亮 / 取消点亮"按钮，用户点击后能立即看到按钮文案、状态色和地图边界高亮同步变化。
   3. 当请求处于加载中、成功或失败时，popup、drawer、地图高亮与 API 返回状态保持一致，不会出现表面不同步。
   4. `v3.0` 新链路启动后，应用不再读取、迁移或保留旧 `localStorage` 旅行数据，也不再使用历史 seed 点位作为记录来源。
 **Plans**: TBD
@@ -111,5 +116,5 @@ Plans:
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
 | 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
-| 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
+| 14. Leaflet 地图主链路迁移 | 0/3 | Planning    | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
