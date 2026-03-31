@@ -4,7 +4,7 @@ import { onUnmounted, watch } from 'vue'
 
 import BackendBaselinePanel from './components/BackendBaselinePanel.vue'
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
-import WorldMapStage from './components/WorldMapStage.vue'
+import LeafletMapStage from './components/LeafletMapStage.vue'
 import { useMapPointsStore } from './stores/map-points'
 import { useMapUiStore } from './stores/map-ui'
 
@@ -75,7 +75,7 @@ onUnmounted(() => {
       </div>
       <section class="poster-shell__experience">
         <BackendBaselinePanel class="poster-shell__backend-panel" />
-        <WorldMapStage class="poster-shell__stage" />
+        <LeafletMapStage class="poster-shell__stage" />
       </section>
     </main>
   </div>
