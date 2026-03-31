@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import type {
   CanonicalPlaceCandidate,
-  CanonicalPlaceSummary,
   CanonicalResolveFailedReason,
   CanonicalResolveResponse,
   ConfirmCanonicalPlaceRequest,
+  ResolvedCanonicalPlace,
   ResolveCanonicalPlaceRequest,
 } from '@trip-map/contracts'
 
@@ -136,7 +136,7 @@ export class CanonicalPlacesService {
     ))
   }
 
-  private getPlace(placeId: string): CanonicalPlaceSummary {
+  private getPlace(placeId: string): ResolvedCanonicalPlace {
     return canonicalPlaceCatalog[placeId as CanonicalPlaceId]
   }
 
