@@ -195,8 +195,8 @@ onUnmounted(() => {
 }
 
 .poster-shell__stage {
-  grid-area: stage;
-  min-height: 68vh;
+  flex: 1 1 0;
+  min-height: 0;
   position: relative;
   z-index: 1;
 }
@@ -204,9 +204,11 @@ onUnmounted(() => {
 .poster-shell__experience {
   position: relative;
   min-height: 0;
-  display: grid;
-  gap: var(--space-md);
-  padding: var(--space-md);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
   border-radius: var(--radius-surface);

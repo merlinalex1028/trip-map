@@ -667,13 +667,15 @@ onMounted(() => {
 <style scoped>
 .leaflet-map-stage {
   position: relative;
-  min-height: 68vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .leaflet-map-stage__map {
   width: 100%;
-  height: 68vh;
-  min-height: 400px;
+  flex: 1 1 0;
+  min-height: 0;
   border-radius: 28px;
   overflow: hidden;
   border: 1px solid rgba(199, 171, 200, 0.52);
