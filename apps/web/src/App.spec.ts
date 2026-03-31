@@ -21,6 +21,32 @@ vi.mock('./composables/usePopupAnchoring', () => ({
   })
 }))
 
+vi.mock('./composables/useLeafletMap', () => ({
+  useLeafletMap: () => ({
+    map: shallowRef(null),
+    isReady: shallowRef(false),
+  }),
+}))
+
+vi.mock('./composables/useGeoJsonLayers', () => ({
+  useGeoJsonLayers: () => ({
+    addFeatures: vi.fn(),
+    refreshStyles: vi.fn(),
+    cnLayer: {},
+    overseasLayer: {},
+  }),
+}))
+
+const fakeVirtualElement = {
+  getBoundingClientRect: () => ({ top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => ({}) }),
+}
+
+vi.mock('./composables/useLeafletPopupAnchor', () => ({
+  useLeafletPopupAnchor: () => ({
+    virtualElement: computed(() => fakeVirtualElement),
+  }),
+}))
+
 function installStorageMock() {
   const storage = new Map<string, string>()
   const localStorageMock = {
@@ -168,7 +194,7 @@ describe('App shell', () => {
     await nextTick()
     await nextTick()
 
-    expect(wrapper.find('.world-map-stage__surface [data-region="point-preview-drawer"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="point-preview-drawer"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Kyoto')
     expect(wrapper.text()).toContain('编辑地点')
   })
