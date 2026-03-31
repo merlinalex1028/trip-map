@@ -45,7 +45,6 @@ None — discussion stayed within phase scope.
 |----|-------------|------------------|
 | GEOX-03 | 中国行政区边界数据使用阿里云 `DataV.GeoAtlas` 的合规市级 GeoJSON 作为正式来源 | 研究确认 `DataV` 官方数据格式为 GeoJSON，坐标系为 `GCJ-02`；建议将中国源数据作为独立 source snapshot 管理，并在构建时统一转换到消费坐标标准。 |
 | GEOX-04 | 海外行政区边界数据使用去除中国区域后的 `Natural Earth admin-1` GeoJSON 作为正式来源 | 研究确认 `Natural Earth admin-1` 官方下载页当前稳定版本为 `5.1.1`，并建议固定 tag/commit 或 vendored snapshot，过滤 `adm0_a3 = CHN` 后再分片。 |
-| GEOX-05 | 系统不在底层预合并中国与海外 GeoJSON，而是在前端 `Leaflet` 中直接加载两个独立图层 | 研究建议建立单一 manifest，但保留 `CN` / `OVERSEAS` layer 标识和分片路径，前端按图层分别请求，不输出合并总包。 |
 | GEOX-06 | 系统会对中国与海外数据建立统一的字段、ID 与版本清单，但保持两套来源与图层边界可追踪 | 研究建议使用“source catalog + geometry manifest + shard asset”三层模型，并把 `canonical boundaryId -> renderableId -> assetKey` 显式记录为版本化资产。 |
 | GEOX-07 | 系统会验证并固定中国与海外数据在 `Leaflet` 渲染中的坐标适配规则，避免中国边界与点击位置发生错位 | 研究确认 `DataV` 为 `GCJ-02`、`Natural Earth`/Leaflet 消费侧应以 `WGS84/CRS84` 统一，建议构建期转换中国几何并用北京/香港/California 建立自动化验点。 |
 | API-03 | 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界 | 研究建议 `server` 响应扩展 `geometryRef`，仅返回 `boundaryId`、`geometryDatasetVersion`、`assetKey`、`layer`、`renderableId` 等引用，不内联完整 GeoJSON。 |
@@ -172,7 +171,7 @@ type PlaceWithGeometryRef = CanonicalPlaceSummary & {
 
 ### Pattern 4: Layer-Aware Sharding
 **What:** 中国分片按省级或同等维护单元、海外按国家分片；manifest 必须保留 `layer`，前端据此分开加载。
-**When to use:** 任何需要同时满足 `GEOX-05` 与 `GEOX-06` 的交付方案。
+**When to use:** Phase 13 需要满足 `GEOX-06` 并为 Phase 14 的 `GEOX-05` 保留稳定输入时。
 **Example:**
 ```json
 {
@@ -187,7 +186,7 @@ type PlaceWithGeometryRef = CanonicalPlaceSummary & {
 ```
 
 ### Anti-Patterns to Avoid
-- **把中国和海外 GeoJSON 预合成一个总包：** 这会直接违反 `GEOX-05`，也会让中国在海外 layer 中重复出现。
+- **把中国和海外 GeoJSON 预合成一个总包：** 这会破坏 `GEOX-06` 要求的来源/图层可追踪边界，也会让 Phase 14 更难满足 `GEOX-05` 的双图层消费契约。
 - **继续维护 `city-boundaries.ts` 里的手工 alias 常量：** 现有 `datav-cn-*` / `ne-admin1-*` 过渡表已经证明这种方式会漂移，正式版必须进 manifest。
 - **把 canonical `datasetVersion` 和 geometry 版本复用成同一个字符串：** 当前 web 侧已有 `boundaryDatasetVersion` 分离字段，继续混用只会让版本追踪失真。
 - **依赖官网临时下载链接作为唯一来源：** 研究中官网 Natural Earth 直链返回 HTML 错误页，必须固定到可校验的 snapshot/tag/commit。
@@ -326,8 +325,7 @@ const manifestUrl = '/geo/2026-03-31-geo-v1/manifest.json'
 |--------|----------|-----------|-------------------|-------------|
 | GEOX-03 | 中国 source catalog、GCJ-02→WGS84 归一化、manifest entry 生成正确 | unit | `pnpm --filter @trip-map/web test src/services/geometry-manifest.spec.ts` | ❌ Wave 0 |
 | GEOX-04 | 海外 `Natural Earth admin-1` 过滤中国后按国家分片且保留版本信息 | unit | `pnpm --filter @trip-map/web test src/services/geometry-manifest.spec.ts` | ❌ Wave 0 |
-| GEOX-05 | `CN` / `OVERSEAS` layer 维持分离寻址，不生成合并总包 | unit | `pnpm --filter @trip-map/web test src/services/geometry-loader.spec.ts` | ❌ Wave 0 |
-| GEOX-06 | `boundaryId -> renderableId -> assetKey` 显式映射进入共享契约/manifest | unit/contracts | `pnpm --filter @trip-map/contracts test` | ✅ |
+| GEOX-06 | `boundaryId -> renderableId -> assetKey` 显式映射进入共享契约/manifest，并保持 `CN` / `OVERSEAS` 分离寻址 | unit/contracts | `pnpm --filter @trip-map/contracts test` 与 `pnpm --filter @trip-map/web test src/services/geometry-loader.spec.ts` | ✅ / ❌ Wave 0 |
 | GEOX-07 | 北京、香港、California 代表性样例的坐标、bounds、anchor 基线稳定 | unit/integration | `pnpm --filter @trip-map/web test src/services/geometry-validation.spec.ts` | ❌ Wave 0 |
 | API-03 | `/places/resolve` `/places/confirm` 返回 summary + `geometryRef` 而非 GeoJSON | e2e | `pnpm --filter @trip-map/server test test/canonical-resolve.e2e-spec.ts` | ✅ |
 
@@ -338,7 +336,7 @@ const manifestUrl = '/geo/2026-03-31-geo-v1/manifest.json'
 
 ### Wave 0 Gaps
 - [ ] `apps/web/src/services/geometry-manifest.spec.ts` — 覆盖 GEOX-03 / GEOX-04 / GEOX-06
-- [ ] `apps/web/src/services/geometry-loader.spec.ts` — 覆盖 GEOX-05
+- [ ] `apps/web/src/services/geometry-loader.spec.ts` — 覆盖 GEOX-06（并为 Phase 14 的 GEOX-05 保留分离寻址输入）
 - [ ] `apps/web/src/services/geometry-validation.spec.ts` — 覆盖 GEOX-07
 - [ ] `packages/contracts/src/contracts.spec.ts` 扩展 `geometryRef` 类型断言 — 覆盖 API-03 / GEOX-06
 - [ ] `apps/server/test/canonical-resolve.e2e-spec.ts` 扩展 geometryRef 响应断言 — 覆盖 API-03
