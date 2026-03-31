@@ -14,8 +14,8 @@
   position: relative;
   max-width: 30rem;
   display: grid;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
+  gap: 0.25rem;
+  padding: var(--space-sm) var(--space-md);
   border: 1px solid color-mix(in srgb, var(--color-frame) 60%, white 40%);
   border-radius: var(--radius-surface);
   background:
@@ -41,8 +41,8 @@
 .poster-title-block__ribbon {
   display: inline-flex;
   align-items: center;
-  min-height: 2.25rem;
-  padding-inline: var(--space-md);
+  min-height: 1.6rem;
+  padding-inline: var(--space-sm);
   border: 1px solid color-mix(in srgb, var(--color-accent) 42%, white 58%);
   border-radius: var(--radius-pill);
   background:
@@ -50,7 +50,7 @@
   color: var(--color-accent);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   box-shadow: 0 10px 18px rgba(120, 86, 122, 0.12);
 }
@@ -58,14 +58,14 @@
 .poster-title-block__title {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: var(--font-display-size);
-  line-height: var(--font-display-line-height);
+  font-size: 1.4rem;
+  line-height: 1.2;
   font-weight: var(--font-weight-heading);
 }
 
 .poster-title-block__underline {
-  width: 7rem;
-  height: 0.6rem;
+  width: 4rem;
+  height: 0.3rem;
   border-radius: var(--radius-pill);
   background:
     linear-gradient(
@@ -80,5 +80,6 @@
   margin: 0;
   max-width: 22rem;
   color: var(--color-ink-muted);
+  font-size: 0.8rem;
 }
 </style>
