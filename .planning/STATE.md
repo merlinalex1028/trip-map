@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: verifying
-stopped_at: Phase 14 UI-SPEC approved
-last_updated: "2026-03-31T08:52:40.617Z"
+status: executing
+stopped_at: Completed 14-leaflet-01-PLAN.md
+last_updated: "2026-03-31T09:28:55.402Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 22
+  completed_plans: 20
   percent: 100
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 13 — 行政区数据与几何交付
+**Current focus:** Phase 14 — leaflet
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 14 (leaflet) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-03-31
 
 Progress: [██████████] 100%
@@ -79,6 +79,7 @@ Progress: [██████████] 100%
 | Phase 13-行政区数据与几何交付 P02 | 5min | 2 tasks | 9 files |
 | Phase 13-行政区数据与几何交付 P03 | 376 | 2 tasks | 13 files |
 | Phase 13 P04 | 10min | 2 tasks | 5 files |
+| Phase 14-leaflet P01 | 4 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -129,6 +130,7 @@ Recent decisions affecting current work:
 - [Phase 13]: generated manifest is the single authoritative source consumed by geometry-manifest.ts service; GEOMETRY_DATASET_VERSION duplicated in web service to avoid over-importing contracts for a string literal
 - [Phase 13]: Server uses GEOMETRY_MANIFEST lookup by boundaryId to inject geometryRef; fixture no longer hand-codes assetKey — single source of truth maintained
 - [Phase 13]: Web geometry-loader uses promise-cache keyed by geometryDatasetVersion:assetKey to prevent duplicate in-flight fetches for the same shard
+- [Phase 14-leaflet]: useGeoJsonLayers creates two separate L.geoJSON instances (cnLayer/overseasLayer) per GEOX-05; Bing Maps integrated via REST Metadata API with CartoDB Positron fallback; useLeafletPopupAnchor uses map.on(move/zoom) imperatively for VirtualElement updates
 
 ### Pending Todos
 
@@ -142,6 +144,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T08:52:40.615Z
-Stopped at: Phase 14 UI-SPEC approved
-Resume file: .planning/phases/14-leaflet/14-UI-SPEC.md
+Last session: 2026-03-31T09:28:55.399Z
+Stopped at: Completed 14-leaflet-01-PLAN.md
+Resume file: None

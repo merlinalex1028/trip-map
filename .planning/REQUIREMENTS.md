@@ -25,15 +25,15 @@
 
 - [x] **GEOX-03**: 中国行政区边界数据使用阿里云 `DataV.GeoAtlas` 的合规市级 GeoJSON 作为正式来源
 - [x] **GEOX-04**: 海外行政区边界数据使用去除中国区域后的 `Natural Earth admin-1` GeoJSON 作为正式来源
-- [ ] **GEOX-05**: 系统不在底层预合并中国与海外 GeoJSON，并在前端 `Leaflet` 中直接加载两个独立图层
+- [x] **GEOX-05**: 系统不在底层预合并中国与海外 GeoJSON，并在前端 `Leaflet` 中直接加载两个独立图层
 - [x] **GEOX-06**: 系统会对中国与海外数据建立统一的字段、ID 与版本清单，但保持两套来源与图层边界可追踪
 - [x] **GEOX-07**: 系统会验证并固定中国与海外数据在 `Leaflet` 渲染中的坐标适配规则，避免中国边界与点击位置发生错位
 
 ### Map Experience
 
-- [ ] **MAP-04**: 前端地图主引擎切换为 `Leaflet`，并保持现有主链路所需的点击、选中、高亮和弹层交互能力
+- [x] **MAP-04**: 前端地图主引擎切换为 `Leaflet`，并保持现有主链路所需的点击、选中、高亮和弹层交互能力
 - [ ] **MAP-05**: 地图会同时渲染海外一级行政区图层与中国市级图层，并在视觉与交互上保持统一体验
-- [ ] **MAP-06**: 用户选中地点后，地图会以该行政区完整 GeoJSON 边界进行高亮，而不是退回单点 marker 作为主表达
+- [x] **MAP-06**: 用户选中地点后，地图会以该行政区完整 GeoJSON 边界进行高亮，而不是退回单点 marker 作为主表达
 - [ ] **MAP-07**: 用户点亮或取消点亮地点后，地图边界样式会立即与当前记录状态同步
 - [ ] **MAP-08**: 地图切换选中对象、关闭 popup、重开已有记录时，不会残留错误高亮或出现双重选中状态
 
@@ -47,7 +47,7 @@
 
 ### Popup, Drawer & Inline Illuminate
 
-- [ ] **UIX-01**: 用户选中地点后，仍然通过现有 popup + drawer 的双层表面完成摘要查看与深度编辑，不因全栈化或换图引擎而退化
+- [x] **UIX-01**: 用户选中地点后，仍然通过现有 popup + drawer 的双层表面完成摘要查看与深度编辑，不因全栈化或换图引擎而退化
 - [ ] **UIX-02**: 地点面板标题右侧提供明确的“点亮 / 取消点亮”按钮，不使用 checkbox 作为主要交互形式
 - [ ] **UIX-03**: 用户点击点亮 / 取消点亮后，可以立即看到按钮文案、状态色和地图边界高亮同步变化
 - [x] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
@@ -93,12 +93,12 @@
 | PLC-05 | Phase 12 | Complete |
 | GEOX-03 | Phase 13 | Complete |
 | GEOX-04 | Phase 13 | Complete |
-| GEOX-05 | Phase 14 | Pending |
+| GEOX-05 | Phase 14 | Complete |
 | GEOX-06 | Phase 13 | Complete |
 | GEOX-07 | Phase 13 | Complete |
-| MAP-04 | Phase 14 | Pending |
+| MAP-04 | Phase 14 | Complete |
 | MAP-05 | Phase 14 | Pending |
-| MAP-06 | Phase 14 | Pending |
+| MAP-06 | Phase 14 | Complete |
 | MAP-07 | Phase 15 | Pending |
 | MAP-08 | Phase 14 | Pending |
 | API-01 | Phase 15 | Pending |
@@ -106,7 +106,7 @@
 | API-03 | Phase 13 | Complete |
 | API-04 | Phase 11 | Complete |
 | API-05 | Phase 15 | Pending |
-| UIX-01 | Phase 14 | Pending |
+| UIX-01 | Phase 14 | Complete |
 | UIX-02 | Phase 15 | Pending |
 | UIX-03 | Phase 15 | Pending |
 | UIX-04 | Phase 12 | Complete |
