@@ -1,10 +1,11 @@
 ---
 phase: 13
 slug: 行政区数据与几何交付
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-03-31
+reviewed_at: 2026-03-31T12:01:43+0800
 ---
 
 # Phase 13 — UI Design Contract
@@ -117,6 +118,7 @@ Accent reserved for: selected boundary overlay, active popup/drawer state chip, 
 
 | Topic | Contract |
 |-------|----------|
+| Primary focal point | 主视觉焦点始终是当前选中行政区边界高亮；popup / drawer 内的 geometry 状态块只作为次级反馈，不得反客为主压过地图主体状态 |
 | Status hierarchy | 几何状态优先使用现有 `notice` / `badge` / wash background 体系表达，不新增 toast flood、全屏遮罩或 debug console 弹层 |
 | Highlight color | 当前选中边界继续使用 `selected` 粉色系；已保存边界继续使用 `saved` 蓝色系；geometry-missing 使用 fallback 灰蓝系，和现有 `boundarySupportNotice` 语义一致 |
 | Surface density | popup 与 drawer 内新增内容最多增加一个状态块和一个次级动作，不得挤压当前标题、副标题、候选列表与编辑入口的可读性 |
@@ -133,4 +135,4 @@ Accent reserved for: selected boundary overlay, active popup/drawer state chip, 
 - [ ] Dimension 5 Spacing: PASS
 - [ ] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-03-31
