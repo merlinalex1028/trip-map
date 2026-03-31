@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 810000,
+        "name": "香港特别行政区",
+        "center": [
+          114.173355,
+          22.320048
+        ],
+        "centroid": [
+          114.16528,
+          22.35063
+        ],
+        "childrenNum": 0,
+        "level": "city",
+        "parent": {
+          "adcode": 100000
+        },
+        "subFeatureIndex": 1,
+        "acroutes": [
+          100000
+        ],
+        "boundaryId": "datav-cn-hong-kong",
+        "renderableId": "datav-cn-hong-kong",
+        "datasetVersion": "2026-03-31-geo-v1"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                113.82500350560278,
+                22.152887356064195
+              ],
+              [
+                114.43512317491306,
+                22.152633738443868
+              ],
+              [
+                114.43509709286583,
+                22.562701634556372
+              ],
+              [
+                113.82497729699709,
+                22.562955330802513
+              ],
+              [
+                113.82500350560278,
+                22.152887356064195
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

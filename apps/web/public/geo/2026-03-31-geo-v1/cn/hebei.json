@@ -1,0 +1,62 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 131000,
+        "name": "廊坊市",
+        "center": [
+          116.713873,
+          39.529508
+        ],
+        "centroid": [
+          116.55672,
+          39.49822
+        ],
+        "childrenNum": 10,
+        "level": "city",
+        "parent": {
+          "adcode": 130000
+        },
+        "subFeatureIndex": 4,
+        "acroutes": [
+          100000,
+          130000
+        ],
+        "boundaryId": "datav-cn-langfang",
+        "renderableId": "datav-cn-langfang",
+        "datasetVersion": "2026-03-31-geo-v1"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                116.09380067067289,
+                38.89898822814989
+              ],
+              [
+                117.14362524661439,
+                38.89900508123179
+              ],
+              [
+                117.14347592999576,
+                40.04861285865092
+              ],
+              [
+                116.09365587278158,
+                40.048597344307254
+              ],
+              [
+                116.09380067067289,
+                38.89898822814989
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

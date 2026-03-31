@@ -1,0 +1,62 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 513200,
+        "name": "阿坝藏族羌族自治州",
+        "center": [
+          102.224653,
+          31.899792
+        ],
+        "centroid": [
+          102.61467,
+          32.22756
+        ],
+        "childrenNum": 13,
+        "level": "city",
+        "parent": {
+          "adcode": 510000
+        },
+        "subFeatureIndex": 2,
+        "acroutes": [
+          100000,
+          510000
+        ],
+        "boundaryId": "datav-cn-aba",
+        "renderableId": "datav-cn-aba",
+        "datasetVersion": "2026-03-31-geo-v1"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                100.29872937769728,
+                30.50264890707144
+              ],
+              [
+                104.29756698805637,
+                30.50259722339608
+              ],
+              [
+                104.29738884585876,
+                34.201502717842985
+              ],
+              [
+                100.29861540070446,
+                34.201567600806484
+              ],
+              [
+                100.29872937769728,
+                30.50264890707144
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

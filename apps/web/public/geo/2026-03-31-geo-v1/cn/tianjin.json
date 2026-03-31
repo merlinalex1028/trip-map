@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 120000,
+        "name": "天津市",
+        "center": [
+          117.190182,
+          39.125596
+        ],
+        "centroid": [
+          117.35572,
+          39.18231
+        ],
+        "childrenNum": 16,
+        "level": "city",
+        "parent": {
+          "adcode": 100000
+        },
+        "subFeatureIndex": 3,
+        "acroutes": [
+          100000
+        ],
+        "boundaryId": "datav-cn-tianjin",
+        "renderableId": "datav-cn-tianjin",
+        "datasetVersion": "2026-03-31-geo-v1"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                116.69417430452575,
+                38.549362856775105
+              ],
+              [
+                118.0437340280907,
+                38.54915989817078
+              ],
+              [
+                118.04351464017319,
+                40.24859479137064
+              ],
+              [
+                116.6939684389616,
+                40.2487996192222
+              ],
+              [
+                116.69417430452575,
+                38.549362856775105
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

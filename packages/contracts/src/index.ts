@@ -1,4 +1,5 @@
 export * from './fixtures'
+export * from './generated/geometry-manifest.generated'
 export * from './geometry'
 export * from './health'
 export * from './place'

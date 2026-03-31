@@ -65,6 +65,7 @@ export interface GeoFeatureProperties {
 
 export interface CityBoundaryFeatureProperties {
   boundaryId: string
+  renderableId: string
   cityId: string
   cityName: string
   datasetVersion: string

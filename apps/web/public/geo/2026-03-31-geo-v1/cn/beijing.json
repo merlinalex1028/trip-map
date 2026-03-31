@@ -1,0 +1,61 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "adcode": 110000,
+        "name": "北京市",
+        "center": [
+          116.405285,
+          39.904989
+        ],
+        "centroid": [
+          116.41995,
+          40.18994
+        ],
+        "childrenNum": 16,
+        "level": "city",
+        "parent": {
+          "adcode": 100000
+        },
+        "subFeatureIndex": 0,
+        "acroutes": [
+          100000
+        ],
+        "boundaryId": "datav-cn-beijing",
+        "renderableId": "datav-cn-beijing",
+        "datasetVersion": "2026-03-31-geo-v1"
+      },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [
+              [
+                115.99392967959645,
+                39.59884488818499
+              ],
+              [
+                116.79397708976583,
+                39.59884299753813
+              ],
+              [
+                116.79382458826151,
+                40.79850332691324
+              ],
+              [
+                115.99377821111845,
+                40.79850677490478
+              ],
+              [
+                115.99392967959645,
+                39.59884488818499
+              ]
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
