@@ -5,7 +5,7 @@
  * DO NOT EDIT MANUALLY — run `pnpm --filter @trip-map/web run geo:build` to regenerate.
  *
  * geometryDatasetVersion: 2026-03-31-geo-v1
- * Generated: 2026-03-31T07:21:24.704Z
+ * Generated: 2026-03-31T07:25:02.706Z
  */
 
 import type { GeometryManifestEntry } from '../geometry'

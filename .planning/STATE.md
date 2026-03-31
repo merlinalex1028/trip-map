@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 13-02-PLAN.md
-last_updated: "2026-03-31T07:16:36.102Z"
+stopped_at: Completed 13-03-PLAN.md
+last_updated: "2026-03-31T07:26:34.863Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 5
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 13 (行政区数据与几何交付) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-03-31
 
@@ -77,6 +77,7 @@ Progress: [██████████] 100%
 | Phase 12-canonical P05 | 5min | 2 tasks | 6 files |
 | Phase 13 P01 | 8 | 2 tasks | 7 files |
 | Phase 13-行政区数据与几何交付 P02 | 5min | 2 tasks | 9 files |
+| Phase 13-行政区数据与几何交付 P03 | 376 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ Recent decisions affecting current work:
 - [Phase 12-canonical]: popup 与 drawer 的 boundary 支持态回归必须走 store 派生结果，不再在 spec 里手工注入 supported。
 - [Phase 13]: ResolvedCanonicalPlace extends CanonicalPlaceSummary with geometryRef; CanonicalResolveResponse resolved/ambiguous branches carry geometryRef; geometryDatasetVersion is distinct from datasetVersion
 - [Phase 13-行政区数据与几何交付]: gcoord loaded via createRequire in .mjs scripts because gcoord@1.0.7 is CJS; source snapshots are minimal vendored GeoJSON covering the 6 authoritative fixture boundary IDs; geo:build:check uses .tmp to avoid writing official assets
+- [Phase 13]: generated manifest is the single authoritative source consumed by geometry-manifest.ts service; GEOMETRY_DATASET_VERSION duplicated in web service to avoid over-importing contracts for a string literal
 
 ### Pending Todos
 
@@ -137,6 +139,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T07:16:36.100Z
-Stopped at: Completed 13-02-PLAN.md
+Last session: 2026-03-31T07:26:34.860Z
+Stopped at: Completed 13-03-PLAN.md
 Resume file: None
