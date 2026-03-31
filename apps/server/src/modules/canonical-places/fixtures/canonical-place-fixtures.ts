@@ -1,6 +1,5 @@
 import type {
   ChinaAdminType,
-  GeometryRef,
   ResolvedCanonicalPlace,
 } from '@trip-map/contracts'
 
@@ -34,7 +33,13 @@ type CanonicalResolveFixture =
     }
 
 const DATASET_VERSION = 'phase12-canonical-fixture-v1'
-const GEOMETRY_DATASET_VERSION = '2026-03-31-geo-v1'
+
+/**
+ * A canonical place summary without geometryRef.
+ * The service layer injects geometryRef by looking up the generated manifest
+ * using boundaryId as the key, so fixtures must not hand-code assetKey.
+ */
+type CanonicalPlaceSummaryWithoutGeometryRef = Omit<ResolvedCanonicalPlace, 'geometryRef'>
 
 function createChinaPlace(
   placeId: CanonicalPlaceId,
@@ -43,15 +48,7 @@ function createChinaPlace(
   adminType: ChinaAdminType,
   typeLabel: string,
   parentLabel: string,
-  geometryAssetKey: string,
-): ResolvedCanonicalPlace {
-  const geometryRef: GeometryRef = {
-    boundaryId,
-    layer: 'CN',
-    geometryDatasetVersion: GEOMETRY_DATASET_VERSION,
-    assetKey: geometryAssetKey,
-    renderableId: boundaryId,
-  }
+): CanonicalPlaceSummaryWithoutGeometryRef {
   return {
     placeId,
     boundaryId,
@@ -63,11 +60,10 @@ function createChinaPlace(
     typeLabel,
     parentLabel,
     subtitle: `${parentLabel} · ${typeLabel}`,
-    geometryRef,
   }
 }
 
-export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPlace> = {
+export const canonicalPlaceCatalogBase: Record<CanonicalPlaceId, CanonicalPlaceSummaryWithoutGeometryRef> = {
   'cn-beijing': createChinaPlace(
     'cn-beijing',
     'datav-cn-beijing',
@@ -75,7 +71,6 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     'MUNICIPALITY',
     '直辖市',
     '中国',
-    'cn/beijing.json',
   ),
   'cn-hong-kong': createChinaPlace(
     'cn-hong-kong',
@@ -84,7 +79,6 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     'SAR',
     '特别行政区',
     '中国',
-    'cn/hong-kong.json',
   ),
   'cn-aba': createChinaPlace(
     'cn-aba',
@@ -93,11 +87,10 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     'AUTONOMOUS_PREFECTURE',
     '自治州',
     '中国 · 四川',
-    'cn/sichuan.json',
   ),
   'us-california': {
     placeId: 'us-california',
-    boundaryId: 'ne-admin1-us-ca',
+    boundaryId: 'ne-admin1-us-california',
     placeKind: 'OVERSEAS_ADMIN1',
     datasetVersion: DATASET_VERSION,
     displayName: 'California',
@@ -106,13 +99,6 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     typeLabel: '一级行政区',
     parentLabel: 'United States',
     subtitle: 'United States · 一级行政区',
-    geometryRef: {
-      boundaryId: 'ne-admin1-us-california',
-      layer: 'OVERSEAS',
-      geometryDatasetVersion: GEOMETRY_DATASET_VERSION,
-      assetKey: 'overseas/us.json',
-      renderableId: 'ne-admin1-us-california',
-    },
   },
   'cn-tianjin': createChinaPlace(
     'cn-tianjin',
@@ -121,7 +107,6 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     'MUNICIPALITY',
     '直辖市',
     '中国',
-    'cn/tianjin.json',
   ),
   'cn-langfang': createChinaPlace(
     'cn-langfang',
@@ -130,7 +115,6 @@ export const canonicalPlaceCatalog: Record<CanonicalPlaceId, ResolvedCanonicalPl
     'PREFECTURE_LEVEL_CITY',
     '地级市',
     '中国 · 河北',
-    'cn/hebei.json',
   ),
 }
 

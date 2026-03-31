@@ -4,17 +4,35 @@ import type {
   CanonicalResolveFailedReason,
   CanonicalResolveResponse,
   ConfirmCanonicalPlaceRequest,
+  GeometryRef,
   ResolvedCanonicalPlace,
   ResolveCanonicalPlaceRequest,
 } from '@trip-map/contracts'
+import { GEOMETRY_MANIFEST } from '@trip-map/contracts'
 
 import {
   CANONICAL_RESOLVE_FIXTURES,
   MAX_CANONICAL_CANDIDATES,
+  canonicalPlaceCatalogBase,
   type CanonicalPlaceId,
   type CanonicalResolveFixture,
-  canonicalPlaceCatalog,
 } from './fixtures/canonical-place-fixtures.js'
+
+/**
+ * Look up a manifest entry by boundaryId and extract the GeometryRef fields.
+ * Returns null if the boundaryId is not present in the generated manifest.
+ */
+function lookupGeometryRefByBoundaryId(boundaryId: string): GeometryRef | null {
+  const entry = GEOMETRY_MANIFEST.find((e) => e.boundaryId === boundaryId)
+  if (!entry) return null
+  return {
+    boundaryId: entry.boundaryId,
+    layer: entry.layer,
+    geometryDatasetVersion: entry.geometryDatasetVersion,
+    assetKey: entry.assetKey,
+    renderableId: entry.renderableId,
+  }
+}
 
 @Injectable()
 export class CanonicalPlacesService {
@@ -136,8 +154,21 @@ export class CanonicalPlacesService {
     ))
   }
 
-  private getPlace(placeId: string): ResolvedCanonicalPlace {
-    return canonicalPlaceCatalog[placeId as CanonicalPlaceId]
+  private getPlace(placeId: CanonicalPlaceId): ResolvedCanonicalPlace {
+    const base = canonicalPlaceCatalogBase[placeId]
+    const geometryRef = lookupGeometryRefByBoundaryId(base.boundaryId)
+
+    if (!geometryRef) {
+      throw new Error(
+        `No manifest entry found for boundaryId "${base.boundaryId}" (placeId: "${placeId}"). ` +
+        'Ensure the generated manifest is up-to-date.',
+      )
+    }
+
+    return {
+      ...base,
+      geometryRef: geometryRef,
+    }
   }
 
   private getCandidate(

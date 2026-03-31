@@ -36,6 +36,22 @@ describe('POST /places canonical resolve', () => {
     })
   })
 
+  it('returns resolved Beijing with manifest-backed geometryRef', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 39.9042,
+        lng: 116.4074,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json().place.geometryRef.assetKey).toBe('cn/beijing.json')
+    expect(response.json().place.geometryRef.layer).toBe('CN')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+  })
+
   it('returns resolved for the Hong Kong fixture with SAR semantics', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -54,6 +70,21 @@ describe('POST /places canonical resolve', () => {
         typeLabel: '特别行政区',
       },
     })
+  })
+
+  it('returns resolved Hong Kong with manifest-backed geometryRef', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 22.3193,
+        lng: 114.1694,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json().place.geometryRef.assetKey).toBe('cn/hong-kong.json')
+    expect(response.json().place.geometryRef.layer).toBe('CN')
   })
 
   it('returns resolved for the California fixture with overseas admin1 semantics', async () => {
@@ -77,6 +108,22 @@ describe('POST /places canonical resolve', () => {
     })
   })
 
+  it('returns resolved California with manifest-backed geometryRef', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 36.7783,
+        lng: -119.4179,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json().place.geometryRef.assetKey).toBe('overseas/us.json')
+    expect(response.json().place.geometryRef.layer).toBe('OVERSEAS')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+  })
+
   it('returns ambiguous candidates capped at 3 with an explicit recommendation slot', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -91,6 +138,22 @@ describe('POST /places canonical resolve', () => {
     expect(response.json().status).toBe('ambiguous')
     expect(response.json().recommendedPlaceId).toBe('cn-beijing')
     expect(response.json().candidates.length).toBeLessThanOrEqual(3)
+  })
+
+  it('returns ambiguous candidates each with a manifest-backed geometryRef', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 39.5432,
+        lng: 116.7921,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json().status).toBe('ambiguous')
+    const candidates = response.json().candidates as Array<{ geometryRef?: unknown }>
+    expect(candidates[0]).toHaveProperty('geometryRef')
   })
 
   it('resolves a legal candidate through /places/confirm', async () => {
@@ -149,5 +212,7 @@ describe('POST /places canonical resolve', () => {
       reason: 'NO_CANONICAL_MATCH',
     })
     expect(response.json()).not.toHaveProperty('place')
+    expect(response.json()).not.toHaveProperty('geometry')
+    expect(response.json()).not.toHaveProperty('features')
   })
 })
