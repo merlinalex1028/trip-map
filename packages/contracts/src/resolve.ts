@@ -1,4 +1,5 @@
 import type { CanonicalPlaceSummary } from './place'
+import type { GeometryRef } from './geometry'
 
 export interface ResolveCanonicalPlaceRequest {
   lat: number
@@ -11,7 +12,11 @@ export interface ConfirmCanonicalPlaceRequest {
   candidatePlaceId: string
 }
 
-export interface CanonicalPlaceCandidate extends CanonicalPlaceSummary {
+export interface ResolvedCanonicalPlace extends CanonicalPlaceSummary {
+  geometryRef: GeometryRef
+}
+
+export interface CanonicalPlaceCandidate extends ResolvedCanonicalPlace {
   candidateHint: string
 }
 
@@ -25,7 +30,7 @@ export type CanonicalResolveResponse =
   | {
       status: 'resolved'
       click: { lat: number; lng: number }
-      place: CanonicalPlaceSummary
+      place: ResolvedCanonicalPlace
     }
   | {
       status: 'ambiguous'
