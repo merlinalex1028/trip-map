@@ -12,10 +12,10 @@
 <style scoped>
 .poster-title-block {
   position: relative;
-  max-width: 30rem;
+  max-width: 24rem;
   display: grid;
-  gap: 0.25rem;
-  padding: var(--space-sm) var(--space-md);
+  gap: 0.4rem;
+  padding: var(--space-md) var(--space-lg);
   border: 1px solid color-mix(in srgb, var(--color-frame) 60%, white 40%);
   border-radius: var(--radius-surface);
   background:

@@ -208,7 +208,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 0;
+  padding: 18px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
   border-radius: var(--radius-surface);
@@ -236,6 +236,6 @@ onUnmounted(() => {
 .poster-shell__experience::after {
   inset: 18px;
   border: 1px dashed rgba(199, 171, 200, 0.45);
-  border-radius: calc(var(--radius-surface) - 10px);
+  border-radius: 28px;
 }
 </style>
