@@ -73,7 +73,7 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] `13-01-PLAN.md` — 固定 `geometryRef` / manifest 共享契约与 Phase 13 fixture 基线
+- [x] `13-01-PLAN.md` — 固定 `geometryRef` / manifest 共享契约与 Phase 13 fixture 基线 (completed 2026-03-31)
 - [ ] `13-02-PLAN.md` — 固定 source catalog、vendored snapshot 与 WGS84 归一化/build pipeline
 - [ ] `13-03-PLAN.md` — 生成版本化 manifest/shard 资产并补齐 manifest service 与坐标验证
 - [ ] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
@@ -110,6 +110,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 11. Monorepo 与契约基线 | 10/10 | Complete    | 2026-03-30 |
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
-| 13. 行政区数据与几何交付 | 4/4 | Complete   | 2026-03-31 |
+| 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 0/TBD | Not started | - |
 | 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
