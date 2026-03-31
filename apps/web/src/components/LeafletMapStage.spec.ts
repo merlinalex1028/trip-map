@@ -28,7 +28,8 @@ const geometryLoaderMock = vi.hoisted(() => ({
 const geometryManifestMock = vi.hoisted(() => ({
   GEOMETRY_DATASET_VERSION: '2026-03-31-geo-v1',
   listGeometryManifestEntriesByLayer: vi.fn(() => []),
-  getGeometryManifestEntry: vi.fn(() => null),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getGeometryManifestEntry: vi.fn<(...args: any[]) => any>(() => null),
 }))
 
 // Capture the click handler registered via map.on('click', handler)
@@ -541,7 +542,7 @@ describe('LeafletMapStage', () => {
       await nextTick()
 
       // Capture boundary click callback from useGeoJsonLayers mock
-      let capturedBoundaryClickHandler: ((boundaryId: string, latlng: unknown) => void) | null = null
+      let capturedBoundaryClickHandler: ((boundaryId: string, latlng: import('leaflet').LatLng) => void) | null = null
       const useGeoJsonLayersMod = await import('../composables/useGeoJsonLayers')
       const useGeoJsonLayersSpy = vi.spyOn(useGeoJsonLayersMod, 'useGeoJsonLayers').mockImplementation(
         (opts) => {
@@ -561,7 +562,8 @@ describe('LeafletMapStage', () => {
       expect(capturedBoundaryClickHandler).not.toBeNull()
 
       // Trigger boundary click for the saved point's boundaryId
-      const fakeLatlng = { lat: 39.9042, lng: 116.4074 }
+      const L = await import('leaflet')
+      const fakeLatlng = L.latLng(39.9042, 116.4074)
       capturedBoundaryClickHandler!(PHASE12_RESOLVED_BEIJING.boundaryId, fakeLatlng)
       await nextTick()
 
