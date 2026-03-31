@@ -146,8 +146,14 @@ None yet.
 - 中国与海外边界的坐标适配仍需在 Phase 13 验证，避免 `Leaflet` 中出现点击与边界错位。
 - 如果后续准备公开部署，还需要额外复核中国数据许可与分发边界。
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260331-pj4 | 调整title缩小并上移使地图一屏展示，修复地图仅显示右半边和顶部间隙 | 2026-03-31 | b0988f5 | [260331-pj4-title](.planning/quick/260331-pj4-title/) |
+
 ## Session Continuity
 
-Last session: 2026-03-31T18:15:00.000Z
-Stopped at: Completed 14-leaflet-03-PLAN.md (Phase 14 fully verified)
+Last session: 2026-03-31T18:30:00.000Z
+Stopped at: Completed quick task 260331-pj4: title layout + map display fix
 Resume file: None
