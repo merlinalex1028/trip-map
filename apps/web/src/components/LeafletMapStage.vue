@@ -50,6 +50,8 @@ const {
   selectedPointId,
   summarySurfaceState,
   hasBootstrapped,
+  travelRecords,
+  pendingPlaceIds,
 } = storeToRefs(mapPointsStore)
 
 const { pendingGeoHit } = storeToRefs(mapUiStore)
@@ -365,6 +367,49 @@ function applyResolvedPlace(
   clearInteractionNotice()
 }
 
+// --- Illuminate state computeds ---
+
+const activePointPlaceId = computed(() => {
+  const surface = summarySurfaceState.value
+  if (!surface || surface.mode === 'candidate-select') return null
+  return surface.point.placeId ?? null
+})
+
+const isActivePointSaved = computed(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return false
+  return travelRecords.value.some((r) => r.placeId === pid)
+})
+
+const isActivePointPending = computed(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return false
+  return pendingPlaceIds.value.has(pid)
+})
+
+// --- Illuminate handlers ---
+
+function handleIlluminate() {
+  const surface = summarySurfaceState.value
+  if (!surface || surface.mode === 'candidate-select') return
+  const point = surface.point
+  if (!point.placeId || !point.placeKind || !point.datasetVersion) return
+  void mapPointsStore.illuminate({
+    placeId: point.placeId,
+    boundaryId: point.boundaryId,
+    placeKind: point.placeKind,
+    datasetVersion: point.datasetVersion,
+    displayName: point.name,
+    subtitle: point.subtitle ?? point.cityContextLabel ?? '',
+  })
+}
+
+function handleUnilluminate() {
+  const pid = activePointPlaceId.value
+  if (!pid) return
+  void mapPointsStore.unilluminate(pid)
+}
+
 // --- Boundary click handler (D-12) ---
 
 function handleBoundaryClick(boundaryId: string, latlng: L.LatLng) {
@@ -614,7 +659,11 @@ onMounted(() => {
       :anchor-source="popupAnchor.source"
       :floating-styles="popupFloatingStyles"
       :find-saved-point-by-city-id="findSavedPointByCityId"
+      :is-saved="isActivePointSaved"
+      :is-pending="isActivePointPending"
       @confirm-candidate="handleConfirmCandidate"
+      @illuminate="handleIlluminate"
+      @unilluminate="handleUnilluminate"
     />
     <div
       v-if="pendingGeoHit"

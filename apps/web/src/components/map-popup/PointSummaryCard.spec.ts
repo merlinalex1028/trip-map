@@ -92,6 +92,108 @@ function createCanonicalDraftPoint(overrides: Partial<DraftMapPoint> = {}): Draf
   })
 }
 
+function makeViewSurface(overrides: Partial<MapPointDisplay> = {}): SummarySurfaceState {
+  return {
+    mode: 'view',
+    point: createViewPoint(overrides),
+    boundarySupportState: 'supported',
+  }
+}
+
+function makeDetectedPreviewSurface(): SummarySurfaceState {
+  return {
+    mode: 'detected-preview',
+    point: createDraftPoint(PHASE12_RESOLVED_BEIJING),
+    boundarySupportState: 'supported',
+  }
+}
+
+function makeCandidateSurface(): SummarySurfaceState {
+  return {
+    mode: 'candidate-select',
+    fallbackPoint: createCanonicalDraftPoint(),
+    cityCandidates: [],
+    canonicalCandidates: [],
+    recommendedPlaceId: null,
+  }
+}
+
+describe('PointSummaryCard — illuminate button', () => {
+  it('renders "点亮" button when isSaved=false in view mode', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false },
+    })
+    const btn = wrapper.find('[data-illuminate-state]')
+    expect(btn.exists()).toBe(true)
+    expect(btn.text()).toBe('点亮')
+  })
+
+  it('renders "已点亮" button when isSaved=true in view mode', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: true },
+    })
+    const btn = wrapper.find('[data-illuminate-state]')
+    expect(btn.exists()).toBe(true)
+    expect(btn.text()).toBe('已点亮')
+  })
+
+  it('button has data-illuminate-state="off" when not saved', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false },
+    })
+    expect(wrapper.find('[data-illuminate-state]').attributes('data-illuminate-state')).toBe('off')
+  })
+
+  it('button has data-illuminate-state="on" when saved', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: true },
+    })
+    expect(wrapper.find('[data-illuminate-state]').attributes('data-illuminate-state')).toBe('on')
+  })
+
+  it('button is disabled when isPending=true', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false, isPending: true },
+    })
+    const btn = wrapper.find('[data-illuminate-state]')
+    expect(btn.attributes('disabled')).toBeDefined()
+  })
+
+  it('click on "点亮" emits illuminate event', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false },
+    })
+    await wrapper.find('[data-illuminate-state]').trigger('click')
+    expect(wrapper.emitted('illuminate')).toBeTruthy()
+    expect(wrapper.emitted('unilluminate')).toBeFalsy()
+  })
+
+  it('click on "已点亮" emits unilluminate event', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: true },
+    })
+    await wrapper.find('[data-illuminate-state]').trigger('click')
+    expect(wrapper.emitted('unilluminate')).toBeTruthy()
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
+  })
+
+  it('candidate-select mode does NOT render illuminate button', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeCandidateSurface(), isSaved: false },
+    })
+    expect(wrapper.find('[data-illuminate-state]').exists()).toBe(false)
+  })
+
+  it('detected-preview mode renders "点亮" button', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeDetectedPreviewSurface(), isSaved: false },
+    })
+    const btn = wrapper.find('[data-illuminate-state]')
+    expect(btn.exists()).toBe(true)
+    expect(btn.text()).toBe('点亮')
+  })
+})
+
 describe('PointSummaryCard', () => {
   it('renders canonical candidate labels and recommended marker without fallback CTA', async () => {
     const wrapper = mount(PointSummaryCard, {

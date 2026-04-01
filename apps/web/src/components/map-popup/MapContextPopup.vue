@@ -11,16 +11,22 @@ const props = withDefaults(
     anchorSource: 'marker' | 'pending' | 'boundary'
     floatingStyles?: CSSProperties | null
     findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
+    isSaved?: boolean
+    isPending?: boolean
   }>(),
   {
     floatingStyles: null,
-    findSavedPointByCityId: undefined
+    findSavedPointByCityId: undefined,
+    isSaved: false,
+    isPending: false,
   }
 )
 
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
+  illuminate: []
+  unilluminate: []
 }>()
 
 const popupRef = useTemplateRef<HTMLElement>('popup')
@@ -94,8 +100,12 @@ defineExpose({
       <PointSummaryCard
         :surface="surface"
         :find-saved-point-by-city-id="findSavedPointByCityId"
+        :is-saved="isSaved"
+        :is-pending="isPending"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
+        @illuminate="emit('illuminate')"
+        @unilluminate="emit('unilluminate')"
       />
     </div>
   </aside>

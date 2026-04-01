@@ -20,11 +20,15 @@ const props = defineProps<{
   surface: SummarySurfaceState
   findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
   titleClass?: string
+  isSaved?: boolean
+  isPending?: boolean
 }>()
 
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueWithFallback: []
+  illuminate: []
+  unilluminate: []
 }>()
 
 const isCandidateMode = computed(() => props.surface.mode === 'candidate-select')
@@ -106,6 +110,19 @@ function getCandidateStatus(statusHint: string) {
   return statusHint === '已存在记录' ? 'saved' : 'available'
 }
 
+const illuminateLabel = computed(() => (props.isSaved ? '已点亮' : '点亮'))
+const illuminateState = computed(() => (props.isSaved ? 'on' : 'off'))
+const showIlluminateButton = computed(() => !isCandidateMode.value)
+
+function handleIlluminateToggle() {
+  if (props.isPending) return
+  if (props.isSaved) {
+    emit('unilluminate')
+  } else {
+    emit('illuminate')
+  }
+}
+
 function handleCandidateConfirm(candidate: GeoCityCandidate) {
   emit('confirmCandidate', candidate)
 }
@@ -143,6 +160,17 @@ function handleContinueWithFallback() {
         >
           {{ summaryTypeLabel }}
         </span>
+        <button
+          v-if="showIlluminateButton"
+          class="point-summary-card__illuminate-btn"
+          :class="{ 'point-summary-card__illuminate-btn--on': isSaved }"
+          :data-illuminate-state="illuminateState"
+          :disabled="isPending"
+          type="button"
+          @click="handleIlluminateToggle"
+        >
+          {{ illuminateLabel }}
+        </button>
       </div>
       <p
         v-if="summarySubtitle"
@@ -287,7 +315,11 @@ function handleContinueWithFallback() {
   line-height: var(--font-heading-line-height);
 }
 
-.point-summary-card__title-row,
+.point-summary-card__title-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
 .point-summary-card__candidate-headline {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
@@ -387,5 +419,42 @@ function handleContinueWithFallback() {
 .point-summary-card__candidate-action:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--color-accent) 72%, white 28%);
   outline-offset: 3px;
+}
+
+.point-summary-card__illuminate-btn {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid rgba(184, 198, 217, 0.56);
+  border-radius: var(--radius-pill);
+  background: rgba(238, 243, 248, 0.92);
+  color: var(--color-ink-muted);
+  font-size: var(--font-label-size);
+  font-weight: var(--font-weight-label);
+  line-height: var(--font-label-line-height);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 32px;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.point-summary-card__illuminate-btn--on {
+  border-color: rgba(132, 199, 216, 0.64);
+  background: rgba(132, 199, 216, 0.22);
+  color: rgb(72, 150, 170);
+}
+
+.point-summary-card__illuminate-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.point-summary-card__illuminate-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-accent) 72%, white 28%);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .point-summary-card__illuminate-btn {
+    transition: none;
+  }
 }
 </style>
