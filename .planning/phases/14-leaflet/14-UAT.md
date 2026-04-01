@@ -1,5 +1,5 @@
 ---
-status: partial
+status: diagnosed
 phase: 14-leaflet
 source: 14-01-SUMMARY.md, 14-02-SUMMARY.md, 14-03-SUMMARY.md
 started: 2026-04-01T00:20:00Z
@@ -65,7 +65,15 @@ blocked: 1
   reason: "User reported: 无边界显示效果"
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "handleIlluminate in LeafletMapStage.vue never calls loadShardIfNeeded after illuminate() succeeds. refreshStyles() only re-renders features already in cnLayer/overseasLayer — if the shard was never loaded via addFeatures, setStyle iterates an empty layer and nothing renders. loadGeometryFeatureByRef is fully implemented in geometry-loader.ts but is never called from any production code path."
+  artifacts:
+    - path: "apps/web/src/components/LeafletMapStage.vue"
+      issue: "handleIlluminate missing loadShardIfNeeded call after illuminate() succeeds"
+    - path: "apps/web/src/composables/useGeoJsonLayers.ts"
+      issue: "refreshStyles() only re-renders already-loaded features; cannot create features from nothing"
+    - path: "apps/web/src/services/geometry-loader.ts"
+      issue: "loadGeometryFeatureByRef implemented and tested but never called from production code"
+  missing:
+    - "In handleIlluminate, after illuminate() succeeds call loadShardIfNeeded(surface.point.boundaryId)"
+    - "Or use loadGeometryFeatureByRef(response.place.geometryRef) directly from the API response"
+  debug_session: ".planning/debug/geojson-boundary-not-showing.md"
