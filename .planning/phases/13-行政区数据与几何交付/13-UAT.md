@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 13-行政区数据与几何交付
 source: 13-01-SUMMARY.md, 13-02-SUMMARY.md, 13-03-SUMMARY.md, 13-04-SUMMARY.md
 started: 2026-04-01T00:00:00Z
@@ -66,27 +66,40 @@ blocked: 0
   reason: "User reported: 无响应"
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "UAT called wrong endpoint/port/format. Actual: POST /places/resolve on port 4000 with body {lat, lng}. No text-search input; service resolves by coordinate proximity. ValidationPipe with forbidNonWhitelisted rejects unknown fields silently."
+  artifacts:
+    - path: "apps/server/src/main.ts"
+      issue: "PORT=4000, not 3000"
+    - path: "apps/server/src/modules/canonical-places/canonical-places.controller.ts"
+      issue: "@Controller('places') + @Post('resolve') = /places/resolve, not /canonical-resolve"
+    - path: "apps/server/src/modules/canonical-places/resolve-canonical-place.dto.ts"
+      issue: "DTO only accepts {lat: number, lng: number} — no text input field"
+  missing:
+    - "Re-test using: curl -s -X POST http://localhost:4000/places/resolve -H 'Content-Type: application/json' -d '{\"lat\":39.9042,\"lng\":116.4074}'"
+  debug_session: ".planning/debug/canonical-resolve-beijing.md"
 
 - truth: "POST /canonical-resolve with input 'California' returns geometryRef.assetKey === 'overseas/us.json', layer === 'OVERSEAS', geometryDatasetVersion === '2026-03-31-geo-v1'"
   status: failed
   reason: "User reported: 响应为空"
   severity: major
   test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Same as test 6: wrong endpoint path, port, and request format. California fixture click point is {lat: 36.7783, lng: -119.4179}."
+  artifacts:
+    - path: "apps/server/src/modules/canonical-places/canonical-places.controller.ts"
+      issue: "Route is /places/resolve not /canonical-resolve"
+  missing:
+    - "Re-test using: curl -s -X POST http://localhost:4000/places/resolve -H 'Content-Type: application/json' -d '{\"lat\":36.7783,\"lng\":-119.4179}'"
+  debug_session: ".planning/debug/canonical-resolve-response-shape.md"
 
 - truth: "POST /canonical-resolve with ambiguous input returns candidates array where every candidate has a geometryRef field"
   status: failed
   reason: "User reported: 响应为空"
   severity: major
   test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Same root cause: wrong endpoint. Ambiguous resolution requires clicking a coordinate that matches multiple candidates. Use a coordinate near an ambiguous fixture (e.g. Aba/Sichuan boundary)."
+  artifacts:
+    - path: "apps/server/src/modules/canonical-places/fixtures/canonical-place-fixtures.ts"
+      issue: "Check ambiguous fixture click coordinates for a suitable test point"
+  missing:
+    - "Re-test with coordinates matching an ambiguous fixture click point"
+  debug_session: ".planning/debug/canonical-resolve-response-shape.md"
