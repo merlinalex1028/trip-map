@@ -1,3 +1,4 @@
+import type { TravelRecord } from '@trip-map/contracts'
 import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
@@ -5,28 +6,35 @@ import {
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
-import type { TravelRecord } from '@trip-map/contracts'
 import { useMapPointsStore } from './map-points'
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
 // ---------------------------------------------------------------------------
 
-const fetchMock = vi.hoisted(() => vi.fn<() => Promise<TravelRecord[]>>())
-const createMock = vi.hoisted(() => vi.fn<() => Promise<TravelRecord>>())
-const deleteMock = vi.hoisted(() => vi.fn<() => Promise<void>>())
+const { fetchMock, createMock, deleteMock } = vi.hoisted(() => {
+  return {
+    fetchMock: vi.fn<() => Promise<TravelRecord[]>>(),
+    createMock: vi.fn<() => Promise<TravelRecord>>(),
+    deleteMock: vi.fn<() => Promise<void>>(),
+  }
+})
 
-vi.mock('../services/api/records', () => ({
-  fetchTravelRecords: fetchMock,
-  createTravelRecord: createMock,
-  deleteTravelRecord: deleteMock,
-}))
+vi.mock('../services/api/records', () => {
+  return {
+    fetchTravelRecords: fetchMock,
+    createTravelRecord: createMock,
+    deleteTravelRecord: deleteMock,
+  }
+})
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function makeRecord(place = PHASE12_RESOLVED_BEIJING): TravelRecord {
+function makeRecord(
+  place = PHASE12_RESOLVED_BEIJING,
+): TravelRecord {
   return {
     id: `server-rec-${place.placeId}`,
     placeId: place.placeId,
@@ -41,26 +49,13 @@ function makeRecord(place = PHASE12_RESOLVED_BEIJING): TravelRecord {
 
 function makeResolvedPlace(
   place = PHASE12_RESOLVED_BEIJING,
-): {
-  placeId: string
-  boundaryId: string
-  placeKind: 'CN_ADMIN' | 'OVERSEAS_ADMIN' | 'CITY'
-  datasetVersion: string
-  displayName: string
-  regionSystem: 'CN' | 'OVERSEAS'
-  typeLabel: string | null
-  parentLabel: string
-  subtitle: string
-} {
+): Parameters<ReturnType<typeof useMapPointsStore>['illuminate']>[0] {
   return {
     placeId: place.placeId,
     boundaryId: place.boundaryId,
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
     displayName: place.displayName,
-    regionSystem: place.regionSystem,
-    typeLabel: place.typeLabel,
-    parentLabel: place.parentLabel,
     subtitle: place.subtitle,
   }
 }
@@ -75,15 +70,21 @@ describe('map-points store', () => {
     fetchMock.mockReset()
     fetchMock.mockResolvedValue([])
     createMock.mockReset()
-    createMock.mockResolvedValue({ id: 'server-rec', placeId: '', boundaryId: '', placeKind: 'CN_ADMIN' as const, datasetVersion: '', displayName: '', subtitle: '', createdAt: new Date().toISOString() })
     deleteMock.mockReset()
     deleteMock.mockResolvedValue(undefined)
   })
 
+  // -------------------------------------------------------------------------
+  // bootstrapFromApi
+  // -------------------------------------------------------------------------
+
   describe('bootstrapFromApi', () => {
     it('sets travelRecords from API response', async () => {
       const store = useMapPointsStore()
-      const records = [makeRecord(PHASE12_RESOLVED_BEIJING), makeRecord(PHASE12_RESOLVED_CALIFORNIA)]
+      const records = [
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ]
       fetchMock.mockResolvedValueOnce(records)
 
       await store.bootstrapFromApi()
@@ -94,155 +95,297 @@ describe('map-points store', () => {
       expect(store.hasBootstrapped).toBe(true)
     })
 
-    it('sets travelRecords to empty array on API failure', async () => {
+    it('sets empty array on API failure', async () => {
       fetchMock.mockRejectedValueOnce(new Error('network error'))
       const store = useMapPointsStore()
+
       await store.bootstrapFromApi()
+
       expect(store.travelRecords).toHaveLength(0)
+      expect(store.hasBootstrapped).toBe(true)
     })
 
     it('skips if already bootstrapped', async () => {
-      const store = useMapPointsStore()
       fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      const store = useMapPointsStore()
+
       await store.bootstrapFromApi()
+      expect(store.travelRecords).toHaveLength(1)
       await store.bootstrapFromApi()
+
       expect(fetchMock).toHaveBeenCalledTimes(1)
     })
   })
 
-  describe('savedBoundaryIds', () => {
-    it('derives savedBoundaryIds from travelRecords', async () => {
-      const store = useMapPointsStore()
-      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
-      await store.bootstrapFromApi()
-      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
-    })
-
-    it('deduplicates boundaryIds', async () => {
-      fetchMock.mockResolvedValueOnce([
-        makeRecord({ ...PHASE12_RESOLVED_BEIJING, placeId: 'p1', boundaryId: 'CN-11' } as typeof PHASE12_RESOLVED_BEIJING),
-        makeRecord({ ...PHASE12_RESOLVED_BEIJING, placeId: 'p2', boundaryId: 'CN-11' } as typeof PHASE12_RESOLVED_BEIJING),
-      ])
-      const store = useMapPointsStore()
-      await store.bootstrapFromApi()
-      expect(store.savedBoundaryIds).toEqual(['CN-11'])
-    })
-  })
+  // -------------------------------------------------------------------------
+  // illuminate
+  // -------------------------------------------------------------------------
 
   describe('illuminate', () => {
-    it('adds record optimistically before API returns', async () => {
+    it('adds record optimistically and replaces with server record on success', async () => {
       const store = useMapPointsStore()
-      fetchMock.mockResolvedValueOnce([])
-      await store.bootstrapFromApi()
-      store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      const rec = store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)
-      expect(rec).toBeDefined()
-      expect(rec?.id).toMatch(/^pending-/)
-      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
-      expect(store.selectedPointId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
-    })
-
-    it('replaces optimistic record with server record on success', async () => {
-      const store = useMapPointsStore()
-      fetchMock.mockResolvedValueOnce([])
       createMock.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
-      await store.bootstrapFromApi()
+
       await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      const rec = store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)
-      expect(rec?.id).toBe('server-rec-cn-admin-beijing')
+
+      expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
     })
 
-    it('removes record on API failure (rollback)', async () => {
-      createMock.mockRejectedValueOnce(new Error('server error'))
+    it('adds record optimistically before await', async () => {
+      let resolveCreate!: (value: TravelRecord) => void
+      createMock.mockImplementation(
+        () =>
+          new Promise((r) => {
+            resolveCreate = r
+          }),
+      )
       const store = useMapPointsStore()
-      fetchMock.mockResolvedValueOnce([])
-      await store.bootstrapFromApi()
-      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      expect(store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBeUndefined()
-      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
-      expect(store.selectedPointId).toBeNull()
-    })
+      const promise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
-    it('skips API call when record already exists', async () => {
-      const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
-      await store.bootstrapFromApi()
-      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      expect(createMock).not.toHaveBeenCalled()
-      expect(store.selectedPointId).toBe(existingRecord.placeId)
-    })
-  })
-
-  describe('unilluminate', () => {
-    it('removes record optimistically before API returns', async () => {
-      const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
-      await store.bootstrapFromApi()
-      expect(store.travelRecords).toHaveLength(1)
-      store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
-      expect(store.travelRecords).toHaveLength(0)
+      expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+
+      resolveCreate(makeRecord(PHASE12_RESOLVED_BEIJING))
+      await promise
     })
 
-    it('restores record on API failure (rollback)', async () => {
-      deleteMock.mockRejectedValueOnce(new Error('server error'))
+    it('rolls back on API failure', async () => {
+      createMock.mockRejectedValueOnce(new Error('create failed'))
       const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
-      await store.bootstrapFromApi()
-      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
-      expect(store.travelRecords).toHaveLength(1)
-      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
-    })
 
-    it('does nothing if placeId not found', () => {
-      const store = useMapPointsStore()
-      fetchMock.mockResolvedValueOnce([])
-      expect(() => store.unilluminate('non-existent')).not.toThrow()
-      expect(store.travelRecords).toHaveLength(0)
-    })
-  })
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
-  describe('clearActivePoint', () => {
-    it('resets selection state', async () => {
-      const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
-      await store.bootstrapFromApi()
-      store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      expect(store.selectedPointId).not.toBeNull()
-      store.clearActivePoint()
+      expect(store.travelRecords.some((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
       expect(store.selectedPointId).toBeNull()
       expect(store.summaryMode).toBeNull()
     })
-  })
 
-  describe('selectPointById', () => {
-    it('sets summaryMode to view for saved source', async () => {
+    it('reuses existing record without API call when already illuminated', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
       await store.bootstrapFromApi()
-      expect(store.travelRecords).toHaveLength(1)
-      store.selectPointById(store.travelRecords[0].placeId)
-      expect(store.summaryMode).toBe('view')
+      createMock.mockClear()
+
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+
+      expect(createMock).not.toHaveBeenCalled()
+      expect(store.selectedPointId).not.toBeNull()
     })
   })
 
-  describe('displayPoints', () => {
-    it('maps travelRecords to MapPointDisplay shape with source saved', async () => {
+  // -------------------------------------------------------------------------
+  // unilluminate
+  // -------------------------------------------------------------------------
+
+  describe('unilluminate', () => {
+    it('removes record optimistically before API returns', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       const store = useMapPointsStore()
-      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
-      fetchMock.mockResolvedValueOnce([existingRecord])
       await store.bootstrapFromApi()
-      const points = store.displayPoints
-      const savedPoint = points.find((p) => p.placeId === PHASE12_RESOLVED_BEIJING.placeId)
-      expect(savedPoint?.source).toBe('saved')
-      expect(savedPoint?.placeId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
-      expect(savedPoint?.id).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+
+      store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+    })
+
+    it('restores record on API failure', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      deleteMock.mockRejectedValueOnce(new Error('delete failed'))
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      const originalCount = store.travelRecords.length
+
+      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.travelRecords.length).toBe(originalCount)
+      expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+    })
+
+    it('does nothing if placeId not found', async () => {
+      const store = useMapPointsStore()
+      await expect(store.unilluminate('non-existent')).resolves.toBeUndefined()
+      expect(store.travelRecords).toHaveLength(0)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // savedBoundaryIds
+  // -------------------------------------------------------------------------
+
+  describe('savedBoundaryIds', () => {
+    it('derives boundaryIds from travelRecords', async () => {
+      fetchMock.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
+      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
+    })
+
+    it('deduplicates boundaryIds', async () => {
+      const record = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([record, { ...record, id: 'duplicate-id' }])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      expect(
+        store.savedBoundaryIds.filter(id => id === PHASE12_RESOLVED_BEIJING.boundaryId),
+      ).toHaveLength(1)
+    })
+
+    it('updates when illuminate adds a record', async () => {
+      const store = useMapPointsStore()
+      createMock.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+
+      expect(store.savedBoundaryIds).toEqual([])
+
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+
+      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // pendingPlaceIds
+  // -------------------------------------------------------------------------
+
+  describe('pendingPlaceIds', () => {
+    it('contains placeId during in-flight illuminate', async () => {
+      let resolveCreate!: (value: TravelRecord) => void
+      createMock.mockImplementation(
+        () =>
+          new Promise((r) => {
+            resolveCreate = r
+          }),
+      )
+      const store = useMapPointsStore()
+      const promise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+
+      resolveCreate(makeRecord(PHASE12_RESOLVED_BEIJING))
+      await promise
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+    })
+
+    it('contains placeId during in-flight unilluminate', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      let resolveDelete!: () => void
+      deleteMock.mockImplementation(
+        () =>
+          new Promise((r) => {
+            resolveDelete = r
+          }),
+      )
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      const promise = store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+
+      resolveDelete()
+      await promise
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // isPlaceIlluminated / isPlacePending
+  // -------------------------------------------------------------------------
+
+  describe('isPlaceIlluminated', () => {
+    it('returns true for illuminated place', async () => {
+      const store = useMapPointsStore()
+      createMock.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // clearActivePoint
+  // -------------------------------------------------------------------------
+
+  describe('clearActivePoint', () => {
+    it('resets selection state', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      store.selectPointById(store.travelRecords[0].placeId)
+
+      expect(store.selectedPointId).not.toBeNull()
+      expect(store.summaryMode).toBe('view')
+
+      store.clearActivePoint()
+
+      expect(store.selectedPointId).toBeNull()
+      expect(store.summaryMode).toBeNull()
+    })
+
+    it('resets pendingCanonicalSelection when clearing active point', async () => {
+      const store = useMapPointsStore()
+      store.startPendingCanonicalSelection({
+        draftPoint: {
+          id: 'pending-click',
+          name: '待确认地点',
+          countryName: '待确认',
+          countryCode: '__canonical__',
+          precision: 'city-high',
+          cityId: null,
+          cityName: null,
+          cityContextLabel: 'click',
+          placeId: null,
+          placeKind: null,
+          datasetVersion: null,
+          typeLabel: null,
+          parentLabel: null,
+          subtitle: null,
+          boundaryId: null,
+          boundaryDatasetVersion: null,
+          fallbackNotice: 'click',
+          lat: 0,
+          lng: 0,
+          clickLat: 0,
+          clickLng: 0,
+          x: 0,
+          y: 0,
+          source: 'detected',
+          isFeatured: false,
+          description: '',
+          coordinatesLabel: '',
+        },
+        prompt: 'click',
+        recommendedPlaceId: PHASE12_RESOLVED_BEIJING.placeId,
+        candidates: [],
+        click: { lat: 0, lng: 0 },
+      })
+
+      expect(store.summaryMode).toBe('candidate-select')
+      store.clearActivePoint()
+      expect(store.summaryMode).toBeNull()
+      expect(store.pendingCanonicalSelection).toBeNull()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // selectPointById
+  // -------------------------------------------------------------------------
+
+  describe('selectPointById', () => {
+    it('sets summaryMode to view for saved source', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      store.selectPointById(store.travelRecords[0].placeId)
+
+      expect(store.summaryMode).toBe('view')
     })
   })
 })

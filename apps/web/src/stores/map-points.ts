@@ -300,6 +300,13 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }) {
     const { placeId, boundaryId, placeKind, datasetVersion, displayName, subtitle } = summary
 
+    // Skip if already illuminated
+    if (travelRecords.value.some((r) => r.placeId === placeId)) {
+      selectedPointId.value = placeId
+      summaryMode.value = 'view'
+      return
+    }
+
     const optimisticRecord: TravelRecord = {
       id: `pending-${placeId}`,
       placeId,
