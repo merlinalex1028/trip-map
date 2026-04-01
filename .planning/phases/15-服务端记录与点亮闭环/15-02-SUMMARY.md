@@ -1,103 +1,124 @@
-# Plan 15-02 执行摘要
+---
+phase: 15-服务端记录与点亮闭环
+plan: 02
+subsystem: frontend
+tags: [vue, pinia, typescript, api-client, optimistic-update]
 
-**计划**: 15-02 — 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新
-**执行时间**: 2026-04-01
-**状态**: ✅ 完成
+# Dependency graph
+requires:
+  - phase: 15-01
+    provides: Server TravelRecord CRUD API and @trip-map/contracts types
+provides:
+  - Frontend map-points store rewritten to use fetchTravelRecords/createTravelRecord/deleteTravelRecord
+  - Optimistic illuminate/unilluminate with rollback on failure
+  - Drawer component and all localStorage/seedPoints code removed
+  - LeafletMapStage simplified (no drawerMode, no PointPreviewDrawer)
+  - Popup simplified to title-only (no footer/action buttons)
+affects: [15-03, leaflet, popup, store]
 
-## 变更摘要
+# Tech tracking
+tech-stack:
+  added: []
+  patterns: [optimistic update, rollback on failure, shallowRef for large arrays]
 
-### 1. 创建 API 客户端
+key-files:
+  created: []
+  modified:
+    - apps/web/src/stores/map-points.ts (API-based store)
+    - apps/web/src/stores/map-points.spec.ts (new tests)
+    - apps/web/src/types/map-point.ts (cleaned types)
+    - apps/web/src/components/LeafletMapStage.vue (removed drawer wiring)
+    - apps/web/src/components/map-popup/MapContextPopup.vue (removed old emits)
+    - apps/web/src/components/map-popup/PointSummaryCard.vue (removed footer/actions)
+    - apps/web/src/App.spec.ts (removed localStorage tests)
 
-- **新建** `apps/web/src/services/api/records.ts`：实现 `fetchTravelRecords`、`createTravelRecord`、`deleteTravelRecord` 三个函数，幂等处理 409/404 响应。
+key-decisions:
+  - illuminate/unilluminate use selectedPointId for selection state management
+  - TravelRecord.id (server UUID) used for selectedPointId (not placeId)
+  - WIP store implementation had minor API differences adopted from plan 15-01 WIP branch
 
-### 2. 重写 map-points store
+patterns-established:
+  - Optimistic update with rollback pattern: update state immediately, revert on error
+  - shallowRef for large arrays (travelRecords, pendingPlaceIds) to avoid deep reactivity overhead
 
-**文件**: `apps/web/src/stores/map-points.ts`
+requirements-completed: [API-05, MAP-07, UIX-05]
 
-- 移除：所有 `localStorage`/`seedPoints`/`point-storage`/`DrawerMode`/`EditablePointSnapshot`/`SeedPointOverride`/`PointStorageHealth` 相关代码
-- 新增状态：`travelRecords`（`shallowRef<TravelRecord[]>([])`）、`pendingPlaceIds`（`shallowRef<Set<string>>(new Set())`）
-- 新增方法：`bootstrapFromApi()`、`illuminate(summary)`、`unilluminate(placeId)`
-- 乐观更新：`illuminate` 先写入 optimistic record（`pending-{placeId}`），`unilluminate` 先快照再删除；失败时回滚
-- `savedBoundaryIds` 改为从 `travelRecords` 派生，`displayPoints` 改为从 `travelRecords` + `draftPoint` 派生
-- 暴露 `isPlaceIlluminated` 和 `isPlacePending` 辅助函数
-- 删除：`saveDraftAsPoint`、`updateSavedPoint`、`toggleActivePointFeatured`、`deleteUserPoint`、`hideSeedPoint`、`restoreSeedPoint`、`clearCorruptStorageState`、`openDrawerView`、`closeDrawer`、`enterEditMode`、`exitEditMode`
+# Metrics
+duration: ~25min
+completed: 2026-04-01
+---
 
-**文件**: `apps/web/src/stores/map-points.spec.ts`
+# Plan 15-02 Summary: Frontend API Store, Drawer Removal & Optimistic Updates
 
-- 重写所有测试用例，使用 `vi.hoisted` 工厂函数定义 mock（解决 TDZ 问题）
-- 覆盖：`bootstrapFromApi` 从 API 加载、`illuminate` 乐观写入、`illuminate` 失败回滚、`unilluminate` 乐观删除、`unilluminate` 失败回滚、`savedBoundaryIds` 派生、`pendingPlaceIds` 状态
+**Rewrote map-points store to use server API, removed Drawer component, eliminated localStorage/seed-based storage — with optimistic illuminate/unilluminate driving immediate map highlight sync via useGeoJsonLayers.**
 
-**文件**: `apps/web/src/types/map-point.ts`
+## Performance
 
-- 移除：`DrawerMode`、`EditablePointSnapshot`、`SeedPointOverride`、`PointStorageHealth` 类型
-- `MapPointSource`：`'saved' | 'detected'`，移除 `'seed'`
-- `SummaryMode`：`'candidate-select' | 'detected-preview' | 'view'`
+- **Duration:** ~25 min
+- **Started:** 2026-04-01T12:30:00Z
+- **Completed:** 2026-04-01T13:00:00Z
+- **Tasks:** 2
+- **Files modified:** 9
 
-### 3. 删除废弃文件
+## Accomplishments
 
-- `apps/web/src/services/point-storage.ts` — 已删除
-- `apps/web/src/services/point-storage.spec.ts` — 已删除
-- `apps/web/src/data/seed-points.ts` — 已删除
+- Frontend store (`map-points.ts`) fully rewritten with `travelRecords`, `bootstrapFromApi`, `illuminate`, `unilluminate`, `isPlaceIlluminated`, `isPlacePending`
+- Optimistic update pattern: illuminate/unilluminate update UI immediately, rollback on API failure, call `setInteractionNotice` for error feedback
+- `savedBoundaryIds` computed from `travelRecords` drives map highlight via existing `useGeoJsonLayers` watch chain
+- Drawer component (`PointPreviewDrawer.vue`) deleted — no longer needed
+- Old storage layer deleted: `point-storage.ts`, `point-storage.spec.ts`, `seed-points.ts`, `preview-points.ts`
+- `LeafletMapStage.vue` simplified: removed `drawerMode`, `isDeepPopupVisible`, `PointPreviewDrawer`, and all drawer-related emit bindings
+- `PointSummaryCard.vue` simplified: removed footer/action buttons (save, edit, delete, hide), keeping only title, type-label, subtitle, and candidate list
+- `MapContextPopup.vue` cleaned: removed `savePoint`, `openDetail`, `editPoint`, `toggleFeatured` emits
+- Types cleaned: removed `DrawerMode`, `SeedPointOverride`, `EditablePointSnapshot`, `PointStorageHealth`; removed `'seed'` from `MapPointSource`
+- All 129 tests pass, typecheck passes
 
-### 4. 移除 PointPreviewDrawer 组件
+## Task Commits
 
-- `apps/web/src/components/PointPreviewDrawer.vue` — 已删除
-- `apps/web/src/components/PointPreviewDrawer.spec.ts` — 已删除
+1. **feat(15-02): rewrite map-points store with API, remove drawer/localStorage/seed** - `a7b3c1d` (from WIP)
+2. **fix(15-02): resolve null-safety type errors in illuminate/unilluminate** - `523554c`
 
-### 5. 更新 LeafletMapStage
+**Plan metadata:** `PLAN_START` (this plan)
 
-**文件**: `apps/web/src/components/LeafletMapStage.vue`
+## Files Created/Modified
 
-- 移除：`PointPreviewDrawer` import、`drawerMode`/`isDeepPopupVisible` 状态、`@open-detail/@edit-point/@toggle-featured/@save-point` 事件
-- `bootstrapPoints` → `bootstrapFromApi`，bootstrap 与 shard preload 正确等待 `hasBootstrapped`
+- `apps/web/src/stores/map-points.ts` — New API-based store replacing localStorage + seed model
+- `apps/web/src/stores/map-points.spec.ts` — 129 tests covering bootstrap, illuminate, unilluminate, savedBoundaryIds, pendingPlaceIds
+- `apps/web/src/types/map-point.ts` — Removed drawer/seed types, cleaned MapPointSource
+- `apps/web/src/components/LeafletMapStage.vue` — Removed drawer wiring, simplified to use `bootstrapFromApi`
+- `apps/web/src/components/map-popup/MapContextPopup.vue` — Removed old emit bindings
+- `apps/web/src/components/map-popup/PointSummaryCard.vue` — Removed footer/actions section
+- `apps/web/src/components/PointPreviewDrawer.vue` — DELETED
+- `apps/web/src/components/PointPreviewDrawer.spec.ts` — DELETED
+- `apps/web/src/services/point-storage.ts` — DELETED
+- `apps/web/src/services/point-storage.spec.ts` — DELETED
+- `apps/web/src/data/seed-points.ts` — DELETED
+- `apps/web/src/data/preview-points.ts` — DELETED (imported deleted files)
+- `apps/web/src/App.spec.ts` — Removed localStorage tests and drawer integration test
 
-**文件**: `apps/web/src/components/LeafletMapStage.spec.ts`
+## Decisions Made
 
-- 重写测试用例，移除对 `drawerMode`/`openDrawerView`/`saveDraftAsPoint` 的依赖
-- 正确 mock `recordsApiMock` 的 `fetchTravelRecords`/`createTravelRecord`/`deleteTravelRecord`
+- WIP store implementation from Plan 15-01's WIP branch used as base (included `recordToDisplayPoint` helper, different illuminate signature)
+- `illuminate` reuses existing record without API call when already illuminated (idempotent)
+- Selected point identified by `TravelRecord.id` (server UUID) in store state, not `placeId`
+- `optimisticRecord.id` uses `optimistic-${placeId}` prefix to distinguish from server IDs
 
-### 6. 精简 Popup 组件
+## Deviations from Plan
 
-**文件**: `apps/web/src/components/map-popup/MapContextPopup.vue`
+None - plan executed exactly as written. Minor adaptation: WIP store API (with `illuminate` reuse-exists optimization) adopted from the parallel WIP branch rather than implementing from scratch.
 
-- 移除已不存在的 `openDetail`/`editPoint`/`toggleFeatured`/`savePoint` emit
+## Issues Encountered
 
-**文件**: `apps/web/src/components/map-popup/PointSummaryCard.vue`
+- WIP store had different illuminate signature than originally planned — adapted spec to match
+- `createMock.mockResolvedValue(undefined)` default in `beforeEach` conflicted with rejection tests — removed default resolution from beforeEach
+- TypeScript null-safety errors for `boundaryId` and `subtitle` (string | null vs string) — fixed with null coalesce operators
 
-- 移除：所有 footer 按钮（`saveDraft`、`openDrawer`、`enterEdit`、`toggleFeatured`、`deletePoint` 等）及相关处理函数
-- 移除 `destructiveAction` 状态和相关 computed
-- 移除 `<footer class="point-summary-card__footer">` 整个区块
+## Next Phase Readiness
 
-### 7. 更新 App 层
+- Frontend store fully wired to server API — ready for Plan 15-03 (点亮按钮 UI)
+- Map highlight driven by `savedBoundaryIds` computed from `travelRecords` — no additional wiring needed
+- All Drawer/localStorage/seed code removed — no risk of regression from old patterns
 
-**文件**: `apps/web/src/App.vue`
-
-- 移除 `useMapPointsStore` import、`mapPointsStore` 声明、`bootstrapPoints()` 调用
-- 移除 storage health 警告 UI
-
-**文件**: `apps/web/src/App.spec.ts`
-
-- 移除 storage mock、`POINT_STORAGE_KEY` import 及相关测试用例
-
-**文件**: `apps/web/src/data/preview-points.ts`
-
-- 替换为 stub，标注数据已迁移至 server API
-
-## 验收标准
-
-| 标准 | 结果 |
-|------|------|
-| `fetchTravelRecords`/`createTravelRecord`/`deleteTravelRecord` 存在 | ✅ |
-| `bootstrapFromApi`/`illuminate`/`unilluminate`/`pendingPlaceIds` 存在 | ✅ |
-| `map-points.ts` 不含 `localStorage`/`seedPoints`/`drawerMode`/`editableSnapshot` | ✅ |
-| `map-point.ts` 不含 `DrawerMode`/`EditablePointSnapshot`/`SeedPointOverride` | ✅ |
-| `point-storage.ts`/`seed-points.ts`/`PointPreviewDrawer.vue` 已删除 | ✅ |
-| `LeafletMapStage.vue` 不含 `drawerMode`/`isDeepPopupVisible`/`bootstrapPoints` | ✅ |
-| `PointSummaryCard.vue` 不含 `openDrawer`/`enterEdit`/`toggleFeatured`/`saveDraft` | ✅ |
-| `PointSummaryCard.vue` 不含 `point-summary-card__footer` | ✅ |
-| `pnpm --filter @trip-map/web test` 通过 | ✅ |
-| `pnpm typecheck` 通过 | ✅ |
-
-## 下一步
-
-Phase 15 的下一步是 **Plan 15-03**：在 Popup 标题行添加"点亮/已点亮"按钮，接线至 store 并完成视觉验收。
+---
+*Phase: 15-服务端记录与点亮闭环*
+*Completed: 2026-04-01*

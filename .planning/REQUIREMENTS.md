@@ -34,7 +34,7 @@
 - [x] **MAP-04**: 前端地图主引擎切换为 `Leaflet`，并保持现有主链路所需的点击、选中、高亮和弹层交互能力
 - [x] **MAP-05**: 地图会同时渲染海外一级行政区图层与中国市级图层，并在视觉与交互上保持统一体验
 - [x] **MAP-06**: 用户选中地点后，地图会以该行政区完整 GeoJSON 边界进行高亮，而不是退回单点 marker 作为主表达
-- [ ] **MAP-07**: 用户点亮或取消点亮地点后，地图边界样式会立即与当前记录状态同步
+- [x] **MAP-07**: 用户点亮或取消点亮地点后，地图边界样式会立即与当前记录状态同步
 - [x] **MAP-08**: 地图切换选中对象、关闭 popup、重开已有记录时，不会残留错误高亮或出现双重选中状态
 
 ### Records & API
@@ -43,7 +43,7 @@
 - [ ] **API-02**: 点亮 / 取消点亮动作以 canonical `placeId` 为目标，而不是依赖前端临时点位或展示名
 - [x] **API-03**: 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界
 - [ ] **API-04**: 首发版本默认不要求引入 `PostGIS`、`Redis`、`BullMQ` 或对象存储，只有在实际规模证明需要时再升级基础设施
-- [ ] **API-05**: `v3.0` 启动后系统不再读取、迁移或兼容旧 `localStorage` 旅行数据，统一以新的服务端数据模型为准
+- [x] **API-05**: `v3.0` 启动后系统不再读取、迁移或兼容旧 `localStorage` 旅行数据，统一以新的服务端数据模型为准
 
 ### Popup, Drawer & Inline Illuminate
 
@@ -51,7 +51,7 @@
 - [ ] **UIX-02**: 地点面板标题右侧提供明确的“点亮 / 取消点亮”按钮，不使用 checkbox 作为主要交互形式
 - [ ] **UIX-03**: 用户点击点亮 / 取消点亮后，可以立即看到按钮文案、状态色和地图边界高亮同步变化
 - [x] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
-- [ ] **UIX-05**: popup、drawer、地图高亮和 API 返回状态在成功、失败、加载中三种情况下都保持一致反馈
+- [x] **UIX-05**: popup、drawer、地图高亮和 API 返回状态在成功、失败、加载中三种情况下都保持一致反馈
 
 ## Future Requirements
 
@@ -99,18 +99,18 @@
 | MAP-04 | Phase 14 | Complete |
 | MAP-05 | Phase 14 | Complete |
 | MAP-06 | Phase 14 | Complete |
-| MAP-07 | Phase 15 | Pending |
+| MAP-07 | Phase 15 | Complete |
 | MAP-08 | Phase 14 | Complete |
 | API-01 | Phase 15 | Pending |
 | API-02 | Phase 15 | Pending |
 | API-03 | Phase 13 | Complete |
 | API-04 | Phase 11 | Complete |
-| API-05 | Phase 15 | Pending |
+| API-05 | Phase 15 | Complete |
 | UIX-01 | Phase 14 | Complete |
 | UIX-02 | Phase 15 | Pending |
 | UIX-03 | Phase 15 | Pending |
 | UIX-04 | Phase 12 | Complete |
-| UIX-05 | Phase 15 | Pending |
+| UIX-05 | Phase 15 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 29 total
