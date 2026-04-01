@@ -17,10 +17,11 @@ import {
   GEOMETRY_DATASET_VERSION,
   getGeometryManifestEntry,
 } from '../services/geometry-manifest'
+import { lookupCountryRegionByCoordinates } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
-import type { GeoCityCandidate } from '../types/geo'
+import type { GeoCityCandidate, GeoDetectionResult } from '../types/geo'
 import type { DraftMapPoint } from '../types/map-point'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 
@@ -341,6 +342,41 @@ function buildPendingCanonicalDraft(
   }
 }
 
+function buildFallbackDraftPoint(
+  result: GeoDetectionResult,
+  geo: { lat: number; lng: number },
+): DraftMapPoint {
+  return {
+    id: `detected-geo-${Math.round(geo.lat * 100)}-${Math.round(geo.lng * 100)}`,
+    name: result.displayName,
+    countryName: result.countryName,
+    countryCode: result.countryCode,
+    precision: result.precision,
+    cityId: result.cityId,
+    cityName: result.cityName,
+    cityContextLabel: result.regionName ?? null,
+    placeId: null,
+    placeKind: null,
+    datasetVersion: null,
+    typeLabel: null,
+    parentLabel: null,
+    subtitle: null,
+    boundaryId: null,
+    boundaryDatasetVersion: null,
+    fallbackNotice: result.fallbackNotice,
+    lat: geo.lat,
+    lng: geo.lng,
+    clickLat: geo.lat,
+    clickLng: geo.lng,
+    x: 0,
+    y: 0,
+    source: 'detected',
+    isFeatured: false,
+    coordinatesLabel: formatCoordinatesLabel(geo),
+    description: '',
+  }
+}
+
 function applyResolvedPlace(
   place: Parameters<typeof buildCanonicalDraftPoint>[0],
   geo: { lat: number; lng: number },
@@ -611,6 +647,17 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
       return
     }
 
+    if (response.reason === 'OUTSIDE_SUPPORTED_DATA') {
+      const geoResult = lookupCountryRegionByCoordinates({ lat, lng })
+      if (geoResult) {
+        openSavedPointForPlaceOrStartDraft(buildFallbackDraftPoint(geoResult, { lat, lng }))
+        popupLatLng.value = L.latLng(lat, lng)
+        clearInteractionNotice()
+        finishRecognition()
+        clearPendingGeoHit()
+        return
+      }
+    }
     setInteractionNotice({
       tone: 'info',
       message: response.message,
