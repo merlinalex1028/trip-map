@@ -6,12 +6,14 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common'
+import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import type { CanonicalResolveResponse } from '@trip-map/contracts'
 
 import { ConfirmCanonicalPlaceDto } from './dto/confirm-canonical-place.dto.js'
 import { ResolveCanonicalPlaceDto } from './dto/resolve-canonical-place.dto.js'
 import { CanonicalPlacesService } from './canonical-places.service.js'
 
+@ApiTags('canonical-places')
 @Controller('places')
 export class CanonicalPlacesController {
   constructor(
@@ -20,6 +22,8 @@ export class CanonicalPlacesController {
   ) {}
 
   @Post('resolve')
+  @ApiOperation({ summary: '解析候选地点' })
+  @ApiCreatedResponse()
   @UsePipes(new ValidationPipe({
     whitelist: true,
     transform: true,
@@ -33,6 +37,8 @@ export class CanonicalPlacesController {
   }
 
   @Post('confirm')
+  @ApiOperation({ summary: '确认地点' })
+  @ApiCreatedResponse()
   @UsePipes(new ValidationPipe({
     whitelist: true,
     transform: true,

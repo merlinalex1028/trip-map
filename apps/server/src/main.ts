@@ -6,6 +6,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from '@nestjs/platform-fastify'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { fileURLToPath } from 'node:url'
 
 import { AppModule } from './app.module.js'
@@ -25,6 +26,15 @@ export async function createApp(): Promise<NestFastifyApplication> {
       forbidNonWhitelisted: true,
     }),
   )
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Trip Map API')
+    .setDescription('trip-map 后端接口文档')
+    .setVersion('1.0')
+    .build()
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig)
+  SwaggerModule.setup('api-docs', app, document)
 
   return app
 }
