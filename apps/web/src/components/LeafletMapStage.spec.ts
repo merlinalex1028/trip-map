@@ -32,6 +32,12 @@ const geometryManifestMock = vi.hoisted(() => ({
   getGeometryManifestEntry: vi.fn<(...args: any[]) => any>(() => null),
 }))
 
+const recordsApiMock = vi.hoisted(() => ({
+  fetchTravelRecords: vi.fn().mockResolvedValue([]),
+  createTravelRecord: vi.fn(),
+  deleteTravelRecord: vi.fn(),
+}))
+
 // Capture the click handler registered via map.on('click', handler)
 let capturedMapClickHandler: ((e: { latlng: { lat: number; lng: number } }) => void) | null = null
 // Capture addFeatures calls from useGeoJsonLayers
@@ -39,7 +45,6 @@ const addFeaturesMock = vi.fn()
 const refreshStylesMock = vi.fn()
 
 // Container created in vi.hoisted (runs before imports, no TDZ issue)
-// The actual shallowRefs are assigned inside the async mock factory below
 const leafletMapContainer = vi.hoisted(() => ({
   mapRef: null as unknown,
   isReadyRef: null as unknown,
@@ -49,7 +54,6 @@ vi.mock('../composables/useLeafletMap', async () => {
   const { shallowRef } = await import('vue')
   const map = shallowRef(null)
   const isReady = shallowRef(false)
-  // Store refs in the hoisted container so tests can control them
   leafletMapContainer.mapRef = map
   leafletMapContainer.isReadyRef = isReady
   return {
@@ -98,20 +102,28 @@ vi.mock('../services/geometry-manifest', () => ({
   getGeometryManifestEntry: geometryManifestMock.getGeometryManifestEntry,
 }))
 
+vi.mock('../services/api/records', () => ({
+  fetchTravelRecords: recordsApiMock.fetchTravelRecords,
+  createTravelRecord: recordsApiMock.createTravelRecord,
+  deleteTravelRecord: recordsApiMock.deleteTravelRecord,
+}))
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function installStorageMock() {
-  const storage = new Map<string, string>()
-  const mock = {
-    getItem: (key: string) => storage.get(key) ?? null,
-    setItem: (key: string, value: string) => { storage.set(key, value) },
-    removeItem: (key: string) => { storage.delete(key) },
-    clear: () => { storage.clear() },
+/** Build a travel record from a ResolvedCanonicalPlace */
+function makeRecord(place: typeof PHASE12_RESOLVED_BEIJING) {
+  return {
+    id: `server-rec-${place.placeId}`,
+    placeId: place.placeId,
+    boundaryId: place.boundaryId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    displayName: place.displayName,
+    subtitle: place.subtitle,
+    createdAt: new Date().toISOString(),
   }
-  vi.stubGlobal('localStorage', mock)
-  Object.defineProperty(window, 'localStorage', { configurable: true, value: mock })
 }
 
 /** Simulate a Leaflet map 'click' event on the component under test */
@@ -149,7 +161,6 @@ describe('LeafletMapStage', () => {
   beforeEach(() => {
     pinia = createPinia()
     setActivePinia(pinia)
-    installStorageMock()
 
     // Reset mocks
     addFeaturesMock.mockReset()
@@ -158,6 +169,9 @@ describe('LeafletMapStage', () => {
     canonicalPlacesMock.confirmCanonicalPlace.mockReset()
     geometryLoaderMock.loadGeometryShard.mockReset()
     geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
+    recordsApiMock.fetchTravelRecords.mockReset().mockResolvedValue([])
+    recordsApiMock.createTravelRecord.mockReset().mockResolvedValue({ id: 'server-rec', placeId: '', boundaryId: '', placeKind: 'CN_ADMIN', datasetVersion: '', displayName: '', subtitle: '', createdAt: new Date().toISOString() })
+    recordsApiMock.deleteTravelRecord.mockReset().mockResolvedValue(undefined)
     capturedMapClickHandler = null
 
     // Reset leaflet map mock state
@@ -236,7 +250,6 @@ describe('LeafletMapStage', () => {
       const fc = makeFakeFeatureCollection()
 
       // Configure manifest mock to return entries for both layers
-      let callCount = 0
       geometryManifestMock.getGeometryManifestEntry.mockImplementation((boundaryId: string) => {
         if (boundaryId === PHASE12_RESOLVED_BEIJING.boundaryId) {
           return {
@@ -260,67 +273,15 @@ describe('LeafletMapStage', () => {
       })
       geometryLoaderMock.loadGeometryShard.mockResolvedValue(fc)
 
-      const mapPointsStore = useMapPointsStore()
-      // Pre-save two points: one CN, one OVERSEAS
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'test',
-      })
-      mapPointsStore.saveDraftAsPoint()
-
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-overseas-california',
-        name: 'California',
-        countryName: 'United States',
-        countryCode: '__canonical__',
-        precision: 'city-high',
-        cityId: null,
-        cityName: 'California',
-        cityContextLabel: 'United States · 一级行政区',
-        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-        placeKind: 'OVERSEAS_ADMIN1',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '一级行政区',
-        parentLabel: 'United States',
-        subtitle: 'United States · 一级行政区',
-        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 36.7783, lng: -119.4179,
-        clickLat: 36.7783, clickLng: -119.4179,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '36.7783°N, 119.4179°W',
-        description: 'test',
-      })
-      mapPointsStore.saveDraftAsPoint()
+      // Pre-save two points: one CN, one OVERSEAS via illuminate
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ])
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
-      // Set map ready to trigger preloadSavedBoundaryShards
+      // Set map ready to trigger bootstrapFromApi and preloadSavedBoundaryShards
       ;(leafletMapContainer.isReadyRef as any).value = true
       await nextTick()
       await flushPromises()
@@ -505,41 +466,12 @@ describe('LeafletMapStage', () => {
 
   describe('boundary click -> saved point shortcut', () => {
     it('opens saved point popup without calling resolveCanonicalPlace (D-12)', async () => {
+      // Pre-save a point via illuminate so the boundary click shortcut works
       const mapPointsStore = useMapPointsStore()
-
-      // Pre-save a point with a known boundaryId
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'test point',
-      })
-      mapPointsStore.saveDraftAsPoint()
-
-      // Spy on openSavedPointForPlaceOrStartDraft indirectly via store state
-      // After saving, clear any selection to start fresh
-      mapPointsStore.clearActivePoint()
-      await nextTick()
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+      ])
+      await mapPointsStore.bootstrapFromApi()
 
       // Capture boundary click callback from useGeoJsonLayers mock
       let capturedBoundaryClickHandler: ((boundaryId: string, latlng: import('leaflet').LatLng) => void) | null = null
@@ -579,103 +511,29 @@ describe('LeafletMapStage', () => {
   })
 
   // -------------------------------------------------------------------------
-  // POPUP AND DRAWER VISIBILITY (UIX-01)
+  // POPUP VISIBILITY (UIX-01 — drawer removed per D-01)
   // -------------------------------------------------------------------------
 
-  describe('popup and drawer visibility', () => {
-    it('shows MapContextPopup when summarySurfaceState is set and no drawer (UIX-01)', async () => {
+  describe('popup visibility (drawer removed per D-01)', () => {
+    it('shows MapContextPopup when summarySurfaceState is set (UIX-01)', async () => {
       const mapPointsStore = useMapPointsStore()
 
-      // Create a saved point so summarySurfaceState has a value
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'test',
-      })
-      mapPointsStore.saveDraftAsPoint()
+      // Pre-save a point via illuminate so summarySurfaceState has a value
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+      ])
+      await mapPointsStore.bootstrapFromApi()
+      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
 
       expect(mapPointsStore.summarySurfaceState).not.toBeNull()
-      expect(mapPointsStore.drawerMode).toBeNull()
-
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
-      await nextTick()
-
-      // isSummarySurfaceVisible = summarySurfaceState && drawerMode === null
-      // isDesktopPopupVisible = isSummarySurfaceVisible && popupAnchor !== null
-      // Note: popupAnchor requires virtualElement which is null in this test (mocked),
-      // so MapContextPopup won't render (popupAnchor=null). We verify state is correct.
-      expect(mapPointsStore.drawerMode).toBeNull()
       expect(mapPointsStore.summarySurfaceState?.mode).toBe('view')
 
-      // Verify MapContextPopup is conditionally absent (popupAnchor is null from mock)
-      expect(wrapper.find('[data-region="map-context-popup"]').exists()).toBe(false)
-    })
-
-    it('shows PointPreviewDrawer when drawerMode is set (UIX-01)', async () => {
-      const mapPointsStore = useMapPointsStore()
-
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'test',
-      })
-      mapPointsStore.saveDraftAsPoint()
-      mapPointsStore.openDrawerView()
-
-      expect(mapPointsStore.drawerMode).toBe('view')
-      expect(mapPointsStore.summarySurfaceState).not.toBeNull()
-
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
 
-      // isDeepPopupVisible = summarySurfaceState && popupAnchor !== null && drawerMode !== null
-      // popupAnchor is null because virtualElement is null from mock
-      // Still verify the store state reflects drawer mode correctly
-      expect(mapPointsStore.drawerMode).toBe('view')
-      // PointPreviewDrawer won't show without popupAnchor - verify via state
-      expect(wrapper.find('.leaflet-map-stage').exists()).toBe(true)
+      // popupAnchor is null from mock, so MapContextPopup won't render.
+      // We verify the store state is correct.
+      expect(mapPointsStore.summarySurfaceState?.mode).toBe('view')
     })
   })
 
@@ -685,37 +543,14 @@ describe('LeafletMapStage', () => {
 
   describe('highlight state transitions', () => {
     it('refreshes styles when selectedBoundaryId changes (MAP-06)', async () => {
-      // refreshStyles is called by useGeoJsonLayers's internal selectedBoundaryId watcher
-      // We verify the store's selectedBoundaryId changes correctly after a point is selected
       const mapPointsStore = useMapPointsStore()
 
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'test',
-      })
-      const savedPoint = mapPointsStore.saveDraftAsPoint()
+      // Pre-save a point via illuminate
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+      ])
+      await mapPointsStore.bootstrapFromApi()
+      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
@@ -728,8 +563,8 @@ describe('LeafletMapStage', () => {
       await nextTick()
       expect(mapPointsStore.selectedBoundaryId).toBeNull()
 
-      // Re-select
-      mapPointsStore.selectPointById(savedPoint!.id)
+      // Re-select by illuminating again
+      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
       await nextTick()
       expect(mapPointsStore.selectedBoundaryId).toBe(PHASE12_RESOLVED_BEIJING.boundaryId)
     })
@@ -737,77 +572,27 @@ describe('LeafletMapStage', () => {
     it('no double-highlight on selection switch (MAP-08)', async () => {
       const mapPointsStore = useMapPointsStore()
 
-      // Save two points with different boundaryIds
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-cn-admin-beijing',
-        name: '北京',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: PHASE12_RESOLVED_BEIJING.placeId,
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 39.9042, lng: 116.4074,
-        clickLat: 39.9042, clickLng: 116.4074,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        description: 'point 1',
-      })
-      const point1 = mapPointsStore.saveDraftAsPoint()
-
-      mapPointsStore.startDraftFromDetection({
-        id: 'detected-overseas-california',
-        name: 'California',
-        countryName: 'United States',
-        countryCode: '__canonical__',
-        precision: 'city-high',
-        cityId: null,
-        cityName: 'California',
-        cityContextLabel: 'United States · 一级行政区',
-        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-        placeKind: 'OVERSEAS_ADMIN1',
-        datasetVersion: 'phase12-canonical-v1',
-        typeLabel: '一级行政区',
-        parentLabel: 'United States',
-        subtitle: 'United States · 一级行政区',
-        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-        boundaryDatasetVersion: 'phase12-canonical-v1',
-        fallbackNotice: null,
-        lat: 36.7783, lng: -119.4179,
-        clickLat: 36.7783, clickLng: -119.4179,
-        x: 0, y: 0,
-        source: 'detected',
-        isFeatured: false,
-        coordinatesLabel: '36.7783°N, 119.4179°W',
-        description: 'point 2',
-      })
-      const point2 = mapPointsStore.saveDraftAsPoint()
+      // Pre-save two points with different boundaryIds
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ])
+      await mapPointsStore.bootstrapFromApi()
+      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
+      mapPointsStore.illuminate(PHASE12_RESOLVED_CALIFORNIA)
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
 
-      // Select point1 -> verify selectedBoundaryId is point1's boundary
-      mapPointsStore.selectPointById(point1!.id)
-      await nextTick()
-      expect(mapPointsStore.selectedBoundaryId).toBe(PHASE12_RESOLVED_BEIJING.boundaryId)
+      // savedBoundaryIds should have both
+      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
+      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
 
-      // Switch to point2 -> verify selectedBoundaryId switches (no double-highlight)
-      mapPointsStore.selectPointById(point2!.id)
+      // Un-illuminate Beijing — California should remain highlighted
+      mapPointsStore.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
       await nextTick()
-      // selectedBoundaryId should now be California's boundaryId, not Beijing's
-      expect(mapPointsStore.selectedBoundaryId).toBe(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
-      expect(mapPointsStore.selectedBoundaryId).not.toBe(PHASE12_RESOLVED_BEIJING.boundaryId)
+      expect(mapPointsStore.savedBoundaryIds).not.toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
+      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
     })
   })
 })

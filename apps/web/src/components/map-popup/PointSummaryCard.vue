@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, shallowRef } from 'vue'
+import { computed } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
@@ -25,22 +25,14 @@ const props = defineProps<{
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueWithFallback: []
-  saveDraft: []
-  openDrawer: []
-  enterEdit: []
-  toggleFeatured: []
-  deletePoint: []
-  hidePoint: []
 }>()
-
-const destructiveAction = shallowRef<'delete' | 'hide' | null>(null)
 
 const isCandidateMode = computed(() => props.surface.mode === 'candidate-select')
 const candidateSurface = computed(() =>
-  props.surface.mode === 'candidate-select' ? props.surface : null
+  props.surface.mode === 'candidate-select' ? props.surface : null,
 )
 const detailSurface = computed(() =>
-  props.surface.mode === 'candidate-select' ? null : props.surface
+  props.surface.mode === 'candidate-select' ? null : props.surface,
 )
 const summaryPoint = computed(() => detailSurface.value?.point ?? null)
 const fallbackPoint = computed(() => candidateSurface.value?.fallbackPoint ?? null)
@@ -114,86 +106,12 @@ function getCandidateStatus(statusHint: string) {
   return statusHint === '已存在记录' ? 'saved' : 'available'
 }
 
-const destructiveLabel = computed(() => {
-  if (!summaryPoint.value) {
-    return null
-  }
-
-  if (summaryPoint.value.source === 'saved') {
-    return '删除地点'
-  }
-
-  if (summaryPoint.value.source === 'seed') {
-    return '隐藏预置地点'
-  }
-
-  return null
-})
-
-const destructivePrompt = computed(() => {
-  if (destructiveAction.value === 'delete') {
-    return '删除地点：确认删除这个地点？'
-  }
-
-  if (destructiveAction.value === 'hide') {
-    return '隐藏预置地点：确认隐藏这个预置地点？'
-  }
-
-  return null
-})
-
-function resetInlineConfirm() {
-  destructiveAction.value = null
-}
-
 function handleCandidateConfirm(candidate: GeoCityCandidate) {
-  resetInlineConfirm()
   emit('confirmCandidate', candidate)
 }
 
 function handleContinueWithFallback() {
-  resetInlineConfirm()
   emit('continueWithFallback')
-}
-
-function handleSaveDraft() {
-  resetInlineConfirm()
-  emit('saveDraft')
-}
-
-function handleOpenDrawer() {
-  resetInlineConfirm()
-  emit('openDrawer')
-}
-
-function handleEnterEdit() {
-  resetInlineConfirm()
-  emit('enterEdit')
-}
-
-function handleToggleFeatured() {
-  resetInlineConfirm()
-  emit('toggleFeatured')
-}
-
-function handleRequestDestructiveAction() {
-  if (!summaryPoint.value) {
-    return
-  }
-
-  destructiveAction.value = summaryPoint.value.source === 'saved' ? 'delete' : 'hide'
-}
-
-function handleConfirmDestructiveAction() {
-  if (destructiveAction.value === 'delete') {
-    emit('deletePoint')
-  }
-
-  if (destructiveAction.value === 'hide') {
-    emit('hidePoint')
-  }
-
-  destructiveAction.value = null
 }
 </script>
 
@@ -307,88 +225,15 @@ function handleConfirmDestructiveAction() {
             暂无可确认候选地点，请稍后重试。
           </p>
         </div>
-
-        <p v-else class="point-summary-card__description">
-          {{ summaryPoint?.description }}
-        </p>
       </div>
     </div>
-
-    <footer class="point-summary-card__footer" data-popup-section="footer">
-      <div class="point-summary-card__actions">
-        <template v-if="surface.mode === 'detected-preview'">
-          <button
-            class="point-summary-card__action point-summary-card__action--primary"
-            data-cta-tone="selected"
-            type="button"
-            @click="handleSaveDraft"
-          >
-            保存为地点
-          </button>
-          <button class="point-summary-card__action" type="button" @click="handleOpenDrawer">
-            查看详情
-          </button>
-          <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
-            点亮状态
-          </button>
-        </template>
-
-        <template v-else>
-          <button
-            class="point-summary-card__action point-summary-card__action--primary"
-            data-cta-tone="selected"
-            type="button"
-            @click="handleOpenDrawer"
-          >
-            查看详情
-          </button>
-          <button class="point-summary-card__action" type="button" @click="handleEnterEdit">
-            编辑地点
-          </button>
-          <button class="point-summary-card__action" type="button" @click="handleToggleFeatured">
-            点亮状态
-          </button>
-          <button
-            v-if="destructiveLabel"
-            class="point-summary-card__action point-summary-card__action--danger"
-            data-cta-tone="destructive"
-            type="button"
-            @click="handleRequestDestructiveAction"
-          >
-            {{ destructiveLabel }}
-          </button>
-        </template>
-      </div>
-
-      <div v-if="destructivePrompt" class="point-summary-card__confirm-row">
-        <p class="point-summary-card__confirm-copy">{{ destructivePrompt }}</p>
-        <div class="point-summary-card__confirm-actions">
-          <button
-            class="point-summary-card__confirm-action"
-            data-cta-tone="selected"
-            type="button"
-            @click="handleConfirmDestructiveAction"
-          >
-            确认
-          </button>
-          <button
-            class="point-summary-card__confirm-cancel"
-            data-cta-tone="destructive"
-            type="button"
-            @click="resetInlineConfirm"
-          >
-            取消
-          </button>
-        </div>
-      </div>
-    </footer>
   </article>
 </template>
 
 <style scoped>
 .point-summary-card {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   flex: 1 1 auto;
   gap: var(--space-md);
   min-height: 0;
@@ -406,12 +251,7 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__section,
 .point-summary-card__candidate-list,
 .point-summary-card__title-row,
-.point-summary-card__candidate-headline,
-.point-summary-card__footer,
-.point-summary-card__actions,
-.point-summary-card__confirm-row,
-.point-summary-card__confirm-actions,
-.point-summary-card__field {
+.point-summary-card__candidate-headline {
   display: grid;
   gap: var(--space-sm);
 }
@@ -420,13 +260,11 @@ function handleConfirmDestructiveAction() {
 .point-summary-card__title,
 .point-summary-card__meta,
 .point-summary-card__notice,
-.point-summary-card__description,
 .point-summary-card__empty,
 .point-summary-card__candidate-city,
 .point-summary-card__candidate-context,
 .point-summary-card__candidate-hint,
-.point-summary-card__candidate-cta,
-.point-summary-card__confirm-copy {
+.point-summary-card__candidate-cta {
   margin: 0;
 }
 
@@ -477,15 +315,12 @@ function handleConfirmDestructiveAction() {
   line-height: var(--font-label-line-height);
 }
 
-.point-summary-card__notice,
-.point-summary-card__confirm-copy {
+.point-summary-card__notice {
+  margin: 0;
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
-}
-
-.point-summary-card__notice {
   padding: 0.7rem 0.85rem;
   border: 1px dashed rgba(184, 198, 217, 0.84);
   border-radius: var(--radius-control);
@@ -513,54 +348,6 @@ function handleConfirmDestructiveAction() {
   padding-inline-end: 0.25rem;
 }
 
-.point-summary-card__description {
-  color: var(--color-ink-strong);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.point-summary-card__field-label {
-  color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
-  font-weight: var(--font-weight-label);
-  line-height: var(--font-label-line-height);
-}
-
-.point-summary-card__input,
-.point-summary-card__candidate-action,
-.point-summary-card__action,
-.point-summary-card__confirm-action,
-.point-summary-card__confirm-cancel {
-  min-height: 44px;
-  border: 1px solid rgba(199, 171, 200, 0.48);
-  border-radius: var(--radius-control);
-  background: rgba(255, 250, 252, 0.92);
-  color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
-}
-
-.point-summary-card__input {
-  padding: 0.85rem 0.95rem;
-}
-
-.point-summary-card__candidate-action {
-  position: relative;
-  justify-items: start;
-  padding: 0.85rem 0.95rem;
-  gap: var(--space-xs);
-  text-align: left;
-  cursor: pointer;
-}
-
-.point-summary-card__candidate-action[data-candidate-status='saved'] {
-  border-color: rgba(132, 199, 216, 0.76);
-  background: rgba(223, 244, 248, 0.9);
-}
-
-.point-summary-card__candidate-action[data-candidate-status='available'] {
-  background: rgba(255, 250, 252, 0.92);
-}
-
 .point-summary-card__candidate-city {
   font-weight: var(--font-weight-label);
 }
@@ -573,45 +360,31 @@ function handleConfirmDestructiveAction() {
   color: color-mix(in srgb, var(--color-state-saved) 70%, var(--color-ink-strong) 30%);
 }
 
-.point-summary-card__actions {
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-}
-
-.point-summary-card__footer {
-  align-content: start;
-  padding-top: var(--space-xs);
-}
-
-.point-summary-card__action,
-.point-summary-card__confirm-action,
-.point-summary-card__confirm-cancel {
-  padding: 0.75rem 0.95rem;
-  font-weight: var(--font-weight-label);
+.point-summary-card__candidate-action {
+  position: relative;
+  justify-items: start;
+  padding: 0.85rem 0.95rem;
+  gap: var(--space-xs);
+  text-align: left;
   cursor: pointer;
-}
-
-.point-summary-card__action--primary,
-.point-summary-card__confirm-action {
-  border-color: rgba(244, 143, 177, 0.56);
-  background: rgba(255, 220, 232, 0.88);
+  min-height: 44px;
+  border: 1px solid rgba(199, 171, 200, 0.48);
+  border-radius: var(--radius-control);
+  background: rgba(255, 250, 252, 0.92);
   color: var(--color-ink-strong);
+  font-size: var(--font-label-size);
 }
 
-.point-summary-card__action--danger {
-  border-color: rgba(200, 100, 100, 0.48);
-  background: rgba(255, 243, 244, 0.94);
-  color: var(--color-destructive);
+.point-summary-card__candidate-action[data-candidate-status='saved'] {
+  border-color: rgba(132, 199, 216, 0.76);
+  background: rgba(223, 244, 248, 0.9);
 }
 
-.point-summary-card__confirm-cancel {
-  color: var(--color-destructive);
+.point-summary-card__candidate-action[data-candidate-status='available'] {
+  background: rgba(255, 250, 252, 0.92);
 }
 
-.point-summary-card__input:focus-visible,
-.point-summary-card__candidate-action:focus-visible,
-.point-summary-card__action:focus-visible,
-.point-summary-card__confirm-action:focus-visible,
-.point-summary-card__confirm-cancel:focus-visible {
+.point-summary-card__candidate-action:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--color-accent) 72%, white 28%);
   outline-offset: 3px;
 }

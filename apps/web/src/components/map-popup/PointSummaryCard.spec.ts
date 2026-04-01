@@ -50,9 +50,9 @@ function createDraftPoint(
     lng: isCalifornia ? -119.4179 : 116.4074,
     source: 'detected',
     isFeatured: false,
-    description: '识别成功，下一阶段可补充地点内容。',
+    description: '',
     coordinatesLabel: isCalifornia ? '36.7783°N, 119.4179°W' : '39.9042°N, 116.4074°E',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -62,7 +62,7 @@ function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisp
       id: `saved-${PHASE12_RESOLVED_BEIJING.placeId}`,
     }),
     source: 'saved',
-    ...overrides
+    ...overrides,
   }
 }
 
@@ -88,7 +88,7 @@ function createCanonicalDraftPoint(overrides: Partial<DraftMapPoint> = {}): Draf
     lng: ambiguousResolve.click.lng,
     clickLat: ambiguousResolve.click.lat,
     clickLng: ambiguousResolve.click.lng,
-    ...overrides
+    ...overrides,
   })
 }
 
@@ -105,10 +105,10 @@ describe('PointSummaryCard', () => {
             contextLabel: candidate.subtitle,
             matchLevel: 'high' as const,
             distanceKm: 0,
-            statusHint: candidate.candidateHint
+            statusHint: candidate.candidateHint,
           })),
           canonicalCandidates: ambiguousResolve.candidates,
-          recommendedPlaceId: ambiguousResolve.recommendedPlaceId
+          recommendedPlaceId: ambiguousResolve.recommendedPlaceId,
         } as SummarySurfaceState,
         findSavedPointByCityId: (cityId: string) =>
           cityId === ambiguousResolve.candidates[0]?.placeId
@@ -118,13 +118,15 @@ describe('PointSummaryCard', () => {
                 countryName: PHASE12_RESOLVED_BEIJING.parentLabel,
                 placeId: PHASE12_RESOLVED_BEIJING.placeId,
                 typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
-                subtitle: PHASE12_RESOLVED_BEIJING.subtitle
+                subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
               })
-            : null
-      }
+            : null,
+      },
     })
 
-    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe('candidate-select')
+    expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe(
+      'candidate-select',
+    )
     expect(wrapper.text()).toContain('北京')
     expect(wrapper.text()).toContain('直辖市')
     expect(wrapper.text()).toContain('中国 · 直辖市')
@@ -135,55 +137,8 @@ describe('PointSummaryCard', () => {
     await wrapper.findAll('.point-summary-card__candidate-action')[0]?.trigger('click')
 
     expect(wrapper.emitted('confirmCandidate')?.[0]?.[0]).toMatchObject({
-      cityId: ambiguousResolve.candidates[0]?.placeId
+      cityId: ambiguousResolve.candidates[0]?.placeId,
     })
-  })
-
-  it('renders detected preview actions and emits the summary CTA events', async () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: {
-        surface: {
-          mode: 'detected-preview',
-          point: createDraftPoint(PHASE12_RESOLVED_CALIFORNIA),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
-      }
-    })
-
-    expect(wrapper.text()).toContain('保存为地点')
-    expect(wrapper.text()).toContain('查看详情')
-    expect(wrapper.text()).toContain('点亮状态')
-
-    const actions = wrapper.findAll('.point-summary-card__action')
-    await actions[0]?.trigger('click')
-    await actions[1]?.trigger('click')
-    await actions[2]?.trigger('click')
-
-    expect(wrapper.emitted('saveDraft')).toHaveLength(1)
-    expect(wrapper.emitted('openDrawer')).toHaveLength(1)
-    expect(wrapper.emitted('toggleFeatured')).toHaveLength(1)
-  })
-
-  it('uses inline delete confirmation for saved view state', async () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: {
-        surface: {
-          mode: 'view',
-          point: createViewPoint(),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
-      }
-    })
-
-    const actions = wrapper.findAll('.point-summary-card__action')
-    await actions[actions.length - 1]?.trigger('click')
-
-    expect(wrapper.text()).toContain('删除地点：确认删除这个地点？')
-    expect(actions[actions.length - 1]?.attributes('data-cta-tone')).toBe('destructive')
-
-    await wrapper.get('.point-summary-card__confirm-action').trigger('click')
-
-    expect(wrapper.emitted('deletePoint')).toHaveLength(1)
   })
 
   it('marks fallback and unsupported-boundary notices with fallback tone', () => {
@@ -192,11 +147,11 @@ describe('PointSummaryCard', () => {
         surface: {
           mode: 'view',
           point: createViewPoint({
-            fallbackNotice: '当前仅能按国家/地区保留这个点位。'
+            fallbackNotice: '当前仅能按国家/地区保留这个点位。',
           }),
-          boundarySupportState: 'missing'
-        } satisfies SummarySurfaceState
-      }
+          boundarySupportState: 'missing',
+        } satisfies SummarySurfaceState,
+      },
     })
 
     const notices = wrapper.findAll('[data-notice-tone="fallback"]')
@@ -212,9 +167,9 @@ describe('PointSummaryCard', () => {
         surface: {
           mode: 'view',
           point: createViewPoint(),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
-      }
+          boundarySupportState: 'supported',
+        } satisfies SummarySurfaceState,
+      },
     })
     const hongKongWrapper = mount(PointSummaryCard, {
       props: {
@@ -233,11 +188,11 @@ describe('PointSummaryCard', () => {
             parentLabel: PHASE12_RESOLVED_HONG_KONG.parentLabel,
             subtitle: PHASE12_RESOLVED_HONG_KONG.subtitle,
             boundaryId: PHASE12_RESOLVED_HONG_KONG.boundaryId,
-            boundaryDatasetVersion: PHASE12_RESOLVED_HONG_KONG.datasetVersion
+            boundaryDatasetVersion: PHASE12_RESOLVED_HONG_KONG.datasetVersion,
           }),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
-      }
+          boundarySupportState: 'supported',
+        } satisfies SummarySurfaceState,
+      },
     })
     const californiaWrapper = mount(PointSummaryCard, {
       props: {
@@ -262,11 +217,11 @@ describe('PointSummaryCard', () => {
             lng: -119.4179,
             x: 0.15,
             y: 0.44,
-            coordinatesLabel: '36.7783°N, 119.4179°W'
+            coordinatesLabel: '36.7783°N, 119.4179°W',
           }),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState
-      }
+          boundarySupportState: 'supported',
+        } satisfies SummarySurfaceState,
+      },
     })
     const candidateWrapper = mount(PointSummaryCard, {
       props: {
@@ -279,17 +234,17 @@ describe('PointSummaryCard', () => {
             contextLabel: candidate.subtitle,
             matchLevel: 'high' as const,
             distanceKm: 0,
-            statusHint: candidate.candidateHint
+            statusHint: candidate.candidateHint,
           })),
           canonicalCandidates: [
             { ...PHASE12_RESOLVED_BEIJING, candidateHint: '点击点位接近北京市中心' },
             { ...PHASE12_RESOLVED_HONG_KONG, candidateHint: '港岛与九龙附近候选' },
             { ...PHASE12_RESOLVED_CALIFORNIA, candidateHint: '跨洋 admin1 候选' },
-            { ...PHASE12_RESOLVED_BEIJING, placeId: 'cn-admin-extra', candidateHint: 'extra candidate should be hidden' }
+            { ...PHASE12_RESOLVED_BEIJING, placeId: 'cn-admin-extra', candidateHint: 'extra candidate should be hidden' },
           ],
-          recommendedPlaceId: ambiguousResolve.recommendedPlaceId
-        } as SummarySurfaceState
-      }
+          recommendedPlaceId: ambiguousResolve.recommendedPlaceId,
+        } as SummarySurfaceState,
+      },
     })
 
     expect(beijingWrapper.text()).toContain('北京')

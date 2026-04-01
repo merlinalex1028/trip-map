@@ -4,17 +4,11 @@ import { onUnmounted, watch } from 'vue'
 
 import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import LeafletMapStage from './components/LeafletMapStage.vue'
-import { useMapPointsStore } from './stores/map-points'
 import { useMapUiStore } from './stores/map-ui'
 
 const mapUiStore = useMapUiStore()
 const { clearInteractionNotice } = mapUiStore
-const mapPointsStore = useMapPointsStore()
 const { interactionNotice } = storeToRefs(mapUiStore)
-const { storageHealth } = storeToRefs(mapPointsStore)
-const { clearCorruptStorageState } = mapPointsStore
-
-mapPointsStore.bootstrapPoints()
 
 let noticeTimer: number | null = null
 
@@ -61,16 +55,6 @@ onUnmounted(() => {
         aria-live="polite"
       >
         {{ interactionNotice.message }}
-      </div>
-      <div
-        v-if="storageHealth === 'corrupt' || storageHealth === 'incompatible'"
-        class="app-shell__storage-warning"
-        role="alert"
-      >
-        <span>检测到本地存档异常，请清空本地存档后继续使用。</span>
-        <button class="app-shell__storage-action" type="button" @click="clearCorruptStorageState">
-          清空本地存档
-        </button>
       </div>
       <section class="poster-shell__experience">
         <LeafletMapStage class="poster-shell__stage" />
@@ -123,55 +107,6 @@ onUnmounted(() => {
   border-color: color-mix(in srgb, var(--color-state-fallback) 74%, var(--color-frame) 26%);
   background:
     linear-gradient(180deg, rgba(238, 243, 248, 0.94), rgba(255, 255, 255, 0.84));
-}
-
-.app-shell__storage-warning {
-  position: fixed;
-  top: calc(var(--space-lg) + 4.25rem);
-  left: 50%;
-  z-index: 5;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  width: 34rem;
-  max-width: calc(100% - var(--space-3xl));
-  padding: 0.9rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--color-destructive) 72%, var(--color-frame) 28%);
-  border-radius: var(--radius-surface);
-  background:
-    linear-gradient(180deg, rgba(255, 244, 244, 0.96), rgba(255, 247, 251, 0.92));
-  color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
-  line-height: 1.45;
-  text-align: center;
-  box-shadow: 0 22px 40px rgba(120, 86, 122, 0.2);
-  backdrop-filter: blur(10px);
-  transform: translateX(-50%);
-}
-
-.app-shell__storage-action {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0.65rem 0.95rem;
-  border: 1px solid color-mix(in srgb, var(--color-destructive) 78%, white 22%);
-  border-radius: var(--radius-control);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 236, 236, 0.94));
-  color: var(--color-destructive);
-  font-weight: var(--font-weight-label);
-  box-shadow: 0 10px 22px rgba(120, 86, 122, 0.14);
-  cursor: pointer;
-  transition:
-    transform var(--motion-quick) ease,
-    border-color var(--motion-quick) ease,
-    background-color var(--motion-quick) ease;
-}
-
-.app-shell__storage-action:hover {
-  border-color: var(--color-destructive);
-  transform: translateY(-1px);
 }
 
 .poster-shell {

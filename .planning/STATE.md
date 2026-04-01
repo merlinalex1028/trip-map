@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: "Completed quick task 260331-pj4: title layout + map display fix"
-last_updated: "2026-04-01T02:42:30.665Z"
-last_activity: 2026-04-01 -- Phase 15 execution started
+stopped_at: "Completed Plan 15-02: 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新"
+last_updated: "2026-04-01T04:00:00.000Z"
+last_activity: 2026-04-01 -- Phase 15-02 completed
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 25
-  completed_plans: 22
+  total_plans: 26
+  completed_plans: 23
   percent: 100
 ---
 
@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 15 (服务端记录与点亮闭环) — EXECUTING
-Plan: 1 of 3
+Phase: 15 (服务端记录与点亮闭环) — 2 of 3
+Plan: 2 of 3
 Status: Executing Phase 15
 Last activity: 2026-04-01 -- Phase 15 execution started
 

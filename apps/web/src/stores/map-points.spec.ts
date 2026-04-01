@@ -5,270 +5,244 @@ import {
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
-import { POINT_STORAGE_KEY } from '../services/point-storage'
-import type { DraftMapPoint } from '../types/map-point'
+import type { TravelRecord } from '@trip-map/contracts'
 import { useMapPointsStore } from './map-points'
 
-const ambiguousResolve = (() => {
-  if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
-    throw new Error('Expected ambiguous canonical resolve fixture')
-  }
+// ---------------------------------------------------------------------------
+// Hoisted mocks
+// ---------------------------------------------------------------------------
 
-  return PHASE12_AMBIGUOUS_RESOLVE
-})()
+const fetchMock = vi.hoisted(() => vi.fn<() => Promise<TravelRecord[]>>())
+const createMock = vi.hoisted(() => vi.fn<() => Promise<TravelRecord>>())
+const deleteMock = vi.hoisted(() => vi.fn<() => Promise<void>>())
 
-function installStorageMock() {
-  const storage = new Map<string, string>()
-  const localStorageMock = {
-    getItem: (key: string) => storage.get(key) ?? null,
-    setItem: (key: string, value: string) => {
-      storage.set(key, value)
-    },
-    removeItem: (key: string) => {
-      storage.delete(key)
-    },
-    clear: () => {
-      storage.clear()
-    },
-  }
+vi.mock('../services/api/records', () => ({
+  fetchTravelRecords: fetchMock,
+  createTravelRecord: createMock,
+  deleteTravelRecord: deleteMock,
+}))
 
-  vi.stubGlobal('localStorage', localStorageMock)
-  Object.defineProperty(window, 'localStorage', {
-    configurable: true,
-    value: localStorageMock,
-  })
-}
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-function createCanonicalDraft(
-  place = PHASE12_RESOLVED_BEIJING,
-  overrides: Partial<DraftMapPoint> = {},
-): DraftMapPoint {
+function makeRecord(place = PHASE12_RESOLVED_BEIJING): TravelRecord {
   return {
-    id: `detected-${place.placeId}`,
-    name: place.displayName,
-    countryName: place.parentLabel,
-    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
-    precision: 'city-high',
-    cityId: null,
-    cityName: place.displayName,
-    cityContextLabel: place.subtitle,
+    id: `server-rec-${place.placeId}`,
     placeId: place.placeId,
+    boundaryId: place.boundaryId,
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
+    displayName: place.displayName,
+    subtitle: place.subtitle,
+    createdAt: new Date().toISOString(),
+  }
+}
+
+function makeResolvedPlace(
+  place = PHASE12_RESOLVED_BEIJING,
+): {
+  placeId: string
+  boundaryId: string
+  placeKind: 'CN_ADMIN' | 'OVERSEAS_ADMIN' | 'CITY'
+  datasetVersion: string
+  displayName: string
+  regionSystem: 'CN' | 'OVERSEAS'
+  typeLabel: string | null
+  parentLabel: string
+  subtitle: string
+} {
+  return {
+    placeId: place.placeId,
+    boundaryId: place.boundaryId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    displayName: place.displayName,
+    regionSystem: place.regionSystem,
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
-    boundaryId: place.boundaryId,
-    boundaryDatasetVersion: place.datasetVersion,
-    fallbackNotice: null,
-    lat: place.regionSystem === 'CN' ? 39.9042 : 36.7783,
-    lng: place.regionSystem === 'CN' ? 116.4074 : -119.4179,
-    clickLat: place.regionSystem === 'CN' ? 39.9042 : 36.7783,
-    clickLng: place.regionSystem === 'CN' ? 116.4074 : -119.4179,
-    x: place.regionSystem === 'CN' ? 0.74 : 0.15,
-    y: place.regionSystem === 'CN' ? 0.31 : 0.44,
-    source: 'detected',
-    isFeatured: false,
-    description: 'canonical draft',
-    coordinatesLabel:
-      place.regionSystem === 'CN' ? '39.9042°N, 116.4074°E' : '36.7783°N, 119.4179°W',
-    ...overrides,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Test suite
+// ---------------------------------------------------------------------------
 
 describe('map-points store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    installStorageMock()
+    fetchMock.mockReset()
+    fetchMock.mockResolvedValue([])
+    createMock.mockReset()
+    createMock.mockResolvedValue({ id: 'server-rec', placeId: '', boundaryId: '', placeKind: 'CN_ADMIN' as const, datasetVersion: '', displayName: '', subtitle: '', createdAt: new Date().toISOString() })
+    deleteMock.mockReset()
+    deleteMock.mockResolvedValue(undefined)
   })
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
+  describe('bootstrapFromApi', () => {
+    it('sets travelRecords from API response', async () => {
+      const store = useMapPointsStore()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING), makeRecord(PHASE12_RESOLVED_CALIFORNIA)]
+      fetchMock.mockResolvedValueOnce(records)
 
-  it('keeps pending canonical candidates in summary mode without creating a fallback draft', () => {
-    const store = useMapPointsStore()
-    const pendingDraft = createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
-      id: 'pending-click',
-      name: '待确认地点',
-      placeId: null,
-      placeKind: null,
-      datasetVersion: null,
-      typeLabel: null,
-      parentLabel: null,
-      subtitle: null,
-      boundaryId: null,
-      boundaryDatasetVersion: null,
-      cityName: null,
-      cityContextLabel: ambiguousResolve.prompt,
-      fallbackNotice: ambiguousResolve.prompt,
-      countryCode: '__canonical__',
-      countryName: '待确认',
+      await store.bootstrapFromApi()
+
+      expect(store.travelRecords).toHaveLength(2)
+      expect(store.travelRecords[0]?.placeId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+      expect(store.travelRecords[1]?.placeId).toBe(PHASE12_RESOLVED_CALIFORNIA.placeId)
+      expect(store.hasBootstrapped).toBe(true)
     })
 
-    store.startPendingCanonicalSelection({
-      draftPoint: pendingDraft,
-      prompt: ambiguousResolve.prompt,
-      recommendedPlaceId: ambiguousResolve.recommendedPlaceId,
-      candidates: ambiguousResolve.candidates,
-      click: ambiguousResolve.click,
+    it('sets travelRecords to empty array on API failure', async () => {
+      fetchMock.mockRejectedValueOnce(new Error('network error'))
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      expect(store.travelRecords).toHaveLength(0)
     })
 
-    expect(store.summaryMode).toBe('candidate-select')
-    expect(store.draftPoint).toBeNull()
-    expect(store.pendingCanonicalSelection?.recommendedPlaceId).toBe(
-      ambiguousResolve.recommendedPlaceId,
-    )
-    expect(store.summarySurfaceState?.mode).toBe('candidate-select')
-    if (store.summarySurfaceState?.mode !== 'candidate-select') {
-      throw new Error('expected candidate-select surface')
-    }
-
-    expect(store.summarySurfaceState.fallbackPoint).toEqual(
-      expect.objectContaining({
-        fallbackNotice: ambiguousResolve.prompt,
-        clickLat: ambiguousResolve.click.lat,
-        clickLng: ambiguousResolve.click.lng,
-      }),
-    )
-    expect(store.summarySurfaceState.cityCandidates).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          cityId: ambiguousResolve.candidates[0]?.placeId,
-          cityName: ambiguousResolve.candidates[0]?.displayName,
-        }),
-      ]),
-    )
+    it('skips if already bootstrapped', async () => {
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      await store.bootstrapFromApi()
+      await store.bootstrapFromApi()
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    })
   })
 
-  it('reuses saved points by canonical placeId instead of legacy cityId', () => {
-    const store = useMapPointsStore()
-
-    store.startDraftFromDetection(
-      createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
-        cityId: null,
-        cityName: null,
-        cityContextLabel: 'legacy city field intentionally empty',
-      }),
-    )
-    const savedPoint = store.saveDraftAsPoint()
-
-    const decision = store.openSavedPointForPlaceOrStartDraft(
-      createCanonicalDraft(PHASE12_RESOLVED_BEIJING, {
-        id: 'detected-beijing-second-click',
-        cityId: 'legacy-city-id-should-not-match',
-      }),
-    )
-
-    expect(savedPoint).not.toBeNull()
-    expect(decision.type).toBe('reused')
-    expect(decision.point.id).toBe(savedPoint?.id)
-    expect(store.activePoint?.placeId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
-    expect(store.activePoint?.cityId).toBeNull()
-  })
-
-  it('keeps pending, active, and saved surfaces on the same canonical identity fields', () => {
-    const store = useMapPointsStore()
-    const draftPoint = createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA)
-
-    store.startPendingCanonicalSelection({
-      draftPoint: createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA, {
-        id: 'pending-california',
-        name: 'California click',
-        placeId: null,
-        placeKind: null,
-        datasetVersion: null,
-        typeLabel: null,
-        parentLabel: null,
-        subtitle: null,
-        boundaryId: null,
-        boundaryDatasetVersion: null,
-        fallbackNotice: '需要确认一级行政区',
-      }),
-      prompt: '请确认一级行政区',
-      recommendedPlaceId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-      candidates: [{ ...PHASE12_RESOLVED_CALIFORNIA, candidateHint: 'California canonical candidate' }],
-      click: {
-        lat: 36.7783,
-        lng: -119.4179,
-      },
+  describe('savedBoundaryIds', () => {
+    it('derives savedBoundaryIds from travelRecords', async () => {
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      await store.bootstrapFromApi()
+      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
     })
 
-    expect(store.summarySurfaceState).toEqual(
-      expect.objectContaining({
-        mode: 'candidate-select',
-        cityCandidates: [
-          expect.objectContaining({
-            cityId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-          }),
-        ],
-      }),
-    )
-
-    store.startDraftFromDetection(draftPoint)
-
-    expect(store.activePoint).toEqual(
-      expect.objectContaining({
-        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-        placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
-        datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
-        clickLat: 36.7783,
-        clickLng: -119.4179,
-      }),
-    )
-
-    const savedPoint = store.saveDraftAsPoint()
-
-    expect(savedPoint).toEqual(
-      expect.objectContaining({
-        placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-        boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-        placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
-        datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
-        clickLat: 36.7783,
-        clickLng: -119.4179,
-      }),
-    )
-    expect(store.selectedBoundaryId).toBe(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
-    expect(store.savedBoundaryIds).toEqual([PHASE12_RESOLVED_CALIFORNIA.boundaryId])
+    it('deduplicates boundaryIds', async () => {
+      fetchMock.mockResolvedValueOnce([
+        makeRecord({ ...PHASE12_RESOLVED_BEIJING, placeId: 'p1', boundaryId: 'CN-11' } as typeof PHASE12_RESOLVED_BEIJING),
+        makeRecord({ ...PHASE12_RESOLVED_BEIJING, placeId: 'p2', boundaryId: 'CN-11' } as typeof PHASE12_RESOLVED_BEIJING),
+      ])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      expect(store.savedBoundaryIds).toEqual(['CN-11'])
+    })
   })
 
-  it('marks PHASE12_RESOLVED_BEIJING as supported only when canonical boundary geometry resolves', () => {
-    const store = useMapPointsStore()
+  describe('illuminate', () => {
+    it('adds record optimistically before API returns', async () => {
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([])
+      await store.bootstrapFromApi()
+      store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      const rec = store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)
+      expect(rec).toBeDefined()
+      expect(rec?.id).toMatch(/^pending-/)
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.selectedPointId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+    })
 
-    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_BEIJING))
-    expect(store.activeBoundaryCoverageState).toBe('supported')
+    it('replaces optimistic record with server record on success', async () => {
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([])
+      createMock.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+      await store.bootstrapFromApi()
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      const rec = store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)
+      expect(rec?.id).toBe('server-rec-cn-admin-beijing')
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+    })
 
-    store.saveDraftAsPoint()
-    expect(store.activeBoundaryCoverageState).toBe('supported')
+    it('removes record on API failure (rollback)', async () => {
+      createMock.mockRejectedValueOnce(new Error('server error'))
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([])
+      await store.bootstrapFromApi()
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      expect(store.travelRecords.find((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBeUndefined()
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(store.selectedPointId).toBeNull()
+    })
+
+    it('skips API call when record already exists', async () => {
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      expect(createMock).not.toHaveBeenCalled()
+      expect(store.selectedPointId).toBe(existingRecord.placeId)
+    })
   })
 
-  it('marks PHASE12_RESOLVED_CALIFORNIA as missing when canonical boundary geometry is unavailable', () => {
-    const store = useMapPointsStore()
+  describe('unilluminate', () => {
+    it('removes record optimistically before API returns', async () => {
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      expect(store.travelRecords).toHaveLength(1)
+      store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+      expect(store.travelRecords).toHaveLength(0)
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+    })
 
-    store.startDraftFromDetection(createCanonicalDraft(PHASE12_RESOLVED_CALIFORNIA))
-    expect(store.activeBoundaryCoverageState).toBe('missing')
+    it('restores record on API failure (rollback)', async () => {
+      deleteMock.mockRejectedValueOnce(new Error('server error'))
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+      expect(store.travelRecords).toHaveLength(1)
+      expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+    })
 
-    store.saveDraftAsPoint()
-    expect(store.activeBoundaryCoverageState).toBe('missing')
+    it('does nothing if placeId not found', () => {
+      const store = useMapPointsStore()
+      fetchMock.mockResolvedValueOnce([])
+      expect(() => store.unilluminate('non-existent')).not.toThrow()
+      expect(store.travelRecords).toHaveLength(0)
+    })
   })
 
-  it('marks legacy version-1 local snapshots as incompatible during bootstrap', () => {
-    window.localStorage.setItem(
-      POINT_STORAGE_KEY,
-      JSON.stringify({
-        version: 1,
-        userPoints: [],
-        seedOverrides: [],
-        deletedSeedIds: [],
-      }),
-    )
+  describe('clearActivePoint', () => {
+    it('resets selection state', async () => {
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      expect(store.selectedPointId).not.toBeNull()
+      store.clearActivePoint()
+      expect(store.selectedPointId).toBeNull()
+      expect(store.summaryMode).toBeNull()
+    })
+  })
 
-    const store = useMapPointsStore()
-    store.bootstrapPoints()
+  describe('selectPointById', () => {
+    it('sets summaryMode to view for saved source', async () => {
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      expect(store.travelRecords).toHaveLength(1)
+      store.selectPointById(store.travelRecords[0].placeId)
+      expect(store.summaryMode).toBe('view')
+    })
+  })
 
-    expect(store.storageHealth).toBe('incompatible')
-    expect(store.userPoints).toEqual([])
+  describe('displayPoints', () => {
+    it('maps travelRecords to MapPointDisplay shape with source saved', async () => {
+      const store = useMapPointsStore()
+      const existingRecord = makeRecord(PHASE12_RESOLVED_BEIJING)
+      fetchMock.mockResolvedValueOnce([existingRecord])
+      await store.bootstrapFromApi()
+      const points = store.displayPoints
+      const savedPoint = points.find((p) => p.placeId === PHASE12_RESOLVED_BEIJING.placeId)
+      expect(savedPoint?.source).toBe('saved')
+      expect(savedPoint?.placeId).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+      expect(savedPoint?.id).toBe(PHASE12_RESOLVED_BEIJING.placeId)
+    })
   })
 })

@@ -4,8 +4,6 @@ import { nextTick } from 'vue'
 import MapContextPopup from './MapContextPopup.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
-const LONG_TEXT = Array.from({ length: 24 }, (_, index) => `long text paragraph ${index + 1}`).join(' ')
-
 function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
   return {
     id: 'detected-jp-1',
@@ -60,27 +58,6 @@ describe('MapContextPopup', () => {
     expect(wrapper.get('.map-context-popup').attributes('aria-modal')).toBe('false')
     expect(wrapper.get('.map-context-popup').attributes('data-popup-anchor-source')).toBe('marker')
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
-  })
-
-  it('keeps the stable footer outside the middle scroll region inside the popup body', () => {
-    const wrapper = mount(MapContextPopup, {
-      attachTo: document.body,
-      props: {
-        surface: {
-          mode: 'view',
-          point: createViewPoint({
-            description: LONG_TEXT
-          }),
-          boundarySupportState: 'supported'
-        } satisfies SummarySurfaceState,
-        anchorSource: 'marker'
-      }
-    })
-
-    expect(wrapper.get('[data-popup-section="header"]').text()).toContain('Kyoto')
-    expect(wrapper.get('.point-summary-card__scroll-region').text()).toContain('long text paragraph 1')
-    expect(wrapper.get('.point-summary-card__footer').text()).toContain('查看详情')
-    expect(wrapper.get('.point-summary-card__footer').element.closest('[data-scroll-region="true"]')).toBeNull()
   })
 
   it('moves focus to the popup title when opened', async () => {

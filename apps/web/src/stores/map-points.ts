@@ -1,40 +1,18 @@
-import type { CanonicalPlaceCandidate } from '@trip-map/contracts'
-import { nanoid } from 'nanoid'
+import type { CanonicalPlaceCandidate, TravelRecord } from '@trip-map/contracts'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
-import { seedPoints } from '../data/seed-points'
+import {
+  fetchTravelRecords,
+  createTravelRecord,
+  deleteTravelRecord,
+} from '../services/api/records'
 import {
   hasBoundaryCoverageForBoundaryId,
   hasBoundaryCoverageForCityId,
 } from '../services/city-boundaries'
-import {
-  clearPointStorageSnapshot,
-  loadPointStorageSnapshot,
-  mergeSeedAndLocalPoints,
-  savePointStorageSnapshot,
-} from '../services/point-storage'
 import type { GeoCityCandidate } from '../types/geo'
-import type {
-  DraftMapPoint,
-  DrawerMode,
-  EditablePointSnapshot,
-  MapPointDisplay,
-  PersistedMapPoint,
-  PointStorageHealth,
-  SeedPointOverride,
-  SummaryMode,
-  SummarySurfaceState,
-} from '../types/map-point'
-import { useMapUiStore } from './map-ui'
-
-function buildEditableSnapshot(point: MapPointDisplay): EditablePointSnapshot {
-  return {
-    name: point.name,
-    description: point.description,
-    isFeatured: point.isFeatured,
-  }
-}
+import type { DraftMapPoint, MapPointDisplay, SummaryMode, SummarySurfaceState } from '../types/map-point'
 
 interface SavedPointReuseDecision {
   type: 'reused' | 'created-draft'
@@ -67,27 +45,57 @@ function hasCanonicalIdentity(point: Pick<MapPointDisplay, 'placeId' | 'placeKin
   return Boolean(point.placeId && point.placeKind)
 }
 
+function recordToDisplayPoint(record: TravelRecord): MapPointDisplay {
+  return {
+    id: record.placeId,
+    name: record.displayName,
+    countryName: '',
+    countryCode: '',
+    precision: 'city-high',
+    cityId: null,
+    cityName: record.displayName,
+    cityContextLabel: record.subtitle,
+    placeId: record.placeId,
+    placeKind: record.placeKind,
+    datasetVersion: record.datasetVersion,
+    typeLabel: null,
+    parentLabel: null,
+    subtitle: record.subtitle,
+    boundaryId: record.boundaryId,
+    boundaryDatasetVersion: record.datasetVersion,
+    fallbackNotice: null,
+    x: 0,
+    y: 0,
+    lat: 0,
+    lng: 0,
+    clickLat: undefined,
+    clickLng: undefined,
+    source: 'saved',
+    isFeatured: false,
+    description: '',
+    coordinatesLabel: '',
+  }
+}
+
 export const useMapPointsStore = defineStore('map-points', () => {
-  const mapUiStore = useMapUiStore()
-  const userPoints = shallowRef<PersistedMapPoint[]>([])
-  const seedOverrides = shallowRef<SeedPointOverride[]>([])
-  const deletedSeedIds = shallowRef<string[]>([])
+  const travelRecords = shallowRef<TravelRecord[]>([])
+  const pendingPlaceIds = shallowRef<Set<string>>(new Set())
   const draftPoint = shallowRef<DraftMapPoint | null>(null)
   const pendingCanonicalSelection = shallowRef<PendingCanonicalSelection | null>(null)
   const selectedPointId = shallowRef<string | null>(null)
   const summaryMode = shallowRef<SummaryMode | null>(null)
-  const drawerMode = shallowRef<DrawerMode | null>(null)
-  const editableSnapshot = shallowRef<EditablePointSnapshot | null>(null)
-  const storageHealth = shallowRef<PointStorageHealth>('empty')
   const hasBootstrapped = shallowRef(false)
 
+  const savedBoundaryIds = computed(() => {
+    const boundaryIds = travelRecords.value
+      .map((record) => record.boundaryId)
+      .filter((boundaryId): boundaryId is string => Boolean(boundaryId))
+
+    return Array.from(new Set(boundaryIds))
+  })
+
   const displayPoints = computed<MapPointDisplay[]>(() => {
-    const points = mergeSeedAndLocalPoints(
-      seedPoints,
-      userPoints.value,
-      seedOverrides.value,
-      deletedSeedIds.value,
-    )
+    const points: MapPointDisplay[] = travelRecords.value.map(recordToDisplayPoint)
 
     if (draftPoint.value) {
       points.push(draftPoint.value)
@@ -153,43 +161,19 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
 
-  const savedBoundaryIds = computed(() => {
-    const boundaryIds = userPoints.value
-      .map((point) => point.boundaryId)
-      .filter((boundaryId): boundaryId is string => Boolean(boundaryId))
-
-    return Array.from(new Set(boundaryIds))
-  })
-
-  function persistSnapshot() {
-    savePointStorageSnapshot({
-      version: 2,
-      userPoints: userPoints.value,
-      seedOverrides: seedOverrides.value,
-      deletedSeedIds: deletedSeedIds.value,
-    })
-  }
-
-  function bootstrapPoints() {
+  async function bootstrapFromApi() {
     if (hasBootstrapped.value) {
       return
     }
 
-    const storageResult = loadPointStorageSnapshot()
-
-    if (storageResult.status === 'ready') {
-      userPoints.value = storageResult.snapshot.userPoints
-      seedOverrides.value = storageResult.snapshot.seedOverrides
-      deletedSeedIds.value = storageResult.snapshot.deletedSeedIds
-      storageHealth.value = 'ready'
-    } else {
-      userPoints.value = []
-      seedOverrides.value = []
-      deletedSeedIds.value = []
-      storageHealth.value = storageResult.status
-    }
-
     hasBootstrapped.value = true
+
+    try {
+      const records = await fetchTravelRecords()
+      travelRecords.value = records
+    } catch {
+      travelRecords.value = []
+    }
   }
 
   function clearActivePoint() {
@@ -197,8 +181,6 @@ export const useMapPointsStore = defineStore('map-points', () => {
       pendingCanonicalSelection.value = null
       selectedPointId.value = null
       summaryMode.value = null
-      drawerMode.value = null
-      editableSnapshot.value = null
       return
     }
 
@@ -209,8 +191,6 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     selectedPointId.value = null
     summaryMode.value = null
-    drawerMode.value = null
-    editableSnapshot.value = null
   }
 
   function startDraftFromDetection(point: DraftMapPoint) {
@@ -218,8 +198,6 @@ export const useMapPointsStore = defineStore('map-points', () => {
     draftPoint.value = point
     selectedPointId.value = point.id
     summaryMode.value = 'detected-preview'
-    drawerMode.value = null
-    editableSnapshot.value = buildEditableSnapshot(point)
   }
 
   function replaceDraftFromDetection(point: DraftMapPoint) {
@@ -238,141 +216,69 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
     selectedPointId.value = null
     summaryMode.value = 'candidate-select'
-    drawerMode.value = null
-    editableSnapshot.value = null
   }
 
   function discardDraft() {
     draftPoint.value = null
     pendingCanonicalSelection.value = null
-    editableSnapshot.value = null
     selectedPointId.value = null
     summaryMode.value = null
-    drawerMode.value = null
   }
 
   function selectPointById(id: string) {
-    const persistedDisplayPoints = mergeSeedAndLocalPoints(
-      seedPoints,
-      userPoints.value,
-      seedOverrides.value,
-      deletedSeedIds.value,
-    )
-    const persistedPoint = persistedDisplayPoints.find((item) => item.id === id) ?? null
+    pendingCanonicalSelection.value = null
 
-    if (
-      draftPoint.value &&
-      draftPoint.value.id !== id &&
-      persistedPoint &&
-      persistedPoint.source !== 'detected'
-    ) {
+    if (draftPoint.value && draftPoint.value.id !== id) {
       draftPoint.value = null
     }
-
-    pendingCanonicalSelection.value = null
 
     const point = displayPoints.value.find((item) => item.id === id) ?? null
 
     if (!point) {
       selectedPointId.value = null
       summaryMode.value = null
-      drawerMode.value = null
-      editableSnapshot.value = null
       return
     }
 
     selectedPointId.value = point.id
     summaryMode.value = point.source === 'detected' ? 'detected-preview' : 'view'
-    drawerMode.value = null
-    editableSnapshot.value = buildEditableSnapshot(point)
-  }
-
-  function openDrawerView() {
-    if (!activePoint.value) {
-      return
-    }
-
-    editableSnapshot.value = buildEditableSnapshot(activePoint.value)
-    drawerMode.value = 'view'
-  }
-
-  function closeDrawer() {
-    drawerMode.value = null
-  }
-
-  function enterEditMode() {
-    if (!activePoint.value) {
-      return
-    }
-
-    editableSnapshot.value = buildEditableSnapshot(activePoint.value)
-    drawerMode.value = 'edit'
-  }
-
-  function exitEditMode() {
-    if (!activePoint.value) {
-      clearActivePoint()
-      return
-    }
-
-    editableSnapshot.value = buildEditableSnapshot(activePoint.value)
-    drawerMode.value = 'view'
-  }
-
-  function saveDraftAsPoint(snapshot?: EditablePointSnapshot) {
-    if (!draftPoint.value) {
-      return null
-    }
-
-    const payload = snapshot ?? editableSnapshot.value ?? buildEditableSnapshot(draftPoint.value)
-    const now = new Date().toISOString()
-    const nextPoint: PersistedMapPoint = {
-      ...draftPoint.value,
-      ...payload,
-      id: `saved-${nanoid(8)}`,
-      source: 'saved',
-      createdAt: now,
-      updatedAt: now,
-    }
-
-    userPoints.value = [...userPoints.value, nextPoint]
-    draftPoint.value = null
-    selectedPointId.value = nextPoint.id
-    summaryMode.value = 'view'
-    drawerMode.value = null
-    editableSnapshot.value = buildEditableSnapshot(nextPoint)
-    storageHealth.value = 'ready'
-    persistSnapshot()
-
-    return nextPoint
   }
 
   function findSavedPointByPlaceId(placeId: string) {
-    return userPoints.value.find((point) => point.placeId === placeId) ?? null
+    return travelRecords.value.find((record) => record.placeId === placeId) ?? null
   }
 
   function findSavedPointByCityId(identifier: string) {
-    return (
-      findSavedPointByPlaceId(identifier) ??
-      userPoints.value.find((point) => point.cityId === identifier) ??
-      null
+    const byPlaceId = findSavedPointByPlaceId(identifier)
+
+    if (byPlaceId) {
+      return recordToDisplayPoint(byPlaceId)
+    }
+
+    const byRecord = travelRecords.value.find(
+      (record) => record.placeId === identifier,
     )
+
+    if (byRecord) {
+      return recordToDisplayPoint(byRecord)
+    }
+
+    return null
   }
 
   function openSavedPointForPlaceOrStartDraft(point: DraftMapPoint): SavedPointReuseDecision {
     pendingCanonicalSelection.value = null
-    const savedPoint = point.placeId ? findSavedPointByPlaceId(point.placeId) : null
+    const savedRecord = point.placeId ? findSavedPointByPlaceId(point.placeId) : null
 
-    if (savedPoint) {
+    if (savedRecord) {
       draftPoint.value = null
-      selectedPointId.value = savedPoint.id
+      const displayPoint = recordToDisplayPoint(savedRecord)
+      selectedPointId.value = displayPoint.id
       summaryMode.value = 'view'
-      drawerMode.value = null
-      editableSnapshot.value = buildEditableSnapshot(savedPoint)
 
       return {
         type: 'reused',
-        point: savedPoint,
+        point: displayPoint,
       }
     }
 
@@ -384,153 +290,112 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
   }
 
-  function updateSavedPoint(id: string, snapshot: EditablePointSnapshot) {
-    const now = new Date().toISOString()
-    const seedPoint = seedPoints.find((point) => point.id === id)
+  async function illuminate(summary: {
+    placeId: string
+    boundaryId: string | null
+    placeKind: TravelRecord['placeKind']
+    datasetVersion: string
+    displayName: string
+    subtitle: string | null
+  }) {
+    const { placeId, boundaryId, placeKind, datasetVersion, displayName, subtitle } = summary
 
-    if (seedPoint) {
-      const nextOverride: SeedPointOverride = {
-        id,
-        name: snapshot.name,
-        description: snapshot.description,
-        isFeatured: snapshot.isFeatured,
-        updatedAt: now,
-      }
-      const remainingOverrides = seedOverrides.value.filter((override) => override.id !== id)
-
-      seedOverrides.value = [...remainingOverrides, nextOverride]
-    } else {
-      userPoints.value = userPoints.value.map((point) => {
-        if (point.id !== id) {
-          return point
-        }
-
-        return {
-          ...point,
-          ...snapshot,
-          updatedAt: now,
-        }
-      })
+    const optimisticRecord: TravelRecord = {
+      id: `pending-${placeId}`,
+      placeId,
+      boundaryId: boundaryId ?? '',
+      placeKind,
+      datasetVersion,
+      displayName,
+      subtitle: subtitle ?? '',
+      createdAt: new Date().toISOString(),
     }
 
-    selectedPointId.value = id
+    travelRecords.value = [...travelRecords.value, optimisticRecord]
+    pendingPlaceIds.value = new Set([...pendingPlaceIds.value, placeId])
+    selectedPointId.value = placeId
     summaryMode.value = 'view'
-    drawerMode.value = 'view'
 
-    const nextActivePoint = displayPoints.value.find((point) => point.id === id)
-    editableSnapshot.value = nextActivePoint ? buildEditableSnapshot(nextActivePoint) : null
-    storageHealth.value = 'ready'
-    persistSnapshot()
+    try {
+      const record = await createTravelRecord({
+        placeId,
+        boundaryId: boundaryId ?? '',
+        placeKind,
+        datasetVersion,
+        displayName,
+        subtitle: subtitle ?? '',
+      })
+
+      travelRecords.value = travelRecords.value.map((r) =>
+        r.placeId === placeId ? record : r,
+      )
+    } catch {
+      travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
+      selectedPointId.value = null
+      summaryMode.value = null
+    } finally {
+      const next = new Set(pendingPlaceIds.value)
+      next.delete(placeId)
+      pendingPlaceIds.value = next
+    }
   }
 
-  function toggleActivePointFeatured() {
-    if (!activePoint.value) {
+  async function unilluminate(placeId: string) {
+    const prev = travelRecords.value.find((r) => r.placeId === placeId)
+    if (!prev) {
       return
     }
 
-    const nextIsFeatured = !activePoint.value.isFeatured
+    travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
+    pendingPlaceIds.value = new Set([...pendingPlaceIds.value, placeId])
 
-    if (activePoint.value.source === 'detected') {
-      if (!draftPoint.value || draftPoint.value.id !== activePoint.value.id) {
-        return
-      }
-
-      draftPoint.value = {
-        ...draftPoint.value,
-        isFeatured: nextIsFeatured,
-      }
-      editableSnapshot.value = buildEditableSnapshot(draftPoint.value)
-      return
+    try {
+      await deleteTravelRecord(placeId)
+    } catch {
+      travelRecords.value = [...travelRecords.value, prev]
+    } finally {
+      const next = new Set(pendingPlaceIds.value)
+      next.delete(placeId)
+      pendingPlaceIds.value = next
     }
-
-    updateSavedPoint(activePoint.value.id, {
-      name: activePoint.value.name,
-      description: activePoint.value.description,
-      isFeatured: nextIsFeatured,
-    })
   }
 
-  function deleteUserPoint(id: string) {
-    userPoints.value = userPoints.value.filter((point) => point.id !== id)
-
-    if (selectedPointId.value === id) {
-      clearActivePoint()
-    }
-
-    storageHealth.value = 'ready'
-    persistSnapshot()
+  function isPlaceIlluminated(placeId: string): boolean {
+    return travelRecords.value.some((r) => r.placeId === placeId)
   }
 
-  function hideSeedPoint(id: string) {
-    if (!deletedSeedIds.value.includes(id)) {
-      deletedSeedIds.value = [...deletedSeedIds.value, id]
-    }
-
-    if (selectedPointId.value === id) {
-      clearActivePoint()
-    }
-
-    storageHealth.value = 'ready'
-    persistSnapshot()
-  }
-
-  function restoreSeedPoint(id: string) {
-    deletedSeedIds.value = deletedSeedIds.value.filter((item) => item !== id)
-    storageHealth.value = 'ready'
-    persistSnapshot()
-  }
-
-  function clearCorruptStorageState() {
-    clearPointStorageSnapshot()
-    userPoints.value = []
-    seedOverrides.value = []
-    deletedSeedIds.value = []
-    draftPoint.value = null
-    pendingCanonicalSelection.value = null
-    selectedPointId.value = null
-    summaryMode.value = null
-    drawerMode.value = null
-    editableSnapshot.value = null
-    storageHealth.value = 'empty'
+  function isPlacePending(placeId: string): boolean {
+    return pendingPlaceIds.value.has(placeId)
   }
 
   return {
-    userPoints,
-    seedOverrides,
-    deletedSeedIds,
+    travelRecords,
+    pendingPlaceIds,
     draftPoint,
     pendingCanonicalSelection,
     selectedPointId,
     summaryMode,
-    drawerMode,
-    editableSnapshot,
-    storageHealth,
+    hasBootstrapped,
+    savedBoundaryIds,
     displayPoints,
     activePoint,
     activeBoundaryCoverageState,
     summarySurfaceState,
     selectedBoundaryId,
-    savedBoundaryIds,
-    bootstrapPoints,
+    bootstrapFromApi,
     clearActivePoint,
     startDraftFromDetection,
     replaceDraftFromDetection,
     startPendingCanonicalSelection,
     discardDraft,
     selectPointById,
-    openDrawerView,
-    closeDrawer,
-    enterEditMode,
-    exitEditMode,
-    saveDraftAsPoint,
+    findSavedPointByPlaceId,
     findSavedPointByCityId,
     openSavedPointForPlaceOrStartDraft,
-    updateSavedPoint,
-    toggleActivePointFeatured,
-    deleteUserPoint,
-    hideSeedPoint,
-    restoreSeedPoint,
-    clearCorruptStorageState,
+    illuminate,
+    unilluminate,
+    isPlaceIlluminated,
+    isPlacePending,
   }
 })
 

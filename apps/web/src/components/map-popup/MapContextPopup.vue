@@ -21,11 +21,6 @@ const props = withDefaults(
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
-  savePoint: []
-  openDetail: []
-  editPoint: []
-  toggleFeatured: []
-  confirmDestructive: [action: 'delete' | 'hide']
 }>()
 
 const popupRef = useTemplateRef<HTMLElement>('popup')
@@ -101,12 +96,6 @@ defineExpose({
         :find-saved-point-by-city-id="findSavedPointByCityId"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
-        @save-draft="emit('savePoint')"
-        @open-drawer="emit('openDetail')"
-        @enter-edit="emit('editPoint')"
-        @toggle-featured="emit('toggleFeatured')"
-        @delete-point="emit('confirmDestructive', 'delete')"
-        @hide-point="emit('confirmDestructive', 'hide')"
       />
     </div>
   </aside>

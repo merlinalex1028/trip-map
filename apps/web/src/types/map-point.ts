@@ -2,7 +2,7 @@ import type { CanonicalPlaceCandidate, PlaceKind } from '@trip-map/contracts'
 
 import type { GeoCityCandidate, GeoPrecision } from './geo'
 
-export type MapPointSource = 'seed' | 'saved' | 'detected'
+export type MapPointSource = 'saved' | 'detected'
 
 interface BaseMapPoint {
   id: string
@@ -42,29 +42,7 @@ export interface DraftMapPoint extends BaseMapPoint {
   source: 'detected'
 }
 
-export interface PersistedMapPoint extends BaseMapPoint {
-  source: 'saved'
-  createdAt: string
-  updatedAt: string
-}
-
-export interface SeedPointOverride {
-  id: string
-  name: string
-  description: string
-  isFeatured: boolean
-  updatedAt: string
-}
-
-export interface EditablePointSnapshot {
-  name: string
-  description: string
-  isFeatured: boolean
-}
-
 export type SummaryMode = 'candidate-select' | 'detected-preview' | 'view'
-
-export type DrawerMode = 'view' | 'edit'
 
 export type SummarySurfaceState =
   | {
@@ -79,5 +57,3 @@ export type SummarySurfaceState =
       point: MapPointDisplay
       boundarySupportState: 'supported' | 'missing' | 'not-applicable'
     }
-
-export type PointStorageHealth = 'ready' | 'empty' | 'corrupt' | 'incompatible'

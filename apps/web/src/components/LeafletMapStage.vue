@@ -23,7 +23,6 @@ import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCityCandidate } from '../types/geo'
 import type { DraftMapPoint } from '../types/map-point'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
-import PointPreviewDrawer from './PointPreviewDrawer.vue'
 
 type PopupAnchorSource = 'marker' | 'pending' | 'boundary'
 
@@ -43,14 +42,14 @@ const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
 
 const {
-  draftPoint,
   displayPoints,
-  drawerMode,
+  draftPoint,
   pendingCanonicalSelection,
   savedBoundaryIds,
   selectedBoundaryId,
   selectedPointId,
   summarySurfaceState,
+  hasBootstrapped,
 } = storeToRefs(mapPointsStore)
 
 const { pendingGeoHit } = storeToRefs(mapUiStore)
@@ -65,15 +64,9 @@ const {
 } = mapUiStore
 
 const {
-  deleteUserPoint,
-  enterEditMode,
   findSavedPointByCityId,
-  hideSeedPoint,
   openSavedPointForPlaceOrStartDraft,
-  openDrawerView,
-  saveDraftAsPoint,
   startPendingCanonicalSelection,
-  toggleActivePointFeatured,
 } = mapPointsStore
 
 // --- Map initialization ---
@@ -117,13 +110,7 @@ const { virtualElement } = useLeafletPopupAnchor({
 
 // --- Popup visibility ---
 
-const isSummarySurfaceVisible = computed(
-  () => Boolean(summarySurfaceState.value) && drawerMode.value === null,
-)
-
-const isDeepPopupVisible = computed(
-  () => Boolean(summarySurfaceState.value) && popupAnchor.value !== null && drawerMode.value !== null,
-)
+const isSummarySurfaceVisible = computed(() => Boolean(summarySurfaceState.value))
 
 const isDesktopPopupVisible = computed(
   () => isSummarySurfaceVisible.value && popupAnchor.value !== null,
@@ -163,7 +150,6 @@ watch(
       summarySurfaceState.value?.mode === 'candidate-select'
         ? summarySurfaceState.value.fallbackPoint.id
         : summarySurfaceState.value?.point.id ?? null,
-    () => drawerMode.value,
     () => selectedPointId.value,
     () => selectedBoundaryId.value,
     () => pendingGeoHit.value?.lat ?? null,
@@ -245,6 +231,12 @@ async function preloadSavedBoundaryShards() {
 
 watch(isReady, (ready) => {
   if (ready) {
+    void mapPointsStore.bootstrapFromApi()
+  }
+})
+
+watch([isReady, () => mapPointsStore.travelRecords, () => hasBootstrapped.value], ([ready, , bootstrapped]) => {
+  if (ready && bootstrapped) {
     void preloadSavedBoundaryShards()
   }
 })
@@ -486,25 +478,6 @@ async function handleConfirmCandidate(candidate: GeoCityCandidate) {
   }
 }
 
-// --- handleConfirmDestructive (ported from WorldMapStage) ---
-
-function handleConfirmDestructive(action: 'delete' | 'hide') {
-  const surface = summarySurfaceState.value
-
-  if (!surface || surface.mode === 'candidate-select') {
-    return
-  }
-
-  if (action === 'delete' && surface.point.source === 'saved') {
-    deleteUserPoint(surface.point.id)
-    return
-  }
-
-  if (action === 'hide' && surface.point.source === 'seed') {
-    hideSeedPoint(surface.point.id)
-  }
-}
-
 // --- Map click handler (D-10, D-11) ---
 
 async function handleMapClick(e: L.LeafletMouseEvent) {
@@ -642,17 +615,6 @@ onMounted(() => {
       :floating-styles="popupFloatingStyles"
       :find-saved-point-by-city-id="findSavedPointByCityId"
       @confirm-candidate="handleConfirmCandidate"
-      @save-point="saveDraftAsPoint"
-      @open-detail="openDrawerView"
-      @edit-point="enterEditMode"
-      @toggle-featured="toggleActivePointFeatured"
-      @confirm-destructive="handleConfirmDestructive"
-    />
-    <PointPreviewDrawer
-      v-if="isDeepPopupVisible && popupAnchor"
-      ref="popup"
-      :floating-styles="popupFloatingStyles"
-      :anchor-source="popupAnchor.source"
     />
     <div
       v-if="pendingGeoHit"

@@ -108,8 +108,8 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] `15-01-PLAN.md` — 定义 TravelRecord contracts 与 Prisma 模型，实现 server CRUD API 与 e2e 测试
-- [ ] `15-02-PLAN.md` — 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新
+- [x] `15-01-PLAN.md` — 定义 TravelRecord contracts 与 Prisma 模型，实现 server CRUD API 与 e2e 测试
+- [x] `15-02-PLAN.md` — 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新
 - [ ] `15-03-PLAN.md` — 在 Popup 标题行添加"点亮/已点亮"按钮，接线至 store 并视觉验收
 
 ## Progress
@@ -122,4 +122,4 @@ Plans:
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
 | 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 3/3 | Complete| ✓ |
-| 15. 服务端记录与点亮闭环 | 1/3 | In Progress|  |
+| 15. 服务端记录与点亮闭环 | 2/3 | In Progress|  |
