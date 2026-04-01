@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 14-leaflet-03-PLAN.md (Phase 14 complete)
-last_updated: "2026-03-31T18:15:00.000Z"
-last_activity: 2026-03-31
+stopped_at: "Completed quick task 260331-pj4: title layout + map display fix"
+last_updated: "2026-04-01T02:42:30.665Z"
+last_activity: 2026-04-01 -- Phase 15 execution started
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 22
+  total_plans: 25
   completed_plans: 22
   percent: 100
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 14 — leaflet
+**Current focus:** Phase 15 — 服务端记录与点亮闭环
 
 ## Current Position
 
-Phase: 14 (leaflet) — COMPLETE
-Plan: 3 of 3
-Status: Verified
-Last activity: 2026-03-31
+Phase: 15 (服务端记录与点亮闭环) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 15
+Last activity: 2026-04-01 -- Phase 15 execution started
 
 Progress: [██████████] 100%
 
