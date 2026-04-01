@@ -17,10 +17,11 @@ import {
   GEOMETRY_DATASET_VERSION,
   getGeometryManifestEntry,
 } from '../services/geometry-manifest'
+import { lookupCountryRegionByCoordinates } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
-import type { GeoCityCandidate } from '../types/geo'
+import type { GeoCityCandidate, GeoDetectionResult } from '../types/geo'
 import type { DraftMapPoint } from '../types/map-point'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 
@@ -50,6 +51,8 @@ const {
   selectedPointId,
   summarySurfaceState,
   hasBootstrapped,
+  travelRecords,
+  pendingPlaceIds,
 } = storeToRefs(mapPointsStore)
 
 const { pendingGeoHit } = storeToRefs(mapUiStore)
@@ -339,6 +342,41 @@ function buildPendingCanonicalDraft(
   }
 }
 
+function buildFallbackDraftPoint(
+  result: GeoDetectionResult,
+  geo: { lat: number; lng: number },
+): DraftMapPoint {
+  return {
+    id: `detected-geo-${Math.round(geo.lat * 100)}-${Math.round(geo.lng * 100)}`,
+    name: result.displayName,
+    countryName: result.countryName,
+    countryCode: result.countryCode,
+    precision: result.precision,
+    cityId: result.cityId,
+    cityName: result.cityName,
+    cityContextLabel: result.regionName ?? null,
+    placeId: null,
+    placeKind: null,
+    datasetVersion: null,
+    typeLabel: null,
+    parentLabel: null,
+    subtitle: null,
+    boundaryId: null,
+    boundaryDatasetVersion: null,
+    fallbackNotice: result.fallbackNotice,
+    lat: geo.lat,
+    lng: geo.lng,
+    clickLat: geo.lat,
+    clickLng: geo.lng,
+    x: 0,
+    y: 0,
+    source: 'detected',
+    isFeatured: false,
+    coordinatesLabel: formatCoordinatesLabel(geo),
+    description: '',
+  }
+}
+
 function applyResolvedPlace(
   place: Parameters<typeof buildCanonicalDraftPoint>[0],
   geo: { lat: number; lng: number },
@@ -363,6 +401,49 @@ function applyResolvedPlace(
   }
 
   clearInteractionNotice()
+}
+
+// --- Illuminate state computeds ---
+
+const activePointPlaceId = computed(() => {
+  const surface = summarySurfaceState.value
+  if (!surface || surface.mode === 'candidate-select') return null
+  return surface.point.placeId ?? null
+})
+
+const isActivePointSaved = computed(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return false
+  return travelRecords.value.some((r) => r.placeId === pid)
+})
+
+const isActivePointPending = computed(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return false
+  return pendingPlaceIds.value.has(pid)
+})
+
+// --- Illuminate handlers ---
+
+function handleIlluminate() {
+  const surface = summarySurfaceState.value
+  if (!surface || surface.mode === 'candidate-select') return
+  const point = surface.point
+  if (!point.placeId || !point.placeKind || !point.datasetVersion) return
+  void mapPointsStore.illuminate({
+    placeId: point.placeId,
+    boundaryId: point.boundaryId,
+    placeKind: point.placeKind,
+    datasetVersion: point.datasetVersion,
+    displayName: point.name,
+    subtitle: point.subtitle ?? point.cityContextLabel ?? '',
+  })
+}
+
+function handleUnilluminate() {
+  const pid = activePointPlaceId.value
+  if (!pid) return
+  void mapPointsStore.unilluminate(pid)
 }
 
 // --- Boundary click handler (D-12) ---
@@ -566,6 +647,17 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
       return
     }
 
+    if (response.reason === 'OUTSIDE_SUPPORTED_DATA') {
+      const geoResult = lookupCountryRegionByCoordinates({ lat, lng })
+      if (geoResult) {
+        openSavedPointForPlaceOrStartDraft(buildFallbackDraftPoint(geoResult, { lat, lng }))
+        popupLatLng.value = L.latLng(lat, lng)
+        clearInteractionNotice()
+        finishRecognition()
+        clearPendingGeoHit()
+        return
+      }
+    }
     setInteractionNotice({
       tone: 'info',
       message: response.message,
@@ -614,7 +706,11 @@ onMounted(() => {
       :anchor-source="popupAnchor.source"
       :floating-styles="popupFloatingStyles"
       :find-saved-point-by-city-id="findSavedPointByCityId"
+      :is-saved="isActivePointSaved"
+      :is-pending="isActivePointPending"
       @confirm-candidate="handleConfirmCandidate"
+      @illuminate="handleIlluminate"
+      @unilluminate="handleUnilluminate"
     />
     <div
       v-if="pendingGeoHit"

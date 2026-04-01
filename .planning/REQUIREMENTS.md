@@ -48,8 +48,8 @@
 ### Popup, Drawer & Inline Illuminate
 
 - [x] **UIX-01**: 用户选中地点后，仍然通过现有 popup + drawer 的双层表面完成摘要查看与深度编辑，不因全栈化或换图引擎而退化
-- [ ] **UIX-02**: 地点面板标题右侧提供明确的“点亮 / 取消点亮”按钮，不使用 checkbox 作为主要交互形式
-- [ ] **UIX-03**: 用户点击点亮 / 取消点亮后，可以立即看到按钮文案、状态色和地图边界高亮同步变化
+- [x] **UIX-02**: 地点面板标题右侧提供明确的“点亮 / 取消点亮”按钮，不使用 checkbox 作为主要交互形式
+- [x] **UIX-03**: 用户点击点亮 / 取消点亮后，可以立即看到按钮文案、状态色和地图边界高亮同步变化
 - [x] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
 - [x] **UIX-05**: popup、drawer、地图高亮和 API 返回状态在成功、失败、加载中三种情况下都保持一致反馈
 
@@ -107,8 +107,8 @@
 | API-04 | Phase 11 | Complete |
 | API-05 | Phase 15 | Complete |
 | UIX-01 | Phase 14 | Complete |
-| UIX-02 | Phase 15 | Pending |
-| UIX-03 | Phase 15 | Pending |
+| UIX-02 | Phase 15 | Complete |
+| UIX-03 | Phase 15 | Complete |
 | UIX-04 | Phase 12 | Complete |
 | UIX-05 | Phase 15 | Complete |
 
