@@ -104,8 +104,13 @@ Plans:
   2. 地点标题右侧提供明确的"点亮 / 取消点亮"按钮，用户点击后能立即看到按钮文案、状态色和地图边界高亮同步变化。
   3. 当请求处于加载中、成功或失败时，popup、drawer、地图高亮与 API 返回状态保持一致，不会出现表面不同步。
   4. `v3.0` 新链路启动后，应用不再读取、迁移或保留旧 `localStorage` 旅行数据，也不再使用历史 seed 点位作为记录来源。
-**Plans**: TBD
+**Plans**: 3 plans
 **UI hint**: yes
+
+Plans:
+- [ ] `15-01-PLAN.md` — 定义 TravelRecord contracts 与 Prisma 模型，实现 server CRUD API 与 e2e 测试
+- [ ] `15-02-PLAN.md` — 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新
+- [ ] `15-03-PLAN.md` — 在 Popup 标题行添加"点亮/已点亮"按钮，接线至 store 并视觉验收
 
 ## Progress
 
@@ -117,4 +122,4 @@ Plans:
 | 12. Canonical 地点语义 | 5/5 | Complete    | 2026-03-30 |
 | 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 3/3 | Complete| ✓ |
-| 15. 服务端记录与点亮闭环 | 0/TBD | Not started | - |
+| 15. 服务端记录与点亮闭环 | 0/3 | Planning | - |
