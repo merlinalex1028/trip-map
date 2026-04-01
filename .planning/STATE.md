@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: executing
-stopped_at: Completed 15-02 PLAN.md
-last_updated: "2026-04-01T04:55:34.667Z"
+status: verifying
+stopped_at: "Completed 15-03 Task 1; stopped at checkpoint:human-verify Task 2"
+last_updated: "2026-04-01T06:51:04.873Z"
 last_activity: 2026-04-01
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 25
-  completed_plans: 24
+  completed_plans: 25
   percent: 100
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 Phase: 15 (服务端记录与点亮闭环) — 2 of 3
 Plan: 3 of 3
-Status: Executing Phase 15
+Status: Phase complete — ready for verification
 Last activity: 2026-04-01
 
 Progress: [██████████] 100%
@@ -83,6 +83,7 @@ Progress: [██████████] 100%
 | Phase 14-leaflet P02 | 6min | 2 tasks | 2 files |
 | Phase 14-leaflet P03 | — | 2 tasks | 3 files |
 | Phase 15-02 P15-02 | 25min | 2 tasks | 9 files |
+| Phase 15-服务端记录与点亮闭环 P03 | 20 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,7 @@ Recent decisions affecting current work:
 - [Phase 14-leaflet]: useGeoJsonLayers creates two separate L.geoJSON instances (cnLayer/overseasLayer) per GEOX-05; Bing Maps integrated via REST Metadata API with CartoDB Positron fallback; useLeafletPopupAnchor uses map.on(move/zoom) imperatively for VirtualElement updates
 - [Phase 14-leaflet]: NormalizedPoint x/y set to 0 in Leaflet DraftMapPoint — lat/lng is the authoritative position in Leaflet mode
 - [Phase 14-leaflet]: handleBoundaryClick reopens saved point popup directly without server resolve (D-12) using openSavedPointForPlaceOrStartDraft
+- [Phase 15-服务端记录与点亮闭环]: illuminate button placed in title-row as 3rd grid column; isActivePointSaved reads from travelRecords reactive ref; handleIlluminate builds summary from surface.point fields
 
 ### Pending Todos
 
@@ -155,6 +157,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T04:55:20.570Z
-Stopped at: Completed 15-02 PLAN.md
+Last session: 2026-04-01T06:51:04.871Z
+Stopped at: Completed 15-03 Task 1; stopped at checkpoint:human-verify Task 2
 Resume file: None
