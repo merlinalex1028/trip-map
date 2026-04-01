@@ -19,3 +19,14 @@ model SmokeRecord {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+model TravelRecord {
+  id             String   @id @default(cuid())
+  placeId        String   @unique
+  boundaryId     String
+  placeKind      String
+  datasetVersion String
+  displayName    String
+  subtitle       String
+  createdAt      DateTime @default(now())
+}
