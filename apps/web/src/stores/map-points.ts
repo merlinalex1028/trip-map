@@ -58,6 +58,8 @@ function recordToDisplayPoint(record: TravelRecord): MapPointDisplay {
     placeId: record.placeId,
     placeKind: record.placeKind,
     datasetVersion: record.datasetVersion,
+    regionSystem: record.regionSystem,
+    adminType: record.adminType,
     typeLabel: record.typeLabel,
     parentLabel: record.parentLabel,
     subtitle: record.subtitle,

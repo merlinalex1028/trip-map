@@ -268,6 +268,7 @@ function buildCanonicalDraftPoint(
     datasetVersion: string
     displayName: string
     regionSystem: 'CN' | 'OVERSEAS'
+    adminType: DraftMapPoint['adminType']
     typeLabel: string
     parentLabel: string
     subtitle: string
@@ -288,6 +289,8 @@ function buildCanonicalDraftPoint(
     placeId: place.placeId,
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
@@ -323,6 +326,8 @@ function buildPendingCanonicalDraft(
     placeId: null,
     placeKind: null,
     datasetVersion: null,
+    regionSystem: null,
+    adminType: null,
     typeLabel: null,
     parentLabel: null,
     subtitle: null,
@@ -358,6 +363,8 @@ function buildFallbackDraftPoint(
     placeId: null,
     placeKind: null,
     datasetVersion: null,
+    regionSystem: null,
+    adminType: null,
     typeLabel: null,
     parentLabel: null,
     subtitle: null,
@@ -423,21 +430,66 @@ const isActivePointPending = computed(() => {
   return pendingPlaceIds.value.has(pid)
 })
 
+const isActivePointIlluminatable = computed(() => {
+  const surface = summarySurfaceState.value
+
+  if (!surface || surface.mode === 'candidate-select') {
+    return false
+  }
+
+  const point = surface.point
+
+  return Boolean(
+    point.placeId &&
+    point.placeKind &&
+    point.datasetVersion &&
+    point.boundaryId,
+  )
+})
+
 // --- Illuminate handlers ---
 
-function handleIlluminate() {
+async function handleIlluminate() {
   const surface = summarySurfaceState.value
   if (!surface || surface.mode === 'candidate-select') return
   const point = surface.point
-  if (!point.placeId || !point.placeKind || !point.datasetVersion) return
-  void mapPointsStore.illuminate({
+
+  if (
+    !isActivePointIlluminatable.value ||
+    !point.placeId ||
+    !point.placeKind ||
+    !point.datasetVersion ||
+    !point.boundaryId ||
+    !point.regionSystem ||
+    !point.adminType ||
+    !point.typeLabel ||
+    !point.parentLabel
+  ) {
+    setInteractionNotice({
+      tone: 'info',
+      message: '该地点暂不支持点亮',
+    })
+    return
+  }
+
+  await mapPointsStore.illuminate({
     placeId: point.placeId,
     boundaryId: point.boundaryId,
     placeKind: point.placeKind,
     datasetVersion: point.datasetVersion,
     displayName: point.name,
+    regionSystem: point.regionSystem,
+    adminType: point.adminType,
+    typeLabel: point.typeLabel,
+    parentLabel: point.parentLabel,
     subtitle: point.subtitle ?? point.cityContextLabel ?? '',
   })
+
+  const entry = getGeometryManifestEntry(point.boundaryId)
+
+  if (entry) {
+    await loadShardIfNeeded(point.boundaryId, entry.layer as 'CN' | 'OVERSEAS')
+  }
 }
 
 function handleUnilluminate() {
@@ -467,6 +519,8 @@ function handleBoundaryClick(boundaryId: string, latlng: L.LatLng) {
       placeId: savedPoint.placeId,
       placeKind: savedPoint.placeKind,
       datasetVersion: savedPoint.datasetVersion,
+      regionSystem: savedPoint.regionSystem,
+      adminType: savedPoint.adminType,
       typeLabel: savedPoint.typeLabel,
       parentLabel: savedPoint.parentLabel,
       subtitle: savedPoint.subtitle,
@@ -708,6 +762,7 @@ onMounted(() => {
       :find-saved-point-by-city-id="findSavedPointByCityId"
       :is-saved="isActivePointSaved"
       :is-pending="isActivePointPending"
+      :is-illuminatable="isActivePointIlluminatable"
       @confirm-candidate="handleConfirmCandidate"
       @illuminate="handleIlluminate"
       @unilluminate="handleUnilluminate"

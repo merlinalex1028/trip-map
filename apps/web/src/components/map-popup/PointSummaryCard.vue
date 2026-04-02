@@ -16,13 +16,23 @@ interface CandidateListItem {
   isRecommended: boolean
 }
 
-const props = defineProps<{
-  surface: SummarySurfaceState
-  findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
-  titleClass?: string
-  isSaved?: boolean
-  isPending?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    surface: SummarySurfaceState
+    findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
+    titleClass?: string
+    isSaved?: boolean
+    isPending?: boolean
+    isIlluminatable?: boolean
+  }>(),
+  {
+    findSavedPointByCityId: undefined,
+    titleClass: undefined,
+    isSaved: false,
+    isPending: false,
+    isIlluminatable: true,
+  },
+)
 
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
@@ -113,9 +123,12 @@ function getCandidateStatus(statusHint: string) {
 const illuminateLabel = computed(() => (props.isSaved ? '已点亮' : '点亮'))
 const illuminateState = computed(() => (props.isSaved ? 'on' : 'off'))
 const showIlluminateButton = computed(() => !isCandidateMode.value)
+const illuminateHint = computed(() =>
+  props.isIlluminatable ? null : '该地点暂不支持点亮',
+)
 
 function handleIlluminateToggle() {
-  if (props.isPending) return
+  if (props.isPending || !props.isIlluminatable) return
   if (props.isSaved) {
     emit('unilluminate')
   } else {
@@ -165,7 +178,10 @@ function handleContinueWithFallback() {
           class="point-summary-card__illuminate-btn"
           :class="{ 'point-summary-card__illuminate-btn--on': isSaved }"
           :data-illuminate-state="illuminateState"
-          :disabled="isPending"
+          :data-illuminatable="String(isIlluminatable)"
+          :disabled="isPending || !isIlluminatable"
+          :aria-label="illuminateHint ?? undefined"
+          :title="illuminateHint ?? undefined"
           type="button"
           @click="handleIlluminateToggle"
         >

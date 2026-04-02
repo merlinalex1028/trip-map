@@ -13,12 +13,14 @@ const props = withDefaults(
     findSavedPointByCityId?: (cityId: string) => MapPointDisplay | null
     isSaved?: boolean
     isPending?: boolean
+    isIlluminatable?: boolean
   }>(),
   {
     floatingStyles: null,
     findSavedPointByCityId: undefined,
     isSaved: false,
     isPending: false,
+    isIlluminatable: true,
   }
 )
 
@@ -102,6 +104,7 @@ defineExpose({
         :find-saved-point-by-city-id="findSavedPointByCityId"
         :is-saved="isSaved"
         :is-pending="isPending"
+        :is-illuminatable="isIlluminatable"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
         @illuminate="emit('illuminate')"

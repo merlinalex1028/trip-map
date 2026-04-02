@@ -155,6 +155,8 @@ function makeDraftPoint(
     placeId: place.placeId,
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,

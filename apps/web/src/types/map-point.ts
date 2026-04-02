@@ -1,4 +1,4 @@
-import type { CanonicalPlaceCandidate, PlaceKind } from '@trip-map/contracts'
+import type { CanonicalPlaceCandidate, ChinaAdminType, PlaceKind } from '@trip-map/contracts'
 
 import type { GeoCityCandidate, GeoPrecision } from './geo'
 
@@ -16,6 +16,8 @@ interface BaseMapPoint {
   placeId?: string | null
   placeKind?: PlaceKind | null
   datasetVersion?: string | null
+  regionSystem?: 'CN' | 'OVERSEAS' | null
+  adminType?: ChinaAdminType | 'ADMIN1' | null
   typeLabel?: string | null
   parentLabel?: string | null
   subtitle?: string | null
