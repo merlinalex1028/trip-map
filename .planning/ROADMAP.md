@@ -130,10 +130,10 @@ Plans:
 **Goal:** 用户在真实地图点击与保存链路中，能稳定看到正确的 canonical 行政区标签、点亮反馈与边界高亮；服务端记录 schema 与 shared contracts 保持一致，且 California 等已承诺支持的海外 admin1 能被 server-authoritative 地识别。
 **Requirements**: REQ-16-01, REQ-16-02, REQ-16-03, REQ-16-04, REQ-16-05
 **Depends on:** Phase 15
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 
 Plans:
-- [ ] `16-00-PLAN.md` — 先做 PostgreSQL preflight / blocker gate，确保后续 server migration 与 e2e 可执行
+- [x] `16-00-PLAN.md` — 先做 PostgreSQL preflight / blocker gate，确保后续 server migration 与 e2e 可执行
 - [ ] `16-01-PLAN.md` — 修复 SmokeRecord/TravelRecord 的 contracts + Prisma + server round-trip canonical metadata
 - [ ] `16-02-PLAN.md` — 修复 web reopen label、fallback 点亮反馈与 illuminate 后 shard/overlay 加载
 - [ ] `16-03-PLAN.md` — 对齐 authoritative fixtures/UAT 文案，并让 California 走 server-owned bbox resolve

@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: "15-03 Task 2: checkpoint:human-verify — illuminate button + Phase 12 fix ready for visual check"
-last_updated: "2026-04-01T07:00:00.000Z"
-last_activity: 2026-04-01
+stopped_at: Completed 16-00-PLAN.md
+last_updated: "2026-04-02T08:10:55.512Z"
+last_activity: 2026-04-02
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 5
-  total_plans: 25
-  completed_plans: 25
-  percent: 100
+  total_plans: 29
+  completed_plans: 26
+  percent: 90
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 15 — 服务端记录与点亮闭环
+**Current focus:** Phase 16 — uat-gap-fallback-smoke-record-schema-typelabel-california
 
 ## Current Position
 
-Phase: 15 (服务端记录与点亮闭环) — 3 of 3
-Plan: 3 of 3
-Status: Executing — awaiting human-verify Task 2
-Last activity: 2026-04-01
+Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-02
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Last Shipped Milestone
 
@@ -84,6 +84,7 @@ Progress: [██████████] 100%
 | Phase 14-leaflet P03 | — | 2 tasks | 3 files |
 | Phase 15-02 P15-02 | 25min | 2 tasks | 9 files |
 | Phase 15-服务端记录与点亮闭环 P03 | 20 | 1 tasks | 4 files |
+| Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P00 | 8min | 1 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -138,6 +139,7 @@ Recent decisions affecting current work:
 - [Phase 14-leaflet]: NormalizedPoint x/y set to 0 in Leaflet DraftMapPoint — lat/lng is the authoritative position in Leaflet mode
 - [Phase 14-leaflet]: handleBoundaryClick reopens saved point popup directly without server resolve (D-12) using openSavedPointForPlaceOrStartDraft
 - [Phase 15-服务端记录与点亮闭环]: illuminate button placed in title-row as 3rd grid column; isActivePointSaved reads from travelRecords reactive ref; handleIlluminate builds summary from surface.point fields
+- [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: 16-00 uses the successful out-of-sandbox rerun as the authoritative DB reachability result when sandbox networking returns a false P1001.
 
 ### Roadmap Evolution
 
@@ -161,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-01T06:51:04.871Z
-Stopped at: Completed 15-03 Task 1; stopped at checkpoint:human-verify Task 2
+Last session: 2026-04-02T08:10:55.509Z
+Stopped at: Completed 16-00-PLAN.md
 Resume file: None

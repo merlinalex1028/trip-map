@@ -53,6 +53,14 @@
 - [x] **UIX-04**: 用户可以清楚区分“中国市级”和“海外一级行政区”这两类地点语义，不会被统一伪装成“城市”
 - [x] **UIX-05**: popup、drawer、地图高亮和 API 返回状态在成功、失败、加载中三种情况下都保持一致反馈
 
+### Phase 16 UAT Gap Fixes
+
+- [ ] **REQ-16-01**: 非 canonical fallback 点位不能继续显示一个“可点击但无效果”的点亮按钮；用户必须得到明确的禁用态或提示文案
+- [ ] **REQ-16-02**: 点亮成功后，同一 session 内必须加载对应 GeoJSON shard 并显示 saved overlay，而不是只更新 store 状态
+- [ ] **REQ-16-03**: `SmokeRecord` 必须把 `CanonicalPlaceSummary` 的字段完整落库并从 DB 行 round-trip
+- [ ] **REQ-16-04**: `TravelRecord` 必须保留 reopened/view surface 所需的 canonical 展示元数据，至少覆盖 `typeLabel`、`parentLabel`、`subtitle`，推荐一并持久化 `regionSystem`、`adminType`
+- [ ] **REQ-16-05**: California 识别必须遵循 server-authoritative 结果；shared fixtures、UAT 文案和 server fixture 的 `placeId` / `datasetVersion` / `typeLabel` 口径必须一致
+
 ## Future Requirements
 
 ### Sync & Accounts
@@ -111,6 +119,11 @@
 | UIX-03 | Phase 15 | Complete |
 | UIX-04 | Phase 12 | Complete |
 | UIX-05 | Phase 15 | Complete |
+| REQ-16-01 | Phase 16 | Pending |
+| REQ-16-02 | Phase 16 | Pending |
+| REQ-16-03 | Phase 16 | Pending |
+| REQ-16-04 | Phase 16 | Pending |
+| REQ-16-05 | Phase 16 | Pending |
 
 **Coverage:**
 - v3.0 requirements: 29 total
