@@ -139,6 +139,10 @@ Recent decisions affecting current work:
 - [Phase 14-leaflet]: handleBoundaryClick reopens saved point popup directly without server resolve (D-12) using openSavedPointForPlaceOrStartDraft
 - [Phase 15-服务端记录与点亮闭环]: illuminate button placed in title-row as 3rd grid column; isActivePointSaved reads from travelRecords reactive ref; handleIlluminate builds summary from surface.point fields
 
+### Roadmap Evolution
+
+- Phase 16 added: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
+
 ### Pending Todos
 
 None yet.

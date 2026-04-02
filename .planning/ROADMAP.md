@@ -123,3 +123,13 @@ Plans:
 | 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 3/3 | Complete| ✓ |
 | 15. 服务端记录与点亮闭环 | 3/3 | Complete   | 2026-04-01 |
+
+### Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16 to break down)
