@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 16-00-PLAN.md
-last_updated: "2026-04-02T08:10:55.512Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-04-02T08:46:23.231Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
   percent: 90
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-02
 
@@ -85,6 +85,7 @@ Progress: [█████████░] 90%
 | Phase 15-02 P15-02 | 25min | 2 tasks | 9 files |
 | Phase 15-服务端记录与点亮闭环 P03 | 20 | 1 tasks | 4 files |
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P00 | 8min | 1 tasks | 5 files |
+| Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P01 | 28min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ Recent decisions affecting current work:
 - [Phase 14-leaflet]: handleBoundaryClick reopens saved point popup directly without server resolve (D-12) using openSavedPointForPlaceOrStartDraft
 - [Phase 15-服务端记录与点亮闭环]: illuminate button placed in title-row as 3rd grid column; isActivePointSaved reads from travelRecords reactive ref; handleIlluminate builds summary from surface.point fields
 - [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: 16-00 uses the successful out-of-sandbox rerun as the authoritative DB reachability result when sandbox networking returns a false P1001.
+- [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Phase 16 metadata columns stay nullable in Prisma and SQL migration, while all new writes must still provide full canonical metadata.
+- [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Legacy record metadata is backfilled only by authoritative canonical placeId lookup; unmatched rows are logged and never inferred from display text.
+- [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Records service responses now map from persisted DB columns instead of echoing request metadata back to clients.
 
 ### Roadmap Evolution
 
@@ -163,6 +167,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T08:10:55.509Z
-Stopped at: Completed 16-00-PLAN.md
+Last session: 2026-04-02T08:46:23.227Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
