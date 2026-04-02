@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-6，已于 2026-03-24 归档
 - ✅ **v2.0 城市主视角与可爱风格重构** — Phases 7-10，已于 2026-03-27 归档
-- 🚧 **v3.0 全栈化与行政区地图重构** — Phases 11-15，当前规划中
+- 🚧 **v3.0 全栈化与行政区地图重构** — Phases 11-16，当前规划中
 
 ## Overview
 
@@ -17,6 +17,7 @@
 - [x] **Phase 13: 行政区数据与几何交付** - 固定中国与海外独立数据集、版本清单与静态几何交付策略 (completed 2026-03-31)
 - [x] **Phase 14: Leaflet 地图主链路迁移** - 在 `Leaflet` 中恢复双图层地图、popup 与 drawer 的连续主链路
 - [x] **Phase 15: 服务端记录与点亮闭环** - 把旅行记录与点亮动作切到 `server` API，并收口旧本地数据路径 (completed 2026-04-01)
+- [ ] **Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别** - 收拢 canonical 展示、点亮反馈和 server-authoritative California 识别链路
 
 ## Phase Details
 
@@ -126,10 +127,12 @@ Plans:
 
 ### Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** 用户在真实地图点击与保存链路中，能稳定看到正确的 canonical 行政区标签、点亮反馈与边界高亮；服务端记录 schema 与 shared contracts 保持一致，且 California 等已承诺支持的海外 admin1 能被 server-authoritative 地识别。
+**Requirements**: REQ-16-01, REQ-16-02, REQ-16-03, REQ-16-04, REQ-16-05
 **Depends on:** Phase 15
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 16 to break down)
+- [ ] `16-01-PLAN.md` — 修复 SmokeRecord/TravelRecord 的 contracts + Prisma + server round-trip canonical metadata
+- [ ] `16-02-PLAN.md` — 修复 web reopen label、fallback 点亮反馈与 illuminate 后 shard/overlay 加载
+- [ ] `16-03-PLAN.md` — 对齐 authoritative fixtures/UAT 文案，并让 California 走 server-owned bbox resolve
