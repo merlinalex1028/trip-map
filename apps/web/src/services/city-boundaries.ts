@@ -1,5 +1,6 @@
 import boundaryDataset from '../data/geo/city-boundaries.geo.json'
 import { curatedCityIds } from '../data/geo/city-candidates'
+import { getGeometryManifestEntry } from './geometry-manifest'
 import type {
   CityBoundaryFeature,
   CityBoundaryFeatureCollection,
@@ -54,6 +55,10 @@ export function resolveRenderableBoundaryId(boundaryId: string): string | null {
 export function hasBoundaryCoverageForBoundaryId(boundaryId: string | null | undefined): boolean {
   if (!boundaryId) {
     return false
+  }
+
+  if (getGeometryManifestEntry(boundaryId)) {
+    return true
   }
 
   const renderableBoundaryId = resolveRenderableBoundaryId(boundaryId)

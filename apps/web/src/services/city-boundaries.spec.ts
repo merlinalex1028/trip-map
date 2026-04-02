@@ -4,6 +4,7 @@ import {
   curatedCitiesMissingBoundaryCoverage,
   getBoundaryById,
   getBoundaryByCityId,
+  hasBoundaryCoverageForBoundaryId,
   hasBoundaryCoverageForCityId
 } from './city-boundaries'
 
@@ -126,5 +127,10 @@ describe('city-boundaries service', () => {
     expect(getBoundaryById('datav-cn-aba')).toBeNull()
     expect(getBoundaryById('datav-cn-tianjin')).toBeNull()
     expect(getBoundaryById('ne-admin1-us-california')).toBeNull()
+  })
+
+  it('treats authoritative geometry manifest entries as boundary coverage even without legacy offline city-boundaries mapping', () => {
+    expect(hasBoundaryCoverageForBoundaryId('datav-cn-440100')).toBe(true)
+    expect(hasBoundaryCoverageForBoundaryId('ne-admin1-us-california')).toBe(true)
   })
 })
