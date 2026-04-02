@@ -15,6 +15,12 @@ type CanonicalResolveFixture =
   | {
       kind: 'resolved'
       click: { lat: number; lng: number }
+      bounds?: {
+        minLat: number
+        maxLat: number
+        minLng: number
+        maxLng: number
+      }
       placeId: CanonicalPlaceId
     }
   | {
@@ -150,6 +156,12 @@ export const CANONICAL_RESOLVE_FIXTURES: CanonicalResolveFixture[] = [
     click: {
       lat: 36.7783,
       lng: -119.4179,
+    },
+    bounds: {
+      minLat: 32.53,
+      maxLat: 42.01,
+      minLng: -124.41,
+      maxLng: -114.13,
     },
     placeId: 'us-california',
   },

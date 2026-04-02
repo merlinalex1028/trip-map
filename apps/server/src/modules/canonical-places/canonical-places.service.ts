@@ -148,6 +148,23 @@ export class CanonicalPlacesService {
   }
 
   private findFixture(input: ResolveCanonicalPlaceRequest): CanonicalResolveFixture | undefined {
+    const boundsMatch = CANONICAL_RESOLVE_FIXTURES.find((fixture) => {
+      if (fixture.kind !== 'resolved' || !fixture.bounds) {
+        return false
+      }
+
+      return (
+        input.lat >= fixture.bounds.minLat
+        && input.lat <= fixture.bounds.maxLat
+        && input.lng >= fixture.bounds.minLng
+        && input.lng <= fixture.bounds.maxLng
+      )
+    })
+
+    if (boundsMatch) {
+      return boundsMatch
+    }
+
     return CANONICAL_RESOLVE_FIXTURES.find(fixture => (
       Math.abs(fixture.click.lat - input.lat) < 0.0001
       && Math.abs(fixture.click.lng - input.lng) < 0.0001
