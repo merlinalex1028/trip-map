@@ -1,9 +1,9 @@
 ---
 phase: 16
 slug: uat-gap-fallback-smoke-record-schema-typelabel-california
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: ready
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-02
 ---
 
@@ -41,9 +41,10 @@ created: 2026-04-02
 | 16-00-01 | 00 | 1 | REQ-16-03, REQ-16-04 | DB preflight | `pnpm --filter @trip-map/server exec prisma validate --schema prisma/schema.prisma && pnpm --filter @trip-map/server exec prisma migrate status --schema prisma/schema.prisma && pnpm --filter @trip-map/server exec vitest run test/records-contract.e2e-spec.ts` | ✅ create | ⬜ pending |
 | 16-01-01 | 01 | 2 | REQ-16-03 | migration + backfill | `pnpm --filter @trip-map/contracts build && pnpm --filter @trip-map/server exec prisma migrate dev --name phase16_record_metadata_contracts && pnpm --filter @trip-map/server exec tsx scripts/backfill-record-metadata.ts && pnpm --filter @trip-map/server exec prisma generate` | ✅ extend | ⬜ pending |
 | 16-01-02 | 01 | 2 | REQ-16-04 | server e2e + legacy reopen | `pnpm --filter @trip-map/server exec vitest run test/records-smoke.e2e-spec.ts test/records-travel.e2e-spec.ts test/records-contract.e2e-spec.ts` | ✅ extend | ⬜ pending |
-| 16-02-01 | 02 | 3 | REQ-16-01 | component | `pnpm --filter @trip-map/web exec vitest run src/components/map-popup/PointSummaryCard.spec.ts src/components/LeafletMapStage.spec.ts` | ✅ extend | ⬜ pending |
-| 16-02-02 | 02 | 3 | REQ-16-02 | component/integration | `pnpm --filter @trip-map/web exec vitest run src/components/LeafletMapStage.spec.ts src/stores/map-points.spec.ts` | ✅ extend | ⬜ pending |
-| 16-03-01 | 03 | 4 | REQ-16-05 | server e2e + contracts + web fixture consumers | `pnpm --filter @trip-map/server exec vitest run test/canonical-resolve.e2e-spec.ts` and `pnpm --filter @trip-map/contracts test` and `pnpm --filter @trip-map/web exec vitest run src/stores/map-points.spec.ts src/components/LeafletMapStage.spec.ts` | ✅ extend | ⬜ pending |
+| 16-02-01 | 02 | 3 | REQ-16-04 | store rehydrate | `pnpm --filter @trip-map/web exec vitest run src/stores/map-points.spec.ts` | ✅ extend | ⬜ pending |
+| 16-02-02 | 02 | 3 | REQ-16-01, REQ-16-02 | component/integration | `pnpm --filter @trip-map/web exec vitest run src/components/map-popup/PointSummaryCard.spec.ts src/components/LeafletMapStage.spec.ts src/stores/map-points.spec.ts` | ✅ extend | ⬜ pending |
+| 16-03-01 | 03 | 4 | REQ-16-05 | contracts + web fixture consumers | `pnpm --filter @trip-map/contracts build && pnpm --filter @trip-map/contracts test && pnpm --filter @trip-map/web exec vitest run src/stores/map-points.spec.ts src/components/LeafletMapStage.spec.ts` | ✅ extend | ⬜ pending |
+| 16-03-02 | 03 | 4 | REQ-16-05 | server e2e | `pnpm --filter @trip-map/server exec vitest run test/canonical-resolve.e2e-spec.ts` | ✅ extend | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -74,11 +75,11 @@ created: 2026-04-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 20s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 20s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-02
