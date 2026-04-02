@@ -59,7 +59,7 @@
 - [x] **REQ-16-02**: 点亮成功后，同一 session 内必须加载对应 GeoJSON shard 并显示 saved overlay，而不是只更新 store 状态
 - [x] **REQ-16-03**: `SmokeRecord` 必须把 `CanonicalPlaceSummary` 的字段完整落库并从 DB 行 round-trip
 - [x] **REQ-16-04**: `TravelRecord` 必须保留 reopened/view surface 所需的 canonical 展示元数据，至少覆盖 `typeLabel`、`parentLabel`、`subtitle`，推荐一并持久化 `regionSystem`、`adminType`
-- [ ] **REQ-16-05**: California 识别必须遵循 server-authoritative 结果；shared fixtures、UAT 文案和 server fixture 的 `placeId` / `datasetVersion` / `typeLabel` 口径必须一致
+- [x] **REQ-16-05**: California 识别必须遵循 server-authoritative 结果；shared fixtures、UAT 文案和 server fixture 的 `placeId` / `datasetVersion` / `typeLabel` 口径必须一致
 
 ## Future Requirements
 
@@ -123,7 +123,7 @@
 | REQ-16-02 | Phase 16 | Complete |
 | REQ-16-03 | Phase 16 | Complete |
 | REQ-16-04 | Phase 16 | Complete |
-| REQ-16-05 | Phase 16 | Pending |
+| REQ-16-05 | Phase 16 | Complete |
 
 **Coverage:**
 - v3.0 requirements: 29 total

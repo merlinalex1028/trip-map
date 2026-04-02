@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: executing
-stopped_at: Completed 16-02-PLAN.md
-last_updated: "2026-04-02T09:14:22.146Z"
+status: verifying
+stopped_at: Completed 16-03-PLAN.md
+last_updated: "2026-04-02T09:27:16.027Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 29
-  completed_plans: 28
-  percent: 90
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 
 ## Current Position
 
-Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — EXECUTING
+Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — VERIFYING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-02
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Last Shipped Milestone
 
@@ -87,6 +87,7 @@ Progress: [█████████░] 90%
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P00 | 8min | 1 tasks | 5 files |
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P01 | 28min | 2 tasks | 10 files |
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P02 | 23min | 2 tasks | 8 files |
+| Phase 16 P03 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,8 @@ Recent decisions affecting current work:
 - [Phase 16]: MapPointDisplay/DraftMapPoint 补齐 regionSystem 与 adminType，避免 popup 点亮链路再从展示文本做隐式推断。
 - [Phase 16]: fallback 点位保留“点亮”按钮文案，但固定为 disabled + unsupported hint，明确告知当前地点不能点亮。
 - [Phase 16]: 点亮成功后在 LeafletMapStage 内显式走 manifest -> loadShardIfNeeded，而不是只等 refreshStyles 命中已有 feature。
+- [Phase 16]: California authoritative resolve 改为 bbox 优先，再回退 legacy representative click，避免改坏北京/香港/阿坝与 ambiguous fixture。
+- [Phase 16]: contracts fixtures 与历史 UAT 文案全部跟随 server-authoritative placeId、datasetVersion 和 typeLabel，不保留 contracts-only alias。
 
 ### Roadmap Evolution
 
@@ -171,6 +174,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T09:14:22.143Z
-Stopped at: Completed 16-02-PLAN.md
+Last session: 2026-04-02T09:27:16.024Z
+Stopped at: Completed 16-03-PLAN.md
 Resume file: None
