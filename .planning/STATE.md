@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: executing
-stopped_at: Completed 16-01-PLAN.md
-last_updated: "2026-04-02T08:46:23.231Z"
+stopped_at: Completed 16-02-PLAN.md
+last_updated: "2026-04-02T09:14:22.146Z"
 last_activity: 2026-04-02
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
   percent: 90
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-27)
 ## Current Position
 
 Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-04-02
 
@@ -86,6 +86,7 @@ Progress: [█████████░] 90%
 | Phase 15-服务端记录与点亮闭环 P03 | 20 | 1 tasks | 4 files |
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P00 | 8min | 1 tasks | 5 files |
 | Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P01 | 28min | 2 tasks | 10 files |
+| Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california P02 | 23min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Phase 16 metadata columns stay nullable in Prisma and SQL migration, while all new writes must still provide full canonical metadata.
 - [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Legacy record metadata is backfilled only by authoritative canonical placeId lookup; unmatched rows are logged and never inferred from display text.
 - [Phase 16-uat-gap-fallback-smoke-record-schema-typelabel-california]: Records service responses now map from persisted DB columns instead of echoing request metadata back to clients.
+- [Phase 16]: MapPointDisplay/DraftMapPoint 补齐 regionSystem 与 adminType，避免 popup 点亮链路再从展示文本做隐式推断。
+- [Phase 16]: fallback 点位保留“点亮”按钮文案，但固定为 disabled + unsupported hint，明确告知当前地点不能点亮。
+- [Phase 16]: 点亮成功后在 LeafletMapStage 内显式走 manifest -> loadShardIfNeeded，而不是只等 refreshStyles 命中已有 feature。
 
 ### Roadmap Evolution
 
@@ -167,6 +171,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-02T08:46:23.227Z
-Stopped at: Completed 16-01-PLAN.md
+Last session: 2026-04-02T09:14:22.143Z
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
