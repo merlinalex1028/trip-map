@@ -189,8 +189,12 @@ describe('map-points store', () => {
 
       expect(createMock).not.toHaveBeenCalled()
       expect(store.selectedPointId).not.toBeNull()
-      expect(store.summarySurfaceState?.point.typeLabel).toBe('直辖市')
-      expect(store.summarySurfaceState?.point.parentLabel).toBe('中国')
+      expect(store.summarySurfaceState?.mode).toBe('view')
+      if (!store.summarySurfaceState || store.summarySurfaceState.mode !== 'view') {
+        throw new Error('Expected saved point summary surface in view mode')
+      }
+      expect(store.summarySurfaceState.point.typeLabel).toBe('直辖市')
+      expect(store.summarySurfaceState.point.parentLabel).toBe('中国')
     })
 
     it('keeps canonical labels when reopening a saved Hong Kong point', async () => {
@@ -200,8 +204,12 @@ describe('map-points store', () => {
 
       store.selectPointById(PHASE12_RESOLVED_HONG_KONG.placeId)
 
-      expect(store.summarySurfaceState?.point.typeLabel).toBe('特别行政区')
-      expect(store.summarySurfaceState?.point.parentLabel).toBe('中国')
+      expect(store.summarySurfaceState?.mode).toBe('view')
+      if (!store.summarySurfaceState || store.summarySurfaceState.mode !== 'view') {
+        throw new Error('Expected reopened summary surface in view mode')
+      }
+      expect(store.summarySurfaceState.point.typeLabel).toBe('特别行政区')
+      expect(store.summarySurfaceState.point.parentLabel).toBe('中国')
     })
   })
 
