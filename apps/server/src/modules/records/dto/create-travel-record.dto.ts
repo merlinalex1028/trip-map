@@ -1,7 +1,9 @@
 import { IsNotEmpty, IsString } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
-export class CreateTravelRecordDto {
+import type { CreateTravelRecordRequest } from '@trip-map/contracts'
+
+export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -26,6 +28,26 @@ export class CreateTravelRecordDto {
   @IsString()
   @IsNotEmpty()
   displayName!: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  regionSystem!: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  adminType!: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  typeLabel!: string
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  parentLabel!: string
 
   @ApiProperty()
   @IsString()
