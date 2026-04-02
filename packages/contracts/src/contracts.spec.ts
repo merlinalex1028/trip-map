@@ -184,6 +184,34 @@ describe('@trip-map/contracts', () => {
     expect(Object.keys(PHASE12_FAILED_RESOLVE)).not.toContain('candidates')
   })
 
+  it('mirrors server-authoritative canonical fixture ids and dataset versions', () => {
+    expect(PHASE12_RESOLVED_BEIJING.placeId).toBe('cn-beijing')
+    expect(PHASE12_RESOLVED_HONG_KONG.placeId).toBe('cn-hong-kong')
+    expect(PHASE12_RESOLVED_ABA.placeId).toBe('cn-aba')
+    expect(PHASE12_RESOLVED_CALIFORNIA.placeId).toBe('us-california')
+    expect(PHASE12_RESOLVED_CALIFORNIA.boundaryId).toBe('ne-admin1-us-california')
+
+    expect(PHASE12_RESOLVED_BEIJING.datasetVersion).toBe('phase12-canonical-fixture-v1')
+    expect(PHASE12_RESOLVED_HONG_KONG.datasetVersion).toBe('phase12-canonical-fixture-v1')
+    expect(PHASE12_RESOLVED_ABA.datasetVersion).toBe('phase12-canonical-fixture-v1')
+    expect(PHASE12_RESOLVED_CALIFORNIA.datasetVersion).toBe('phase12-canonical-fixture-v1')
+
+    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.subtitle).toBe('United States · 一级行政区')
+
+    expect(PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId).toBe('cn-beijing')
+    expect(PHASE12_AMBIGUOUS_RESOLVE.candidates.map(candidate => candidate.placeId)).toEqual([
+      'cn-beijing',
+      'cn-tianjin',
+      'cn-langfang',
+    ])
+    expect(
+      PHASE12_AMBIGUOUS_RESOLVE.candidates.every(
+        candidate => candidate.datasetVersion === 'phase12-canonical-fixture-v1',
+      ),
+    ).toBe(true)
+  })
+
   it('keeps CanonicalResolveResponse aligned with the three resolve branches', () => {
     const responses: CanonicalResolveResponse[] = [
       {
