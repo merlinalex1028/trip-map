@@ -21,7 +21,7 @@ const __dirname = dirname(__filename)
 
 const SOURCE_PATH = resolve(
   __dirname,
-  '..', '..', 'src', 'data', 'geo', 'sources', 'ne_50m_admin_1_states_provinces.json',
+  '..', '..', 'src', 'data', 'geo', 'sources', 'ne_10m_admin_1_states_provinces.json',
 )
 
 /**

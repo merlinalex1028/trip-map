@@ -45,6 +45,9 @@ const recordsApiMock = vi.hoisted(() => ({
 
 // Capture the click handler registered via map.on('click', handler)
 let capturedMapClickHandler: ((e: { latlng: { lat: number; lng: number } }) => void) | null = null
+let capturedBoundaryClickHandler:
+  | ((boundaryId: string, latlng: { lat: number; lng: number }) => void)
+  | null = null
 // Capture addFeatures calls from useGeoJsonLayers
 const addFeaturesMock = vi.fn()
 const refreshStylesMock = vi.fn()
@@ -71,12 +74,17 @@ vi.mock('../composables/useLeafletMap', async () => {
 })
 
 vi.mock('../composables/useGeoJsonLayers', () => ({
-  useGeoJsonLayers: () => ({
-    addFeatures: addFeaturesMock,
-    refreshStyles: refreshStylesMock,
-    cnLayer: {},
-    overseasLayer: {},
-  }),
+  useGeoJsonLayers: (opts: {
+    onBoundaryClick: (boundaryId: string, latlng: { lat: number; lng: number }) => void
+  }) => {
+    capturedBoundaryClickHandler = opts.onBoundaryClick
+    return {
+      addFeatures: addFeaturesMock,
+      refreshStyles: refreshStylesMock,
+      cnLayer: {},
+      overseasLayer: {},
+    }
+  },
 }))
 
 vi.mock('../composables/useLeafletPopupAnchor', () => ({
@@ -251,6 +259,7 @@ describe('LeafletMapStage', () => {
     )
     recordsApiMock.deleteTravelRecord.mockReset().mockResolvedValue(undefined)
     capturedMapClickHandler = null
+    capturedBoundaryClickHandler = null
 
     // Reset leaflet map mock state
     ;(leafletMapContainer.mapRef as any).value = null
@@ -594,21 +603,6 @@ describe('LeafletMapStage', () => {
       ])
       await mapPointsStore.bootstrapFromApi()
 
-      // Capture boundary click callback from useGeoJsonLayers mock
-      let capturedBoundaryClickHandler: ((boundaryId: string, latlng: import('leaflet').LatLng) => void) | null = null
-      const useGeoJsonLayersMod = await import('../composables/useGeoJsonLayers')
-      const useGeoJsonLayersSpy = vi.spyOn(useGeoJsonLayersMod, 'useGeoJsonLayers').mockImplementation(
-        (opts) => {
-          capturedBoundaryClickHandler = opts.onBoundaryClick
-          return {
-            addFeatures: addFeaturesMock,
-            refreshStyles: refreshStylesMock,
-            cnLayer: {} as import('leaflet').GeoJSON,
-            overseasLayer: {} as import('leaflet').GeoJSON,
-          }
-        },
-      )
-
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
 
@@ -626,9 +620,8 @@ describe('LeafletMapStage', () => {
       // Store should show the saved point as active
       expect(mapPointsStore.summarySurfaceState).not.toBeNull()
       expect(mapPointsStore.summarySurfaceState?.mode).toBe('view')
-
-      useGeoJsonLayersSpy.mockRestore()
     })
+
   })
 
   // -------------------------------------------------------------------------

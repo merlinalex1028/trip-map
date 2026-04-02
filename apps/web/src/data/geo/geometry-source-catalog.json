@@ -23,12 +23,12 @@
       "license": "Alibaba Cloud DataV GeoAtlas"
     },
     "NATURAL_EARTH_ADMIN1": {
-      "sourceVersion": "natural-earth-50m-admin1-no-china-2026-04-02",
+      "sourceVersion": "natural-earth-10m-admin1-no-china-2026-04-02",
       "snapshotDate": "2026-04-02",
       "coordinateSystem": "WGS84",
-      "sourcePath": "apps/web/src/data/geo/sources/ne_50m_admin_1_states_provinces.json",
-      "checksum": "sha256:0fc3f465d242411f2d7e6d4c35e1df7cf5622b469d73b59eecf97b7116408993",
-      "description": "Natural Earth admin-1 states/provinces GeoJSON after removing China features in Mapshaper; used as the overseas admin1 layer",
+      "sourcePath": "apps/web/src/data/geo/sources/ne_10m_admin_1_states_provinces.json",
+      "checksum": "sha256:f46772b2910243920007bcdf9bf7a31eea3e5a2ce1141d64eafd23d691f7c3c2",
+      "description": "Natural Earth 10m admin-1 states/provinces GeoJSON after removing China features; used as the overseas admin1 layer",
       "sourceUrl": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/",
       "license": "Public Domain — https://www.naturalearthdata.com/about/terms-of-use/"
     }

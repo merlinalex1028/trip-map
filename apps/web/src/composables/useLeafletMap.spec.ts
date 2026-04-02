@@ -75,4 +75,9 @@ describe('useLeafletMap - map creation options', () => {
     // Verify that L.map is exported and callable
     expect(L.map).toBeDefined()
   })
+
+  it('configures worldCopyJump to keep overlays on the canonical world copy', async () => {
+    const source = await import('./useLeafletMap')
+    expect(source.useLeafletMap.toString()).toContain('worldCopyJump: true')
+  })
 })

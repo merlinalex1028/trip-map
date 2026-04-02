@@ -183,4 +183,83 @@ describe('useGeoJsonLayers', () => {
     expect(styleResult.fillOpacity).toBe(0.12)
     expect(styleResult.weight).toBe(1)
   })
+
+  it('lets unsaved boundary clicks bubble to the map handler', async () => {
+    const L = (await import('leaflet')).default
+    const { useGeoJsonLayers } = await import('./useGeoJsonLayers')
+
+    const mapRef = shallowRef(null)
+    const savedBoundaryIds = shallowRef<string[]>([])
+    const selectedBoundaryId = shallowRef<string | null>(null)
+    const onBoundaryClick = vi.fn()
+
+    useGeoJsonLayers({ map: mapRef, savedBoundaryIds, selectedBoundaryId, onBoundaryClick })
+
+    const [firstCallArgs] = (L.geoJSON as ReturnType<typeof vi.fn>).mock.calls
+    const feature = {
+      properties: {
+        boundaryId: 'OVERSEAS-us-california',
+      },
+    }
+    type BoundaryLayerClickHandler = (event: { latlng: { lat: number; lng: number } }) => void
+    const clickHandlerRef: { current: BoundaryLayerClickHandler | null } = { current: null }
+    const fakeLayer = {
+      on: vi.fn((event: string, handler: BoundaryLayerClickHandler) => {
+        if (event === 'click') {
+          clickHandlerRef.current = handler
+        }
+      }),
+    }
+
+    firstCallArgs[1].onEachFeature(feature, fakeLayer)
+    expect(clickHandlerRef.current).not.toBeNull()
+    if (!clickHandlerRef.current) {
+      throw new Error('Expected click handler to be registered')
+    }
+    clickHandlerRef.current({ latlng: { lat: 36.7783, lng: -119.4179 } })
+
+    expect(L.DomEvent.stopPropagation).not.toHaveBeenCalled()
+    expect(onBoundaryClick).not.toHaveBeenCalled()
+  })
+
+  it('intercepts saved boundary clicks so caller can use saved-point shortcut', async () => {
+    const L = (await import('leaflet')).default
+    const { useGeoJsonLayers } = await import('./useGeoJsonLayers')
+
+    const mapRef = shallowRef(null)
+    const savedBoundaryIds = shallowRef<string[]>(['OVERSEAS-us-california'])
+    const selectedBoundaryId = shallowRef<string | null>(null)
+    const onBoundaryClick = vi.fn()
+
+    useGeoJsonLayers({ map: mapRef, savedBoundaryIds, selectedBoundaryId, onBoundaryClick })
+
+    const [firstCallArgs] = (L.geoJSON as ReturnType<typeof vi.fn>).mock.calls
+    const feature = {
+      properties: {
+        boundaryId: 'OVERSEAS-us-california',
+      },
+    }
+    type BoundaryLayerClickHandler = (event: { latlng: { lat: number; lng: number } }) => void
+    const clickHandlerRef: { current: BoundaryLayerClickHandler | null } = { current: null }
+    const fakeLayer = {
+      on: vi.fn((event: string, handler: BoundaryLayerClickHandler) => {
+        if (event === 'click') {
+          clickHandlerRef.current = handler
+        }
+      }),
+    }
+
+    firstCallArgs[1].onEachFeature(feature, fakeLayer)
+    expect(clickHandlerRef.current).not.toBeNull()
+    if (!clickHandlerRef.current) {
+      throw new Error('Expected click handler to be registered')
+    }
+    clickHandlerRef.current({ latlng: { lat: 36.7783, lng: -119.4179 } })
+
+    expect(L.DomEvent.stopPropagation).toHaveBeenCalledTimes(1)
+    expect(onBoundaryClick).toHaveBeenCalledWith(
+      'OVERSEAS-us-california',
+      { lat: 36.7783, lng: -119.4179 },
+    )
+  })
 })

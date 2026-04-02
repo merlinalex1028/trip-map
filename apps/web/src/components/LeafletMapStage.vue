@@ -526,7 +526,6 @@ function handleUnilluminate() {
 // --- Boundary click handler (D-12) ---
 
 function handleBoundaryClick(boundaryId: string, latlng: L.LatLng) {
-  // Find a saved point matching this boundary
   const savedPoint = displayPoints.value.find(
     (p) => p.boundaryId === boundaryId && p.source === 'saved',
   )
@@ -566,9 +565,6 @@ function handleBoundaryClick(boundaryId: string, latlng: L.LatLng) {
     popupLatLng.value = latlng
     return
   }
-
-  // No saved point for this boundary — set popup latlng to at least position the popup
-  popupLatLng.value = latlng
 }
 
 // --- Pending circle marker ---
@@ -640,15 +636,15 @@ async function handleConfirmCandidate(candidate: GeoCityCandidate) {
 
 // --- Map click handler (D-10, D-11) ---
 
-async function handleMapClick(e: L.LeafletMouseEvent) {
-  const { lat, lng } = e.latlng
+async function recognizeMapLocation(latlng: L.LatLng) {
+  const { lat, lng } = latlng
   const activeSequence = ++recognitionSequence
 
   // Remove any previous pending marker
   removePendingMarker()
 
   // Set pending geo hit for aria status (x/y from container point for compat)
-  const containerPoint = map.value?.latLngToContainerPoint(e.latlng)
+  const containerPoint = map.value?.latLngToContainerPoint(latlng)
   setPendingGeoHit({
     lat,
     lng,
@@ -670,7 +666,7 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
   }
 
   // Set popup anchor to pending location
-  popupLatLng.value = e.latlng
+  popupLatLng.value = latlng
 
   await nextAnimationFrame()
 
@@ -752,6 +748,10 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
       message: '识别请求失败，请稍后重试',
     })
   }
+}
+
+async function handleMapClick(e: L.LeafletMouseEvent) {
+  await recognizeMapLocation(e.latlng)
 }
 
 // Register Leaflet click handler once map is ready

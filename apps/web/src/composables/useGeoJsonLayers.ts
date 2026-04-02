@@ -72,7 +72,9 @@ export function useGeoJsonLayers(options: UseGeoJsonLayersOptions): UseGeoJsonLa
 
   function onEachFeature(feature: CityBoundaryFeature, layer: L.Layer): void {
     layer.on('click', (e: L.LeafletMouseEvent) => {
-      if (!savedBoundaryIds.value.includes(feature.properties.boundaryId)) {
+      const isSavedBoundary = savedBoundaryIds.value.includes(feature.properties.boundaryId)
+
+      if (!isSavedBoundary) {
         return
       }
 
@@ -82,11 +84,13 @@ export function useGeoJsonLayers(options: UseGeoJsonLayersOptions): UseGeoJsonLa
   }
 
   const cnLayer = L.geoJSON(undefined, {
+    bubblingMouseEvents: true,
     style: styleFunction as (feature?: GeoJSON.Feature) => L.PathOptions,
     onEachFeature: onEachFeature as (feature: GeoJSON.Feature, layer: L.Layer) => void,
   })
 
   const overseasLayer = L.geoJSON(undefined, {
+    bubblingMouseEvents: true,
     style: styleFunction as (feature?: GeoJSON.Feature) => L.PathOptions,
     onEachFeature: onEachFeature as (feature: GeoJSON.Feature, layer: L.Layer) => void,
   })

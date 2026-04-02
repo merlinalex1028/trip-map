@@ -83,6 +83,7 @@ export function useLeafletMap(containerRef: Ref<HTMLElement | null>): UseLeaflet
       minZoom: 2,
       maxZoom: 10,
       zoomControl: true,
+      worldCopyJump: true,
     })
 
     map.value = instance

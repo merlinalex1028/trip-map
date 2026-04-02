@@ -27,7 +27,12 @@ select {
 }
 
 img,
-svg {
+svg:not(.leaflet-zoom-animated) {
   display: block;
   max-width: 100%;
+}
+
+.leaflet-container svg {
+  max-width: none;
+  max-height: none;
 }
