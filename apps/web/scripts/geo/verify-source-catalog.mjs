@@ -5,7 +5,7 @@
  * source snapshots on disk match their recorded checksums.
  *
  * Validates:
- * - DATAV_GEOATLAS_CN and NATURAL_EARTH_ADMIN1 entries both exist
+ * - China city source, China province supplement, and Natural Earth entries all exist
  * - Each entry has non-empty checksum, coordinateSystem, sourcePath
  * - Each sourcePath points to an existing vendored file
  * - Recomputes SHA-256 for each file and compares exactly against catalog checksum
@@ -25,7 +25,11 @@ const __dirname = dirname(__filename)
 const REPO_ROOT = resolve(__dirname, '..', '..', '..', '..')
 const CATALOG_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'geometry-source-catalog.json')
 
-const REQUIRED_SOURCES = ['DATAV_GEOATLAS_CN', 'NATURAL_EARTH_ADMIN1']
+const REQUIRED_SOURCES = [
+  'DATAV_GEOATLAS_CN_CITY',
+  'DATAV_GEOATLAS_CN_PROVINCE',
+  'NATURAL_EARTH_ADMIN1',
+]
 const REQUIRED_FIELDS = ['checksum', 'coordinateSystem', 'sourcePath', 'sourceVersion', 'snapshotDate']
 
 function fail(message) {
@@ -100,7 +104,8 @@ function run() {
   }
 
   info('All source catalog entries verified successfully.')
-  info(`DATAV_GEOATLAS_CN: ${sources['DATAV_GEOATLAS_CN'].sourceVersion} (${sources['DATAV_GEOATLAS_CN'].coordinateSystem})`)
+  info(`DATAV_GEOATLAS_CN_CITY: ${sources['DATAV_GEOATLAS_CN_CITY'].sourceVersion} (${sources['DATAV_GEOATLAS_CN_CITY'].coordinateSystem})`)
+  info(`DATAV_GEOATLAS_CN_PROVINCE: ${sources['DATAV_GEOATLAS_CN_PROVINCE'].sourceVersion} (${sources['DATAV_GEOATLAS_CN_PROVINCE'].coordinateSystem})`)
   info(`NATURAL_EARTH_ADMIN1: ${sources['NATURAL_EARTH_ADMIN1'].sourceVersion} (${sources['NATURAL_EARTH_ADMIN1'].coordinateSystem})`)
 }
 

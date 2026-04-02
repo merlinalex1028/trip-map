@@ -12,7 +12,7 @@ import {
   GEOMETRY_MANIFEST,
 } from '@trip-map/contracts'
 
-export const GEOMETRY_DATASET_VERSION = '2026-03-31-geo-v1' as const
+export const GEOMETRY_DATASET_VERSION = _CONTRACTS_GEOMETRY_DATASET_VERSION
 
 /**
  * Look up a manifest entry by its canonical boundaryId.

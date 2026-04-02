@@ -47,9 +47,9 @@ describe('POST /places canonical resolve', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json().place.geometryRef.assetKey).toBe('cn/beijing.json')
+    expect(response.json().place.geometryRef.assetKey).toBe('cn/layer.json')
     expect(response.json().place.geometryRef.layer).toBe('CN')
-    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
   })
 
   it('resolves a non-representative click inside Beijing via geometry instead of exact fixture hit', async () => {
@@ -103,7 +103,7 @@ describe('POST /places canonical resolve', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json().place.geometryRef.assetKey).toBe('cn/hong-kong.json')
+    expect(response.json().place.geometryRef.assetKey).toBe('cn/layer.json')
     expect(response.json().place.geometryRef.layer).toBe('CN')
   })
 
@@ -139,9 +139,9 @@ describe('POST /places canonical resolve', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json().place.geometryRef.assetKey).toBe('overseas/us.json')
+    expect(response.json().place.geometryRef.assetKey).toBe('overseas/layer.json')
     expect(response.json().place.geometryRef.layer).toBe('OVERSEAS')
-    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
   })
 
   it('resolves Los Angeles to the authoritative California admin1 fixture', async () => {
@@ -159,7 +159,7 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: 'phase12-canonical-fixture-v1',
+        datasetVersion: '2026-04-02-geo-v2',
         typeLabel: '一级行政区',
       },
     })
@@ -180,25 +180,30 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: 'phase12-canonical-fixture-v1',
+        datasetVersion: '2026-04-02-geo-v2',
         typeLabel: '一级行政区',
       },
     })
   })
 
-  it('does not misclassify clicks outside the California bbox as California', async () => {
+  it('resolves Utah clicks to Utah instead of California', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/places/resolve',
       payload: {
-        lat: 41.0,
-        lng: -111.9,
+        lat: 40.7608,
+        lng: -111.891,
       },
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json().status).toBe('failed')
-    expect(response.json()).not.toHaveProperty('place')
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'us-utah',
+        typeLabel: '一级行政区',
+      },
+    })
   })
 
   it('returns ambiguous candidates capped at 3 with an explicit recommendation slot', async () => {
@@ -233,6 +238,28 @@ describe('POST /places canonical resolve', () => {
       place: {
         placeId: 'cn-tianjin',
         typeLabel: '直辖市',
+      },
+    })
+  })
+
+  it('resolves Guangzhou to a prefecture-level city from the full DataV city layer', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 23.1291,
+        lng: 113.2644,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'cn-440100',
+        displayName: '广州',
+        typeLabel: '地级市',
+        parentLabel: '中国 · 广东',
       },
     })
   })

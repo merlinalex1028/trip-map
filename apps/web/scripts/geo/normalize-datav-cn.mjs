@@ -24,7 +24,15 @@ const __dirname = dirname(__filename)
 const require = createRequire(import.meta.url)
 const gcoord = require('gcoord')
 
-const SOURCE_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'sources', 'datav-cn-2026-03-31.geo.json')
+const CITY_SOURCE_PATH = resolve(
+  __dirname,
+  '..', '..', 'src', 'data', 'geo', 'sources', 'datav-cn-full-city.json',
+)
+
+const PROVINCE_SOURCE_PATH = resolve(
+  __dirname,
+  '..', '..', 'src', 'data', 'geo', 'sources', 'datav-cn-full-province.json',
+)
 
 /**
  * Load and normalize the DataV China source snapshot.
@@ -32,8 +40,8 @@ const SOURCE_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'source
  *
  * @returns {object} GeoJSON FeatureCollection with WGS84 coordinates
  */
-export function normalizeCnSource() {
-  const raw = readFileSync(SOURCE_PATH, 'utf-8')
+export function normalizeDatavSource(sourcePath) {
+  const raw = readFileSync(sourcePath, 'utf-8')
   const featureCollection = JSON.parse(raw)
 
   // Convert GCJ-02 coordinates to WGS84 in-place via gcoord
@@ -43,8 +51,37 @@ export function normalizeCnSource() {
 }
 
 /**
- * Returns the source path for reference in build metadata.
+ * Load and normalize the China city-level source snapshot.
+ */
+export function normalizeCnCitySource() {
+  return normalizeDatavSource(CITY_SOURCE_PATH)
+}
+
+/**
+ * Load and normalize the China province-level source snapshot.
+ */
+export function normalizeCnProvinceSource() {
+  return normalizeDatavSource(PROVINCE_SOURCE_PATH)
+}
+
+/**
+ * Backward-compatible alias for the city-level source.
+ */
+export function normalizeCnSource() {
+  return normalizeCnCitySource()
+}
+
+export function getCnCitySourcePath() {
+  return CITY_SOURCE_PATH
+}
+
+export function getCnProvinceSourcePath() {
+  return PROVINCE_SOURCE_PATH
+}
+
+/**
+ * Backward-compatible alias for the city-level source path.
  */
 export function getCnSourcePath() {
-  return SOURCE_PATH
+  return getCnCitySourcePath()
 }

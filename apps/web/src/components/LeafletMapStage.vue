@@ -16,6 +16,7 @@ import { loadGeometryShard } from '../services/geometry-loader'
 import {
   GEOMETRY_DATASET_VERSION,
   getGeometryManifestEntry,
+  listGeometryManifestEntriesByLayer,
 } from '../services/geometry-manifest'
 import { lookupCountryRegionByCoordinates } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
@@ -174,6 +175,37 @@ onMounted(() => {
 
 const loadedShardKeys = new Set<string>()
 
+async function preloadAuthoritativeLayers() {
+  const manifestEntries = [
+    ...listGeometryManifestEntriesByLayer('OVERSEAS'),
+    ...listGeometryManifestEntriesByLayer('CN'),
+  ]
+  const uniqueEntries = Array.from(
+    new Map(
+      manifestEntries.map(entry => [`${entry.geometryDatasetVersion}:${entry.assetKey}`, entry]),
+    ).values(),
+  )
+
+  await Promise.allSettled(
+    uniqueEntries.map(async (entry) => {
+      const shardKey = `${entry.geometryDatasetVersion}:${entry.assetKey}`
+
+      if (loadedShardKeys.has(shardKey)) {
+        return
+      }
+
+      loadedShardKeys.add(shardKey)
+
+      try {
+        const fc = await loadGeometryShard(entry.geometryDatasetVersion, entry.assetKey)
+        addFeatures(entry.layer as 'CN' | 'OVERSEAS', fc)
+      } catch {
+        loadedShardKeys.delete(shardKey)
+      }
+    }),
+  )
+}
+
 async function loadShardIfNeeded(boundaryId: string, layer: 'CN' | 'OVERSEAS') {
   const entry = getGeometryManifestEntry(boundaryId)
 
@@ -235,6 +267,7 @@ async function preloadSavedBoundaryShards() {
 
 watch(isReady, (ready) => {
   if (ready) {
+    void preloadAuthoritativeLayers()
     void mapPointsStore.bootstrapFromApi()
   }
 })

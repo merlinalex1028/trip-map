@@ -8,7 +8,7 @@ import type {
   CanonicalResolveFailedReason,
   CanonicalResolveResponse,
   ConfirmCanonicalPlaceRequest,
-  GeometryRef,
+  GeometryManifestEntry,
   ResolvedCanonicalPlace,
   ResolveCanonicalPlaceRequest,
 } from '@trip-map/contracts'
@@ -17,7 +17,6 @@ import { GEOMETRY_MANIFEST } from '@trip-map/contracts'
 import {
   CANONICAL_RESOLVE_FIXTURES,
   MAX_CANONICAL_CANDIDATES,
-  canonicalPlaceCatalogBase,
   type CanonicalPlaceId,
   type CanonicalResolveFixture,
 } from './fixtures/canonical-place-fixtures.js'
@@ -34,12 +33,23 @@ interface GeoJsonMultiPolygonGeometry {
   coordinates: GeoJsonPosition[][][]
 }
 
+interface CanonicalFeatureProperties {
+  boundaryId?: string
+  renderableId?: string
+  placeId?: string
+  displayName?: string
+  placeKind?: ResolvedCanonicalPlace['placeKind']
+  datasetVersion?: string
+  regionSystem?: ResolvedCanonicalPlace['regionSystem']
+  adminType?: ResolvedCanonicalPlace['adminType']
+  typeLabel?: string
+  parentLabel?: string
+  subtitle?: string
+}
+
 interface GeometryFeature {
   type: 'Feature'
-  properties: {
-    boundaryId?: string
-    renderableId?: string
-  }
+  properties: CanonicalFeatureProperties
   geometry: GeoJsonPolygonGeometry | GeoJsonMultiPolygonGeometry
 }
 
@@ -50,51 +60,28 @@ interface GeometryFeatureCollection {
 
 interface SupportedResolvedGeometry {
   placeId: CanonicalPlaceId
+  place: ResolvedCanonicalPlace
   feature: GeometryFeature
 }
 
 const OUTSIDE_SUPPORTED_DATA_MESSAGE = '当前点击位置暂未命中已接入的正式行政区数据。'
+const DYNAMIC_AMBIGUOUS_PROMPT = '该点位靠近多个正式行政区，请确认正确地点。'
+const DYNAMIC_AMBIGUOUS_HINT = '点击点位落在多个边界上，请确认正确地点。'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const REPO_ROOT = resolve(__dirname, '..', '..', '..', '..', '..')
 const GEOMETRY_ROOT = resolve(REPO_ROOT, 'apps', 'web', 'public', 'geo')
 
-const boundaryIdToPlaceId = new Map<ResolvedCanonicalPlace['boundaryId'], CanonicalPlaceId>(
-  Object.entries(canonicalPlaceCatalogBase).map(([placeId, place]) => [
-    place.boundaryId,
-    placeId as CanonicalPlaceId,
-  ]),
-)
-
 const supportedResolvedGeometries = loadSupportedResolvedGeometries()
-
-/**
- * Look up a manifest entry by boundaryId and extract the GeometryRef fields.
- * Returns null if the boundaryId is not present in the generated manifest.
- */
-function lookupGeometryRefByBoundaryId(boundaryId: string): GeometryRef | null {
-  const entry = GEOMETRY_MANIFEST.find((e) => e.boundaryId === boundaryId)
-  if (!entry) return null
-  return {
-    boundaryId: entry.boundaryId,
-    layer: entry.layer,
-    geometryDatasetVersion: entry.geometryDatasetVersion,
-    assetKey: entry.assetKey,
-    renderableId: entry.renderableId,
-  }
-}
+const placeCatalog = new Map<CanonicalPlaceId, ResolvedCanonicalPlace>(
+  supportedResolvedGeometries.map(candidate => [candidate.placeId, candidate.place]),
+)
 
 function loadSupportedResolvedGeometries(): SupportedResolvedGeometry[] {
   const shardCache = new Map<string, GeometryFeatureCollection>()
 
   return GEOMETRY_MANIFEST.flatMap((entry) => {
-    const placeId = boundaryIdToPlaceId.get(entry.boundaryId)
-
-    if (!placeId) {
-      return []
-    }
-
     const shardPath = resolve(
       GEOMETRY_ROOT,
       entry.geometryDatasetVersion,
@@ -116,12 +103,61 @@ function loadSupportedResolvedGeometries(): SupportedResolvedGeometry[] {
       )
     }
 
-    return [{ placeId, feature }]
+    const place = createResolvedPlace(entry, feature)
+
+    return [{
+      placeId: place.placeId,
+      place,
+      feature,
+    }]
   })
 }
 
 function loadGeometryShardFile(shardPath: string): GeometryFeatureCollection {
   return JSON.parse(readFileSync(shardPath, 'utf-8')) as GeometryFeatureCollection
+}
+
+function createResolvedPlace(
+  entry: GeometryManifestEntry,
+  feature: GeometryFeature,
+): ResolvedCanonicalPlace {
+  const props = feature.properties
+
+  if (
+    !props.placeId
+    || !props.displayName
+    || !props.placeKind
+    || !props.datasetVersion
+    || !props.regionSystem
+    || !props.adminType
+    || !props.typeLabel
+    || !props.parentLabel
+    || !props.subtitle
+  ) {
+    throw new Error(
+      `Feature "${entry.boundaryId}" is missing canonical place metadata in geometry shard "${entry.assetKey}".`,
+    )
+  }
+
+  return {
+    placeId: props.placeId,
+    boundaryId: entry.boundaryId,
+    placeKind: props.placeKind,
+    datasetVersion: props.datasetVersion,
+    displayName: props.displayName,
+    regionSystem: props.regionSystem,
+    adminType: props.adminType,
+    typeLabel: props.typeLabel,
+    parentLabel: props.parentLabel,
+    subtitle: props.subtitle,
+    geometryRef: {
+      boundaryId: entry.boundaryId,
+      layer: entry.layer,
+      geometryDatasetVersion: entry.geometryDatasetVersion,
+      assetKey: entry.assetKey,
+      renderableId: entry.renderableId,
+    },
+  }
 }
 
 function isPointOnSegment(
@@ -194,6 +230,22 @@ function isPointInGeometry(
   return geometry.coordinates.some(polygon => isPointInPolygon(point, polygon))
 }
 
+function dedupePlaces(places: ResolvedCanonicalPlace[]): ResolvedCanonicalPlace[] {
+  const seen = new Set<string>()
+  const result = []
+
+  for (const place of places) {
+    if (seen.has(place.placeId)) {
+      continue
+    }
+
+    seen.add(place.placeId)
+    result.push(place)
+  }
+
+  return result
+}
+
 @Injectable()
 export class CanonicalPlacesService {
   resolve(input: ResolveCanonicalPlaceRequest): CanonicalResolveResponse {
@@ -203,16 +255,21 @@ export class CanonicalPlacesService {
       return this.buildResponse(input, exactFixture)
     }
 
-    const resolvedPlaceId = this.findResolvedPlaceIdByGeometry(input)
-    if (resolvedPlaceId) {
+    const resolvedPlaces = this.findResolvedPlacesByGeometry(input)
+
+    if (resolvedPlaces.length === 1) {
       return {
         status: 'resolved',
         click: {
           lat: input.lat,
           lng: input.lng,
         },
-        place: this.getPlace(resolvedPlaceId),
+        place: resolvedPlaces[0],
       }
+    }
+
+    if (resolvedPlaces.length > 1) {
+      return this.createDynamicAmbiguousResponse(input, resolvedPlaces)
     }
 
     if (exactFixture?.kind === 'resolved') {
@@ -228,14 +285,7 @@ export class CanonicalPlacesService {
 
   confirm(input: ConfirmCanonicalPlaceRequest): CanonicalResolveResponse {
     const exactFixture = this.findExactFixture(input)
-
-    if (!exactFixture && !this.findResolvedPlaceIdByGeometry(input)) {
-      return this.createFailedResponse(
-        input,
-        'OUTSIDE_SUPPORTED_DATA',
-        OUTSIDE_SUPPORTED_DATA_MESSAGE,
-      )
-    }
+    const resolvedPlaces = this.findResolvedPlacesByGeometry(input)
 
     if (exactFixture?.kind === 'ambiguous') {
       const candidateIds = exactFixture.candidatePlaceIds.slice(0, MAX_CANONICAL_CANDIDATES)
@@ -255,16 +305,24 @@ export class CanonicalPlacesService {
       }
     }
 
-    const resolvedPlaceId = this.findResolvedPlaceIdByGeometry(input)
+    if (resolvedPlaces.length === 0 && !exactFixture) {
+      return this.createFailedResponse(
+        input,
+        'OUTSIDE_SUPPORTED_DATA',
+        OUTSIDE_SUPPORTED_DATA_MESSAGE,
+      )
+    }
 
-    if (resolvedPlaceId && resolvedPlaceId === input.candidatePlaceId) {
+    const matchedPlace = resolvedPlaces.find(place => place.placeId === input.candidatePlaceId)
+
+    if (matchedPlace) {
       return {
         status: 'resolved',
         click: {
           lat: input.lat,
           lng: input.lng,
         },
-        place: this.getPlace(resolvedPlaceId),
+        place: matchedPlace,
       }
     }
 
@@ -293,7 +351,10 @@ export class CanonicalPlacesService {
     if (fixture.kind === 'ambiguous') {
       const candidates = fixture.candidatePlaceIds
         .slice(0, MAX_CANONICAL_CANDIDATES)
-        .map(candidatePlaceId => this.getCandidate(candidatePlaceId, fixture.candidateHints[candidatePlaceId]))
+        .map(candidatePlaceId => this.getCandidate(
+          candidatePlaceId,
+          fixture.candidateHints[candidatePlaceId] ?? DYNAMIC_AMBIGUOUS_HINT,
+        ))
 
       return {
         status: 'ambiguous',
@@ -308,6 +369,29 @@ export class CanonicalPlacesService {
     }
 
     return this.createFailedResponse(input, fixture.reason, fixture.message)
+  }
+
+  private createDynamicAmbiguousResponse(
+    input: ResolveCanonicalPlaceRequest,
+    places: ResolvedCanonicalPlace[],
+  ): CanonicalResolveResponse {
+    const candidates = places
+      .slice(0, MAX_CANONICAL_CANDIDATES)
+      .map(place => ({
+        ...place,
+        candidateHint: DYNAMIC_AMBIGUOUS_HINT,
+      }))
+
+    return {
+      status: 'ambiguous',
+      click: {
+        lat: input.lat,
+        lng: input.lng,
+      },
+      prompt: DYNAMIC_AMBIGUOUS_PROMPT,
+      recommendedPlaceId: candidates[0]?.placeId ?? null,
+      candidates,
+    }
   }
 
   private createCandidateMismatchResponse(
@@ -343,35 +427,28 @@ export class CanonicalPlacesService {
     ))
   }
 
-  private findResolvedPlaceIdByGeometry(
+  private findResolvedPlacesByGeometry(
     input: ResolveCanonicalPlaceRequest,
-  ): CanonicalPlaceId | null {
+  ): ResolvedCanonicalPlace[] {
     const point: GeoJsonPosition = [input.lng, input.lat]
+    const matches = supportedResolvedGeometries
+      .filter(candidate => isPointInGeometry(point, candidate.feature.geometry))
+      .map(candidate => candidate.place)
 
-    for (const candidate of supportedResolvedGeometries) {
-      if (isPointInGeometry(point, candidate.feature.geometry)) {
-        return candidate.placeId
-      }
-    }
-
-    return null
+    return dedupePlaces(matches)
   }
 
   private getPlace(placeId: CanonicalPlaceId): ResolvedCanonicalPlace {
-    const base = canonicalPlaceCatalogBase[placeId]
-    const geometryRef = lookupGeometryRefByBoundaryId(base.boundaryId)
+    const place = placeCatalog.get(placeId)
 
-    if (!geometryRef) {
+    if (!place) {
       throw new Error(
-        `No manifest entry found for boundaryId "${base.boundaryId}" (placeId: "${placeId}"). ` +
-        'Ensure the generated manifest is up-to-date.',
+        `No canonical place metadata found for placeId "${placeId}". ` +
+        'Ensure geometry shards were rebuilt from the latest authoritative sources.',
       )
     }
 
-    return {
-      ...base,
-      geometryRef: geometryRef,
-    }
+    return place
   }
 
   private getCandidate(

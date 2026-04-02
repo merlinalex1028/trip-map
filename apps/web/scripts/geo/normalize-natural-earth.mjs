@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const SOURCE_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'sources', 'natural-earth-admin1-5.1.1.geo.json')
+const SOURCE_PATH = resolve(__dirname, '..', '..', '..', '..', 'ne_50m_admin_1_states_provinces.json')
 
 /**
  * Load and normalize the Natural Earth admin-1 source snapshot.
@@ -28,8 +28,8 @@ const SOURCE_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'source
  *
  * @returns {object} GeoJSON FeatureCollection with China features removed
  */
-export function normalizeOverseasSource() {
-  const raw = readFileSync(SOURCE_PATH, 'utf-8')
+export function normalizeOverseasSource(sourcePath = SOURCE_PATH) {
+  const raw = readFileSync(sourcePath, 'utf-8')
   const featureCollection = JSON.parse(raw)
 
   const filteredFeatures = featureCollection.features.filter(

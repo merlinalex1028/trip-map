@@ -165,7 +165,7 @@ describe('useGeoJsonLayers', () => {
     expect(styleResult.weight).toBe(2.4)
   })
 
-  it('style function returns unrecorded state (opacity 0) for unknown boundaryId', async () => {
+  it('style function returns baseline layer styling for unknown boundaryId', async () => {
     const L = (await import('leaflet')).default
     const { useGeoJsonLayers } = await import('./useGeoJsonLayers')
 
@@ -179,7 +179,8 @@ describe('useGeoJsonLayers', () => {
     const [firstCallArgs] = (L.geoJSON as ReturnType<typeof vi.fn>).mock.calls
     const styleFunc = firstCallArgs[1].style
     const styleResult = styleFunc({ properties: { boundaryId: 'CN-unknown' } })
-    expect(styleResult.opacity).toBe(0)
-    expect(styleResult.fillOpacity).toBe(0)
+    expect(styleResult.opacity).toBe(0.7)
+    expect(styleResult.fillOpacity).toBe(0.12)
+    expect(styleResult.weight).toBe(1)
   })
 })

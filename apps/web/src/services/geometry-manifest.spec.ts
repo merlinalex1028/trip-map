@@ -7,8 +7,8 @@ import {
 } from './geometry-manifest'
 
 describe('geometry-manifest service', () => {
-  it('exports GEOMETRY_DATASET_VERSION as 2026-03-31-geo-v1', () => {
-    expect(GEOMETRY_DATASET_VERSION).toBe('2026-03-31-geo-v1')
+  it('exports GEOMETRY_DATASET_VERSION from the generated contracts manifest', () => {
+    expect(GEOMETRY_DATASET_VERSION).toBe('2026-04-02-geo-v2')
   })
 
   it('can look up datav-cn-beijing entry', () => {
@@ -16,16 +16,16 @@ describe('geometry-manifest service', () => {
     expect(entry).not.toBeNull()
     expect(entry?.boundaryId).toBe('datav-cn-beijing')
     expect(entry?.layer).toBe('CN')
-    expect(entry?.assetKey).toBe('cn/beijing.json')
-    expect(entry?.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
+    expect(entry?.assetKey).toBe('cn/layer.json')
+    expect(entry?.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
     expect(entry?.renderableId).toBe('datav-cn-beijing')
   })
 
-  it('can look up datav-cn-hong-kong entry', () => {
-    const entry = getGeometryManifestEntry('datav-cn-hong-kong')
+  it('can look up datav-cn-shanghai entry from the municipality supplement layer', () => {
+    const entry = getGeometryManifestEntry('datav-cn-shanghai')
     expect(entry).not.toBeNull()
-    expect(entry?.boundaryId).toBe('datav-cn-hong-kong')
-    expect(entry?.assetKey).toBe('cn/hong-kong.json')
+    expect(entry?.boundaryId).toBe('datav-cn-shanghai')
+    expect(entry?.assetKey).toBe('cn/layer.json')
   })
 
   it('can look up ne-admin1-us-california entry', () => {
@@ -33,7 +33,7 @@ describe('geometry-manifest service', () => {
     expect(entry).not.toBeNull()
     expect(entry?.boundaryId).toBe('ne-admin1-us-california')
     expect(entry?.layer).toBe('OVERSEAS')
-    expect(entry?.assetKey).toBe('overseas/us.json')
+    expect(entry?.assetKey).toBe('overseas/layer.json')
     expect(entry?.renderableId).toBe('ne-admin1-us-california')
   })
 

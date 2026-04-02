@@ -41,7 +41,13 @@ function buildStyleFunction(
       }
     }
 
-    return { opacity: 0, fillOpacity: 0 }
+    return {
+      color: 'rgba(94, 125, 145, 0.34)',
+      weight: 1,
+      fillColor: 'rgba(190, 216, 228, 0.12)',
+      fillOpacity: 0.12,
+      opacity: 0.7,
+    }
   }
 }
 
@@ -66,6 +72,10 @@ export function useGeoJsonLayers(options: UseGeoJsonLayersOptions): UseGeoJsonLa
 
   function onEachFeature(feature: CityBoundaryFeature, layer: L.Layer): void {
     layer.on('click', (e: L.LeafletMouseEvent) => {
+      if (!savedBoundaryIds.value.includes(feature.properties.boundaryId)) {
+        return
+      }
+
       L.DomEvent.stopPropagation(e)
       onBoundaryClick(feature.properties.boundaryId, e.latlng)
     })

@@ -1,67 +1,73 @@
 /**
  * build-geometry-manifest.mjs
  *
- * Phase 13 geometry build pipeline entry point.
- *
- * Reads from geometry-source-catalog.json, normalizes both CN and overseas sources,
- * and generates manifest entries and shard output files for the authoritative fixture
- * boundary set:
- *   CN:       datav-cn-beijing, datav-cn-hong-kong, datav-cn-aba, datav-cn-tianjin, datav-cn-langfang
- *   OVERSEAS: ne-admin1-us-california
- *
- * Flags:
- *   --dry-run                Write output to a temporary directory (or --output-root path)
- *                            instead of the official public/geo path.
- *   --output-root <path>     Override the output root directory (implies dry-run behavior
- *                            when used with --dry-run).
- *
- * Usage:
- *   node ./scripts/geo/build-geometry-manifest.mjs
- *     → writes to apps/web/public/geo/2026-03-31-geo-v1/
- *
- *   node ./scripts/geo/build-geometry-manifest.mjs --dry-run --output-root .tmp/geo-build-check
- *     → writes to .tmp/geo-build-check/ (does NOT touch public/ or packages/contracts/src/generated)
+ * Builds the authoritative geometry manifest from the production-layered inputs:
+ * - China city-level boundaries: Alibaba Cloud DataV `100000_full_city.json`
+ * - China direct-controlled municipalities / SAR supplement: DataV `100000_full.json`
+ * - Overseas admin1 boundaries with China removed: Natural Earth GeoJSON
  *
  * Output layout:
  *   {outputRoot}/
- *     manifest.json          — array of GeometryManifestEntry records
- *     cn/
- *       beijing.json         — WGS84 GeoJSON with Beijing feature(s)
- *       hong-kong.json       — WGS84 GeoJSON with Hong Kong feature(s)
- *       sichuan.json         — WGS84 GeoJSON with Aba feature(s)
- *       tianjin.json         — WGS84 GeoJSON with Tianjin feature(s)
- *       hebei.json           — WGS84 GeoJSON with Langfang feature(s)
- *     overseas/
- *       us.json              — WGS84 GeoJSON with California (and other US states)
+ *     manifest.json
+ *     cn/layer.json
+ *     overseas/layer.json
  */
 
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs'
 import { resolve, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { normalizeCnSource } from './normalize-datav-cn.mjs'
-import { normalizeOverseasSource } from './normalize-natural-earth.mjs'
+import {
+  getCnCitySourcePath,
+  getCnProvinceSourcePath,
+  normalizeCnCitySource,
+  normalizeCnProvinceSource,
+} from './normalize-datav-cn.mjs'
+import {
+  getOverseasSourcePath,
+  normalizeOverseasSource,
+} from './normalize-natural-earth.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// ---- Configuration --------------------------------------------------------
-
-const GEOMETRY_DATASET_VERSION = '2026-03-31-geo-v1'
+const GEOMETRY_DATASET_VERSION = '2026-04-02-geo-v2'
 
 const CATALOG_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'geometry-source-catalog.json')
 
 const DEFAULT_OUTPUT_ROOT = resolve(
   __dirname,
-  '..', '..', 'public', 'geo', GEOMETRY_DATASET_VERSION
+  '..', '..', 'public', 'geo', GEOMETRY_DATASET_VERSION,
 )
 
 const CONTRACTS_GENERATED_DIR = resolve(
   __dirname,
-  '..', '..', '..', '..', 'packages', 'contracts', 'src', 'generated'
+  '..', '..', '..', '..', 'packages', 'contracts', 'src', 'generated',
 )
 
-// ---- Argument parsing -------------------------------------------------------
+const CN_LAYER_ASSET_KEY = 'cn/layer.json'
+const OVERSEAS_LAYER_ASSET_KEY = 'overseas/layer.json'
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-02'
+
+const CN_DIRECT_CONTROLLED_CODES = new Set([110000, 120000, 310000, 500000])
+const CN_SAR_CODES = new Set([810000, 820000])
+const CN_SUPPLEMENT_CODES = new Set([...CN_DIRECT_CONTROLLED_CODES, ...CN_SAR_CODES])
+const CN_EXCLUDED_CODES = new Set([710000])
+
+const CN_SPECIAL_IDENTITIES = new Map([
+  [110000, { placeId: 'cn-beijing', boundaryId: 'datav-cn-beijing' }],
+  [120000, { placeId: 'cn-tianjin', boundaryId: 'datav-cn-tianjin' }],
+  [131000, { placeId: 'cn-langfang', boundaryId: 'datav-cn-langfang' }],
+  [310000, { placeId: 'cn-shanghai', boundaryId: 'datav-cn-shanghai' }],
+  [500000, { placeId: 'cn-chongqing', boundaryId: 'datav-cn-chongqing' }],
+  [513200, { placeId: 'cn-aba', boundaryId: 'datav-cn-aba' }],
+  [810000, { placeId: 'cn-hong-kong', boundaryId: 'datav-cn-hong-kong' }],
+  [820000, { placeId: 'cn-macau', boundaryId: 'datav-cn-macau' }],
+])
+
+const OVERSEAS_SPECIAL_IDENTITIES = new Map([
+  ['US:California', { placeId: 'us-california', boundaryId: 'ne-admin1-us-california' }],
+])
 
 function parseArgs(argv) {
   let dryRun = false
@@ -76,70 +82,12 @@ function parseArgs(argv) {
     }
   }
 
-  // If --dry-run is set but outputRoot was not explicitly overridden, use default tmp
   if (dryRun && outputRoot === DEFAULT_OUTPUT_ROOT) {
     outputRoot = resolve(process.cwd(), '.tmp', 'geo-build-check')
   }
 
   return { dryRun, outputRoot }
 }
-
-// ---- CN boundary map --------------------------------------------------------
-// Maps DataV adcode -> { boundaryId, assetKey (shard file), shardKey (shard grouping key) }
-
-const CN_BOUNDARY_MAP = [
-  {
-    adcode: 110000,
-    boundaryId: 'datav-cn-beijing',
-    renderableId: 'datav-cn-beijing',
-    assetKey: 'cn/beijing.json',
-    shardKey: 'cn/beijing',
-  },
-  {
-    adcode: 810000,
-    boundaryId: 'datav-cn-hong-kong',
-    renderableId: 'datav-cn-hong-kong',
-    assetKey: 'cn/hong-kong.json',
-    shardKey: 'cn/hong-kong',
-  },
-  {
-    adcode: 513200,
-    boundaryId: 'datav-cn-aba',
-    renderableId: 'datav-cn-aba',
-    assetKey: 'cn/sichuan.json',
-    shardKey: 'cn/sichuan',
-  },
-  {
-    adcode: 120000,
-    boundaryId: 'datav-cn-tianjin',
-    renderableId: 'datav-cn-tianjin',
-    assetKey: 'cn/tianjin.json',
-    shardKey: 'cn/tianjin',
-  },
-  {
-    adcode: 131000,
-    boundaryId: 'datav-cn-langfang',
-    renderableId: 'datav-cn-langfang',
-    assetKey: 'cn/hebei.json',
-    shardKey: 'cn/hebei',
-  },
-]
-
-// ---- Overseas boundary map --------------------------------------------------
-// Maps Natural Earth name/code -> { boundaryId, assetKey, shardKey }
-
-const OVERSEAS_BOUNDARY_MAP = [
-  {
-    name: 'California',
-    boundaryId: 'ne-admin1-us-california',
-    renderableId: 'ne-admin1-us-california',
-    assetKey: 'overseas/us.json',
-    shardKey: 'overseas/us',
-    adm0_a3: 'USA',
-  },
-]
-
-// ---- Helpers ----------------------------------------------------------------
 
 function ensureDir(dirPath) {
   mkdirSync(dirPath, { recursive: true })
@@ -154,138 +102,299 @@ function info(message) {
   process.stdout.write(`[build-geometry-manifest] ${message}\n`)
 }
 
-// ---- Build pipeline ---------------------------------------------------------
-
-function buildCnShards(cnFeatureCollection, outputRoot, catalog) {
-  const manifestEntries = []
-
-  // Group features by adcode -> shardKey
-  const shardGroups = new Map()
-  for (const mapping of CN_BOUNDARY_MAP) {
-    if (!shardGroups.has(mapping.shardKey)) {
-      shardGroups.set(mapping.shardKey, { features: [], mappings: [] })
-    }
-    shardGroups.get(mapping.shardKey).mappings.push(mapping)
-  }
-
-  // Assign features to shard groups by adcode, injecting renderableId into properties
-  for (const feature of cnFeatureCollection.features) {
-    const adcode = feature.properties?.adcode
-    const mapping = CN_BOUNDARY_MAP.find((m) => m.adcode === adcode)
-    if (mapping) {
-      const group = shardGroups.get(mapping.shardKey)
-      if (group) {
-        // Inject renderableId into feature properties (immutable new object)
-        const enrichedFeature = {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            boundaryId: mapping.boundaryId,
-            renderableId: mapping.renderableId ?? mapping.boundaryId,
-            datasetVersion: GEOMETRY_DATASET_VERSION,
-          },
-        }
-        group.features.push(enrichedFeature)
-      }
-    }
-  }
-
-  // Write shard files and build manifest entries
-  for (const [shardKey, { features, mappings }] of shardGroups.entries()) {
-    const shardPath = join(outputRoot, shardKey + '.json')
-    const shardGeoJson = {
-      type: 'FeatureCollection',
-      features,
-    }
-    writeJson(shardPath, shardGeoJson)
-    info(`  Wrote CN shard: ${shardKey}.json (${features.length} feature(s))`)
-
-    for (const mapping of mappings) {
-      manifestEntries.push({
-        boundaryId: mapping.boundaryId,
-        layer: 'CN',
-        geometryDatasetVersion: GEOMETRY_DATASET_VERSION,
-        assetKey: mapping.assetKey,
-        renderableId: mapping.renderableId,
-        sourceDataset: 'DATAV_GEOATLAS_CN',
-        sourceVersion: catalog.sources.DATAV_GEOATLAS_CN.sourceVersion,
-        sourceFeatureId: String(mapping.adcode),
-      })
-    }
-  }
-
-  return manifestEntries
+function slugify(input) {
+  return String(input)
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-')
+    .toLowerCase()
 }
 
-function buildOverseasShards(overseasFeatureCollection, outputRoot, catalog) {
+function buildCnProvinceNameMap(provinceFeatureCollection) {
+  return new Map(
+    provinceFeatureCollection.features
+      .map(feature => [feature.properties?.adcode, feature.properties?.name])
+      .filter(([adcode, name]) => Boolean(adcode) && Boolean(name)),
+  )
+}
+
+function normalizeCnProvinceLabel(name) {
+  return String(name)
+    .replace(/特别行政区$/, '')
+    .replace(/维吾尔自治区$/, '')
+    .replace(/壮族自治区$/, '')
+    .replace(/回族自治区$/, '')
+    .replace(/自治区$/, '')
+    .replace(/省$/, '')
+    .replace(/市$/, '')
+}
+
+function normalizeCnDisplayName(name, adminType) {
+  if (adminType === 'MUNICIPALITY' || adminType === 'PREFECTURE_LEVEL_CITY') {
+    return String(name).replace(/市$/, '')
+  }
+
+  if (adminType === 'SAR') {
+    return String(name).replace(/特别行政区$/, '')
+  }
+
+  return String(name)
+}
+
+function deriveCnAdminMetadata(name, adcode) {
+  if (CN_DIRECT_CONTROLLED_CODES.has(adcode)) {
+    return {
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      displayName: normalizeCnDisplayName(name, 'MUNICIPALITY'),
+      parentLabel: '中国',
+    }
+  }
+
+  if (CN_SAR_CODES.has(adcode)) {
+    return {
+      adminType: 'SAR',
+      typeLabel: '特别行政区',
+      displayName: normalizeCnDisplayName(name, 'SAR'),
+      parentLabel: '中国',
+    }
+  }
+
+  if (String(name).endsWith('自治州')) {
+    return {
+      adminType: 'AUTONOMOUS_PREFECTURE',
+      typeLabel: '自治州',
+      displayName: normalizeCnDisplayName(name, 'AUTONOMOUS_PREFECTURE'),
+    }
+  }
+
+  if (String(name).endsWith('盟')) {
+    return {
+      adminType: 'LEAGUE',
+      typeLabel: '盟',
+      displayName: normalizeCnDisplayName(name, 'LEAGUE'),
+    }
+  }
+
+  if (String(name).endsWith('地区')) {
+    return {
+      adminType: 'AREA',
+      typeLabel: '地区',
+      displayName: normalizeCnDisplayName(name, 'AREA'),
+    }
+  }
+
+  return {
+    adminType: 'PREFECTURE_LEVEL_CITY',
+    typeLabel: '地级市',
+    displayName: normalizeCnDisplayName(name, 'PREFECTURE_LEVEL_CITY'),
+  }
+}
+
+function buildCnIdentity(adcode) {
+  const special = CN_SPECIAL_IDENTITIES.get(adcode)
+  if (special) {
+    return special
+  }
+
+  return {
+    placeId: `cn-${adcode}`,
+    boundaryId: `datav-cn-${adcode}`,
+  }
+}
+
+function normalizeCountryLabel(name) {
+  return String(name)
+    .replace(/^United States of America$/, 'United States')
+    .replace(/^Russian Federation$/, 'Russia')
+}
+
+function buildOverseasIdentity(featureProperties) {
+  const iso2 = String(featureProperties.iso_a2 ?? featureProperties.adm0_a3 ?? 'xx').toLowerCase()
+  const admin1Name = featureProperties.name_en ?? featureProperties.name
+  const specialKey = `${featureProperties.iso_a2 ?? featureProperties.adm0_a3}:${admin1Name}`
+  const special = OVERSEAS_SPECIAL_IDENTITIES.get(specialKey)
+
+  if (special) {
+    return special
+  }
+
+  const slug = slugify(admin1Name)
+  return {
+    placeId: `${iso2}-${slug}`,
+    boundaryId: `ne-admin1-${iso2}-${slug}`,
+  }
+}
+
+function createCnFeatureMetadata(featureProperties, provinceNameMap) {
+  const adcode = Number(featureProperties.adcode)
+  const identity = buildCnIdentity(adcode)
+  const adminMeta = deriveCnAdminMetadata(featureProperties.name, adcode)
+  const parentAdcode = Number(featureProperties.parent?.adcode ?? 0)
+  const provinceName = parentAdcode ? provinceNameMap.get(parentAdcode) : null
+  const parentLabel = adminMeta.parentLabel
+    ?? `中国 · ${normalizeCnProvinceLabel(provinceName ?? '')}`
+
+  return {
+    ...identity,
+    displayName: adminMeta.displayName,
+    placeKind: 'CN_ADMIN',
+    datasetVersion: CANONICAL_DATASET_VERSION,
+    regionSystem: 'CN',
+    adminType: adminMeta.adminType,
+    typeLabel: adminMeta.typeLabel,
+    parentLabel,
+    subtitle: `${parentLabel} · ${adminMeta.typeLabel}`,
+    cityId: identity.placeId,
+    cityName: adminMeta.displayName,
+  }
+}
+
+function createOverseasFeatureMetadata(featureProperties) {
+  const identity = buildOverseasIdentity(featureProperties)
+  const displayName = featureProperties.name_en ?? featureProperties.name
+  const parentLabel = normalizeCountryLabel(
+    featureProperties.admin ?? featureProperties.geonunit ?? featureProperties.adm0_a3,
+  )
+
+  return {
+    ...identity,
+    displayName,
+    placeKind: 'OVERSEAS_ADMIN1',
+    datasetVersion: CANONICAL_DATASET_VERSION,
+    regionSystem: 'OVERSEAS',
+    adminType: 'ADMIN1',
+    typeLabel: '一级行政区',
+    parentLabel,
+    subtitle: `${parentLabel} · 一级行政区`,
+    cityId: identity.placeId,
+    cityName: displayName,
+  }
+}
+
+function enrichFeature(feature, metadata) {
+  return {
+    ...feature,
+    properties: {
+      ...feature.properties,
+      ...metadata,
+      boundaryId: metadata.boundaryId,
+      renderableId: metadata.boundaryId,
+      datasetVersion: GEOMETRY_DATASET_VERSION,
+    },
+  }
+}
+
+function createManifestEntry({
+  boundaryId,
+  layer,
+  assetKey,
+  sourceDataset,
+  sourceVersion,
+  sourceFeatureId,
+}) {
+  return {
+    boundaryId,
+    layer,
+    geometryDatasetVersion: GEOMETRY_DATASET_VERSION,
+    assetKey,
+    renderableId: boundaryId,
+    sourceDataset,
+    sourceVersion,
+    sourceFeatureId,
+  }
+}
+
+function buildCnLayer(cityFeatureCollection, provinceFeatureCollection, outputRoot, catalog) {
+  const provinceNameMap = buildCnProvinceNameMap(provinceFeatureCollection)
+  const layerFeatures = []
   const manifestEntries = []
 
-  // Group features by shardKey (country code)
-  const shardGroups = new Map()
-  for (const mapping of OVERSEAS_BOUNDARY_MAP) {
-    if (!shardGroups.has(mapping.shardKey)) {
-      shardGroups.set(mapping.shardKey, { features: [], mappings: [] })
-    }
-  }
+  for (const feature of cityFeatureCollection.features) {
+    const props = feature.properties ?? {}
+    const adcode = Number(props.adcode)
 
-  // Assign features to shard groups by name and adm0_a3, injecting renderableId into properties
-  for (const feature of overseasFeatureCollection.features) {
-    const name = feature.properties?.name
-    const adm0_a3 = feature.properties?.adm0_a3
-    const mapping = OVERSEAS_BOUNDARY_MAP.find(
-      (m) => m.name === name && m.adm0_a3 === adm0_a3
-    )
-    if (mapping) {
-      const group = shardGroups.get(mapping.shardKey)
-      if (group) {
-        // Inject renderableId into feature properties (immutable new object)
-        const enrichedFeature = {
-          ...feature,
-          properties: {
-            ...feature.properties,
-            boundaryId: mapping.boundaryId,
-            renderableId: mapping.renderableId ?? mapping.boundaryId,
-            datasetVersion: GEOMETRY_DATASET_VERSION,
-          },
-        }
-        group.features.push(enrichedFeature)
-        group.mappings.push(mapping)
-      }
-    }
-  }
-
-  // Write shard files and build manifest entries
-  for (const [shardKey, { features, mappings }] of shardGroups.entries()) {
-    if (features.length === 0) {
-      info(`  WARN: No features found for overseas shard: ${shardKey}`)
+    if (props.level !== 'city' || !Number.isFinite(adcode) || CN_EXCLUDED_CODES.has(adcode)) {
       continue
     }
-    const shardPath = join(outputRoot, shardKey + '.json')
-    const shardGeoJson = {
-      type: 'FeatureCollection',
-      features,
-    }
-    writeJson(shardPath, shardGeoJson)
-    info(`  Wrote overseas shard: ${shardKey}.json (${features.length} feature(s))`)
 
-    for (const mapping of mappings) {
-      manifestEntries.push({
-        boundaryId: mapping.boundaryId,
-        layer: 'OVERSEAS',
-        geometryDatasetVersion: GEOMETRY_DATASET_VERSION,
-        assetKey: mapping.assetKey,
-        renderableId: mapping.renderableId,
-        sourceDataset: 'NATURAL_EARTH_ADMIN1',
-        sourceVersion: catalog.sources.NATURAL_EARTH_ADMIN1.sourceVersion,
-        sourceFeatureId: `${mapping.adm0_a3}/${mapping.name}`,
-      })
-    }
+    const metadata = createCnFeatureMetadata(props, provinceNameMap)
+    layerFeatures.push(enrichFeature(feature, metadata))
+    manifestEntries.push(createManifestEntry({
+      boundaryId: metadata.boundaryId,
+      layer: 'CN',
+      assetKey: CN_LAYER_ASSET_KEY,
+      sourceDataset: 'DATAV_GEOATLAS_CN_CITY',
+      sourceVersion: catalog.sources.DATAV_GEOATLAS_CN_CITY.sourceVersion,
+      sourceFeatureId: String(adcode),
+    }))
   }
+
+  for (const feature of provinceFeatureCollection.features) {
+    const props = feature.properties ?? {}
+    const adcode = Number(props.adcode)
+
+    if (!CN_SUPPLEMENT_CODES.has(adcode)) {
+      continue
+    }
+
+    const metadata = createCnFeatureMetadata(props, provinceNameMap)
+    layerFeatures.push(enrichFeature(feature, metadata))
+    manifestEntries.push(createManifestEntry({
+      boundaryId: metadata.boundaryId,
+      layer: 'CN',
+      assetKey: CN_LAYER_ASSET_KEY,
+      sourceDataset: 'DATAV_GEOATLAS_CN_PROVINCE',
+      sourceVersion: catalog.sources.DATAV_GEOATLAS_CN_PROVINCE.sourceVersion,
+      sourceFeatureId: String(adcode),
+    }))
+  }
+
+  const layerPath = join(outputRoot, CN_LAYER_ASSET_KEY)
+  writeJson(layerPath, {
+    type: 'FeatureCollection',
+    features: layerFeatures,
+  })
+  info(`  Wrote CN layer: ${CN_LAYER_ASSET_KEY} (${layerFeatures.length} feature(s))`)
 
   return manifestEntries
 }
 
-// ---- TypeScript manifest generator ------------------------------------------
+function buildOverseasLayer(featureCollection, outputRoot, catalog) {
+  const layerFeatures = []
+  const manifestEntries = []
+
+  for (const feature of featureCollection.features) {
+    const props = feature.properties ?? {}
+    const admin1Name = props.name_en ?? props.name
+
+    if (!props.adm0_a3 || !admin1Name) {
+      continue
+    }
+
+    const metadata = createOverseasFeatureMetadata(props)
+    layerFeatures.push(enrichFeature(feature, metadata))
+    manifestEntries.push(createManifestEntry({
+      boundaryId: metadata.boundaryId,
+      layer: 'OVERSEAS',
+      assetKey: OVERSEAS_LAYER_ASSET_KEY,
+      sourceDataset: 'NATURAL_EARTH_ADMIN1',
+      sourceVersion: catalog.sources.NATURAL_EARTH_ADMIN1.sourceVersion,
+      sourceFeatureId: props.iso_3166_2 ?? `${props.adm0_a3}/${admin1Name}`,
+    }))
+  }
+
+  const layerPath = join(outputRoot, OVERSEAS_LAYER_ASSET_KEY)
+  writeJson(layerPath, {
+    type: 'FeatureCollection',
+    features: layerFeatures,
+  })
+  info(`  Wrote overseas layer: ${OVERSEAS_LAYER_ASSET_KEY} (${layerFeatures.length} feature(s))`)
+
+  return manifestEntries
+}
 
 function generateTypescriptManifest(entries) {
   const entriesJson = JSON.stringify(entries, null, 2)
@@ -314,65 +423,59 @@ function run() {
   const args = process.argv.slice(2)
   const { dryRun, outputRoot } = parseArgs(args)
 
-  info(`Starting geometry manifest build`)
+  info('Starting geometry manifest build')
   info(`  geometryDatasetVersion: ${GEOMETRY_DATASET_VERSION}`)
   info(`  outputRoot: ${outputRoot}`)
   info(`  dry-run: ${dryRun}`)
+  info(`  CN city source: ${getCnCitySourcePath()}`)
+  info(`  CN province source: ${getCnProvinceSourcePath()}`)
+  info(`  overseas source: ${getOverseasSourcePath()}`)
 
-  // Load source catalog
-  info(`Reading geometry-source-catalog.json`)
   if (!existsSync(CATALOG_PATH)) {
     process.stderr.write(`[build-geometry-manifest] FAIL: geometry-source-catalog.json not found at: ${CATALOG_PATH}\n`)
     process.exit(1)
   }
+
   const catalog = JSON.parse(readFileSync(CATALOG_PATH, 'utf-8'))
 
-  // Normalize sources
-  info('Normalizing China source (GCJ02 -> WGS84)')
-  const cnFeatureCollection = normalizeCnSource()
-  info(`  CN features loaded: ${cnFeatureCollection.features.length}`)
-
-  info('Normalizing overseas source (filter adm0_a3 === CHN)')
+  const cnCityFeatureCollection = normalizeCnCitySource()
+  const cnProvinceFeatureCollection = normalizeCnProvinceSource()
   const overseasFeatureCollection = normalizeOverseasSource()
-  info(`  Overseas features after filtering: ${overseasFeatureCollection.features.length}`)
 
-  // Build shards
-  info('Building CN shards')
-  const cnManifestEntries = buildCnShards(cnFeatureCollection, outputRoot, catalog)
+  info(`  CN city features loaded: ${cnCityFeatureCollection.features.length}`)
+  info(`  CN province features loaded: ${cnProvinceFeatureCollection.features.length}`)
+  info(`  overseas features loaded: ${overseasFeatureCollection.features.length}`)
 
-  info('Building overseas shards')
-  const overseasManifestEntries = buildOverseasShards(overseasFeatureCollection, outputRoot, catalog)
+  const cnManifestEntries = buildCnLayer(
+    cnCityFeatureCollection,
+    cnProvinceFeatureCollection,
+    outputRoot,
+    catalog,
+  )
+
+  const overseasManifestEntries = buildOverseasLayer(
+    overseasFeatureCollection,
+    outputRoot,
+    catalog,
+  )
 
   const allManifestEntries = [...cnManifestEntries, ...overseasManifestEntries]
 
-  // Write manifest
-  const manifestPath = join(outputRoot, 'manifest.json')
-  writeJson(manifestPath, allManifestEntries)
-  info(`Wrote manifest: ${manifestPath} (${allManifestEntries.length} entries)`)
+  writeJson(join(outputRoot, 'manifest.json'), allManifestEntries)
+  info(`Wrote manifest: ${join(outputRoot, 'manifest.json')} (${allManifestEntries.length} entries)`)
 
-  // Generate TypeScript manifest (only when not dry-run)
-  if (!dryRun) {
-    const generatedTsPath = join(CONTRACTS_GENERATED_DIR, 'geometry-manifest.generated.ts')
-    const tsContent = generateTypescriptManifest(allManifestEntries)
-    ensureDir(CONTRACTS_GENERATED_DIR)
-    writeFileSync(generatedTsPath, tsContent, 'utf-8')
-    info(`Wrote generated TypeScript manifest: ${generatedTsPath}`)
-  } else {
-    const generatedTsPath = join(outputRoot, 'geometry-manifest.generated.ts')
-    const tsContent = generateTypescriptManifest(allManifestEntries)
-    writeFileSync(generatedTsPath, tsContent, 'utf-8')
-    info(`  [dry-run] Wrote generated TypeScript manifest to temporary path: ${generatedTsPath}`)
-  }
+  const generatedTsPath = dryRun
+    ? join(outputRoot, 'geometry-manifest.generated.ts')
+    : join(CONTRACTS_GENERATED_DIR, 'geometry-manifest.generated.ts')
+  const tsContent = generateTypescriptManifest(allManifestEntries)
+  ensureDir(dirname(generatedTsPath))
+  writeFileSync(generatedTsPath, tsContent, 'utf-8')
+  info(`Wrote generated TypeScript manifest: ${generatedTsPath}`)
 
-  // Summary
   info('Build complete.')
   info(`  CN entries: ${cnManifestEntries.length}`)
-  info(`  Overseas entries: ${overseasManifestEntries.length}`)
-  info(`  Total entries: ${allManifestEntries.length}`)
-  if (dryRun) {
-    info(`  [dry-run] Output written to temporary path: ${outputRoot}`)
-    info(`  [dry-run] public/geo/ and packages/contracts/src/generated/ were NOT modified.`)
-  }
+  info(`  overseas entries: ${overseasManifestEntries.length}`)
+  info(`  total entries: ${allManifestEntries.length}`)
 }
 
 run()
