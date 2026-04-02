@@ -3,6 +3,7 @@ import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
   PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_HONG_KONG,
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
@@ -42,6 +43,10 @@ function makeRecord(
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
     displayName: place.displayName,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
     subtitle: place.subtitle,
     createdAt: new Date().toISOString(),
   }
@@ -49,13 +54,17 @@ function makeRecord(
 
 function makeResolvedPlace(
   place = PHASE12_RESOLVED_BEIJING,
-): Parameters<ReturnType<typeof useMapPointsStore>['illuminate']>[0] {
+){
   return {
     placeId: place.placeId,
     boundaryId: place.boundaryId,
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
     displayName: place.displayName,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
     subtitle: place.subtitle,
   }
 }
@@ -130,6 +139,15 @@ describe('map-points store', () => {
 
       expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(createMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          regionSystem: PHASE12_RESOLVED_BEIJING.regionSystem,
+          adminType: PHASE12_RESOLVED_BEIJING.adminType,
+          typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
+          parentLabel: PHASE12_RESOLVED_BEIJING.parentLabel,
+          subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
+        }),
+      )
     })
 
     it('adds record optimistically before await', async () => {
@@ -171,6 +189,19 @@ describe('map-points store', () => {
 
       expect(createMock).not.toHaveBeenCalled()
       expect(store.selectedPointId).not.toBeNull()
+      expect(store.summarySurfaceState?.point.typeLabel).toBe('直辖市')
+      expect(store.summarySurfaceState?.point.parentLabel).toBe('中国')
+    })
+
+    it('keeps canonical labels when reopening a saved Hong Kong point', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_HONG_KONG)])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      store.selectPointById(PHASE12_RESOLVED_HONG_KONG.placeId)
+
+      expect(store.summarySurfaceState?.point.typeLabel).toBe('特别行政区')
+      expect(store.summarySurfaceState?.point.parentLabel).toBe('中国')
     })
   })
 
