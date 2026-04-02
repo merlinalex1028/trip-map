@@ -20,6 +20,11 @@ export class RecordsRepository {
         placeKind: input.placeKind,
         datasetVersion: input.datasetVersion,
         displayName: input.displayName,
+        regionSystem: input.regionSystem,
+        adminType: input.adminType,
+        typeLabel: input.typeLabel,
+        parentLabel: input.parentLabel,
+        subtitle: input.subtitle,
         note: input.note,
       },
     })
@@ -37,6 +42,10 @@ export class RecordsRepository {
         placeKind: input.placeKind,
         datasetVersion: input.datasetVersion,
         displayName: input.displayName,
+        regionSystem: input.regionSystem,
+        adminType: input.adminType,
+        typeLabel: input.typeLabel,
+        parentLabel: input.parentLabel,
         subtitle: input.subtitle,
       },
     })
