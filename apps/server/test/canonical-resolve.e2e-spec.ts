@@ -124,6 +124,63 @@ describe('POST /places canonical resolve', () => {
     expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
   })
 
+  it('resolves Los Angeles to the authoritative California admin1 fixture', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 34.0522,
+        lng: -118.2437,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'us-california',
+        datasetVersion: 'phase12-canonical-fixture-v1',
+        typeLabel: '一级行政区',
+      },
+    })
+  })
+
+  it('resolves San Francisco to the authoritative California admin1 fixture', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 37.7749,
+        lng: -122.4194,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'us-california',
+        datasetVersion: 'phase12-canonical-fixture-v1',
+        typeLabel: '一级行政区',
+      },
+    })
+  })
+
+  it('does not misclassify clicks outside the California bbox as California', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 41.0,
+        lng: -111.9,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json().status).toBe('failed')
+    expect(response.json()).not.toHaveProperty('place')
+  })
+
   it('returns ambiguous candidates capped at 3 with an explicit recommendation slot', async () => {
     const response = await app.inject({
       method: 'POST',
