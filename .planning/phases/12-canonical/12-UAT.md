@@ -34,7 +34,7 @@ reported: "无标签、无副标题"
 severity: major
 
 ### 5. California / Overseas Admin1 Type Label
-expected: Click on California (USA) and save it. The popup shows "State" as the type label with appropriate subtitle. This confirms overseas admin1 semantics work alongside Chinese admin types.
+expected: Click on California (USA) and save it. The popup shows "一级行政区" as the type label with appropriate subtitle. This confirms overseas admin1 semantics work alongside Chinese admin types.
 result: issue
 reported: "无法识别"
 severity: major
@@ -95,21 +95,21 @@ pending: 0
   missing:
     - "Same fix as Beijing gap — adding typeLabel/parentLabel to TravelRecord and recordToDisplayPoint"
   debug_session: ".planning/debug/hk-no-type-label.md"
-- truth: "Clicking California shows popup with type label State and parent region subtitle (United States)"
+- truth: "Clicking California shows popup with type label 一级行政区 and parent region subtitle (United States)"
   status: failed
   reason: "User reported: 无法识别"
   severity: major
   test: 5
-  root_cause: "findFixture() in canonical-places.service.ts uses ±0.0001° tolerance (~11 meters) to match click coordinates against a single registered point (36.7783, -119.4179). Any real map click on California differs by degrees, so server always returns OUTSIDE_SUPPORTED_DATA. LeafletMapStage falls back to client-side geo lookup (non-canonical, no typeLabel). Secondary: us-california fixture has typeLabel: '一级行政区' not 'State'."
+  root_cause: "findFixture() in canonical-places.service.ts uses ±0.0001° tolerance (~11 meters) to match click coordinates against a single registered point (36.7783, -119.4179). Any real map click on California differs by degrees, so server always returns OUTSIDE_SUPPORTED_DATA. LeafletMapStage falls back to client-side geo lookup (non-canonical, no typeLabel). Secondary: shared fixtures and this UAT doc drifted from the server-authoritative California label/ID wording."
   artifacts:
     - path: "apps/server/src/modules/canonical-places/canonical-places.service.ts"
       issue: "findFixture() tolerance ±0.0001° is ~11m — far too tight for real map clicks on a world-scale map"
-    - path: "apps/server/src/modules/canonical-places/fixtures/canonical-place-fixtures.ts"
-      issue: "us-california fixture has typeLabel: '一级行政区' (wrong) not 'State'; single point coordinate cannot be hit by real user click"
+    - path: "packages/contracts/src/fixtures.ts"
+      issue: "shared California fixture and related ids drifted from server-authoritative canonical IDs/label wording"
     - path: "apps/web/src/components/LeafletMapStage.vue"
       issue: "handleMapClick silently degrades to non-canonical fallback on OUTSIDE_SUPPORTED_DATA — no canonical popup shown"
   missing:
     - "Change findFixture() to use bounding-box/polygon matching instead of point+tiny-radius"
-    - "Fix us-california fixture typeLabel from '一级行政区' to 'State'"
+    - "Align shared fixtures and UAT wording with the server-authoritative California label/ID set"
     - "Ensure OUTSIDE_SUPPORTED_DATA fallback either shows a useful message or re-attempts with relaxed tolerance"
   debug_session: ".planning/debug/california-not-recognized.md"

@@ -19,10 +19,10 @@ export const PHASE11_SMOKE_RECORD_REQUEST: SmokeRecordCreateRequest = {
 }
 
 export const PHASE12_RESOLVED_BEIJING: ResolvedCanonicalPlace = {
-  placeId: 'cn-admin-beijing',
+  placeId: 'cn-beijing',
   boundaryId: 'datav-cn-beijing',
   placeKind: 'CN_ADMIN',
-  datasetVersion: 'phase12-canonical-v1',
+  datasetVersion: 'phase12-canonical-fixture-v1',
   displayName: '北京',
   regionSystem: 'CN',
   adminType: 'MUNICIPALITY',
@@ -39,10 +39,10 @@ export const PHASE12_RESOLVED_BEIJING: ResolvedCanonicalPlace = {
 }
 
 export const PHASE12_RESOLVED_HONG_KONG: ResolvedCanonicalPlace = {
-  placeId: 'cn-admin-hong-kong',
+  placeId: 'cn-hong-kong',
   boundaryId: 'datav-cn-hong-kong',
   placeKind: 'CN_ADMIN',
-  datasetVersion: 'phase12-canonical-v1',
+  datasetVersion: 'phase12-canonical-fixture-v1',
   displayName: '香港',
   regionSystem: 'CN',
   adminType: 'SAR',
@@ -59,10 +59,10 @@ export const PHASE12_RESOLVED_HONG_KONG: ResolvedCanonicalPlace = {
 }
 
 export const PHASE12_RESOLVED_CALIFORNIA: ResolvedCanonicalPlace = {
-  placeId: 'overseas-admin1-california',
-  boundaryId: 'ne-admin1-us-ca',
+  placeId: 'us-california',
+  boundaryId: 'ne-admin1-us-california',
   placeKind: 'OVERSEAS_ADMIN1',
-  datasetVersion: 'phase12-canonical-v1',
+  datasetVersion: 'phase12-canonical-fixture-v1',
   displayName: 'California',
   regionSystem: 'OVERSEAS',
   adminType: 'ADMIN1',
@@ -79,10 +79,10 @@ export const PHASE12_RESOLVED_CALIFORNIA: ResolvedCanonicalPlace = {
 }
 
 export const PHASE12_RESOLVED_ABA: ResolvedCanonicalPlace = {
-  placeId: 'cn-admin-aba',
+  placeId: 'cn-aba',
   boundaryId: 'datav-cn-aba',
   placeKind: 'CN_ADMIN',
-  datasetVersion: 'phase12-canonical-v1',
+  datasetVersion: 'phase12-canonical-fixture-v1',
   displayName: '阿坝',
   regionSystem: 'CN',
   adminType: 'AUTONOMOUS_PREFECTURE',
@@ -104,10 +104,10 @@ const PHASE12_AMBIGUOUS_CANDIDATES: CanonicalPlaceCandidate[] = [
     candidateHint: '点击点位接近北京市中心',
   },
   {
-    placeId: 'cn-admin-tianjin',
+    placeId: 'cn-tianjin',
     boundaryId: 'datav-cn-tianjin',
     placeKind: 'CN_ADMIN',
-    datasetVersion: 'phase12-canonical-v1',
+    datasetVersion: 'phase12-canonical-fixture-v1',
     displayName: '天津',
     regionSystem: 'CN',
     adminType: 'MUNICIPALITY',
@@ -124,10 +124,10 @@ const PHASE12_AMBIGUOUS_CANDIDATES: CanonicalPlaceCandidate[] = [
     },
   },
   {
-    placeId: 'cn-admin-langfang',
+    placeId: 'cn-langfang',
     boundaryId: 'datav-cn-langfang',
     placeKind: 'CN_ADMIN',
-    datasetVersion: 'phase12-canonical-v1',
+    datasetVersion: 'phase12-canonical-fixture-v1',
     displayName: '廊坊',
     regionSystem: 'CN',
     adminType: 'PREFECTURE_LEVEL_CITY',
