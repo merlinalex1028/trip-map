@@ -33,6 +33,10 @@ const geometryManifestMock = vi.hoisted(() => ({
   getGeometryManifestEntry: vi.fn<(...args: any[]) => any>(() => null),
 }))
 
+const geoLookupMock = vi.hoisted(() => ({
+  lookupCountryRegionByCoordinates: vi.fn(),
+}))
+
 const recordsApiMock = vi.hoisted(() => ({
   fetchTravelRecords: vi.fn().mockResolvedValue([]),
   createTravelRecord: vi.fn(),
@@ -109,6 +113,10 @@ vi.mock('../services/geometry-manifest', () => ({
   GEOMETRY_DATASET_VERSION: '2026-03-31-geo-v1',
   listGeometryManifestEntriesByLayer: geometryManifestMock.listGeometryManifestEntriesByLayer,
   getGeometryManifestEntry: geometryManifestMock.getGeometryManifestEntry,
+}))
+
+vi.mock('../services/geo-lookup', () => ({
+  lookupCountryRegionByCoordinates: geoLookupMock.lookupCountryRegionByCoordinates,
 }))
 
 vi.mock('../services/api/records', () => ({
@@ -236,6 +244,7 @@ describe('LeafletMapStage', () => {
     canonicalPlacesMock.confirmCanonicalPlace.mockReset()
     geometryLoaderMock.loadGeometryShard.mockReset()
     geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
+    geoLookupMock.lookupCountryRegionByCoordinates.mockReset().mockReturnValue(null)
     recordsApiMock.fetchTravelRecords.mockReset().mockResolvedValue([])
     recordsApiMock.createTravelRecord.mockReset().mockResolvedValue(
       makeRecord(PHASE12_RESOLVED_BEIJING),
@@ -527,6 +536,48 @@ describe('LeafletMapStage', () => {
       expect(mapPointsStore.pendingCanonicalSelection?.candidates).toHaveLength(
         PHASE12_AMBIGUOUS_RESOLVE.candidates.length,
       )
+    })
+
+    it('clears stale selection and suppresses notice when unsupported click has no fallback hit', async () => {
+      canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue({
+        status: 'failed',
+        click: { lat: 0, lng: 0 },
+        reason: 'OUTSIDE_SUPPORTED_DATA',
+        message: '当前点击位置暂未命中已接入的正式行政区数据。',
+      })
+
+      const mapOnMock = vi.fn((event: string, handler: unknown) => {
+        if (event === 'click') {
+          capturedMapClickHandler = handler as typeof capturedMapClickHandler
+        }
+      })
+      const fakeMap = {
+        on: mapOnMock,
+        off: vi.fn(),
+        latLngToContainerPoint: vi.fn(() => ({ x: 100, y: 100 })),
+        removeLayer: vi.fn(),
+        addLayer: vi.fn(),
+      } as unknown as import('leaflet').Map
+
+      ;(leafletMapContainer.mapRef as any).value = fakeMap as unknown as null
+
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+
+      mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      await nextTick()
+      await flushPromises()
+
+      await triggerMapClick({ lat: 0, lng: 0 })
+      await flushPromises()
+
+      expect(geoLookupMock.lookupCountryRegionByCoordinates).toHaveBeenCalledWith({ lat: 0, lng: 0 })
+      expect(mapPointsStore.summarySurfaceState).toBeNull()
+      expect(mapPointsStore.draftPoint).toBeNull()
+      expect(mapUiStore.interactionNotice).toBeNull()
     })
   })
 

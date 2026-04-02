@@ -67,6 +67,7 @@ const {
 } = mapUiStore
 
 const {
+  clearActivePoint,
   findSavedPointByCityId,
   openSavedPointForPlaceOrStartDraft,
   startPendingCanonicalSelection,
@@ -711,7 +712,15 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
         clearPendingGeoHit()
         return
       }
+
+      clearActivePoint()
+      popupLatLng.value = null
+      clearInteractionNotice()
+      finishRecognition()
+      clearPendingGeoHit()
+      return
     }
+
     setInteractionNotice({
       tone: 'info',
       message: response.message,

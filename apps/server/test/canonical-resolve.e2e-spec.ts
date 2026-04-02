@@ -52,6 +52,26 @@ describe('POST /places canonical resolve', () => {
     expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-03-31-geo-v1')
   })
 
+  it('resolves a non-representative click inside Beijing via geometry instead of exact fixture hit', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 39.904989,
+        lng: 116.405285,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'cn-beijing',
+        typeLabel: '直辖市',
+      },
+    })
+  })
+
   it('returns resolved for the Hong Kong fixture with SAR semantics', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -197,6 +217,26 @@ describe('POST /places canonical resolve', () => {
     expect(response.json().candidates.length).toBeLessThanOrEqual(3)
   })
 
+  it('resolves a non-representative click inside Tianjin via geometry instead of exact fixture hit', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 39.125596,
+        lng: 117.190182,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'cn-tianjin',
+        typeLabel: '直辖市',
+      },
+    })
+  })
+
   it('returns ambiguous candidates each with a manifest-backed geometryRef', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -271,5 +311,24 @@ describe('POST /places canonical resolve', () => {
     expect(response.json()).not.toHaveProperty('place')
     expect(response.json()).not.toHaveProperty('geometry')
     expect(response.json()).not.toHaveProperty('features')
+  })
+
+  it('returns product-level OUTSIDE_SUPPORTED_DATA messaging for unsupported clicks', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 35.6764,
+        lng: 139.65,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'failed',
+      reason: 'OUTSIDE_SUPPORTED_DATA',
+      message: '当前点击位置暂未命中已接入的正式行政区数据。',
+    })
+    expect(response.json()).not.toHaveProperty('place')
   })
 })
