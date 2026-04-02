@@ -9,6 +9,7 @@ import { computed, nextTick, shallowRef } from 'vue'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import LeafletMapStage from './LeafletMapStage.vue'
+import MapContextPopup from './map-popup/MapContextPopup.vue'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 
@@ -50,6 +51,10 @@ const leafletMapContainer = vi.hoisted(() => ({
   isReadyRef: null as unknown,
 }))
 
+const popupAnchorContainer = vi.hoisted(() => ({
+  virtualElementRef: null as unknown,
+}))
+
 vi.mock('../composables/useLeafletMap', async () => {
   const { shallowRef } = await import('vue')
   const map = shallowRef(null)
@@ -71,9 +76,13 @@ vi.mock('../composables/useGeoJsonLayers', () => ({
 }))
 
 vi.mock('../composables/useLeafletPopupAnchor', () => ({
-  useLeafletPopupAnchor: () => ({
-    virtualElement: computed(() => null),
-  }),
+  useLeafletPopupAnchor: () => {
+    const virtualElement = shallowRef(null)
+    popupAnchorContainer.virtualElementRef = virtualElement
+    return {
+      virtualElement,
+    }
+  },
 }))
 
 vi.mock('../composables/usePopupAnchoring', () => ({
@@ -121,8 +130,64 @@ function makeRecord(place: typeof PHASE12_RESOLVED_BEIJING) {
     placeKind: place.placeKind,
     datasetVersion: place.datasetVersion,
     displayName: place.displayName,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
     subtitle: place.subtitle,
     createdAt: new Date().toISOString(),
+  }
+}
+
+function makeDraftPoint(
+  place = PHASE12_RESOLVED_BEIJING,
+  overrides: Record<string, unknown> = {},
+) {
+  return {
+    id: `detected-${place.placeId}`,
+    name: place.displayName,
+    countryName: place.parentLabel,
+    countryCode: place.regionSystem === 'CN' ? 'CN' : '__canonical__',
+    precision: 'city-high' as const,
+    cityId: null,
+    cityName: place.displayName,
+    cityContextLabel: place.subtitle,
+    placeId: place.placeId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    boundaryId: place.boundaryId,
+    boundaryDatasetVersion: place.datasetVersion,
+    fallbackNotice: null,
+    lat: 39.9042,
+    lng: 116.4074,
+    clickLat: 39.9042,
+    clickLng: 116.4074,
+    x: 0,
+    y: 0,
+    source: 'detected' as const,
+    isFeatured: false,
+    description: '',
+    coordinatesLabel: '39.9042°N, 116.4074°E',
+    ...overrides,
+  }
+}
+
+function makeVirtualElement() {
+  return {
+    getBoundingClientRect: () => ({
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      top: 0,
+      left: 0,
+      right: 1,
+      bottom: 1,
+      toJSON: () => ({}),
+    }),
   }
 }
 
@@ -170,13 +235,16 @@ describe('LeafletMapStage', () => {
     geometryLoaderMock.loadGeometryShard.mockReset()
     geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
     recordsApiMock.fetchTravelRecords.mockReset().mockResolvedValue([])
-    recordsApiMock.createTravelRecord.mockReset().mockResolvedValue({ id: 'server-rec', placeId: '', boundaryId: '', placeKind: 'CN_ADMIN', datasetVersion: '', displayName: '', subtitle: '', createdAt: new Date().toISOString() })
+    recordsApiMock.createTravelRecord.mockReset().mockResolvedValue(
+      makeRecord(PHASE12_RESOLVED_BEIJING),
+    )
     recordsApiMock.deleteTravelRecord.mockReset().mockResolvedValue(undefined)
     capturedMapClickHandler = null
 
     // Reset leaflet map mock state
     ;(leafletMapContainer.mapRef as any).value = null
     ;(leafletMapContainer.isReadyRef as any).value = false
+    popupAnchorContainer.virtualElementRef = null
 
     // Stub requestAnimationFrame
     vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
@@ -534,6 +602,83 @@ describe('LeafletMapStage', () => {
       // popupAnchor is null from mock, so MapContextPopup won't render.
       // We verify the store state is correct.
       expect(mapPointsStore.summarySurfaceState?.mode).toBe('view')
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // ILLUMINATE ACTIONS (REQ-16-01, REQ-16-02)
+  // -------------------------------------------------------------------------
+
+  describe('illuminate actions', () => {
+    it('loads the geometry shard after a successful canonical illuminate', async () => {
+      const fc = makeFakeFeatureCollection()
+      geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
+        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+        layer: 'CN',
+        geometryDatasetVersion: '2026-03-31-geo-v1',
+        assetKey: 'cn/beijing.json',
+        renderableId: PHASE12_RESOLVED_BEIJING.boundaryId,
+      })
+      geometryLoaderMock.loadGeometryShard.mockResolvedValue(fc)
+      recordsApiMock.createTravelRecord.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+
+      const mapPointsStore = useMapPointsStore()
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+      await flushPromises()
+
+      expect(geometryManifestMock.getGeometryManifestEntry).toHaveBeenCalledWith(
+        PHASE12_RESOLVED_BEIJING.boundaryId,
+      )
+      expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
+        '2026-03-31-geo-v1',
+        'cn/beijing.json',
+      )
+      expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
+    })
+
+    it('renders fallback illuminate affordance as disabled and surfaces an info notice', async () => {
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(
+        makeDraftPoint(PHASE12_RESOLVED_CALIFORNIA, {
+          id: 'fallback-california',
+          name: 'California',
+          countryName: 'United States',
+          cityId: 'geo-fallback-california',
+          cityName: 'California',
+          cityContextLabel: 'United States · 一级行政区',
+          placeId: null,
+          placeKind: null,
+          datasetVersion: null,
+          typeLabel: null,
+          parentLabel: null,
+          subtitle: null,
+          boundaryId: null,
+          boundaryDatasetVersion: null,
+          fallbackNotice: '当前仅能按国家/地区保留这个点位。',
+        }),
+      )
+      await nextTick()
+      await flushPromises()
+
+      const button = wrapper.get('[data-illuminate-state="off"]')
+      expect(button.attributes('disabled')).toBeDefined()
+      expect(button.attributes('data-illuminatable')).toBe('false')
+
+      wrapper.getComponent(MapContextPopup).vm.$emit('illuminate')
+      await nextTick()
+
+      expect(mapUiStore.interactionNotice?.message).toBe('该地点暂不支持点亮')
     })
   })
 

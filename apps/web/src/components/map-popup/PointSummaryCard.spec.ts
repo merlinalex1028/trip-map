@@ -159,6 +159,24 @@ describe('PointSummaryCard — illuminate button', () => {
     expect(btn.attributes('disabled')).toBeDefined()
   })
 
+  it('renders a disabled illuminate affordance for non-illuminatable points', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: false,
+        isIlluminatable: false,
+      },
+    })
+
+    const btn = wrapper.find('[data-illuminate-state]')
+
+    expect(btn.attributes('disabled')).toBeDefined()
+    expect(btn.attributes('data-illuminatable')).toBe('false')
+    expect(btn.attributes('title')).toBe('该地点暂不支持点亮')
+    await btn.trigger('click')
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
+  })
+
   it('click on "点亮" emits illuminate event', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
