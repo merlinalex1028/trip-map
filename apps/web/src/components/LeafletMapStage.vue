@@ -421,7 +421,6 @@ function buildFallbackDraftPoint(
 function applyResolvedPlace(
   place: Parameters<typeof buildCanonicalDraftPoint>[0],
   geo: { lat: number; lng: number },
-  options: { hadDraft?: boolean } = {},
 ) {
   const decision = openSavedPointForPlaceOrStartDraft(buildCanonicalDraftPoint(place, geo))
 
@@ -429,14 +428,6 @@ function applyResolvedPlace(
     setInteractionNotice({
       tone: 'info',
       message: `已打开你记录过的${decision.point.name}`,
-    })
-    return
-  }
-
-  if (options.hadDraft) {
-    setInteractionNotice({
-      tone: 'info',
-      message: '当前未保存地点将被丢弃，并切换到新位置',
     })
     return
   }
@@ -689,12 +680,11 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
 
   try {
     const response = await resolveCanonicalPlace({ lat, lng })
-    const hadDraft = Boolean(draftPoint.value)
 
     removePendingMarker()
 
     if (response.status === 'resolved') {
-      applyResolvedPlace(response.place, response.click, { hadDraft })
+      applyResolvedPlace(response.place, response.click)
 
       // Set popup anchor to resolved location
       popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
@@ -721,14 +711,7 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
 
       popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
 
-      if (hadDraft) {
-        setInteractionNotice({
-          tone: 'info',
-          message: '当前未保存地点将被丢弃，并切换到新位置',
-        })
-      } else {
-        clearInteractionNotice()
-      }
+      clearInteractionNotice()
 
       finishRecognition()
       clearPendingGeoHit()
