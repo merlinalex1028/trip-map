@@ -49,7 +49,7 @@ function recordToDisplayPoint(record: TravelRecord): MapPointDisplay {
   return {
     id: record.placeId,
     name: record.displayName,
-    countryName: '',
+    countryName: record.parentLabel.split(' · ')[0] ?? '',
     countryCode: '',
     precision: 'city-high',
     cityId: null,
@@ -58,8 +58,8 @@ function recordToDisplayPoint(record: TravelRecord): MapPointDisplay {
     placeId: record.placeId,
     placeKind: record.placeKind,
     datasetVersion: record.datasetVersion,
-    typeLabel: null,
-    parentLabel: null,
+    typeLabel: record.typeLabel,
+    parentLabel: record.parentLabel,
     subtitle: record.subtitle,
     boundaryId: record.boundaryId,
     boundaryDatasetVersion: record.datasetVersion,
@@ -296,9 +296,24 @@ export const useMapPointsStore = defineStore('map-points', () => {
     placeKind: TravelRecord['placeKind']
     datasetVersion: string
     displayName: string
+    regionSystem: TravelRecord['regionSystem']
+    adminType: TravelRecord['adminType']
+    typeLabel: TravelRecord['typeLabel']
+    parentLabel: TravelRecord['parentLabel']
     subtitle: string | null
   }) {
-    const { placeId, boundaryId, placeKind, datasetVersion, displayName, subtitle } = summary
+    const {
+      placeId,
+      boundaryId,
+      placeKind,
+      datasetVersion,
+      displayName,
+      regionSystem,
+      adminType,
+      typeLabel,
+      parentLabel,
+      subtitle,
+    } = summary
 
     // Skip if already illuminated
     if (travelRecords.value.some((r) => r.placeId === placeId)) {
@@ -314,6 +329,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
       placeKind,
       datasetVersion,
       displayName,
+      regionSystem,
+      adminType,
+      typeLabel,
+      parentLabel,
       subtitle: subtitle ?? '',
       createdAt: new Date().toISOString(),
     }
@@ -330,6 +349,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         placeKind,
         datasetVersion,
         displayName,
+        regionSystem,
+        adminType,
+        typeLabel,
+        parentLabel,
         subtitle: subtitle ?? '',
       })
 
