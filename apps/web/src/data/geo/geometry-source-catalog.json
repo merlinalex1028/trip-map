@@ -26,7 +26,7 @@
       "sourceVersion": "natural-earth-50m-admin1-no-china-2026-04-02",
       "snapshotDate": "2026-04-02",
       "coordinateSystem": "WGS84",
-      "sourcePath": "ne_50m_admin_1_states_provinces.json",
+      "sourcePath": "apps/web/src/data/geo/sources/ne_50m_admin_1_states_provinces.json",
       "checksum": "sha256:0fc3f465d242411f2d7e6d4c35e1df7cf5622b469d73b59eecf97b7116408993",
       "description": "Natural Earth admin-1 states/provinces GeoJSON after removing China features in Mapshaper; used as the overseas admin1 layer",
       "sourceUrl": "https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/",

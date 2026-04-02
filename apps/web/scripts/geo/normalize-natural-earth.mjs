@@ -19,7 +19,10 @@ import { fileURLToPath } from 'node:url'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const SOURCE_PATH = resolve(__dirname, '..', '..', '..', '..', 'ne_50m_admin_1_states_provinces.json')
+const SOURCE_PATH = resolve(
+  __dirname,
+  '..', '..', 'src', 'data', 'geo', 'sources', 'ne_50m_admin_1_states_provinces.json',
+)
 
 /**
  * Load and normalize the Natural Earth admin-1 source snapshot.
