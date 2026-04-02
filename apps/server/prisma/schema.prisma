@@ -15,6 +15,11 @@ model SmokeRecord {
   placeKind      String
   datasetVersion String
   displayName    String
+  regionSystem   String?
+  adminType      String?
+  typeLabel      String?
+  parentLabel    String?
+  subtitle       String?
   note           String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -27,6 +32,10 @@ model TravelRecord {
   placeKind      String
   datasetVersion String
   displayName    String
+  regionSystem   String?
+  adminType      String?
+  typeLabel      String?
+  parentLabel    String?
   subtitle       String
   createdAt      DateTime @default(now())
 }

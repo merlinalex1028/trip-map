@@ -1,4 +1,4 @@
-import type { CanonicalPlaceSummary, PlaceKind } from './place'
+import type { CanonicalPlaceSummary, ChinaAdminType, PlaceKind } from './place'
 
 export interface SmokeRecordCreateRequest extends CanonicalPlaceSummary {
   note?: string
@@ -17,15 +17,12 @@ export interface TravelRecord {
   placeKind: PlaceKind
   datasetVersion: string
   displayName: string
+  regionSystem: 'CN' | 'OVERSEAS'
+  adminType: ChinaAdminType | 'ADMIN1'
+  typeLabel: string
+  parentLabel: string
   subtitle: string
   createdAt: string
 }
 
-export interface CreateTravelRecordRequest {
-  placeId: string
-  boundaryId: string
-  placeKind: PlaceKind
-  datasetVersion: string
-  displayName: string
-  subtitle: string
-}
+export interface CreateTravelRecordRequest extends CanonicalPlaceSummary {}
