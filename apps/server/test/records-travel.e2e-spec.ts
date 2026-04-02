@@ -3,6 +3,7 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
+import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { createApp } from '../src/main.js'
 
 try {
@@ -39,6 +40,7 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 
 const TEST_PLACE_ID = `test-travel-place-${Date.now()}`
 const TEST_PLACE_ID_2 = `test-travel-place-2-${Date.now()}`
+const LEGACY_PLACE_ID = 'cn-tianjin'
 
 const validRecord = {
   placeId: TEST_PLACE_ID,
@@ -46,7 +48,11 @@ const validRecord = {
   placeKind: 'CN_ADMIN',
   datasetVersion: 'v3.0-test',
   displayName: '测试地点',
-  subtitle: '上级地点',
+  regionSystem: 'CN',
+  adminType: 'MUNICIPALITY',
+  typeLabel: '直辖市',
+  parentLabel: '中国',
+  subtitle: '中国 · 直辖市',
 }
 
 describe('TravelRecord CRUD API', () => {
@@ -57,15 +63,14 @@ describe('TravelRecord CRUD API', () => {
     app = await createApp()
     await app.init()
     await app.getHttpAdapter().getInstance().ready()
-    // Clean up any stale test data
     await prisma.travelRecord.deleteMany({
-      where: { placeId: { in: [TEST_PLACE_ID, TEST_PLACE_ID_2] } },
+      where: { placeId: { in: [TEST_PLACE_ID, TEST_PLACE_ID_2, LEGACY_PLACE_ID] } },
     })
   })
 
   afterAll(async () => {
     await prisma.travelRecord.deleteMany({
-      where: { placeId: { in: [TEST_PLACE_ID, TEST_PLACE_ID_2] } },
+      where: { placeId: { in: [TEST_PLACE_ID, TEST_PLACE_ID_2, LEGACY_PLACE_ID] } },
     })
     await prisma.$disconnect()
     await app.close()
@@ -97,7 +102,11 @@ describe('TravelRecord CRUD API', () => {
       placeKind: 'CN_ADMIN',
       datasetVersion: 'v3.0-test',
       displayName: '测试地点',
-      subtitle: '上级地点',
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
     })
     expect(typeof body.id).toBe('string')
     expect(typeof body.createdAt).toBe('string')
@@ -122,7 +131,11 @@ describe('TravelRecord CRUD API', () => {
         placeKind: 'CN_ADMIN',
         datasetVersion: 'v3.0-test',
         displayName: '测试地点',
-        subtitle: '上级地点',
+        regionSystem: 'CN',
+        adminType: 'MUNICIPALITY',
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '中国 · 直辖市',
       },
     })
 
@@ -136,9 +149,30 @@ describe('TravelRecord CRUD API', () => {
     })
 
     expect(response.statusCode).toBe(200)
-    const body = response.json() as Array<{ placeId: string }>
+    const body = response.json() as Array<Record<string, string>>
     const found = body.find((r) => r.placeId === TEST_PLACE_ID)
     expect(found).toBeDefined()
+    expect(found).toMatchObject({
+      placeId: TEST_PLACE_ID,
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
+    })
+
+    const storedRecord = await prisma.travelRecord.findUnique({
+      where: { placeId: TEST_PLACE_ID },
+    })
+
+    expect(storedRecord).toMatchObject({
+      placeId: TEST_PLACE_ID,
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
+    })
   })
 
   it('DELETE /records/:placeId with existing placeId returns 204', async () => {
@@ -169,5 +203,57 @@ describe('TravelRecord CRUD API', () => {
     })
 
     expect(response.statusCode).toBe(404)
+  })
+
+  it('backfills legacy travel rows by placeId and restores canonical metadata for reopen surfaces', async () => {
+    await prisma.travelRecord.create({
+      data: {
+        placeId: LEGACY_PLACE_ID,
+        boundaryId: 'datav-cn-tianjin',
+        placeKind: 'CN_ADMIN',
+        datasetVersion: 'phase12-canonical-fixture-v1',
+        displayName: '天津',
+        regionSystem: null,
+        adminType: null,
+        typeLabel: null,
+        parentLabel: null,
+        subtitle: '',
+      },
+    })
+
+    const summary = await backfillRecordMetadata(prisma)
+
+    expect(summary.matchedTravelRows).toBeGreaterThan(0)
+    expect(summary.unmatchedTravelRows).not.toContain(LEGACY_PLACE_ID)
+
+    const dbRecord = await prisma.travelRecord.findUnique({
+      where: { placeId: LEGACY_PLACE_ID },
+    })
+
+    expect(dbRecord).toMatchObject({
+      placeId: LEGACY_PLACE_ID,
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
+    })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/records',
+    })
+
+    expect(response.statusCode).toBe(200)
+    const body = response.json() as Array<Record<string, string>>
+    const found = body.find((record) => record.placeId === LEGACY_PLACE_ID)
+    expect(found).toMatchObject({
+      placeId: LEGACY_PLACE_ID,
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
+    })
   })
 })

@@ -87,5 +87,12 @@ describe('POST /records/smoke with PostgreSQL', () => {
 
     expect(storedRows).toHaveLength(1)
     expect(storedRows[0]).toMatchObject(smokeRequest)
+    expect(storedRows[0]).toMatchObject({
+      regionSystem: smokeRequest.regionSystem,
+      adminType: smokeRequest.adminType,
+      typeLabel: smokeRequest.typeLabel,
+      parentLabel: smokeRequest.parentLabel,
+      subtitle: smokeRequest.subtitle,
+    })
   })
 })
