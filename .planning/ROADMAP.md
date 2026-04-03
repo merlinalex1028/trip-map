@@ -126,7 +126,7 @@ Plans:
 | 15. 服务端记录与点亮闭环 | 3/3 | Complete   | 2026-04-01 |
 | 16. UAT gap 修复 | 4/4 | Complete   | 2026-04-02 |
 | 17. 正式验证闭环与人 UAT 复验 | 5/5 | Complete    | 2026-04-03 |
-| 18. Tech Debt 清理 | 2/4 | In Progress|  |
+| 18. Tech Debt 清理 | 3/4 | In Progress|  |
 
 ### Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
 
