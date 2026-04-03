@@ -109,8 +109,8 @@
 | MAP-06 | Phase 14 | Complete |
 | MAP-07 | Phase 15 | Complete |
 | MAP-08 | Phase 14 | Complete |
-| API-01 | Phase 15 | Pending |
-| API-02 | Phase 15 | Pending |
+| API-01 | Phase 17 | Pending |
+| API-02 | Phase 17 | Pending |
 | API-03 | Phase 13 | Complete |
 | API-04 | Phase 11 | Complete |
 | API-05 | Phase 15 | Complete |
@@ -132,4 +132,4 @@
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-30 after Phase 12 completion*
+*Last updated: 2026-04-03 after v3.0 milestone audit gap analysis*

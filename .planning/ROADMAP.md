@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-6，已于 2026-03-24 归档
 - ✅ **v2.0 城市主视角与可爱风格重构** — Phases 7-10，已于 2026-03-27 归档
-- 🚧 **v3.0 全栈化与行政区地图重构** — Phases 11-16，当前规划中
+- 🚧 **v3.0 全栈化与行政区地图重构** — Phases 11-18，当前规划中
 
 ## Overview
 
@@ -115,7 +115,7 @@ Plans:
 
 ## Progress
 
-**Execution Order:** 11 → 12 → 13 → 14 → 15
+**Execution Order:** 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -124,6 +124,9 @@ Plans:
 | 13. 行政区数据与几何交付 | 4/4 | Complete    | 2026-03-31 |
 | 14. Leaflet 地图主链路迁移 | 3/3 | Complete| ✓ |
 | 15. 服务端记录与点亮闭环 | 3/3 | Complete   | 2026-04-01 |
+| 16. UAT gap 修复 | 4/4 | Complete   | 2026-04-02 |
+| 17. 正式验证闭环与人 UAT 复验 | 0/N | Planned   | — |
+| 18. Tech Debt 清理 | 0/N | Planned   | — |
 
 ### Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
 
@@ -137,3 +140,13 @@ Plans:
 - [x] `16-01-PLAN.md` — 修复 SmokeRecord/TravelRecord 的 contracts + Prisma + server round-trip canonical metadata
 - [x] `16-02-PLAN.md` — 修复 web reopen label、fallback 点亮反馈与 illuminate 后 shard/overlay 加载
 - [x] `16-03-PLAN.md` — 对齐 authoritative fixtures/UAT 文案，并让 California 走 server-owned bbox resolve
+
+### Phase 17: 正式验证闭环与人 UAT 复验
+**Goal**: 为 Phase 15 和 Phase 16 补做正式 `*-VERIFICATION.md` 闭环文档，并通过人工 UAT 验收确认 Phase 16 点亮链路、Phase 14 Leaflet 地图交互在真实浏览器环境中的端到端体验
+**Depends on**: Phase 16
+**Gap Closure:** 关闭 `v3.0-MILESTONE-AUDIT.md` 中 API-01、API-02 的 partial 状态；完成 3 项 Phase 16 人工 checkpoint（fallback 点亮 UX / overlay 可见性 / California 标签一致性）；完成 3 项 Phase 14 人工 Nyquist 验收（popup 锚点拖动跟随 / Bing 瓦片加载 / 边界启动预加载）
+
+### Phase 18: Tech Debt 清理
+**Goal**: 清理 v3.0 遗留 tech debt，包括将 `/health` 端点改为真实 DB probe、补全 Phase 14/15 Nyquist 合规文档，以及 resolve Phase 7 构建 chunk 警告
+**Depends on**: Phase 17
+**Gap Closure:** 关闭 ARC-03 tech debt（静态 health probe）；补全 Phase 14/15 VALIDATION.md 的 draft 状态；可选优化前端构建产物大小
