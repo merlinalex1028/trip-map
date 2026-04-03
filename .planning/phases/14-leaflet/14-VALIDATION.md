@@ -1,10 +1,11 @@
 ---
 phase: 14
 slug: leaflet
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-31
+updated: 2026-04-03
 ---
 
 # Phase 14 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-03-31
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | MAP-04 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | GEOX-05 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | MAP-05 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | MAP-06 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | MAP-08 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
-| TBD | TBD | TBD | UIX-01 | unit | `pnpm --filter @trip-map/web test` | ❌ W0 | ⬜ pending |
+| 14-01-P01 | 14-01 | 1 | MAP-04 | unit | `pnpm --filter @trip-map/web test` | ✅ `LeafletMapStage.vue` | ✅ green |
+| 14-01-P01 | 14-01 | 1 | MAP-06 | unit | `pnpm --filter @trip-map/web test` | ✅ `LeafletMapStage.spec.ts` | ✅ green |
+| 14-01-P02 | 14-02 | 1 | GEOX-05 | unit | `pnpm --filter @trip-map/web test` | ✅ `useGeoJsonLayers.ts` | ✅ green |
+| 14-01-P02 | 14-02 | 1 | MAP-05 | unit | `pnpm --filter @trip-map/web test` | ✅ `useGeoJsonLayers.spec.ts` | ✅ green |
+| 14-01-P03 | 14-03 | 1 | MAP-08 | unit | `pnpm --filter @trip-map/web test` | ✅ `useLeafletPopupAnchor.ts` | ✅ green |
+| 14-01-P03 | 14-03 | 1 | UIX-01 | unit | `pnpm --filter @trip-map/web test` | ✅ `useLeafletPopupAnchor.spec.ts` | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,31 +52,31 @@ created: 2026-03-31
 
 ## Wave 0 Requirements
 
-- [ ] Update Leaflet-related test infrastructure (mock `L.map`, `L.geoJSON` etc.)
-- [ ] Existing `WorldMapStage.spec.ts` tests need full rewrite for Leaflet DOM
-- [ ] happy-dom environment may need Leaflet CSS stubs
+- [x] Update Leaflet-related test infrastructure (mock `L.map`, `L.geoJSON` etc.)
+- [x] Existing `WorldMapStage.spec.ts` tests rewritten as `LeafletMapStage.spec.ts` for Leaflet DOM
+- [x] happy-dom environment configured with Leaflet CSS stubs
 
-*Existing vitest infrastructure covers the test framework; Leaflet-specific mocking is new.*
+*Leaflet-specific mocking established in `LeafletMapStage.spec.ts`, `useGeoJsonLayers.spec.ts`, and `useLeafletPopupAnchor.spec.ts`.*
 
 ---
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Bing Maps tile rendering | MAP-04 | Requires visual verification of tile quality | Load map, verify tiles render at various zoom levels |
-| China/overseas visual consistency | MAP-05 | Visual comparison of two layer styles | Pan between China and overseas, verify consistent look |
-| Popup anchoring during pan/zoom | UIX-01 | @floating-ui + Leaflet move sync | Click a point, drag map, verify popup follows smoothly |
+| Behavior | Requirement | Why Manual | Pass Criteria | Result |
+|----------|-------------|------------|---------------|--------|
+| Bing Maps tile rendering | MAP-04 | Requires visual verification of tile quality | Map loads with Bing tiles at zoom 2-18; fallback to CartoDB Positron when Bing API unavailable; no blank tiles at any zoom level | ✅ pass |
+| China/overseas visual consistency | MAP-05 | Visual comparison of two layer styles | China GeoJSON layer and overseas GeoJSON layer both render with consistent fill/stroke style; no z-index overlap artifacts between layers | ✅ pass |
+| Popup anchoring during pan/zoom | UIX-01 | @floating-ui + Leaflet move sync | Popup stays anchored to correct map position during continuous pan and zoom; no jitter or detachment visible; VirtualElement updates on every moveend/zoomend | ✅ pass |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (2026-04-03)
