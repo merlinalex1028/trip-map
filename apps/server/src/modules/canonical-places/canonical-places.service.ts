@@ -62,6 +62,7 @@ interface SupportedResolvedGeometry {
   placeId: CanonicalPlaceId
   place: ResolvedCanonicalPlace
   feature: GeometryFeature
+  layer: 'CN' | 'OVERSEAS'
 }
 
 const OUTSIDE_SUPPORTED_DATA_MESSAGE = '当前点击位置暂未命中已接入的正式行政区数据。'
@@ -109,6 +110,7 @@ function loadSupportedResolvedGeometries(): SupportedResolvedGeometry[] {
       placeId: place.placeId,
       place,
       feature,
+      layer: entry.layer,
     }]
   })
 }
@@ -433,9 +435,11 @@ export class CanonicalPlacesService {
     const point: GeoJsonPosition = [input.lng, input.lat]
     const matches = supportedResolvedGeometries
       .filter(candidate => isPointInGeometry(point, candidate.feature.geometry))
-      .map(candidate => candidate.place)
 
-    return dedupePlaces(matches)
+    const cnMatches = matches.filter(candidate => candidate.layer === 'CN')
+    const filtered = cnMatches.length > 0 ? cnMatches : matches
+
+    return dedupePlaces(filtered.map(candidate => candidate.place))
   }
 
   private getPlace(placeId: CanonicalPlaceId): ResolvedCanonicalPlace {

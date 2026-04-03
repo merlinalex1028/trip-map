@@ -1,8 +1,12 @@
 import { PrismaClient } from '@prisma/client'
+import {
+  PHASE12_RESOLVED_ABA,
+  PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_HONG_KONG,
+} from '@trip-map/contracts'
 import type { CanonicalPlaceSummary } from '@trip-map/contracts'
 import { fileURLToPath } from 'node:url'
-
-import { canonicalPlaceCatalogBase } from '../src/modules/canonical-places/fixtures/canonical-place-fixtures.ts'
 
 type CanonicalMetadata = Pick<
   CanonicalPlaceSummary,
@@ -10,6 +14,13 @@ type CanonicalMetadata = Pick<
 >
 
 type CanonicalMetadataLookup = Record<string, CanonicalMetadata>
+
+const CANONICAL_PLACE_CATALOG = [
+  PHASE12_RESOLVED_BEIJING,
+  PHASE12_RESOLVED_HONG_KONG,
+  PHASE12_RESOLVED_CALIFORNIA,
+  PHASE12_RESOLVED_ABA,
+] as const
 
 type BackfillSummary = {
   matchedTravelRows: number
@@ -54,7 +65,7 @@ function loadServerEnvFile() {
 
 export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
   return Object.fromEntries(
-    Object.values(canonicalPlaceCatalogBase).map((place) => [
+    CANONICAL_PLACE_CATALOG.map((place) => [
       place.placeId,
       {
         regionSystem: place.regionSystem,

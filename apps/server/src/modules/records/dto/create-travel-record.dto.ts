@@ -1,7 +1,11 @@
-import { IsNotEmpty, IsString } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsString } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
-import type { CreateTravelRecordRequest } from '@trip-map/contracts'
+import type {
+  ChinaAdminType,
+  CreateTravelRecordRequest,
+  PlaceKind,
+} from '@trip-map/contracts'
 
 export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @ApiProperty()
@@ -14,10 +18,10 @@ export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @IsNotEmpty()
   boundaryId!: string
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ enum: ['CN_ADMIN', 'OVERSEAS_ADMIN1'] })
+  @IsEnum(['CN_ADMIN', 'OVERSEAS_ADMIN1'])
   @IsNotEmpty()
-  placeKind!: string
+  placeKind!: PlaceKind
 
   @ApiProperty()
   @IsString()
@@ -29,15 +33,17 @@ export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @IsNotEmpty()
   displayName!: string
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ enum: ['CN', 'OVERSEAS'] })
+  @IsEnum(['CN', 'OVERSEAS'])
   @IsNotEmpty()
-  regionSystem!: string
+  regionSystem!: 'CN' | 'OVERSEAS'
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({
+    enum: ['MUNICIPALITY', 'SAR', 'PREFECTURE_LEVEL_CITY', 'AUTONOMOUS_PREFECTURE', 'LEAGUE', 'AREA', 'ADMIN1'],
+  })
+  @IsEnum(['MUNICIPALITY', 'SAR', 'PREFECTURE_LEVEL_CITY', 'AUTONOMOUS_PREFECTURE', 'LEAGUE', 'AREA', 'ADMIN1'])
   @IsNotEmpty()
-  adminType!: string
+  adminType!: ChinaAdminType | 'ADMIN1'
 
   @ApiProperty()
   @IsString()

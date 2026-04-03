@@ -345,8 +345,8 @@ describe('POST /places canonical resolve', () => {
       method: 'POST',
       url: '/places/resolve',
       payload: {
-        lat: 35.6764,
-        lng: 139.65,
+        lat: 25.0,
+        lng: -160.0,
       },
     })
 

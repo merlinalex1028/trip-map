@@ -40,7 +40,7 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 
 const TEST_PLACE_ID = `test-travel-place-${Date.now()}`
 const TEST_PLACE_ID_2 = `test-travel-place-2-${Date.now()}`
-const LEGACY_PLACE_ID = 'cn-tianjin'
+const LEGACY_PLACE_ID = 'cn-beijing'
 
 const validRecord = {
   placeId: TEST_PLACE_ID,
@@ -206,13 +206,17 @@ describe('TravelRecord CRUD API', () => {
   })
 
   it('backfills legacy travel rows by placeId and restores canonical metadata for reopen surfaces', async () => {
+    await prisma.travelRecord.deleteMany({
+      where: { placeId: LEGACY_PLACE_ID },
+    })
+
     await prisma.travelRecord.create({
       data: {
         placeId: LEGACY_PLACE_ID,
-        boundaryId: 'datav-cn-tianjin',
+        boundaryId: 'datav-cn-beijing',
         placeKind: 'CN_ADMIN',
         datasetVersion: 'phase12-canonical-fixture-v1',
-        displayName: '天津',
+        displayName: '北京',
         regionSystem: null,
         adminType: null,
         typeLabel: null,

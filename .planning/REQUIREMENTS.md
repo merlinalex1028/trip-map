@@ -10,7 +10,7 @@
 
 - [x] **ARC-01**: 项目代码库拆分为 `apps/web`、`apps/server` 和最小共享契约层，使前后端可以独立运行与构建
 - [x] **ARC-02**: `server` 从 `v3.0` 开始成为 canonical area resolve 的权威来源，前端不再长期保留另一套主判定逻辑
-- [ ] **ARC-03**: 系统以 PostgreSQL 兼容数据库作为正式持久化基础，并允许采用 `Supabase` 这类托管 PostgreSQL 方案而不把业务模型绑定到平台私有能力
+- [x] **ARC-03**: 系统以 PostgreSQL 兼容数据库作为正式持久化基础，并允许采用 `Supabase` 这类托管 PostgreSQL 方案而不把业务模型绑定到平台私有能力
 - [x] **ARC-04**: 前后端通过共享契约明确 `placeId`、`boundaryId`、`placeKind`、`datasetVersion` 等关键字段，避免多端语义漂移
 
 ### Canonical Place Model
@@ -42,7 +42,7 @@
 - [x] **API-01**: 用户的旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作，都通过 `server` API 持久化
 - [x] **API-02**: 点亮 / 取消点亮动作以 canonical `placeId` 为目标，而不是依赖前端临时点位或展示名
 - [x] **API-03**: 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界
-- [ ] **API-04**: 首发版本默认不要求引入 `PostGIS`、`Redis`、`BullMQ` 或对象存储，只有在实际规模证明需要时再升级基础设施
+- [x] **API-04**: 首发版本默认不要求引入 `PostGIS`、`Redis`、`BullMQ` 或对象存储，只有在实际规模证明需要时再升级基础设施
 - [x] **API-05**: `v3.0` 启动后系统不再读取、迁移或兼容旧 `localStorage` 旅行数据，统一以新的服务端数据模型为准
 
 ### Popup, Drawer & Inline Illuminate
