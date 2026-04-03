@@ -39,8 +39,8 @@
 
 ### Records & API
 
-- [ ] **API-01**: 用户的旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作，都通过 `server` API 持久化
-- [ ] **API-02**: 点亮 / 取消点亮动作以 canonical `placeId` 为目标，而不是依赖前端临时点位或展示名
+- [x] **API-01**: 用户的旅行记录读取、创建、更新、删除，以及点亮 / 取消点亮动作，都通过 `server` API 持久化
+- [x] **API-02**: 点亮 / 取消点亮动作以 canonical `placeId` 为目标，而不是依赖前端临时点位或展示名
 - [x] **API-03**: 系统会提供地点摘要、边界引用或几何资源入口，使前端可以按需加载并缓存行政区边界
 - [ ] **API-04**: 首发版本默认不要求引入 `PostGIS`、`Redis`、`BullMQ` 或对象存储，只有在实际规模证明需要时再升级基础设施
 - [x] **API-05**: `v3.0` 启动后系统不再读取、迁移或兼容旧 `localStorage` 旅行数据，统一以新的服务端数据模型为准
@@ -109,8 +109,8 @@
 | MAP-06 | Phase 14 | Complete |
 | MAP-07 | Phase 15 | Complete |
 | MAP-08 | Phase 14 | Complete |
-| API-01 | Phase 17 | Pending |
-| API-02 | Phase 17 | Pending |
+| API-01 | Phase 17 | Complete |
+| API-02 | Phase 17 | Complete |
 | API-03 | Phase 13 | Complete |
 | API-04 | Phase 11 | Complete |
 | API-05 | Phase 15 | Complete |

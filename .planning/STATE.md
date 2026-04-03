@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
-status: verifying
-stopped_at: Completed 16-03-PLAN.md
-last_updated: "2026-04-02T09:27:16.027Z"
-last_activity: 2026-04-02
+status: planned
+stopped_at: Phase 17 complete — ready for 18-00-PLAN.md
+last_updated: "2026-04-03T07:08:26.794Z"
+last_activity: 2026-04-03 -- Phase 17 complete
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 29
-  completed_plans: 29
-  percent: 100
+  total_phases: 8
+  completed_phases: 7
+  total_plans: 35
+  completed_plans: 34
+  percent: 97
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。  
-**Current focus:** Phase 16 — uat-gap-fallback-smoke-record-schema-typelabel-california
+**Current focus:** Phase 18 — Tech-Debt-清理
 
 ## Current Position
 
-Phase: 16 (uat-gap-fallback-smoke-record-schema-typelabel-california) — VERIFYING
-Plan: 4 of 4
-Status: Phase complete — ready for verification
-Last activity: 2026-04-02
+Phase: 18 (Tech-Debt-清理) — PLANNED
+Plan: 0 of 1
+Status: Phase 17 complete — ready for Phase 18
+Last activity: 2026-04-03 -- Phase 17 complete
 
-Progress: [██████████] 100%
+Progress: [█████████░] 97%
 
 ## Last Shipped Milestone
 

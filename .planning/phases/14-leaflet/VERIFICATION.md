@@ -3,6 +3,7 @@ phase: 14-leaflet
 verified: 2026-03-31T18:16:00Z
 status: passed
 score: 6/6 must-haves verified
+human_reverification: passed
 human_verification:
   - test: "Popup 跟随地图拖动时锚点实时更新"
     expected: "地图拖拽过程中 popup 浮层位置与点击坐标保持对齐，不出现飘移或延迟"
@@ -18,9 +19,9 @@ human_verification:
 # Phase 14: Leaflet 地图主链路迁移 Verification Report
 
 **Phase Goal:** 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验
-**Verified:** 2026-03-31T18:16:00Z
+**Verified:** 2026-04-03T06:57:45Z
 **Status:** passed
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — human closure recorded on 2026-04-03
 
 ## Goal Achievement
 
@@ -96,31 +97,31 @@ human_verification:
 
 无阻塞性 anti-pattern。`x: 0, y: 0` 是已记录的设计决策，非 stub。
 
-### Human Verification Required
+## Human Re-verification
 
-#### 1. Popup 跟随地图拖动
+### 1. Popup 跟随地图拖动时锚点实时更新
 
-**Test:** 在浏览器中打开地图，点击某个地点触发 popup，然后拖动地图
-**Expected:** popup 浮层位置实时跟随地图坐标点，不发生漂移；松开鼠标后位置准确
-**Why human:** useLeafletPopupAnchor 的 move/zoom 事件监听逻辑无法在 happy-dom 环境中验证实际 DOM 位置
+- **Result:** pass
+- **Evidence:** [14-HUMAN-UAT.md](/Users/huangjingping/i/trip-map/.planning/phases/14-leaflet/14-HUMAN-UAT.md) 记录用户在 2026-04-03 的真实浏览器验收结论为全部通过；popup 在拖拽与缩放中持续跟随点击锚点，无明显飘移。
+- **Notes:** 未发现拖拽期间的延迟或位置错乱。
 
-#### 2. Bing Maps CanvasLight 瓦片（需要 API Key）
+### 2. Bing Maps CanvasLight 瓦片加载（需要 API Key）
 
-**Test:** 在 `.env` 中设置 `VITE_BING_MAPS_KEY`，重启 dev server 并打开地图
-**Expected:** 底图切换为 Bing CanvasLight 样式，显示中英双语地名；无 VITE_BING_MAPS_KEY 时回退到 CartoDB Positron（用户已视觉确认后者）
-**Why human:** 需要真实 API key 和网络请求
+- **Result:** pass
+- **Evidence:** 用户确认配置有效 `VITE_BING_MAPS_KEY` 后，真实地图底图切换为 Bing CanvasLight，并显示双语地名且无 broken tiles；见 [14-HUMAN-UAT.md](/Users/huangjingping/i/trip-map/.planning/phases/14-leaflet/14-HUMAN-UAT.md)。
+- **Notes:** 本轮人验未报告 key、配额或网络阻塞。
 
-#### 3. 已点亮边界启动时预加载（需要几何资产）
+### 3. 已点亮边界启动时预加载
 
-**Test:** 保存至少一个地点记录，刷新页面
-**Expected:** 地图就绪后该地点的行政区边界立即可见（即使未点击该区域）
-**Why human:** 依赖 Phase 13 后续 plan（13-02 至 13-04）生成的实际几何资产文件；当前几何分片尚未落地
+- **Result:** pass
+- **Evidence:** 用户确认存在已点亮记录时，刷新页面后 saved boundary 会自动显示，不需要再次点击地点；见 [14-HUMAN-UAT.md](/Users/huangjingping/i/trip-map/.planning/phases/14-leaflet/14-HUMAN-UAT.md)。
+- **Notes:** 说明真实几何资产与启动预加载链路在当前环境中已闭合。
 
 ### Gaps Summary
 
-无 gap。所有 6 个 must-have truths 均已验证。
+无 gap。所有 6 个 must-have truths 均已验证，且 3 项人工 Nyquist 已在 2026-04-03 完成并全部通过。
 
-用户已视觉确认：Leaflet 瓦片底图（CartoDB Positron）以中国为中心加载，点击触发识别流并显示 toast 反馈。三个人工验证项均属超出自动化范围的运行时行为，不影响 Phase 14 goal 的代码层达成。
+No remaining human Nyquist gaps.
 
 ---
 

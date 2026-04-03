@@ -75,9 +75,9 @@ Plans:
 
 Plans:
 - [x] `13-01-PLAN.md` — 固定 `geometryRef` / manifest 共享契约与 Phase 13 fixture 基线 (completed 2026-03-31)
-- [ ] `13-02-PLAN.md` — 固定 source catalog、vendored snapshot 与 WGS84 归一化/build pipeline
-- [ ] `13-03-PLAN.md` — 生成版本化 manifest/shard 资产并补齐 manifest service 与坐标验证
-- [ ] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
+- [x] `13-02-PLAN.md` — 固定 source catalog、vendored snapshot 与 WGS84 归一化/build pipeline
+- [x] `13-03-PLAN.md` — 生成版本化 manifest/shard 资产并补齐 manifest service 与坐标验证
+- [x] `13-04-PLAN.md` — 将 `geometryRef` 接入 `server` resolve，并提供 `web` shard loader / cache
 
 ### Phase 14: Leaflet 地图主链路迁移
 **Goal**: 用户可以在 `Leaflet` 地图里继续完成选中、摘要查看、深度查看和边界高亮，不丢失现有主链路体验
@@ -111,7 +111,7 @@ Plans:
 Plans:
 - [x] `15-01-PLAN.md` — 定义 TravelRecord contracts 与 Prisma 模型，实现 server CRUD API 与 e2e 测试
 - [x] `15-02-PLAN.md` — 重写前端 store 为 server API 驱动，移除 Drawer/localStorage/seed，实现乐观更新
-- [ ] `15-03-PLAN.md` — 在 Popup 标题行添加"点亮/已点亮"按钮，接线至 store 并视觉验收
+- [x] `15-03-PLAN.md` — 在 Popup 标题行添加"点亮/已点亮"按钮，接线至 store 并视觉验收
 
 ## Progress
 
@@ -125,8 +125,8 @@ Plans:
 | 14. Leaflet 地图主链路迁移 | 3/3 | Complete| ✓ |
 | 15. 服务端记录与点亮闭环 | 3/3 | Complete   | 2026-04-01 |
 | 16. UAT gap 修复 | 4/4 | Complete   | 2026-04-02 |
-| 17. 正式验证闭环与人 UAT 复验 | 0/N | Planned   | — |
-| 18. Tech Debt 清理 | 0/N | Planned   | — |
+| 17. 正式验证闭环与人 UAT 复验 | 5/5 | Complete    | 2026-04-03 |
+| 18. Tech Debt 清理 | 0/1 | Planned   | — |
 
 ### Phase 16: UAT gap 修复：边界叠加层、点亮按钮 fallback、smoke record schema、typeLabel 持久化、California 识别
 
@@ -144,6 +144,7 @@ Plans:
 ### Phase 17: 正式验证闭环与人 UAT 复验
 **Goal**: 为 Phase 15 和 Phase 16 补做正式 `*-VERIFICATION.md` 闭环文档，并通过人工 UAT 验收确认 Phase 16 点亮链路、Phase 14 Leaflet 地图交互在真实浏览器环境中的端到端体验
 **Depends on**: Phase 16
+**Plans:** 5/5 plans complete
 **Gap Closure:** 关闭 `v3.0-MILESTONE-AUDIT.md` 中 API-01、API-02 的 partial 状态；完成 3 项 Phase 16 人工 checkpoint（fallback 点亮 UX / overlay 可见性 / California 标签一致性）；完成 3 项 Phase 14 人工 Nyquist 验收（popup 锚点拖动跟随 / Bing 瓦片加载 / 边界启动预加载）
 
 ### Phase 18: Tech Debt 清理
