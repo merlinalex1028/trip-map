@@ -42,6 +42,7 @@
 - Phase 12 已完成：canonical 地点语义、server authoritative resolve、web canonical persistence、popup/drawer 真实行政称谓，以及 canonical boundary highlight/reopen gap closure 全部验证通过。
 - 当前代码库已具备城市优先选择、真实边界点亮、desktop anchored popup + deep drawer 主链路，以及可移植的 TypeScript 服务端持久化基线。
 - 当前自动化回归已扩展到 monorepo 级 `pnpm build`、`pnpm test`、`pnpm typecheck` 全通过。
+- Phase 18 完成：health 端点改为真实 Prisma 探针、Phase 14/15 验证正式批准、GeoJSON bundle 从 23MB 降至 1.75MB（92% 减少）。
 
 ## Current Milestone: v3.0 全栈化与行政区地图重构
 
@@ -130,4 +131,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current shipped state
 
 ---
-*Last updated: 2026-03-30 after Phase 12 completion*
+*Last updated: 2026-04-03 after Phase 18 completion*
