@@ -1,9 +1,22 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import {
   CITY_FALLBACK_NOTICE,
   isLowConfidenceBoundaryHit,
   lookupCountryRegionByCoordinates
 } from './geo-lookup'
 import { normalizedPointToGeoCoordinates } from './map-projection'
+
+const geoJsonPayload = readFileSync(
+  resolve(__dirname, '../../public/geo/country-regions.geo.json'),
+  'utf-8'
+)
+
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+  ok: true,
+  json: async () => JSON.parse(geoJsonPayload)
+}))
 
 const RENDER_FRAME = {
   left: 160,
@@ -31,8 +44,8 @@ function renderedGeoPointOffsetByPixels(lat: number, lng: number, offsetX: numbe
 }
 
 describe('geo lookup service', () => {
-  it('detects Lisbon as Portugal', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('detects Lisbon as Portugal', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 38.7223,
       lng: -9.1393
     })
@@ -41,8 +54,8 @@ describe('geo lookup service', () => {
     expect(result?.countryName).toBe('Portugal')
   })
 
-  it('returns ranked city candidates for a realistic Paris click', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('returns ranked city candidates for a realistic Paris click', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 48.8566,
       lng: 2.3522
     })
@@ -59,8 +72,8 @@ describe('geo lookup service', () => {
     expect(result?.cityCandidates.length).toBeGreaterThanOrEqual(2)
   })
 
-  it('returns ranked city candidates for a realistic New York click', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('returns ranked city candidates for a realistic New York click', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 40.7128,
       lng: -74.006
     })
@@ -76,8 +89,8 @@ describe('geo lookup service', () => {
     )
   })
 
-  it('returns ranked city candidates for a realistic Budapest click', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('returns ranked city candidates for a realistic Budapest click', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 47.4979,
       lng: 19.0402
     })
@@ -92,8 +105,8 @@ describe('geo lookup service', () => {
     )
   })
 
-  it('returns ranked city candidates for a realistic Nairobi click', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('returns ranked city candidates for a realistic Nairobi click', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: -1.2921,
       lng: 36.8219
     })
@@ -108,8 +121,8 @@ describe('geo lookup service', () => {
     )
   })
 
-  it('enriches Kyoto with high-confidence city metadata', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('enriches Kyoto with high-confidence city metadata', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 35.0116,
       lng: 135.7681
     })
@@ -135,19 +148,19 @@ describe('geo lookup service', () => {
     ])
   })
 
-  it('detects Cairo as Egypt without low-confidence rejection', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('detects Cairo as Egypt without low-confidence rejection', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 30.0444,
       lng: 31.2357
     })
 
     expect(result?.countryCode).toBe('EG')
     expect(result?.countryName).toBe('Egypt')
-    expect(isLowConfidenceBoundaryHit({ lat: 30.0444, lng: 31.2357 }, result ?? null)).toBe(false)
+    expect(await isLowConfidenceBoundaryHit({ lat: 30.0444, lng: 31.2357 }, result ?? null)).toBe(false)
   })
 
-  it('detects Hong Kong as a region-first display', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('detects Hong Kong as a region-first display', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 22.3193,
       lng: 114.1694
     })
@@ -157,27 +170,27 @@ describe('geo lookup service', () => {
     expect(result?.kind).toBe('region')
   })
 
-  it('keeps an obvious Japan click aligned with Japan instead of inland Asia', () => {
+  it('keeps an obvious Japan click aligned with Japan instead of inland Asia', async () => {
     const normalizedPoint = renderedGeoPointToNormalizedPoint(35.6762, 139.6503)
     const geo = normalizedPointToGeoCoordinates(normalizedPoint)
-    const result = lookupCountryRegionByCoordinates(geo)
+    const result = await lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('JP')
     expect(result?.displayName).toBe('Tokyo')
   })
 
-  it('keeps a realistic near-city click within high-confidence enrichment range', () => {
+  it('keeps a realistic near-city click within high-confidence enrichment range', async () => {
     const normalizedPoint = renderedGeoPointOffsetByPixels(35.0116, 135.7681, 3, -2)
     const geo = normalizedPointToGeoCoordinates(normalizedPoint)
-    const result = lookupCountryRegionByCoordinates(geo)
+    const result = await lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('JP')
     expect(result?.precision).toBe('city-high')
     expect(result?.cityName).toBe('Kyoto')
   })
 
-  it('includes disambiguation context on ranked nearby city candidates', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('includes disambiguation context on ranked nearby city candidates', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 34.9,
       lng: 135.65
     })
@@ -197,17 +210,17 @@ describe('geo lookup service', () => {
     expect(result?.cityCandidates.every((candidate) => candidate.contextLabel !== candidate.cityName)).toBe(true)
   })
 
-  it('keeps an obvious Hong Kong click aligned with Hong Kong instead of Myanmar', () => {
+  it('keeps an obvious Hong Kong click aligned with Hong Kong instead of Myanmar', async () => {
     const normalizedPoint = renderedGeoPointToNormalizedPoint(22.3193, 114.1694)
     const geo = normalizedPointToGeoCoordinates(normalizedPoint)
-    const result = lookupCountryRegionByCoordinates(geo)
+    const result = await lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('HK')
     expect(result?.displayName).toBe('Hong Kong')
   })
 
-  it('detects Greenland with the expected display name', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('detects Greenland with the expected display name', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 72,
       lng: -42
     })
@@ -216,8 +229,8 @@ describe('geo lookup service', () => {
     expect(result?.displayName).toBe('Greenland')
   })
 
-  it('returns null for an Atlantic Ocean sample', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('returns null for an Atlantic Ocean sample', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 25,
       lng: -30
     })
@@ -225,8 +238,8 @@ describe('geo lookup service', () => {
     expect(result).toBeNull()
   })
 
-  it('falls back to the country/region copy when no reliable city candidate exists', () => {
-    const result = lookupCountryRegionByCoordinates({
+  it('falls back to the country/region copy when no reliable city candidate exists', async () => {
+    const result = await lookupCountryRegionByCoordinates({
       lat: 72,
       lng: -42
     })
@@ -236,10 +249,10 @@ describe('geo lookup service', () => {
     expect(result?.fallbackNotice).toBe(CITY_FALLBACK_NOTICE)
   })
 
-  it('keeps a near-but-not-on city click in the country fallback path', () => {
+  it('keeps a near-but-not-on city click in the country fallback path', async () => {
     const normalizedPoint = renderedGeoPointOffsetByPixels(35.0116, 135.7681, -12, 0)
     const geo = normalizedPointToGeoCoordinates(normalizedPoint)
-    const result = lookupCountryRegionByCoordinates(geo)
+    const result = await lookupCountryRegionByCoordinates(geo)
 
     expect(result?.countryCode).toBe('JP')
     expect(result?.cityId).toBeNull()

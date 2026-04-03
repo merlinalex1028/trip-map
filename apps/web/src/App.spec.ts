@@ -60,6 +60,13 @@ function installFetchMock() {
       })
     }
 
+    if (url.endsWith('/geo/country-regions.geo.json')) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ type: 'FeatureCollection', features: [] })
+      })
+    }
+
     return Promise.reject(new Error(`Unexpected fetch request: ${url}`))
   })
 

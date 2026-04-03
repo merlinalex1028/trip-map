@@ -1,7 +1,6 @@
 import { geoContains } from 'd3-geo'
 
 import { cityCandidatesByContext, cityCandidatesByCountry, type CityCandidate } from '../data/geo/city-candidates'
-import countryRegions from '../data/geo/country-regions.geo.json'
 import { WORLD_PROJECTION_CONFIG } from './map-projection'
 import type {
   GeoCityCandidate,
@@ -31,10 +30,33 @@ interface CountryRegionFeatureCollection {
   features: CountryRegionFeature[]
 }
 
-const countryRegionFeatures = (countryRegions as CountryRegionFeatureCollection).features
-const countryRegionFeatureMap = new Map(
-  countryRegionFeatures.map((feature) => [feature.properties.countryCode, feature] as const)
-)
+let countryRegionFeatures: CountryRegionFeature[] = []
+let countryRegionFeatureMap = new Map<string, CountryRegionFeature>()
+let loadPromise: Promise<void> | null = null
+
+async function loadCountryRegions(): Promise<void> {
+  if (countryRegionFeatures.length > 0) return
+  if (loadPromise) return loadPromise
+
+  loadPromise = (async () => {
+    const response = await fetch('/geo/country-regions.geo.json')
+    if (!response.ok) {
+      throw new Error(`Failed to load country regions (status ${response.status})`)
+    }
+    const data = (await response.json()) as CountryRegionFeatureCollection
+    countryRegionFeatures = data.features
+    countryRegionFeatureMap = new Map(
+      countryRegionFeatures.map((feature) => [feature.properties.countryCode, feature] as const)
+    )
+  })()
+
+  return loadPromise
+}
+
+export function prefetchCountryRegions(): void {
+  void loadCountryRegions()
+}
+
 export const CITY_FALLBACK_NOTICE = '未能可靠确认城市，已提供国家/地区继续记录'
 const KM_PER_DEGREE = 111
 const MIN_CITY_HIGH_HIT_PIXELS = 6
@@ -230,7 +252,13 @@ function enrichWithCityContext(
   }
 }
 
-export function lookupCountryRegionByCoordinates(geo: GeoCoordinates): GeoDetectionResult | null {
+export async function lookupCountryRegionByCoordinates(
+  geo: GeoCoordinates
+): Promise<GeoDetectionResult | null> {
+  await loadCountryRegions()
+
+  if (countryRegionFeatures.length === 0) return null
+
   const feature = countryRegionFeatures.find((candidate) => {
     return (
       isWithinBBox(candidate.properties.bbox, geo) &&
@@ -245,13 +273,15 @@ export function lookupCountryRegionByCoordinates(geo: GeoCoordinates): GeoDetect
   return enrichWithCityContext(toDetectionResult(feature, geo), geo)
 }
 
-export function isLowConfidenceBoundaryHit(
+export async function isLowConfidenceBoundaryHit(
   geo: GeoCoordinates,
   result: GeoDetectionResult | null
-): boolean {
+): Promise<boolean> {
   if (!result) {
     return false
   }
+
+  await loadCountryRegions()
 
   const feature = countryRegionFeatureMap.get(result.countryCode)
 
@@ -276,7 +306,7 @@ export function isLowConfidenceBoundaryHit(
   let nullHits = 0
 
   for (const sample of samples) {
-    const sampleResult = lookupCountryRegionByCoordinates(sample)
+    const sampleResult = await lookupCountryRegionByCoordinates(sample)
 
     if (!sampleResult) {
       nullHits += 1

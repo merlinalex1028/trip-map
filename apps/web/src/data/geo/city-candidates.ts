@@ -1,5 +1,3 @@
-import countryRegions from './country-regions.geo.json'
-
 export interface CityCandidate {
   id: string
   name: string
@@ -11,22 +9,6 @@ export interface CityCandidate {
   possibleRadiusKm: number
   aliases: string[]
   contextKeys: string[]
-}
-
-interface GeoFeatureProperties {
-  bbox: number[]
-  countryCode: string
-  countryName: string
-}
-
-interface CountryRegionFeature {
-  type: 'Feature'
-  properties: GeoFeatureProperties
-}
-
-interface CountryRegionFeatureCollection {
-  type: 'FeatureCollection'
-  features: CountryRegionFeature[]
 }
 
 interface CitySeed {
@@ -43,22 +25,248 @@ interface CitySeed {
   contextKeys?: string[]
 }
 
-const countryRegionFeatures = (countryRegions as CountryRegionFeatureCollection).features
-
-const countryMetaByCode = countryRegionFeatures.reduce<
-  Record<string, { countryName: string; bbox: [number, number, number, number] }>
->((accumulator, feature) => {
-  const { countryCode, countryName, bbox } = feature.properties
-
-  if (!accumulator[countryCode]) {
-    accumulator[countryCode] = {
-      countryName,
-      bbox: [bbox[0] ?? 0, bbox[1] ?? 0, bbox[2] ?? 0, bbox[3] ?? 0]
-    }
-  }
-
-  return accumulator
-}, {})
+// Extracted from country-regions.geo.json to avoid 20MB static import.
+// To regenerate: run the geo pipeline and update this table.
+const countryMetaByCode: Record<string, { countryName: string; bbox: [number, number, number, number] }> = {
+  "AD": { countryName: "Andorra", bbox: [1.405814, 42.429438, 1.765818, 42.648953] },
+  "AE": { countryName: "United Arab Emirates", bbox: [51.568716, 22.620738, 56.381964, 26.075567] },
+  "AF": { countryName: "Afghanistan", bbox: [60.486005, 29.386867, 74.893349, 38.473102] },
+  "AG": { countryName: "Antigua and Barbuda", bbox: [-61.893619, 16.989333, -61.666817, 17.727241] },
+  "AI": { countryName: "Anguilla", bbox: [-63.427234, 18.169648, -62.97363, 18.601924] },
+  "AL": { countryName: "Albania", bbox: [19.272793, 39.636531, 21.03681, 42.654019] },
+  "AM": { countryName: "Armenia", bbox: [43.436234, 38.863163, 46.604266, 41.289648] },
+  "AO": { countryName: "Angola", bbox: [11.669517, -18.03176, 24.060841, -4.391432] },
+  "AQ": { countryName: "Antarctica", bbox: [-180, -85.221938, 179.787598, -60.516364] },
+  "AR": { countryName: "Argentina", bbox: [-73.586536, -55.052128, -53.660337, -21.787155] },
+  "AS": { countryName: "American Samoa", bbox: [-171.086311, -14.533028, -168.159482, -11.051181] },
+  "AT": { countryName: "Austria", bbox: [9.520295, 46.37902, 17.148771, 49.009824] },
+  "AU": { countryName: "Australia", bbox: [112.920529, -54.749872, 159.105391, -9.239338] },
+  "AW": { countryName: "Aruba", bbox: [-70.062101, 12.418354, -69.878499, 12.632804] },
+  "AX": { countryName: "Åland Islands", bbox: [19.513995, 59.904524, 21.098011, 60.480329] },
+  "AZ": { countryName: "Azerbaijan", bbox: [44.775448, 38.39205, 50.625506, 41.890782] },
+  "BA": { countryName: "Bosnia and Herzegovina", bbox: [15.715957, 42.559459, 19.618396, 45.284822] },
+  "BB": { countryName: "Barbados", bbox: [-59.654397, 13.051571, -59.427594, 13.345383] },
+  "BD": { countryName: "Bangladesh", bbox: [88.02268, 20.737975, 92.641526, 26.624355] },
+  "BE": { countryName: "Belgium", bbox: [2.521825, 49.494445, 6.373864, 51.495409] },
+  "BF": { countryName: "Burkina Faso", bbox: [-5.524255, 9.392424, 2.388624, 15.079552] },
+  "BG": { countryName: "Bulgaria", bbox: [22.343623, 41.237303, 28.604086, 44.227773] },
+  "BH": { countryName: "Bahrain", bbox: [50.449104, 25.790198, 50.647106, 26.242736] },
+  "BI": { countryName: "Burundi", bbox: [28.98569, -4.464041, 30.832508, -2.302662] },
+  "BJ": { countryName: "Benin", bbox: [0.761408, 6.214521, 3.835838, 12.39978] },
+  "BL": { countryName: "Saint Barthélemy", bbox: [-62.865629, 17.88259, -62.790028, 17.929871] },
+  "BM": { countryName: "Bermuda", bbox: [-64.885249, 32.247317, -64.647646, 32.389158] },
+  "BN": { countryName: "Brunei Darussalam", bbox: [114.00054, 4.015994, 115.361354, 5.057846] },
+  "BO": { countryName: "Bolivia", bbox: [-69.666097, -22.896551, -57.465575, -9.680056] },
+  "BR": { countryName: "Brazil", bbox: [-74.01854, -33.742283, -28.877689, 5.26723] },
+  "BS": { countryName: "Bahamas", bbox: [-79.594996, 20.911898, -72.747727, 26.928299] },
+  "BT": { countryName: "Bhutan", bbox: [88.728287, 26.696964, 92.087121, 28.358524] },
+  "BW": { countryName: "Botswana", bbox: [19.9784, -26.891725, 29.349293, -17.78185] },
+  "BY": { countryName: "Belarus", bbox: [23.164432, 51.235369, 32.718927, 56.157571] },
+  "BZ": { countryName: "Belize", bbox: [-89.235892, 15.879938, -87.781478, 18.490478] },
+  "CA": { countryName: "Canada", bbox: [-141.00441, 41.669578, -52.616326, 83.115707] },
+  "CD": { countryName: "Democratic Republic of the Congo", bbox: [12.209522, -13.459092, 31.278913, 5.375299] },
+  "CF": { countryName: "Central African Republic", bbox: [14.387544, 2.236233, 27.441274, 11.001638] },
+  "CG": { countryName: "Republic of the Congo", bbox: [11.115111, -5.019583, 18.642786, 3.708673] },
+  "CH": { countryName: "Switzerland", bbox: [5.95626, 45.820101, 10.467105, 47.800802] },
+  "CI": { countryName: "Cote d'Ivoire", bbox: [-8.620286, 4.343578, -2.507425, 10.7264] },
+  "CK": { countryName: "Cook Islands", bbox: [-165.823058, -21.939127, -157.312573, -8.947214] },
+  "CL": { countryName: "Chile", bbox: [-109.453695, -55.918368, -66.422464, -17.506612] },
+  "CM": { countryName: "Cameroon", bbox: [8.505085, 1.655363, 16.209162, 13.081965] },
+  "CN": { countryName: "People's Republic of China", bbox: [73.600936, 15.775246, 134.772748, 53.568982] },
+  "CO": { countryName: "Colombia", bbox: [-81.722617, -4.236083, -66.876069, 13.578407] },
+  "CR": { countryName: "Costa Rica", bbox: [-87.119071, 5.51545, -82.561426, 11.209333] },
+  "CU": { countryName: "Cuba", bbox: [-84.948249, 19.827831, -74.133741, 23.265775] },
+  "CV": { countryName: "Cape Verde", bbox: [-25.360454, 14.804314, -22.667627, 17.197028] },
+  "CW": { countryName: "Curaçao", bbox: [-69.172892, 12.041802, -68.740887, 12.391337] },
+  "CY": { countryName: "Cyprus", bbox: [32.272523, 34.624834, 34.097741, 35.18713] },
+  "CZ": { countryName: "Czech Republic", bbox: [12.076321, 48.557285, 18.837188, 51.039494] },
+  "DE": { countryName: "Germany", bbox: [5.851859, 47.270589, 15.02115, 55.065062] },
+  "DJ": { countryName: "Djibouti", bbox: [41.747817, 10.929029, 43.418234, 12.707101] },
+  "DK": { countryName: "Denmark", bbox: [8.094681, 54.56862, 15.150752, 57.751588] },
+  "DM": { countryName: "Dominica", bbox: [-61.490415, 15.20113, -61.249212, 15.633405] },
+  "DO": { countryName: "Dominican Republic", bbox: [-72.00972, 17.544875, -68.326883, 19.937589] },
+  "DZ": { countryName: "Algeria", bbox: [-8.681487, 18.9751, 11.96832, 37.093534] },
+  "EC": { countryName: "Ecuador", bbox: [-92.01152, -5.01114, -75.228152, 1.663806] },
+  "EE": { countryName: "Estonia", bbox: [21.832418, 57.515187, 28.186482, 59.671501] },
+  "EG": { countryName: "Egypt", bbox: [24.687247, 21.994276, 36.898569, 31.656315] },
+  "EH": { countryName: "Western Sahara", bbox: [-17.105571, 20.76668, -8.681487, 27.661141] },
+  "ER": { countryName: "Eritrea", bbox: [36.423364, 12.359254, 43.123031, 18.004168] },
+  "ES": { countryName: "Spain", bbox: [-18.167582, 27.642567, 4.336243, 43.793809] },
+  "ET": { countryName: "Ethiopia", bbox: [32.98893, 3.40304, 47.97948, 14.8803] },
+  "FI": { countryName: "Finland", bbox: [20.622806, 59.811653, 31.570516, 70.074825] },
+  "FJ": { countryName: "Fiji", bbox: [-180, -21.711169, 180, -12.474652] },
+  "FK": { countryName: "Falkland Islands (Malvinas)", bbox: [-61.317613, -52.406127, -57.735577, -51.028248] },
+  "FM": { countryName: "Micronesia, Federated States of", bbox: [138.063181, 0.917455, 163.04743, 9.775731] },
+  "FO": { countryName: "Faroe Islands", bbox: [-7.644676, 61.393849, -6.276663, 62.398553] },
+  "FR": { countryName: "France", bbox: [-61.796418, -21.370077, 55.852759, 51.086774] },
+  "GA": { countryName: "Gabon", bbox: [8.695887, -3.937205, 14.499145, 2.322351] },
+  "GB": { countryName: "United Kingdom", bbox: [-13.692737, 49.909835, 1.769418, 60.848439] },
+  "GD": { countryName: "Grenada", bbox: [-61.789218, 12.002964, -61.422014, 12.5298] },
+  "GE": { countryName: "Georgia", bbox: [39.9874, 41.044805, 46.694267, 43.575982] },
+  "GG": { countryName: "Guernsey", bbox: [-2.673027, 49.411705, -2.169022, 49.730846] },
+  "GH": { countryName: "Ghana", bbox: [-3.263433, 4.737016, 1.186212, 11.163741] },
+  "GI": { countryName: "Gibraltar", bbox: [-5.358654, 36.110782, -5.337053, 36.141176] },
+  "GL": { countryName: "Denmark", bbox: [-73.057331, 59.793078, -11.377914, 83.634101] },
+  "GM": { countryName: "Republic of The Gambia", bbox: [-16.828368, 13.065079, -13.818738, 13.819873] },
+  "GN": { countryName: "Guinea", bbox: [-15.082351, 7.190519, -7.662677, 12.673329] },
+  "GQ": { countryName: "Equatorial Guinea", bbox: [5.610656, -1.475259, 11.334713, 3.772839] },
+  "GR": { countryName: "Greece", bbox: [19.625596, 34.815643, 28.240482, 41.75063] },
+  "GS": { countryName: "South Georgia and the South Sandwich Islands", bbox: [-38.086581, -59.472823, -26.238862, -53.973127] },
+  "GT": { countryName: "Guatemala", bbox: [-92.245522, 13.732067, -88.220682, 17.816736] },
+  "GU": { countryName: "Guam", bbox: [144.622446, 13.240691, 144.95365, 13.654393] },
+  "GW": { countryName: "Guinea-Bissau", bbox: [-16.727567, 10.927341, -13.660337, 12.680084] },
+  "GY": { countryName: "Guyana", bbox: [-61.396814, 1.185938, -56.482765, 8.558267] },
+  "HK": { countryName: "China", bbox: [113.838538, 22.176642, 114.400144, 22.563327] },
+  "HM": { countryName: "Heard Island and McDonald Islands", bbox: [73.237332, -53.193004, 73.813338, -52.961669] },
+  "HN": { countryName: "Honduras", bbox: [-89.365494, 12.978962, -83.130231, 17.418232] },
+  "HR": { countryName: "Croatia", bbox: [13.501935, 42.415929, 19.409594, 46.546189] },
+  "HT": { countryName: "Haiti", bbox: [-74.490145, 18.026119, -71.638916, 20.089561] },
+  "HU": { countryName: "Hungary", bbox: [16.093961, 45.740738, 22.876429, 48.569105] },
+  "ID": { countryName: "Indonesia", bbox: [95.01395, -10.922849, 140.97921, 5.910577] },
+  "IE": { countryName: "Ireland", bbox: [-10.477905, 51.446441, -5.99226, 55.385892] },
+  "IL": { countryName: "Israel", bbox: [34.248942, 29.48987, 35.886959, 33.40737] },
+  "IM": { countryName: "Isle of Man", bbox: [-4.789848, 54.056981, -4.311043, 54.418337] },
+  "IN": { countryName: "India", bbox: [68.143281, 6.744735, 97.361174, 35.49614] },
+  "IO": { countryName: "British Indian Ocean Territory", bbox: [71.260913, -7.43256, 72.495725, -5.227278] },
+  "IQ": { countryName: "Iraq", bbox: [38.774188, 29.06266, 48.559086, 37.375526] },
+  "IR": { countryName: "Islamic Republic of Iran", bbox: [44.01584, 25.059044, 63.319233, 39.771617] },
+  "IS": { countryName: "Iceland", bbox: [-24.539645, 63.396502, -13.501935, 66.564273] },
+  "IT": { countryName: "Italy", bbox: [6.604266, 35.489386, 18.516785, 47.084846] },
+  "JE": { countryName: "Jersey", bbox: [-2.241022, 49.171927, -2.00702, 49.266487] },
+  "JM": { countryName: "Jamaica", bbox: [-78.374584, 17.703601, -76.189362, 18.52425] },
+  "JO": { countryName: "Jordan", bbox: [34.95095, 29.189304, 39.292593, 33.37191] },
+  "JP": { countryName: "Japan", bbox: [122.939429, 24.211378, 153.98614, 45.521223] },
+  "KE": { countryName: "Kenya", bbox: [33.888939, -4.676802, 41.884619, 5.030829] },
+  "KG": { countryName: "Kyrgyzstan", bbox: [69.226892, 39.189058, 80.257403, 43.261907] },
+  "KH": { countryName: "Cambodia", bbox: [102.314823, 10.415702, 107.610476, 14.704688] },
+  "KI": { countryName: "Kiribati", bbox: [-174.542345, -11.461505, 176.849968, 4.723508] },
+  "KM": { countryName: "Comoros", bbox: [43.213032, -12.380091, 44.530645, -11.361879] },
+  "KN": { countryName: "Saint Kitts and Nevis", bbox: [-62.862029, 17.100779, -62.538025, 17.416543] },
+  "KP": { countryName: "North Korea", bbox: [124.210242, 37.676093, 130.701107, 43.010309] },
+  "KR": { countryName: "South Korea", bbox: [124.613446, 33.197986, 131.863919, 38.625074] },
+  "KW": { countryName: "Kuwait", bbox: [46.532265, 28.534136, 48.433084, 30.097758] },
+  "KY": { countryName: "Cayman Islands", bbox: [-81.416614, 19.263847, -79.728197, 19.756911] },
+  "KZ": { countryName: "Kazakhstan", bbox: [46.478265, 40.583823, 87.324273, 55.43486] },
+  "LA": { countryName: "Lao People's Democratic Republic", bbox: [100.097201, 13.916122, 107.664477, 22.495783] },
+  "LB": { countryName: "Lebanon", bbox: [35.098551, 33.056146, 36.603366, 34.687311] },
+  "LC": { countryName: "Saint Lucia", bbox: [-61.080011, 13.715182, -60.882009, 14.111997] },
+  "LI": { countryName: "Liechtenstein", bbox: [9.477095, 47.052763, 9.617496, 47.262146] },
+  "LK": { countryName: "Sri Lanka", bbox: [79.656197, 5.924086, 81.891819, 9.829765] },
+  "LR": { countryName: "Liberia", bbox: [-11.475115, 4.346955, -7.385474, 8.565021] },
+  "LS": { countryName: "Lesotho", bbox: [27.00207, -30.65894, 29.435694, -28.57017] },
+  "LT": { countryName: "Lithuania", bbox: [20.925209, 53.886435, 26.800468, 56.442941] },
+  "LU": { countryName: "Luxembourg", bbox: [5.715057, 49.4421, 6.503465, 50.174942] },
+  "LV": { countryName: "Latvia", bbox: [20.96841, 55.666195, 28.218882, 58.075795] },
+  "LY": { countryName: "Libya", bbox: [9.286293, 19.49687, 25.155252, 33.1811] },
+  "MA": { countryName: "Morocco", bbox: [-17.01197, 21.42016, -1.03141, 35.926727] },
+  "MC": { countryName: "Monaco", bbox: [7.367474, 43.717823, 7.435874, 43.763414] },
+  "MD": { countryName: "Moldova, Republic of", bbox: [26.616866, 45.462123, 30.130501, 48.486365] },
+  "ME": { countryName: "Montenegro", bbox: [18.433984, 41.851945, 20.356404, 43.547276] },
+  "MF": { countryName: "Saint Martin (French part)", bbox: [-63.146431, 18.032874, -63.00963, 18.122368] },
+  "MG": { countryName: "Madagascar", bbox: [43.223832, -25.598274, 50.503105, -11.944439] },
+  "MH": { countryName: "Marshall Islands", bbox: [165.283053, 4.573224, 172.02952, 14.610128] },
+  "MK": { countryName: "The Republic of North Macedonia", bbox: [20.442804, 40.84893, 23.00963, 42.370338] },
+  "ML": { countryName: "Mali", bbox: [-12.263523, 10.140464, 4.235442, 24.994878] },
+  "MM": { countryName: "Myanmar", bbox: [92.173522, 9.790928, 101.173612, 28.539201] },
+  "MN": { countryName: "Mongolia", bbox: [87.734677, 41.586838, 119.908199, 52.130315] },
+  "MO": { countryName: "China", bbox: [113.518135, 22.105722, 113.586536, 22.220545] },
+  "MP": { countryName: "Northern Mariana Islands", bbox: [144.903249, 14.110309, 145.868059, 20.555608] },
+  "MR": { countryName: "Mauritania", bbox: [-17.080371, 14.735082, -4.822248, 27.284589] },
+  "MS": { countryName: "Montserrat", bbox: [-62.228422, 16.675258, -62.142021, 16.818787] },
+  "MT": { countryName: "Malta", bbox: [14.182342, 35.801772, 14.567546, 36.075322] },
+  "MU": { countryName: "Mauritius", bbox: [56.525965, -20.517345, 63.495635, -10.323404] },
+  "MV": { countryName: "Maldives", bbox: [72.686527, -0.688382, 73.752138, 7.107779] },
+  "MW": { countryName: "Malawi", bbox: [32.664927, -17.135125, 35.904959, -9.381178] },
+  "MX": { countryName: "Mexico", bbox: [-118.367384, 14.545962, -86.701467, 32.713365] },
+  "MY": { countryName: "Malaysia", bbox: [99.643596, 0.8516, 119.278193, 7.356] },
+  "MZ": { countryName: "Mozambique", bbox: [30.213302, -26.859642, 40.847808, -10.468622] },
+  "NA": { countryName: "Namibia", bbox: [11.716317, -28.958543, 25.259653, -16.95107] },
+  "NC": { countryName: "New Caledonia", bbox: [163.616236, -22.670281, 171.345513, -19.624088] },
+  "NE": { countryName: "Niger", bbox: [0.153002, 11.695643, 15.97156, 23.517373] },
+  "NF": { countryName: "Norfolk Island", bbox: [167.911079, -29.080121, 167.99748, -28.99738] },
+  "NG": { countryName: "Nigeria", bbox: [2.669427, 4.272658, 14.668347, 13.880662] },
+  "NI": { countryName: "Nicaragua", bbox: [-87.684277, 10.712891, -82.727027, 15.030583] },
+  "NL": { countryName: "Netherlands", bbox: [-68.416884, 12.021539, 7.198272, 53.558851] },
+  "NO": { countryName: "Norway", bbox: [-9.117091, -54.462814, 33.640536, 80.770274] },
+  "NP": { countryName: "Nepal", bbox: [80.0306, 26.344051, 88.170282, 30.416899] },
+  "NR": { countryName: "Nauru", bbox: [166.906669, -0.551608, 166.95707, -0.490819] },
+  "NU": { countryName: "Niue", bbox: [-169.948699, -19.142843, -169.783098, -18.963854] },
+  "NZ": { countryName: "New Zealand", bbox: [-177.95878, -52.600313, 178.844388, -8.543644] },
+  "OM": { countryName: "Oman", bbox: [51.97912, 16.643175, 59.845198, 26.386265] },
+  "PA": { countryName: "Panama", bbox: [-83.054631, 7.205716, -77.164972, 9.628825] },
+  "PE": { countryName: "Peru", bbox: [-81.337413, -18.337392, -68.683287, -0.029837] },
+  "PF": { countryName: "French Polynesia", bbox: [-154.536945, -27.641453, -134.941949, -7.950953] },
+  "PG": { countryName: "Papua New Guinea", bbox: [140.849608, -11.637117, 155.96616, -1.346928] },
+  "PH": { countryName: "Philippines", bbox: [116.95617, 4.655965, 126.618666, 21.12297] },
+  "PK": { countryName: "Pakistan", bbox: [60.846008, 23.694673, 77.04977, 37.054697] },
+  "PL": { countryName: "Poland", bbox: [14.124741, 48.994627, 24.143641, 54.838792] },
+  "PM": { countryName: "Saint Pierre and Miquelon", bbox: [-56.396364, 46.752196, -56.144361, 47.140569] },
+  "PN": { countryName: "Pitcairn", bbox: [-130.751508, -25.076504, -124.779048, -23.924894] },
+  "PR": { countryName: "Puerto Rico", bbox: [-67.938079, 17.923116, -65.245252, 18.522561] },
+  "PS": { countryName: "State of Palestine", bbox: [34.198542, 31.212219, 35.573756, 32.542818] },
+  "PT": { countryName: "Portugal", bbox: [-31.286113, 30.028527, -6.204662, 42.1542] },
+  "PW": { countryName: "Palau", bbox: [131.129511, 2.948813, 134.725947, 8.097285] },
+  "PY": { countryName: "Paraguay", bbox: [-62.649626, -27.587418, -54.243542, -19.286373] },
+  "QA": { countryName: "Qatar", bbox: [50.751508, 24.559225, 51.615516, 26.159996] },
+  "RO": { countryName: "Romania", bbox: [20.241202, 43.650279, 29.698497, 48.275293] },
+  "RS": { countryName: "Serbia", bbox: [18.844388, 42.235252, 22.98443, 46.174702] },
+  "RU": { countryName: "Russian Federation", bbox: [-180, 41.1934, 180, 81.859406] },
+  "RW": { countryName: "Rwanda", bbox: [28.856089, -2.826121, 30.886509, -1.058181] },
+  "SA": { countryName: "Saudi Arabia", bbox: [34.572946, 16.371314, 55.636756, 32.120674] },
+  "SB": { countryName: "Solomon Islands", bbox: [155.508955, -12.290597, 168.825488, -6.600091] },
+  "SC": { countryName: "Seychelles", bbox: [46.208262, -9.756042, 56.288363, -3.790299] },
+  "SD": { countryName: "Sudan", bbox: [21.810818, 8.681533, 38.604986, 22.2273] },
+  "SE": { countryName: "Sweden", bbox: [11.107911, 55.341988, 24.161642, 69.03635] },
+  "SG": { countryName: "Singapore", bbox: [103.639636, 1.263613, 104.00324, 1.449356] },
+  "SH": { countryName: "Saint Helena", bbox: [-14.416344, -40.398654, -5.650257, -7.878344] },
+  "SI": { countryName: "Slovenia", bbox: [13.365134, 45.423286, 16.515165, 46.863642] },
+  "SK": { countryName: "Slovakia", bbox: [16.842768, 47.750145, 22.538025, 49.602514] },
+  "SL": { countryName: "Sierra Leone", bbox: [-13.300333, 6.918658, -10.283503, 9.995246] },
+  "SM": { countryName: "San Marino", bbox: [12.385924, 43.891746, 12.493925, 43.982929] },
+  "SN": { countryName: "Senegal", bbox: [-17.537575, 12.30522, -11.377914, 16.692143] },
+  "SO": { countryName: "Somalia", bbox: [40.96661, -1.696463, 51.417514, 11.989456] },
+  "SR": { countryName: "Suriname", bbox: [-58.066781, 1.832663, -53.98794, 6.011892] },
+  "SS": { countryName: "South Sudan", bbox: [24.122041, 3.490846, 35.919359, 12.215725] },
+  "ST": { countryName: "Sao Tome and Principe", bbox: [6.460265, 0.024197, 7.461075, 1.699266] },
+  "SV": { countryName: "El Salvador", bbox: [-90.114301, 13.157951, -87.691477, 14.444647] },
+  "SX": { countryName: "Sint Maarten (Dutch part)", bbox: [-63.117631, 18.019365, -63.01683, 18.06158] },
+  "SY": { countryName: "Syrian Arab Republic", bbox: [35.724957, 32.313172, 42.377824, 37.324869] },
+  "SZ": { countryName: "Eswatini", bbox: [30.782108, -27.315557, 32.117721, -25.736738] },
+  "TC": { countryName: "Turks and Caicos Islands", bbox: [-72.481325, 21.290139, -71.127711, 21.958816] },
+  "TD": { countryName: "Chad", bbox: [13.447934, 7.455626, 23.98524, 23.444764] },
+  "TF": { countryName: "French Southern Territories", bbox: [39.728197, -49.721289, 77.586176, -11.551] },
+  "TG": { countryName: "Togo", bbox: [-0.167402, 6.099698, 1.783818, 11.135036] },
+  "TH": { countryName: "Thailand", bbox: [97.350374, 5.630274, 105.652057, 20.445851] },
+  "TJ": { countryName: "Tajikistan", bbox: [67.344073, 36.678144, 75.163352, 41.039739] },
+  "TL": { countryName: "Timor-Leste", bbox: [124.03024, -9.501067, 127.313473, -8.135008] },
+  "TM": { countryName: "Turkmenistan", bbox: [52.436324, 35.13985, 66.645666, 42.790794] },
+  "TN": { countryName: "Tunisia", bbox: [7.479075, 30.229467, 11.565116, 37.345132] },
+  "TO": { countryName: "Tonga", bbox: [-176.219962, -22.33932, -173.915939, -15.559682] },
+  "TR": { countryName: "Türkiye", bbox: [25.662857, 35.820347, 44.807848, 42.098477] },
+  "TT": { countryName: "Trinidad and Tobago", bbox: [-61.929619, 10.042526, -60.522005, 11.351173] },
+  "TV": { countryName: "Tuvalu", bbox: [176.126361, -9.420016, 179.906399, -5.678128] },
+  "TW": { countryName: "Taiwan, Province of China", bbox: [118.280983, 21.904781, 122.00702, 25.287002] },
+  "TZ": { countryName: "United Republic of Tanzania", bbox: [29.320493, -11.731678, 40.448204, -0.985572] },
+  "UA": { countryName: "Ukraine", bbox: [22.131221, 45.213902, 40.160202, 52.368404] },
+  "UG": { countryName: "Uganda", bbox: [29.547295, -1.475259, 35.00495, 4.220312] },
+  "UM": { countryName: "United States Minor Outlying Islands", bbox: [-177.389974, -0.389504, 166.651067, 28.214995] },
+  "US": { countryName: "United States of America", bbox: [-179.143191, 18.905868, 179.780398, 71.412178] },
+  "UY": { countryName: "Uruguay", bbox: [-58.437584, -34.973255, -53.109531, -30.096644] },
+  "UZ": { countryName: "Uzbekistan", bbox: [55.97516, 37.184717, 73.147331, 45.558372] },
+  "VA": { countryName: "Holy See (Vatican City State)", bbox: [12.454325, 41.902602, 12.454325, 41.904291] },
+  "VC": { countryName: "Saint Vincent and the Grenadines", bbox: [-61.461615, 12.585523, -61.123211, 13.380843] },
+  "VE": { countryName: "Venezuela", bbox: [-73.392134, 0.648971, -59.816398, 15.702637] },
+  "VG": { countryName: "Virgin Islands, British", bbox: [-64.773648, 18.335129, -64.269643, 18.745453] },
+  "VI": { countryName: "Virgin Islands, U.S.", bbox: [-65.04005, 17.683338, -64.557646, 18.385786] },
+  "VN": { countryName: "Vietnam", bbox: [102.120421, 8.565021, 109.471695, 23.367089] },
+  "VU": { countryName: "Vanuatu", bbox: [166.521465, -20.253927, 169.898299, -13.065654] },
+  "WF": { countryName: "Wallis and Futuna", bbox: [-178.185582, -14.320267, -176.126361, -13.209183] },
+  "WS": { countryName: "Samoa", bbox: [-172.781928, -14.053472, -171.439114, -13.46247] },
+  "YE": { countryName: "Yemen", bbox: [42.547025, 12.111033, 54.538745, 18.995363] },
+  "ZA": { countryName: "South Africa", bbox: [16.468365, -46.965531, 37.97858, -22.126559] },
+  "ZM": { countryName: "Zambia", bbox: [21.98002, -18.068908, 33.672937, -8.194108] },
+  "ZW": { countryName: "Zimbabwe", bbox: [25.220052, -22.396732, 33.04293, -15.615406] }
+}
 
 const countryLabelOverrides: Record<string, string> = {
   CN: 'China',
@@ -499,6 +707,7 @@ export const cityCoverageStats = {
   countriesMissingCoverageCount: countriesMissingCityCoverage.length
 }
 
+export const validCountryCodes = new Set(Object.keys(countryMetaByCode))
 export const cityCandidates = cityCandidateDefinitions
 export const cityCandidatesByCountry = groupByCountry(cityCandidateDefinitions)
 export const cityCandidatesByContext = groupByContext(cityCandidateDefinitions)

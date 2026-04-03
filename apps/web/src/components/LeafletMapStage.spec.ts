@@ -125,6 +125,7 @@ vi.mock('../services/geometry-manifest', () => ({
 
 vi.mock('../services/geo-lookup', () => ({
   lookupCountryRegionByCoordinates: geoLookupMock.lookupCountryRegionByCoordinates,
+  prefetchCountryRegions: vi.fn(),
 }))
 
 vi.mock('../services/api/records', () => ({
@@ -252,7 +253,7 @@ describe('LeafletMapStage', () => {
     canonicalPlacesMock.confirmCanonicalPlace.mockReset()
     geometryLoaderMock.loadGeometryShard.mockReset()
     geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
-    geoLookupMock.lookupCountryRegionByCoordinates.mockReset().mockReturnValue(null)
+    geoLookupMock.lookupCountryRegionByCoordinates.mockReset().mockResolvedValue(null)
     recordsApiMock.fetchTravelRecords.mockReset().mockResolvedValue([])
     recordsApiMock.createTravelRecord.mockReset().mockResolvedValue(
       makeRecord(PHASE12_RESOLVED_BEIJING),

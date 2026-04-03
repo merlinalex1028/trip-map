@@ -18,7 +18,7 @@ import {
   getGeometryManifestEntry,
   listGeometryManifestEntriesByLayer,
 } from '../services/geometry-manifest'
-import { lookupCountryRegionByCoordinates } from '../services/geo-lookup'
+import { lookupCountryRegionByCoordinates, prefetchCountryRegions } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
@@ -168,6 +168,7 @@ watch(
 )
 
 onMounted(() => {
+  prefetchCountryRegions()
   void refreshPopupAnchor()
 })
 
@@ -715,7 +716,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
     }
 
     if (response.reason === 'OUTSIDE_SUPPORTED_DATA') {
-      const geoResult = lookupCountryRegionByCoordinates({ lat, lng })
+      const geoResult = await lookupCountryRegionByCoordinates({ lat, lng })
       if (geoResult) {
         openSavedPointForPlaceOrStartDraft(buildFallbackDraftPoint(geoResult, { lat, lng }))
         popupLatLng.value = L.latLng(lat, lng)

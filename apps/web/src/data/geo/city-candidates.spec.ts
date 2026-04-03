@@ -1,24 +1,10 @@
-import countryRegions from './country-regions.geo.json'
 import {
   cityCandidates,
   cityCandidatesByCountry,
   cityCoverageStats,
-  countriesMissingCityCoverage
+  countriesMissingCityCoverage,
+  validCountryCodes
 } from './city-candidates'
-
-interface GeoFeatureProperties {
-  countryCode: string
-}
-
-interface CountryRegionFeature {
-  type: 'Feature'
-  properties: GeoFeatureProperties
-}
-
-interface CountryRegionFeatureCollection {
-  type: 'FeatureCollection'
-  features: CountryRegionFeature[]
-}
 
 function toRadians(value: number) {
   return (value * Math.PI) / 180
@@ -67,12 +53,6 @@ function getMaxPairwiseDistanceKm(countryCode: string) {
 }
 
 describe('city candidate catalog', () => {
-  const validCountryCodes = new Set(
-    (countryRegions as CountryRegionFeatureCollection).features.map(
-      (feature) => feature.properties.countryCode
-    )
-  )
-
   it('tracks audited coverage stats above the new baseline', () => {
     expect(cityCoverageStats.coveredCountryCount).toBeGreaterThanOrEqual(180)
     expect(cityCoverageStats.totalCities).toBeGreaterThanOrEqual(280)
