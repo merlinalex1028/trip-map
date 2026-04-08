@@ -4,15 +4,26 @@ body,
   min-height: 100%;
 }
 
+html {
+  background: linear-gradient(180deg, var(--color-page), var(--color-page-bottom));
+}
+
 body {
   margin: 0;
-  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-family-body);
   font-size: var(--font-body-size);
   line-height: var(--font-body-line-height);
   color: var(--color-ink-strong);
   background:
-    linear-gradient(180deg, rgba(255, 247, 251, 0.9), rgba(232, 244, 251, 0.82)),
-    var(--color-page);
+    radial-gradient(circle at top left, rgba(255, 214, 235, 0.5), transparent 28%),
+    radial-gradient(circle at top right, rgba(223, 245, 251, 0.56), transparent 24%),
+    radial-gradient(circle at 50% 100%, rgba(219, 196, 255, 0.2), transparent 26%),
+    var(--texture-sparkle),
+    var(--gradient-page);
+  background-attachment: fixed;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -24,6 +35,20 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+button {
+  font-family: var(--font-family-body);
+}
+
+:where(h1, h2, h3, [data-display='true']) {
+  font-family: var(--font-family-display);
+  letter-spacing: 0.03em;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent-soft) 78%, white 22%);
+  color: var(--color-ink-strong);
 }
 
 img,

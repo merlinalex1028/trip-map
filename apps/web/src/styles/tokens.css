@@ -11,23 +11,46 @@
   --font-label-size: 14px;
   --font-heading-size: 24px;
   --font-display-size: 40px;
+  --font-hero-size: clamp(2.5rem, 5vw, 4.5rem);
 
   --font-weight-body: 400;
   --font-weight-label: 600;
-  --font-weight-heading: 600;
+  --font-weight-heading: 700;
+  --font-weight-display: 800;
 
   --font-body-line-height: 1.5;
   --font-label-line-height: 1.4;
   --font-heading-line-height: 1.2;
   --font-display-line-height: 1.1;
 
+  --font-family-body:
+    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-family-display:
+    'Hiragino Maru Gothic ProN', 'Hannotate SC', 'Marker Felt', 'Trebuchet MS',
+    'Noto Sans SC', sans-serif;
+
   --color-page: #fff7fb;
-  --color-surface: #e8f4fb;
+  --color-page-bottom: #eff8ff;
+  --color-surface: #fdf5ff;
+  --color-surface-soft: #fffaf2;
+  --color-surface-alt: #eef8ff;
+  --color-surface-raised: rgba(255, 253, 255, 0.86);
   --color-accent: #f48fb1;
+  --color-accent-strong: #ff78ad;
+  --color-accent-soft: #ffd7ea;
+  --color-secondary: #84c7d8;
+  --color-secondary-strong: #62b9d3;
+  --color-secondary-soft: #dff5fb;
+  --color-lilac: #dbc4ff;
+  --color-lemon: #fff1a8;
+  --color-mint: #d8f6e8;
   --color-destructive: #c86464;
-  --color-frame: #c7abc8;
-  --color-ink-strong: #4f4358;
-  --color-ink-muted: #7d7185;
+  --color-frame: #d8bdd9;
+  --color-frame-strong: #cfa3d6;
+  --color-outline-soft: rgba(255, 255, 255, 0.88);
+  --color-ink-strong: #57425f;
+  --color-ink-muted: #7f6a86;
+  --color-ink-soft: #9a87a0;
 
   --color-state-selected: #f48fb1;
   --color-state-selected-wash: #ffdce8;
@@ -40,11 +63,49 @@
 
   --radius-surface: 24px;
   --radius-control: 18px;
+  --radius-card: 28px;
+  --radius-bubble: 32px;
   --radius-pill: 999px;
 
-  --shadow-surface: 0 18px 36px rgba(120, 86, 122, 0.14);
-  --shadow-stage: 0 24px 48px rgba(120, 86, 122, 0.16);
+  --shadow-surface:
+    0 20px 40px rgba(168, 121, 165, 0.16),
+    0 6px 14px rgba(114, 152, 180, 0.08);
+  --shadow-stage:
+    0 30px 60px rgba(166, 116, 159, 0.18),
+    0 14px 30px rgba(104, 159, 192, 0.12);
+  --shadow-float:
+    0 18px 32px rgba(168, 121, 165, 0.18),
+    0 0 0 1px rgba(255, 255, 255, 0.52);
+  --shadow-button:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 10px 18px rgba(168, 121, 165, 0.12);
   --shadow-dusty: var(--shadow-surface);
+
+  --gradient-page:
+    linear-gradient(180deg, rgba(255, 247, 251, 0.96), rgba(239, 248, 255, 0.92));
+  --gradient-panel:
+    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(237, 247, 255, 0.92));
+  --gradient-panel-strong:
+    linear-gradient(145deg, rgba(255, 245, 251, 0.97), rgba(235, 247, 255, 0.94));
+  --gradient-accent:
+    linear-gradient(135deg, rgba(255, 214, 235, 0.98), rgba(255, 241, 168, 0.92));
+  --gradient-accent-soft:
+    linear-gradient(135deg, rgba(255, 230, 241, 0.94), rgba(223, 245, 251, 0.9));
+  --gradient-selected:
+    linear-gradient(135deg, rgba(255, 127, 175, 0.98), rgba(255, 202, 223, 0.94));
+  --gradient-saved:
+    linear-gradient(135deg, rgba(98, 185, 211, 0.95), rgba(221, 245, 251, 0.94));
+  --gradient-neutral:
+    linear-gradient(135deg, rgba(255, 252, 244, 0.96), rgba(245, 236, 232, 0.96));
+
+  --texture-sparkle:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.9), transparent 16%),
+    radial-gradient(circle at 82% 18%, rgba(255, 255, 255, 0.72), transparent 12%),
+    radial-gradient(circle at 74% 72%, rgba(255, 255, 255, 0.68), transparent 14%);
+  --texture-ribbon:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.3), transparent 42%, rgba(255, 255, 255, 0.2));
+  --border-soft: 1px solid color-mix(in srgb, var(--color-frame) 70%, white 30%);
+  --border-highlight: 1px solid rgba(255, 255, 255, 0.78);
 
   --motion-quick: 140ms;
   --motion-emphasis: 180ms;
