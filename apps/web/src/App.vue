@@ -2,7 +2,6 @@
 import { storeToRefs } from 'pinia'
 import { onUnmounted, watch } from 'vue'
 
-import PosterTitleBlock from './components/PosterTitleBlock.vue'
 import LeafletMapStage from './components/LeafletMapStage.vue'
 import { useMapUiStore } from './stores/map-ui'
 
@@ -44,7 +43,13 @@ onUnmounted(() => {
   <div class="app-shell">
     <div class="app-shell__grain" aria-hidden="true"></div>
     <main class="poster-shell">
-      <PosterTitleBlock class="poster-shell__title" />
+      <header class="poster-shell__topbar" data-region="topbar">
+        <div class="poster-shell__brand">
+          <span class="poster-shell__brand-badge" aria-hidden="true">TM</span>
+          <h1 class="poster-shell__brand-title">旅记</h1>
+        </div>
+        <div class="poster-shell__topbar-slot" aria-hidden="true"></div>
+      </header>
       <div
         v-if="interactionNotice"
         class="app-shell__notice"
@@ -56,7 +61,7 @@ onUnmounted(() => {
       >
         {{ interactionNotice.message }}
       </div>
-      <section class="poster-shell__experience">
+      <section class="poster-shell__experience" data-region="map-shell">
         <LeafletMapStage class="poster-shell__stage" />
       </section>
     </main>
@@ -67,6 +72,7 @@ onUnmounted(() => {
 .app-shell {
   position: relative;
   min-height: 100vh;
+  min-height: 100svh;
   isolation: isolate;
 }
 
@@ -84,7 +90,7 @@ onUnmounted(() => {
 
 .app-shell__notice {
   position: fixed;
-  top: var(--space-lg);
+  top: calc(var(--space-xl) + 3.75rem);
   left: 50%;
   z-index: 5;
   width: 28rem;
@@ -113,20 +119,67 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   min-height: 100vh;
+  min-height: 100svh;
+  box-sizing: border-box;
   display: grid;
-  align-items: start;
-  gap: var(--space-xl);
-  padding: var(--space-2xl);
+  align-items: stretch;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(0, 1fr);
-  grid-template-areas:
-    'title'
-    'stage';
 }
 
-.poster-shell__title {
-  grid-area: title;
-  padding-inline-end: var(--space-xl);
+.poster-shell__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  min-height: 3.75rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
+  border-radius: var(--radius-surface);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(232, 244, 251, 0.42)),
+    color-mix(in srgb, var(--color-surface) 84%, white 16%);
+  box-shadow: var(--shadow-surface);
+  backdrop-filter: blur(12px);
+}
+
+.poster-shell__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.poster-shell__brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, var(--color-state-selected), color-mix(in srgb, white 70%, var(--color-accent) 30%));
+  color: white;
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-label);
+  letter-spacing: 0.12em;
+  box-shadow: 0 12px 24px rgba(244, 143, 177, 0.24);
+}
+
+.poster-shell__brand-title {
+  margin: 0;
+  color: var(--color-ink-strong);
+  font-size: clamp(1.1rem, 2.1vw, 1.4rem);
+  line-height: 1.1;
+  font-weight: var(--font-weight-heading);
+  letter-spacing: 0.08em;
+}
+
+.poster-shell__topbar-slot {
+  flex: 0 0 clamp(4rem, 16vw, 8rem);
+  min-height: 1px;
 }
 
 .poster-shell__stage {
@@ -172,5 +225,43 @@ onUnmounted(() => {
   inset: 18px;
   border: 1px dashed rgba(199, 171, 200, 0.45);
   border-radius: 28px;
+}
+
+@media (max-width: 640px) {
+  .app-shell__notice {
+    top: calc(var(--space-lg) + 3.4rem);
+    max-width: calc(100% - var(--space-xl));
+  }
+
+  .poster-shell {
+    gap: var(--space-md);
+    padding: var(--space-md);
+  }
+
+  .poster-shell__topbar {
+    min-height: 3.4rem;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .poster-shell__brand {
+    gap: 0.7rem;
+  }
+
+  .poster-shell__brand-badge {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .poster-shell__topbar-slot {
+    flex-basis: 2.5rem;
+  }
+
+  .poster-shell__experience {
+    padding: 12px;
+  }
+
+  .poster-shell__experience::after {
+    inset: 12px;
+  }
 }
 </style>

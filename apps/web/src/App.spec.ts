@@ -96,8 +96,9 @@ describe('App shell', () => {
     })
 
     expect(wrapper.find('.poster-shell').exists()).toBe(true)
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
-    expect(wrapper.find('.poster-title-block__ribbon').exists()).toBe(true)
-    expect(wrapper.text()).toContain('旅行世界地图')
+    expect(wrapper.text()).toContain('旅记')
+    expect(wrapper.text()).not.toContain('旅行世界地图')
   })
 })
