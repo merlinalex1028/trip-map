@@ -5,9 +5,9 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "turbo run dev --parallel",
-    "dev:web": "turbo run dev --filter=@trip-map/web",
-    "dev:server": "turbo run dev --filter=@trip-map/server",
+    "dev": "turbo run dev --filter=@trip-map/web",
+    "dev:web": "pnpm --filter @trip-map/web dev",
+    "dev:server": "pnpm --filter @trip-map/server dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck"
