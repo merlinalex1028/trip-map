@@ -156,6 +156,36 @@ function handlePointBlur(pointId: string) {
   transform: translate(-50%, -50%);
 }
 
+.seed-marker__button::before,
+.seed-marker__button::after {
+  content: '';
+  position: absolute;
+  inset: 50% auto auto 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition:
+    transform var(--motion-quick) ease,
+    opacity var(--motion-quick) ease,
+    box-shadow var(--motion-quick) ease;
+}
+
+.seed-marker__button::before {
+  width: 1.5rem;
+  height: 1.5rem;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 28%, rgba(255, 215, 234, 0.14) 58%, transparent 72%);
+  opacity: 0.86;
+}
+
+.seed-marker__button::after {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 0 1px rgba(216, 189, 217, 0.18);
+  opacity: 0.44;
+}
+
 .seed-marker--dimmed .seed-marker__button {
   z-index: 0;
 }
@@ -166,95 +196,150 @@ function handlePointBlur(pointId: string) {
 }
 
 .seed-marker__dot {
-  width: 0.8rem;
-  height: 0.8rem;
+  position: relative;
+  width: 0.92rem;
+  height: 0.92rem;
   border-radius: var(--radius-pill);
-  border: 1px solid var(--color-state-neutral-outline);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.95), var(--color-state-neutral));
+  border: 1px solid color-mix(in srgb, var(--color-state-neutral-outline) 78%, white 22%);
+  background: var(--gradient-neutral);
   box-shadow:
-    0 0 0 5px rgba(216, 200, 188, 0.26),
-    0 0 14px rgba(125, 113, 133, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 0 0 6px rgba(255, 248, 238, 0.76),
+    0 12px 16px rgba(125, 113, 133, 0.16);
   transition:
     transform var(--motion-quick) ease,
     box-shadow var(--motion-quick) ease,
-    border-color var(--motion-quick) ease;
+    border-color var(--motion-quick) ease,
+    background var(--motion-quick) ease;
 }
 
 .seed-marker__button:hover .seed-marker__dot,
 .seed-marker__button:focus-visible .seed-marker__dot {
-  transform: scale(1.05);
+  transform: scale(1.08);
   box-shadow:
-    0 0 0 6px rgba(216, 200, 188, 0.34),
-    0 0 18px rgba(125, 113, 133, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 0 0 8px rgba(255, 248, 238, 0.84),
+    0 14px 18px rgba(125, 113, 133, 0.2);
+}
+
+.seed-marker__button:hover::before,
+.seed-marker__button:focus-visible::before {
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.seed-marker__button:hover::after,
+.seed-marker__button:focus-visible::after {
+  opacity: 0.62;
+  transform: translate(-50%, -50%) scale(1.04);
 }
 
 .seed-marker--saved .seed-marker__dot {
-  border-color: rgba(132, 199, 216, 0.82);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.96), var(--color-state-saved));
+  border-color: color-mix(in srgb, var(--color-secondary) 72%, white 28%);
+  background: var(--gradient-saved);
   box-shadow:
-    0 0 0 4px rgba(132, 199, 216, 0.14),
-    0 0 12px rgba(132, 199, 216, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 0 0 6px rgba(223, 244, 248, 0.8),
+    0 14px 20px rgba(98, 185, 211, 0.24);
+}
+
+.seed-marker--saved .seed-marker__button::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.9) 0 28%, rgba(164, 231, 248, 0.24) 58%, transparent 72%);
+}
+
+.seed-marker--saved .seed-marker__button::after {
+  box-shadow: 0 0 0 1px rgba(98, 185, 211, 0.18);
 }
 
 .seed-marker--draft .seed-marker__dot {
-  border-color: rgba(244, 143, 177, 0.72);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.98), var(--color-state-selected));
+  border-color: color-mix(in srgb, var(--color-accent) 72%, white 28%);
+  background: var(--gradient-selected);
   box-shadow:
-    0 0 0 6px rgba(255, 220, 232, 0.42),
-    0 0 18px rgba(244, 143, 177, 0.26);
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 0 0 7px rgba(255, 220, 232, 0.7),
+    0 14px 20px rgba(244, 143, 177, 0.28);
   animation: draft-marker-pulse 1.75s ease-in-out infinite;
+}
+
+.seed-marker--draft .seed-marker__button::before {
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 28%, rgba(255, 171, 204, 0.28) 58%, transparent 72%);
+}
+
+.seed-marker--draft .seed-marker__button::after {
+  box-shadow: 0 0 0 1px rgba(255, 120, 173, 0.2);
 }
 
 .seed-marker--dimmed .seed-marker__dot {
   opacity: 0.62;
   box-shadow:
-    0 0 0 4px rgba(216, 200, 188, 0.12),
-    0 0 8px rgba(125, 113, 133, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.66),
+    0 0 0 5px rgba(255, 248, 238, 0.42),
+    0 8px 10px rgba(125, 113, 133, 0.1);
+}
+
+.seed-marker--dimmed .seed-marker__button::before,
+.seed-marker--dimmed .seed-marker__button::after {
+  opacity: 0.28;
 }
 
 .seed-marker--selected .seed-marker__dot,
 .seed-marker__button--selected .seed-marker__dot {
-  border-color: rgba(244, 143, 177, 0.96);
+  border-color: color-mix(in srgb, var(--color-accent-strong) 74%, white 26%);
   box-shadow:
-    0 0 0 3px rgba(255, 255, 255, 0.9),
-    0 0 0 7px rgba(255, 220, 232, 0.58),
-    0 0 18px rgba(244, 143, 177, 0.3);
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 0 0 4px rgba(255, 255, 255, 0.9),
+    0 0 0 9px rgba(255, 220, 232, 0.76),
+    0 18px 24px rgba(244, 143, 177, 0.32);
+}
+
+.seed-marker--selected .seed-marker__button::before,
+.seed-marker__button--selected::before {
+  transform: translate(-50%, -50%) scale(1.08);
+  opacity: 1;
+}
+
+.seed-marker--selected .seed-marker__button::after,
+.seed-marker__button--selected::after {
+  opacity: 0.72;
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 0 0 1px rgba(255, 120, 173, 0.22);
 }
 
 .seed-marker__label {
   position: absolute;
-  top: 0.9rem;
-  left: 0.9rem;
+  top: 1rem;
+  left: 0.95rem;
   align-self: start;
   width: max-content;
   max-width: 10rem;
-  padding: 0.35rem 0.55rem;
-  border: 1px solid var(--color-state-neutral-outline);
+  padding: 0.42rem 0.7rem;
+  border: var(--border-soft);
   border-radius: var(--radius-pill);
-  background: rgba(255, 250, 252, 0.92);
+  background:
+    var(--texture-ribbon),
+    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(255, 248, 250, 0.92));
   color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
+  font-size: 0.78rem;
   line-height: 1.2;
-  box-shadow: 0 8px 18px rgba(120, 86, 122, 0.12);
+  box-shadow: var(--shadow-button);
   pointer-events: none;
+  letter-spacing: 0.02em;
 }
 
 .seed-marker--saved .seed-marker__label {
-  border-color: rgba(132, 199, 216, 0.72);
-  background: rgba(223, 244, 248, 0.92);
+  border-color: color-mix(in srgb, var(--color-secondary) 68%, white 32%);
+  background: linear-gradient(180deg, rgba(240, 252, 255, 0.96), rgba(223, 244, 248, 0.94));
 }
 
 .seed-marker--selected .seed-marker__label {
-  border-color: rgba(244, 143, 177, 0.82);
-  background: rgba(255, 220, 232, 0.92);
+  border-color: color-mix(in srgb, var(--color-accent) 68%, white 32%);
+  background: linear-gradient(180deg, rgba(255, 241, 247, 0.98), rgba(255, 220, 232, 0.94));
 }
 
 .seed-marker--draft .seed-marker__label {
-  border-color: rgba(244, 143, 177, 0.62);
-  background: rgba(255, 236, 244, 0.92);
+  border-color: color-mix(in srgb, var(--color-accent) 64%, white 36%);
+  background: linear-gradient(180deg, rgba(255, 244, 248, 0.98), rgba(255, 236, 244, 0.94));
 }
 
 @keyframes draft-marker-pulse {
@@ -262,20 +347,24 @@ function handlePointBlur(pointId: string) {
   100% {
     transform: scale(1);
     box-shadow:
-      0 0 0 7px rgba(255, 220, 232, 0.34),
-      0 0 20px rgba(244, 143, 177, 0.24);
+      inset 0 1px 0 rgba(255, 255, 255, 0.88),
+      0 0 0 8px rgba(255, 220, 232, 0.56),
+      0 18px 22px rgba(244, 143, 177, 0.24);
   }
 
   50% {
-    transform: scale(1.08);
+    transform: scale(1.1);
     box-shadow:
-      0 0 0 9px rgba(255, 220, 232, 0.42),
-      0 0 24px rgba(244, 143, 177, 0.32);
+      inset 0 1px 0 rgba(255, 255, 255, 0.88),
+      0 0 0 11px rgba(255, 220, 232, 0.72),
+      0 20px 26px rgba(244, 143, 177, 0.32);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .seed-marker__dot {
+  .seed-marker__dot,
+  .seed-marker__button::before,
+  .seed-marker__button::after {
     transition: none;
   }
 
