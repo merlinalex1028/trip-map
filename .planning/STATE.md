@@ -1,36 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: 全栈化与行政区地图重构
-status: complete
-stopped_at: Milestone v3.0 shipped
-last_updated: "2026-04-08T09:26:29Z"
+milestone: v4.0
+milestone_name: Kawaii UI 重构 & Tailwind 集成
+status: planning
+stopped_at: Defining requirements
+last_updated: "2026-04-08T00:00:00Z"
 last_activity: 2026-04-08
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 39
-  completed_plans: 39
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-03)
+See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Milestone v3.0 complete — awaiting `/gsd:new-milestone` for v4.0
+**Current focus:** Milestone v4.0 — Kawaii UI 重构 & Tailwind 集成
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Milestone v3.0 shipped
-Last activity: 2026-04-08 - Completed quick task 260408-nw1: 修复 kawaii 顶部栏过高导致遮挡地图的问题，压缩头部高度并确保地图可视区域恢复
+Status: Defining requirements
+Last activity: 2026-04-08 — Milestone v4.0 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Last Shipped Milestone
 
@@ -50,8 +50,7 @@ Progress: [██████████] 100%
 
 ## Next Steps
 
-- Run `/gsd:new-milestone` to define v4.0 scope
-- See PROJECT.md for candidate directions (AUTH, SYNC, GEOX-08, OPS)
+- `/gsd-plan-phase [N]` — 开始执行第一个 phase（待 roadmap 确定后填入编号）
 
 ### Quick Tasks Completed
 
