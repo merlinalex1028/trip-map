@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: complete
 stopped_at: Milestone v3.0 shipped
-last_updated: "2026-04-08T07:32:04Z"
+last_updated: "2026-04-08T08:13:41Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 8
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-03)
 Phase: —
 Plan: —
 Status: Milestone v3.0 shipped
-Last activity: 2026-04-08 - Completed quick task 260408-lc0: 修复 turbo --parallel 弃用告警，改为 turbo v2 推荐配置并验证 dev 脚本可用
+Last activity: 2026-04-08 - Completed quick task 260408-lu0: 使用 taze 获取项目依赖最新版本并处理升级事务
 
 Progress: [██████████] 100%
 
@@ -58,6 +58,7 @@ Progress: [██████████] 100%
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260408-lc0 | 修复 turbo --parallel 弃用告警，改为 turbo v2 推荐配置并验证 dev 脚本可用 | 2026-04-08 | 3901f4a | [260408-lc0-turbo-parallel-turbo-v2-dev](./quick/260408-lc0-turbo-parallel-turbo-v2-dev/) |
+| 260408-lu0 | 使用 taze 获取项目依赖最新版本并处理升级事务 | 2026-04-08 | a08b4b0 | [260408-lu0-taze](./quick/260408-lu0-taze/) |
 
 ---
-*Last updated: 2026-04-08 — completed quick task 260408-lc0*
+*Last updated: 2026-04-08 — completed quick task 260408-lu0*
