@@ -73,8 +73,8 @@ onUnmounted(() => {
 
 <style scoped>
 .app-shell {
-  --topbar-height: 4.5rem;
-  --topbar-height-mobile: 4rem;
+  --topbar-height: 3.9rem;
+  --topbar-height-mobile: 3.35rem;
 }
 
 .app-shell {
@@ -108,7 +108,7 @@ onUnmounted(() => {
 }
 
 .app-shell__spark--left {
-  top: calc(var(--topbar-height) + 1.5rem);
+  top: calc(var(--topbar-height) + 0.75rem);
   left: clamp(-2rem, 1vw, 1rem);
   background:
     radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.84), transparent 28%),
@@ -125,7 +125,7 @@ onUnmounted(() => {
 
 .app-shell__notice {
   position: fixed;
-  top: calc(var(--topbar-height) + var(--space-md));
+  top: calc(var(--topbar-height) + var(--space-sm));
   left: 50%;
   z-index: 5;
   width: 28rem;
@@ -160,8 +160,8 @@ onUnmounted(() => {
   box-sizing: border-box;
   display: grid;
   align-items: stretch;
-  gap: var(--space-lg);
-  padding: calc(var(--topbar-height) + var(--space-lg)) var(--space-xl) var(--space-xl);
+  gap: var(--space-md);
+  padding: calc(var(--topbar-height) + var(--space-md)) var(--space-xl) var(--space-xl);
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
 }
@@ -176,9 +176,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-md);
-  min-height: var(--topbar-height);
-  padding: 0.9rem var(--space-xl) 0.82rem;
+  gap: var(--space-sm);
+  height: var(--topbar-height);
+  padding: 0.5rem var(--space-xl);
   border-bottom: var(--border-soft);
   background:
     var(--texture-ribbon),
@@ -190,7 +190,7 @@ onUnmounted(() => {
 
 .poster-shell__brand {
   display: grid;
-  gap: 0.18rem;
+  gap: 0.08rem;
   min-width: 0;
 }
 
@@ -201,13 +201,13 @@ onUnmounted(() => {
 
 .poster-shell__brand-kicker {
   width: fit-content;
-  padding: 0.16rem 0.52rem;
+  padding: 0.1rem 0.44rem;
   border: 1px solid color-mix(in srgb, var(--color-frame-strong) 58%, white 42%);
   border-radius: var(--radius-pill);
   background: rgba(255, 253, 255, 0.78);
   color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  line-height: 1.2;
+  font-size: 0.62rem;
+  line-height: 1.05;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -215,21 +215,21 @@ onUnmounted(() => {
 .poster-shell__brand-title {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
-  line-height: 1.1;
+  font-size: clamp(1.12rem, 2vw, 1.5rem);
+  line-height: 1;
   font-weight: var(--font-weight-display);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
 }
 
 .poster-shell__brand-subtitle {
   color: var(--color-ink-muted);
-  font-size: 0.85rem;
-  line-height: 1.25;
+  font-size: 0.72rem;
+  line-height: 1.1;
 }
 
 .poster-shell__topbar-slot {
-  flex: 0 0 clamp(4rem, 14vw, 8rem);
+  flex: 0 0 clamp(2.5rem, 10vw, 5rem);
   min-height: 1px;
 }
 
@@ -287,32 +287,32 @@ onUnmounted(() => {
   }
 
   .poster-shell {
-    gap: var(--space-sm);
+    gap: 10px;
     padding:
-      calc(var(--topbar-height-mobile) + var(--space-sm))
+      calc(var(--topbar-height-mobile) + 10px)
       var(--space-md)
       var(--space-md);
   }
 
   .poster-shell__topbar {
-    min-height: var(--topbar-height-mobile);
-    padding: 0.8rem var(--space-md) 0.72rem;
+    height: var(--topbar-height-mobile);
+    padding: 0.42rem var(--space-md);
   }
 
   .poster-shell__brand-kicker {
-    font-size: 0.64rem;
+    font-size: 0.58rem;
   }
 
   .poster-shell__brand-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
   }
 
   .poster-shell__brand-subtitle {
-    font-size: 0.76rem;
+    display: none;
   }
 
   .poster-shell__topbar-slot {
-    flex-basis: 2.5rem;
+    flex-basis: 1.5rem;
   }
 
   .poster-shell__experience {
