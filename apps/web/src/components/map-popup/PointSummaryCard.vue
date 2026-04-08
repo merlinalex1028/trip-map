@@ -163,7 +163,7 @@ function handleContinueWithFallback() {
         }}
       </p>
       <div class="point-summary-card__title-row">
-        <h2 :class="['point-summary-card__title', titleClass]" tabindex="-1">
+        <h2 :class="['point-summary-card__title', titleClass]" data-display="true" tabindex="-1">
           {{ summaryTitle }}
         </h2>
         <span
@@ -282,11 +282,24 @@ function handleContinueWithFallback() {
   gap: var(--space-md);
   min-height: 0;
   padding: var(--space-lg);
-  border: 1px solid rgba(199, 171, 200, 0.56);
-  border-radius: var(--radius-surface);
-  background: linear-gradient(180deg, rgba(255, 252, 253, 0.96), rgba(232, 244, 251, 0.94));
+  border: var(--border-soft);
+  border-radius: var(--radius-card);
+  background:
+    radial-gradient(circle at top right, rgba(255, 241, 168, 0.18), transparent 20%),
+    var(--texture-ribbon),
+    var(--gradient-panel-strong);
   box-shadow: var(--shadow-surface);
   overflow: hidden;
+  position: relative;
+}
+
+.point-summary-card::before {
+  content: '';
+  position: absolute;
+  inset: 0.4rem;
+  border: var(--border-highlight);
+  border-radius: calc(var(--radius-card) - 6px);
+  pointer-events: none;
 }
 
 .point-summary-card__header,
@@ -314,21 +327,25 @@ function handleContinueWithFallback() {
 
 .point-summary-card__badge {
   width: fit-content;
-  padding: 0.3rem 0.6rem;
-  border: 1px solid rgba(244, 143, 177, 0.42);
+  padding: 0.34rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--color-frame-strong) 58%, white 42%);
   border-radius: var(--radius-pill);
-  background: rgba(255, 220, 232, 0.72);
+  background: var(--gradient-accent-soft);
   color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
+  font-size: 0.75rem;
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-button);
 }
 
 .point-summary-card__title {
   color: var(--color-ink-strong);
-  font-size: var(--font-heading-size);
-  font-weight: var(--font-weight-heading);
+  font-size: clamp(1.45rem, 2vw, 1.8rem);
+  font-weight: var(--font-weight-display);
   line-height: var(--font-heading-line-height);
+  letter-spacing: 0.03em;
 }
 
 .point-summary-card__title-row {
@@ -344,12 +361,12 @@ function handleContinueWithFallback() {
 .point-summary-card__type-label,
 .point-summary-card__candidate-type {
   width: fit-content;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid rgba(132, 199, 216, 0.48);
+  padding: 0.24rem 0.62rem;
+  border: 1px solid color-mix(in srgb, var(--color-secondary) 52%, white 48%);
   border-radius: var(--radius-pill);
-  background: rgba(223, 244, 248, 0.92);
+  background: rgba(223, 244, 248, 0.9);
   color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
+  font-size: 0.78rem;
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
 }
@@ -369,14 +386,15 @@ function handleContinueWithFallback() {
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
-  padding: 0.7rem 0.85rem;
-  border: 1px dashed rgba(184, 198, 217, 0.84);
+  padding: 0.82rem 0.96rem;
+  border: 1px dashed color-mix(in srgb, var(--color-secondary) 48%, var(--color-frame) 52%);
   border-radius: var(--radius-control);
-  background: rgba(238, 243, 248, 0.96);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(238, 243, 248, 0.92));
 }
 
 .point-summary-card__candidate-cta {
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
@@ -393,7 +411,9 @@ function handleContinueWithFallback() {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-inline-end: 0.25rem;
+  padding-inline-end: 0.35rem;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-frame) 64%, white 36%) transparent;
 }
 
 .point-summary-card__candidate-city {
@@ -410,26 +430,60 @@ function handleContinueWithFallback() {
 
 .point-summary-card__candidate-action {
   position: relative;
+  display: grid;
   justify-items: start;
-  padding: 0.85rem 0.95rem;
+  padding: 0.98rem 1rem;
   gap: var(--space-xs);
   text-align: left;
   cursor: pointer;
   min-height: 44px;
-  border: 1px solid rgba(199, 171, 200, 0.48);
-  border-radius: var(--radius-control);
-  background: rgba(255, 250, 252, 0.92);
+  border: var(--border-soft);
+  border-radius: calc(var(--radius-control) + 2px);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(255, 247, 251, 0.92));
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
+  box-shadow: var(--shadow-button);
+  transition:
+    transform var(--motion-emphasis) ease,
+    border-color var(--motion-emphasis) ease,
+    box-shadow var(--motion-emphasis) ease,
+    background var(--motion-emphasis) ease;
+}
+
+.point-summary-card__candidate-action::before {
+  content: '';
+  position: absolute;
+  inset: 0.22rem;
+  border-radius: calc(var(--radius-control) - 1px);
+  border: var(--border-highlight);
+  pointer-events: none;
 }
 
 .point-summary-card__candidate-action[data-candidate-status='saved'] {
-  border-color: rgba(132, 199, 216, 0.76);
-  background: rgba(223, 244, 248, 0.9);
+  border-color: color-mix(in srgb, var(--color-secondary) 66%, white 34%);
+  background:
+    linear-gradient(180deg, rgba(235, 249, 253, 0.98), rgba(223, 244, 248, 0.9));
 }
 
 .point-summary-card__candidate-action[data-candidate-status='available'] {
-  background: rgba(255, 250, 252, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(255, 247, 251, 0.92));
+}
+
+.point-summary-card__candidate-action[data-candidate-recommended='true'] {
+  border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-lemon) 42%);
+  background:
+    linear-gradient(135deg, rgba(255, 241, 168, 0.42), rgba(255, 232, 242, 0.96));
+}
+
+.point-summary-card__candidate-action:hover,
+.point-summary-card__candidate-action:focus-visible {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--color-frame-strong) 72%, white 28%);
+  box-shadow:
+    0 14px 24px rgba(168, 121, 165, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .point-summary-card__candidate-action:focus-visible {
@@ -438,10 +492,11 @@ function handleContinueWithFallback() {
 }
 
 .point-summary-card__illuminate-btn {
-  padding: 0.25rem 0.7rem;
-  border: 1px solid rgba(184, 198, 217, 0.56);
+  padding: 0.38rem 0.82rem;
+  border: 1px solid color-mix(in srgb, var(--color-frame) 56%, white 44%);
   border-radius: var(--radius-pill);
-  background: rgba(238, 243, 248, 0.92);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 243, 248, 0.94));
   color: var(--color-ink-muted);
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
@@ -449,18 +504,28 @@ function handleContinueWithFallback() {
   cursor: pointer;
   white-space: nowrap;
   min-height: 32px;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  box-shadow: var(--shadow-button);
+  transition:
+    transform var(--motion-emphasis) ease,
+    background var(--motion-emphasis) ease,
+    border-color var(--motion-emphasis) ease,
+    color var(--motion-emphasis) ease;
 }
 
 .point-summary-card__illuminate-btn--on {
-  border-color: rgba(132, 199, 216, 0.64);
-  background: rgba(132, 199, 216, 0.22);
-  color: rgb(72, 150, 170);
+  border-color: color-mix(in srgb, var(--color-secondary) 68%, white 32%);
+  background: linear-gradient(135deg, rgba(147, 219, 237, 0.72), rgba(223, 244, 248, 0.94));
+  color: color-mix(in srgb, var(--color-secondary-strong) 72%, var(--color-ink-strong) 28%);
 }
 
 .point-summary-card__illuminate-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+.point-summary-card__illuminate-btn:not(:disabled):hover,
+.point-summary-card__illuminate-btn:not(:disabled):focus-visible {
+  transform: translateY(-1px);
 }
 
 .point-summary-card__illuminate-btn:focus-visible {

@@ -123,12 +123,24 @@ defineExpose({
   min-width: var(--map-context-popup-min-width);
   max-width: var(--map-context-popup-max-width);
   min-height: 0;
-  padding: 0.3rem;
-  border: 1px solid rgba(199, 171, 200, 0.52);
-  border-radius: calc(var(--radius-surface) + 4px);
-  background: linear-gradient(180deg, rgba(255, 250, 252, 0.96), rgba(232, 244, 251, 0.92));
+  padding: 0.38rem;
+  border: var(--border-soft);
+  border-radius: calc(var(--radius-card) + 6px);
+  background:
+    var(--texture-ribbon),
+    var(--gradient-panel-strong);
   overflow: hidden;
   box-shadow: var(--shadow-stage);
+  backdrop-filter: blur(16px);
+}
+
+.map-context-popup::before {
+  content: '';
+  position: absolute;
+  inset: 0.32rem;
+  border: var(--border-highlight);
+  border-radius: calc(var(--radius-card) + 2px);
+  pointer-events: none;
 }
 
 .map-context-popup__body {
@@ -137,19 +149,22 @@ defineExpose({
   min-height: 0;
   max-height: 100%;
   overflow: hidden;
-  border-radius: var(--radius-surface);
+  border-radius: var(--radius-card);
 }
 
 .map-context-popup__arrow {
   position: absolute;
   left: 1.5rem;
   top: 100%;
-  width: 1rem;
-  height: 1rem;
-  border-right: 1px solid rgba(199, 171, 200, 0.52);
-  border-bottom: 1px solid rgba(199, 171, 200, 0.52);
-  background: linear-gradient(180deg, rgba(255, 250, 252, 0.96), rgba(232, 244, 251, 0.92));
+  width: 1.08rem;
+  height: 1.08rem;
+  border-right: var(--border-soft);
+  border-bottom: var(--border-soft);
+  background:
+    var(--texture-ribbon),
+    var(--gradient-panel-strong);
   transform: translateY(-50%) rotate(45deg);
+  box-shadow: 6px 8px 20px rgba(155, 116, 160, 0.12);
 }
 
 .map-context-popup__title {

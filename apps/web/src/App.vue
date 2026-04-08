@@ -42,10 +42,14 @@ onUnmounted(() => {
 <template>
   <div class="app-shell">
     <div class="app-shell__grain" aria-hidden="true"></div>
+    <div class="app-shell__spark app-shell__spark--left" aria-hidden="true"></div>
+    <div class="app-shell__spark app-shell__spark--right" aria-hidden="true"></div>
     <main class="poster-shell">
       <header class="poster-shell__topbar" data-region="topbar">
         <div class="poster-shell__brand">
-          <h1 class="poster-shell__brand-title">旅记</h1>
+          <p class="poster-shell__brand-kicker">Travel Diary</p>
+          <h1 class="poster-shell__brand-title" data-display="true">旅记</h1>
+          <p class="poster-shell__brand-subtitle">收集每次落点的心动坐标</p>
         </div>
         <div class="poster-shell__topbar-slot" aria-hidden="true"></div>
       </header>
@@ -92,6 +96,33 @@ onUnmounted(() => {
   opacity: 0.95;
 }
 
+.app-shell__spark {
+  position: fixed;
+  z-index: 0;
+  width: clamp(10rem, 20vw, 16rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.9;
+  filter: blur(4px);
+}
+
+.app-shell__spark--left {
+  top: calc(var(--topbar-height) + 1.5rem);
+  left: clamp(-2rem, 1vw, 1rem);
+  background:
+    radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.84), transparent 28%),
+    radial-gradient(circle at 55% 55%, rgba(255, 214, 235, 0.66), transparent 52%);
+}
+
+.app-shell__spark--right {
+  right: clamp(-2rem, 2vw, 1rem);
+  bottom: 8vh;
+  background:
+    radial-gradient(circle at 42% 42%, rgba(255, 255, 255, 0.84), transparent 22%),
+    radial-gradient(circle at 60% 48%, rgba(223, 245, 251, 0.7), transparent 50%);
+}
+
 .app-shell__notice {
   position: fixed;
   top: calc(var(--topbar-height) + var(--space-md));
@@ -99,24 +130,26 @@ onUnmounted(() => {
   z-index: 5;
   width: 28rem;
   max-width: calc(100% - var(--space-3xl));
-  padding: 0.8rem 1rem;
-  border: 1px solid color-mix(in srgb, var(--color-frame) 62%, white 38%);
-  border-radius: var(--radius-surface);
+  padding: 0.85rem 1rem;
+  border: var(--border-soft);
+  border-radius: var(--radius-bubble);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(232, 244, 251, 0.78));
+    var(--texture-ribbon),
+    var(--gradient-panel);
   color: var(--color-ink-strong);
   font-size: var(--font-label-size);
   line-height: 1.4;
   text-align: center;
-  box-shadow: var(--shadow-surface);
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-float);
+  backdrop-filter: blur(14px);
   transform: translateX(-50%);
 }
 
 .app-shell__notice--warning {
-  border-color: color-mix(in srgb, var(--color-state-fallback) 74%, var(--color-frame) 26%);
+  border-color: color-mix(in srgb, var(--color-state-fallback) 74%, var(--color-frame-strong) 26%);
   background:
-    linear-gradient(180deg, rgba(238, 243, 248, 0.94), rgba(255, 255, 255, 0.84));
+    var(--texture-ribbon),
+    linear-gradient(180deg, rgba(245, 247, 252, 0.96), rgba(255, 252, 246, 0.9));
 }
 
 .poster-shell {
@@ -145,28 +178,54 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: var(--space-md);
   min-height: var(--topbar-height);
-  padding: 0.95rem var(--space-xl) 0.85rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
+  padding: 0.9rem var(--space-xl) 0.82rem;
+  border-bottom: var(--border-soft);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(232, 244, 251, 0.72)),
+    var(--texture-ribbon),
+    linear-gradient(180deg, rgba(255, 252, 255, 0.94), rgba(237, 247, 255, 0.84)),
     color-mix(in srgb, var(--color-surface) 88%, white 12%);
-  box-shadow: 0 12px 30px rgba(120, 86, 122, 0.08);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 30px rgba(155, 116, 160, 0.1);
+  backdrop-filter: blur(18px);
 }
 
 .poster-shell__brand {
-  display: inline-flex;
-  align-items: center;
+  display: grid;
+  gap: 0.18rem;
   min-width: 0;
+}
+
+.poster-shell__brand-kicker,
+.poster-shell__brand-subtitle {
+  margin: 0;
+}
+
+.poster-shell__brand-kicker {
+  width: fit-content;
+  padding: 0.16rem 0.52rem;
+  border: 1px solid color-mix(in srgb, var(--color-frame-strong) 58%, white 42%);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 253, 255, 0.78);
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .poster-shell__brand-title {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: clamp(1.15rem, 2vw, 1.5rem);
+  font-size: clamp(1.3rem, 2.5vw, 1.8rem);
   line-height: 1.1;
-  font-weight: var(--font-weight-heading);
+  font-weight: var(--font-weight-display);
   letter-spacing: 0.08em;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+
+.poster-shell__brand-subtitle {
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+  line-height: 1.25;
 }
 
 .poster-shell__topbar-slot {
@@ -190,10 +249,11 @@ onUnmounted(() => {
   gap: 0;
   padding: 18px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
-  border-radius: var(--radius-surface);
+  border: var(--border-soft);
+  border-radius: calc(var(--radius-card) + 4px);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(232, 244, 251, 0.22)),
+    var(--texture-ribbon),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(232, 244, 251, 0.22)),
     color-mix(in srgb, var(--color-surface) 82%, white 18%);
   box-shadow: var(--shadow-stage);
   isolation: isolate;
@@ -209,14 +269,15 @@ onUnmounted(() => {
 .poster-shell__experience::before {
   inset: 0;
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.58), transparent 34%),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.62), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(255, 241, 168, 0.2), transparent 24%),
     radial-gradient(circle at bottom right, rgba(244, 143, 177, 0.12), transparent 28%);
 }
 
 .poster-shell__experience::after {
   inset: 18px;
-  border: 1px dashed rgba(199, 171, 200, 0.45);
-  border-radius: 28px;
+  border: 1px dashed rgba(207, 163, 214, 0.58);
+  border-radius: var(--radius-card);
 }
 
 @media (max-width: 640px) {
@@ -238,8 +299,16 @@ onUnmounted(() => {
     padding: 0.8rem var(--space-md) 0.72rem;
   }
 
+  .poster-shell__brand-kicker {
+    font-size: 0.64rem;
+  }
+
   .poster-shell__brand-title {
     font-size: 1.1rem;
+  }
+
+  .poster-shell__brand-subtitle {
+    font-size: 0.76rem;
   }
 
   .poster-shell__topbar-slot {
