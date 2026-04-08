@@ -290,17 +290,13 @@ const toneVariants = {
 | A2 | 删除当前 `global.css` 中的 Leaflet SVG 兼容规则会带来真实视觉回归。 | `Common Pitfalls / Pitfall 1` | 如果判断错，planner 可能保留了可删除的旧 CSS。 |
 | A3 | 规划时至少覆盖 `100` / `500` 两档即可满足本 phase 的最小成功标准，更多色阶留给自由裁量。 | `Common Pitfalls / Pitfall 2` | 如果判断错，planner 可能定义的色阶太少或太多。 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **四个色族各自要暴露多少个 shade？**
-What we know: success criteria 直接展示了 `bg-sakura-100` 和 `text-lavender-500`，而当前 `tokens.css` 里已有 pastel 基础色可供映射。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/ROADMAP.md] [VERIFIED: /Users/huangjingping/i/trip-map/apps/web/src/styles/tokens.css]`
-What's unclear: `100/300/500/700` 是否足够，还是要为 Phase 20 预留更完整的 50-900 梯度。 `[ASSUMED]`
-Recommendation: 计划阶段先锁“最小可用色阶表”，至少满足 success criteria + `cream` 背景浅阶，再把扩展色阶留给 Phase 20 或本 phase 的 discretion 子任务。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-CONTEXT.md]`
+Final decision: Phase 19 采用“最小可用色阶集合”，与当前计划完全绑定，不为 Phase 20 预铺 50-900 全梯度。最终结论是 `sakura` / `mint` / `lavender` 各暴露 `100 / 300 / 500`，`cream` 暴露 `100 / 200 / 300`，共 12 个 token：`sakura-100/300/500`、`mint-100/300/500`、`lavender-100/300/500`、`cream-100/200/300`。这样既满足 `bg-sakura-100`、`text-lavender-500` 的 success criteria，也覆盖奶油白背景所需的浅阶。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/ROADMAP.md] [VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-02-PLAN.md]`
 
 2. **`style.css` 是完全吸收 legacy CSS，还是先做 import hub？**
-What we know: requirement 已要求 `src/style.css` 成为 Tailwind 入口，但 context 允许“新增主入口 + 暂留旧文件承接少量兼容层”的过渡方式。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/REQUIREMENTS.md] [VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-CONTEXT.md]`
-What's unclear: 一次性合并 `tokens.css/global.css` 会不会让 diff 过大并干扰 Leaflet 回归定位。 `[ASSUMED]`
-Recommendation: planner 优先采用 import hub 方案，把“真正删除 legacy CSS”放到 Phase 20 或独立清理任务。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-CONTEXT.md]`
+Final decision: Phase 19 采用 import hub 方案，不在本阶段完全吸收或删除 `tokens.css` / `global.css`。`src/style.css` 只承担单一入口职责，按 `@import "tailwindcss"` → `@import 'leaflet/dist/leaflet.css'` → `@import './styles/tokens.css'` → `@import './styles/global.css'` 的顺序组织样式；legacy CSS 继续承接语义变量与 Leaflet 兼容补丁，真正清理延后到 Phase 20 或独立收尾任务。 `[VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-CONTEXT.md] [VERIFIED: /Users/huangjingping/i/trip-map/.planning/phases/19-tailwind-token/19-02-PLAN.md]`
 
 ## Environment Availability
 
