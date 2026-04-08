@@ -45,7 +45,6 @@ onUnmounted(() => {
     <main class="poster-shell">
       <header class="poster-shell__topbar" data-region="topbar">
         <div class="poster-shell__brand">
-          <span class="poster-shell__brand-badge" aria-hidden="true">TM</span>
           <h1 class="poster-shell__brand-title">旅记</h1>
         </div>
         <div class="poster-shell__topbar-slot" aria-hidden="true"></div>
@@ -70,6 +69,11 @@ onUnmounted(() => {
 
 <style scoped>
 .app-shell {
+  --topbar-height: 4.5rem;
+  --topbar-height-mobile: 4rem;
+}
+
+.app-shell {
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
@@ -90,7 +94,7 @@ onUnmounted(() => {
 
 .app-shell__notice {
   position: fixed;
-  top: calc(var(--space-xl) + 3.75rem);
+  top: calc(var(--topbar-height) + var(--space-md));
   left: 50%;
   z-index: 5;
   width: 28rem;
@@ -124,61 +128,49 @@ onUnmounted(() => {
   display: grid;
   align-items: stretch;
   gap: var(--space-lg);
-  padding: var(--space-xl);
+  padding: calc(var(--topbar-height) + var(--space-lg)) var(--space-xl) var(--space-xl);
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
 }
 
 .poster-shell__topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  min-height: 3.75rem;
-  padding: 0.85rem 1.1rem;
-  border: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
-  border-radius: var(--radius-surface);
+  min-height: var(--topbar-height);
+  padding: 0.95rem var(--space-xl) 0.85rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-frame) 58%, white 42%);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(232, 244, 251, 0.42)),
-    color-mix(in srgb, var(--color-surface) 84%, white 16%);
-  box-shadow: var(--shadow-surface);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(232, 244, 251, 0.72)),
+    color-mix(in srgb, var(--color-surface) 88%, white 12%);
+  box-shadow: 0 12px 30px rgba(120, 86, 122, 0.08);
   backdrop-filter: blur(12px);
 }
 
 .poster-shell__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
   min-width: 0;
-}
-
-.poster-shell__brand-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.2rem;
-  height: 2.2rem;
-  border-radius: 999px;
-  background:
-    linear-gradient(135deg, var(--color-state-selected), color-mix(in srgb, white 70%, var(--color-accent) 30%));
-  color: white;
-  font-size: 0.72rem;
-  font-weight: var(--font-weight-label);
-  letter-spacing: 0.12em;
-  box-shadow: 0 12px 24px rgba(244, 143, 177, 0.24);
 }
 
 .poster-shell__brand-title {
   margin: 0;
   color: var(--color-ink-strong);
-  font-size: clamp(1.1rem, 2.1vw, 1.4rem);
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
   line-height: 1.1;
   font-weight: var(--font-weight-heading);
   letter-spacing: 0.08em;
 }
 
 .poster-shell__topbar-slot {
-  flex: 0 0 clamp(4rem, 16vw, 8rem);
+  flex: 0 0 clamp(4rem, 14vw, 8rem);
   min-height: 1px;
 }
 
@@ -229,27 +221,25 @@ onUnmounted(() => {
 
 @media (max-width: 640px) {
   .app-shell__notice {
-    top: calc(var(--space-lg) + 3.4rem);
+    top: calc(var(--topbar-height-mobile) + var(--space-sm));
     max-width: calc(100% - var(--space-xl));
   }
 
   .poster-shell {
-    gap: var(--space-md);
-    padding: var(--space-md);
+    gap: var(--space-sm);
+    padding:
+      calc(var(--topbar-height-mobile) + var(--space-sm))
+      var(--space-md)
+      var(--space-md);
   }
 
   .poster-shell__topbar {
-    min-height: 3.4rem;
-    padding: 0.7rem 0.9rem;
+    min-height: var(--topbar-height-mobile);
+    padding: 0.8rem var(--space-md) 0.72rem;
   }
 
-  .poster-shell__brand {
-    gap: 0.7rem;
-  }
-
-  .poster-shell__brand-badge {
-    width: 2rem;
-    height: 2rem;
+  .poster-shell__brand-title {
+    font-size: 1.1rem;
   }
 
   .poster-shell__topbar-slot {
