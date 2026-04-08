@@ -4,7 +4,7 @@ milestone: v3.0
 milestone_name: 全栈化与行政区地图重构
 status: complete
 stopped_at: Milestone v3.0 shipped
-last_updated: "2026-04-08T09:04:42Z"
+last_updated: "2026-04-08T09:26:29Z"
 last_activity: 2026-04-08
 progress:
   total_phases: 8
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-03)
 Phase: —
 Plan: —
 Status: Milestone v3.0 shipped
-Last activity: 2026-04-08 - Completed quick task 260408-nch: 为地图页面补上一套 anime / kawaii / cute 风格的主题 token、壳层、弹窗卡片与 marker 视觉统一
+Last activity: 2026-04-08 - Completed quick task 260408-nw1: 修复 kawaii 顶部栏过高导致遮挡地图的问题，压缩头部高度并确保地图可视区域恢复
 
 Progress: [██████████] 100%
 
@@ -61,6 +61,7 @@ Progress: [██████████] 100%
 | 260408-lu0 | 使用 taze 获取项目依赖最新版本并处理升级事务 | 2026-04-08 | a08b4b0 | [260408-lu0-taze](./quick/260408-lu0-taze/) |
 | 260408-mom | 调整页面左上角标题，移除旧标题并新增顶部栏，左侧显示旅记，右侧留空，同时提高地图高度保持当前页面占满 | 2026-04-08 | 25f4042 | [260408-mom-topbar-title](./quick/260408-mom-topbar-title/) |
 | 260408-nch | 为地图页面补上一套 anime / kawaii / cute 风格的主题 token、壳层、弹窗卡片与 marker 视觉统一 | 2026-04-08 | 87c5097, 73ee4be, 85ae659 | [260408-nch-anime-style-kawaii-cute-anime-style-kawa](./quick/260408-nch-anime-style-kawaii-cute-anime-style-kawa/) |
+| 260408-nw1 | 修复 kawaii 顶部栏过高导致遮挡地图的问题，压缩头部高度并确保地图可视区域恢复 | 2026-04-08 | e2675e4 | [260408-nw1-kawaii](./quick/260408-nw1-kawaii/) |
 
 ---
-*Last updated: 2026-04-08 — completed quick task 260408-nch*
+*Last updated: 2026-04-08 — completed quick task 260408-nw1*
