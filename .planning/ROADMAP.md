@@ -5,20 +5,22 @@
 - ✅ **v1.0 MVP** — Phases 1-6，已于 2026-03-24 归档
 - ✅ **v2.0 城市主视角与可爱风格重构** — Phases 7-10，已于 2026-03-27 归档
 - ✅ **v3.0 全栈化与行政区地图重构** — Phases 11-18，已于 2026-04-03 归档（[详情](milestones/v3.0-ROADMAP.md)）
-- 🚧 **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-20，进行中
+- 🚧 **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，进行中
 
 ---
 
 # v4.0 Kawaii UI 重构 & Tailwind 集成
 
 **Milestone:** v4.0
-**Phases:** 19-20
+**Phases:** 19-22
 **Requirements:** 12
 
 ## Phases
 
 - [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
 - [x] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互 (completed 2026-04-09)
+- [ ] **Phase 21: v4 基础设施验证补完** - 补齐 Phase 19 的 validation / verification 证据链，让 Tailwind、字体与 Leaflet preflight requirement 重新进入可审计状态
+- [ ] **Phase 22: v4 Kawaii 验证归档与复审收口** - 补齐 Phase 20 的 verification 证据并收口里程碑复审资料，为重新 audit 与归档做准备
 
 ## Phase Overview
 
@@ -26,6 +28,8 @@
 |---|-------|------|--------------|------------------|
 | 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
 | 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
+| 21 | v4 基础设施验证补完 | 0/0 | Planned     | - |
+| 22 | v4 Kawaii 验证归档与复审收口 | 0/0 | Planned     | - |
 
 ## Phase Details
 
@@ -63,9 +67,39 @@ Plans:
 - [x] 20-04-PLAN.md — Phase 20 验证文档收口、自动化门禁与人工视觉验收
 **UI hint:** yes
 
+### Phase 21: v4 基础设施验证补完
+**Goal:** 补齐 Phase 19 的 validation / verification 证据链，消除 v4.0 审计中 INFRA-01~04、STYLE-01~02 的 orphaned 状态
+**Depends on:** Phase 20
+**Requirements:** INFRA-01, INFRA-02, INFRA-03, INFRA-04, STYLE-01, STYLE-02
+**Gap Closure:** Closes gaps from `v4.0-v4.0-MILESTONE-AUDIT.md` for Phase 19 verification completeness
+**Success Criteria** (what must be TRUE):
+  1. `19-VALIDATION.md` 与实际自动化/人工验证证据一致，不再停留在 `draft`
+  2. Phase 19 存在可审计的 `VERIFICATION.md`，明确记录 requirement coverage 与 evidence
+  3. `INFRA-01~04`、`STYLE-01~02` 在重新审计时不再因缺失 verification source 而落入 orphaned
+**Plans:** 0/0 plans complete
+Plans:
+- [ ] To be planned
+**UI hint:** yes
+
+### Phase 22: v4 Kawaii 验证归档与复审收口
+**Goal:** 补齐 Phase 20 的 verification 证据并收口 v4.0 复审资料，使 STYLE/INTER requirement 能通过 milestone re-audit
+**Depends on:** Phase 21
+**Requirements:** STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03
+**Gap Closure:** Closes gaps from `v4.0-v4.0-MILESTONE-AUDIT.md` for Phase 20 verification completeness
+**Success Criteria** (what must be TRUE):
+  1. Phase 20 存在可审计的 `VERIFICATION.md`，并与 `20-VALIDATION.md`、实际 summary 一致
+  2. v4.0 的 Kawaii shell / popup / cloud card / CTA motion 证据链在重新审计时完整
+  3. milestone re-audit 可把 STYLE-03~05、INTER-01~03 从 orphaned 恢复为 satisfied
+**Plans:** 0/0 plans complete
+Plans:
+- [ ] To be planned
+**UI hint:** yes
+
 ## Progress Table
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 19. Tailwind 基础设施 & 全局 Token | 3/3 | Complete | 2026-04-09 |
-| 20. Kawaii 组件样式全面迁移 | 0/4 | Not started | - |
+| 20. Kawaii 组件样式全面迁移 | 4/4 | Complete | 2026-04-09 |
+| 21. v4 基础设施验证补完 | 0/0 | Planned | - |
+| 22. v4 Kawaii 验证归档与复审收口 | 0/0 | Planned | - |
