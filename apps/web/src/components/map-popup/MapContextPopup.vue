@@ -81,24 +81,32 @@ defineExpose({
 <template>
   <aside
     ref="popup"
-    class="map-context-popup"
+    class="map-context-popup absolute z-[4] flex min-h-0 min-w-[var(--map-context-popup-min-width)] max-w-[var(--map-context-popup-max-width)] flex-col overflow-visible rounded-[32px] border border-white/70 bg-white/75 p-1 shadow-[0_16px_34px_rgba(155,116,160,0.12)] backdrop-blur-xl"
     role="dialog"
     aria-modal="false"
     :aria-labelledby="popupTitleId"
     :data-popup-anchor-source="anchorSource"
+    data-kawaii-shell="light"
     :style="popupStyles"
     @click.stop
   >
-    <div class="map-context-popup__arrow" aria-hidden="true"></div>
+    <div
+      class="map-context-popup__arrow pointer-events-none absolute left-6 top-full h-[1.08rem] w-[1.08rem] -translate-y-1/2 rotate-45 rounded-[0.18rem] border-b border-r border-white/70 bg-white/75 shadow-[4px_8px_16px_rgba(155,116,160,0.1)] backdrop-blur-xl"
+      data-kawaii-arrow="light"
+      aria-hidden="true"
+    ></div>
     <h2
       :id="popupTitleId"
       ref="title"
-      class="map-context-popup__title"
+      class="map-context-popup__title sr-only"
       tabindex="-1"
     >
       {{ popupTitle }}
     </h2>
-    <div class="map-context-popup__body">
+    <div
+      class="map-context-popup__body flex min-h-0 max-h-full flex-1 overflow-hidden rounded-[28px]"
+      data-kawaii-body="card-slot"
+    >
       <PointSummaryCard
         :surface="surface"
         :find-saved-point-by-city-id="findSavedPointByCityId"
@@ -113,60 +121,3 @@ defineExpose({
     </div>
   </aside>
 </template>
-
-<style scoped>
-.map-context-popup {
-  position: absolute;
-  z-index: 4;
-  display: flex;
-  flex-direction: column;
-  min-width: var(--map-context-popup-min-width);
-  max-width: var(--map-context-popup-max-width);
-  min-height: 0;
-  padding: 0.28rem;
-  border: var(--border-soft);
-  border-radius: calc(var(--radius-card) + 6px);
-  background:
-    var(--texture-ribbon),
-    var(--gradient-panel-strong);
-  overflow: hidden;
-  box-shadow: 0 18px 38px rgba(155, 116, 160, 0.16);
-  backdrop-filter: blur(16px);
-}
-
-.map-context-popup__body {
-  display: flex;
-  flex: 1 1 auto;
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-}
-
-.map-context-popup__arrow {
-  position: absolute;
-  left: 1.5rem;
-  top: 100%;
-  width: 1.08rem;
-  height: 1.08rem;
-  border-right: var(--border-soft);
-  border-bottom: var(--border-soft);
-  background:
-    var(--texture-ribbon),
-    var(--gradient-panel-strong);
-  transform: translateY(-50%) rotate(45deg);
-  box-shadow: 4px 8px 16px rgba(155, 116, 160, 0.12);
-}
-
-.map-context-popup__title {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-</style>
