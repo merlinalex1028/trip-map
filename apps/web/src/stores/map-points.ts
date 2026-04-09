@@ -165,7 +165,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
   async function bootstrapFromApi() {
     if (hasBootstrapped.value) {
-      return
+      return true
     }
 
     hasBootstrapped.value = true
@@ -173,8 +173,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
     try {
       const records = await fetchTravelRecords()
       travelRecords.value = records
+      return true
     } catch {
       travelRecords.value = []
+      return false
     }
   }
 

@@ -269,7 +269,16 @@ async function preloadSavedBoundaryShards() {
 watch(isReady, (ready) => {
   if (ready) {
     void preloadAuthoritativeLayers()
-    void mapPointsStore.bootstrapFromApi()
+    void mapPointsStore.bootstrapFromApi().then((bootstrapped) => {
+      if (bootstrapped) {
+        return
+      }
+
+      setInteractionNotice({
+        tone: 'warning',
+        message: '记录服务暂不可用，请先启动 pnpm dev 或单独运行 pnpm dev:server。',
+      })
+    })
   }
 })
 

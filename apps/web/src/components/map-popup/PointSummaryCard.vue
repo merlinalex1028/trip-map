@@ -201,13 +201,17 @@ function handleContinueWithFallback() {
               : '查看地点'
         }}
       </p>
-      <div class="point-summary-card__title-row grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3">
-        <h2 :class="['point-summary-card__title', titleClass]" data-display="true" tabindex="-1">
+      <div class="point-summary-card__title-row grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-3">
+        <h2
+          :class="['point-summary-card__title', 'min-w-0 break-words', titleClass]"
+          data-display="true"
+          tabindex="-1"
+        >
           {{ summaryTitle }}
         </h2>
         <span
           v-if="summaryTypeLabel"
-          :class="typePillClass"
+          :class="[typePillClass, 'self-start']"
           data-place-type-label="true"
           data-kawaii-role="type-pill"
         >

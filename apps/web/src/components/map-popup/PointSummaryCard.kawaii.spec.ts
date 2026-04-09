@@ -224,6 +224,26 @@ describe('PointSummaryCard kawaii contracts', () => {
     expect(candidateWrapper.find('script').exists()).toBe(false)
   })
 
+  it('keeps long titles shrinkable so type pill and primary action do not overlap them', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface({
+          name: 'Phongsaly - very long administrative label for wrapping checks',
+        }),
+      },
+    })
+
+    const titleRowClass =
+      wrapper.get('.point-summary-card__title-row').attributes('class') ?? ''
+    const titleClass = wrapper.get('[data-display="true"]').attributes('class') ?? ''
+    const typePillClass = wrapper.get('[data-kawaii-role="type-pill"]').attributes('class') ?? ''
+
+    expect(titleRowClass).toContain('min-w-0')
+    expect(titleClass).toContain('min-w-0')
+    expect(titleClass).toContain('break-words')
+    expect(typePillClass).toContain('self-start')
+  })
+
   it('locks the cloud card and ctas to the 300ms ease-out motion family', () => {
     const viewWrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface() },

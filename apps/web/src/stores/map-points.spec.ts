@@ -108,10 +108,11 @@ describe('map-points store', () => {
       fetchMock.mockRejectedValueOnce(new Error('network error'))
       const store = useMapPointsStore()
 
-      await store.bootstrapFromApi()
+      const bootstrapped = await store.bootstrapFromApi()
 
       expect(store.travelRecords).toHaveLength(0)
       expect(store.hasBootstrapped).toBe(true)
+      expect(bootstrapped).toBe(false)
     })
 
     it('skips if already bootstrapped', async () => {
@@ -120,9 +121,10 @@ describe('map-points store', () => {
 
       await store.bootstrapFromApi()
       expect(store.travelRecords).toHaveLength(1)
-      await store.bootstrapFromApi()
+      const bootstrapped = await store.bootstrapFromApi()
 
       expect(fetchMock).toHaveBeenCalledTimes(1)
+      expect(bootstrapped).toBe(true)
     })
   })
 

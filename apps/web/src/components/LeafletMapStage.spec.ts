@@ -382,6 +382,22 @@ describe('LeafletMapStage', () => {
       expect(cnCalls.length).toBeGreaterThanOrEqual(1)
       expect(overseasCalls.length).toBeGreaterThanOrEqual(1)
     })
+
+    it('shows a warning notice when records bootstrap cannot reach the server', async () => {
+      recordsApiMock.fetchTravelRecords.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+
+      mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      await nextTick()
+      await flushPromises()
+
+      const mapUiStore = useMapUiStore()
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '记录服务暂不可用，请先启动 pnpm dev 或单独运行 pnpm dev:server。',
+      })
+    })
   })
 
   // -------------------------------------------------------------------------
