@@ -18,7 +18,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-08)
+See: .planning/PROJECT.md (updated 2026-04-09)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
 **Current focus:** Phase 22 — v4-kawaii-audit-closure（待执行）
@@ -50,6 +50,7 @@ Progress: [██████████] 100%
 
 ## Next Steps
 
+- `/gsd-execute-phase 22` — 执行 Phase 22，补齐 Phase 20 verification 证据并收口 v4.0 milestone re-audit
 - `/gsd-code-review 20` — 对已完成的 Phase 20 做收尾代码审查
 - `/gsd-complete-milestone v4.0` — 若其余收尾门禁已完成，归档当前里程碑
 
@@ -83,7 +84,7 @@ Progress: [██████████] 100%
 ## Session Continuity
 
 Last Session: 2026-04-09T05:27:53.966Z
-Stopped At: Completed Phase 20-kawaii
+Stopped At: Completed Phase 21-v4-infra-verification-closure
 
 ---
 *Last updated: 2026-04-09 — Phase 21 complete and Phase 22 ready*
