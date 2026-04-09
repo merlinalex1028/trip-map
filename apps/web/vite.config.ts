@@ -1,3 +1,4 @@
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
@@ -5,7 +6,7 @@ const fromWebRoot = (path: string) => new URL(path, import.meta.url).pathname
 const repoRoot = fromWebRoot('../..')
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [tailwindcss(), vue()],
   resolve: {
     alias: {
       vue: fromWebRoot('./node_modules/vue'),
