@@ -9,14 +9,14 @@
 ### Infrastructure（基础设施）
 
 - [x] **INFRA-01**: `apps/web` 已安装 `tailwindcss` v4 + `@tailwindcss/vite`，`vite.config.ts` 已配置 Tailwind Vite 插件
-- [ ] **INFRA-02**: `apps/web/src/style.css` 包含 `@import "tailwindcss"` + `@theme {}` kawaii 调色板，Leaflet CSS 在其后引入（顺序正确）
-- [ ] **INFRA-03**: `@fontsource-variable/nunito` 已安装，在 `main.ts` 导入，Nunito Variable 字体全局生效
+- [x] **INFRA-02**: `apps/web/src/style.css` 包含 `@import "tailwindcss"` + `@theme {}` kawaii 调色板，Leaflet CSS 在其后引入（顺序正确）
+- [x] **INFRA-03**: `@fontsource-variable/nunito` 已安装，在 `main.ts` 导入，Nunito Variable 字体全局生效
 - [ ] **INFRA-04**: Leaflet 地图控件、缩放按钮、归因链接在 Tailwind 集成后样式正常，无 preflight 副作用
 
 ### Style System（样式体系）
 
-- [ ] **STYLE-01**: 页面全局背景为奶油白（#FAFAFA / #FFF5F5），Tailwind 工具类可使用 `sakura`、`mint`、`lavender`、`cream` 颜色
-- [ ] **STYLE-02**: 全站字体为 Nunito Variable（圆润友好），通过 `@theme --font-sans` 设置为默认字体
+- [x] **STYLE-01**: 页面全局背景为奶油白（#FAFAFA / #FFF5F5），Tailwind 工具类可使用 `sakura`、`mint`、`lavender`、`cream` 颜色
+- [x] **STYLE-02**: 全站字体为 Nunito Variable（圆润友好），通过 `@theme --font-sans` 设置为默认字体
 - [ ] **STYLE-03**: 所有按钮/徽章为 pill-shaped（`rounded-full`），配合彩色柔光阴影（阴影色与背景色匹配）
 - [ ] **STYLE-04**: 卡片/容器使用大圆角（`rounded-3xl`）+ `border-4 border-white` + 柔和 box-shadow，呈现 floating-cloud 浮动效果
 - [ ] **STYLE-05**: 布局宽松，组件内外使用 generous padding/margin（`p-6` / `gap-4` 以上），元素不拥挤
@@ -50,11 +50,11 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 19 | Complete |
-| INFRA-02 | Phase 19 | Pending |
-| INFRA-03 | Phase 19 | Pending |
+| INFRA-02 | Phase 19 | Complete |
+| INFRA-03 | Phase 19 | Complete |
 | INFRA-04 | Phase 19 | Pending |
-| STYLE-01 | Phase 19 | Pending |
-| STYLE-02 | Phase 19 | Pending |
+| STYLE-01 | Phase 19 | Complete |
+| STYLE-02 | Phase 19 | Complete |
 | STYLE-03 | Phase 20 | Pending |
 | STYLE-04 | Phase 20 | Pending |
 | STYLE-05 | Phase 20 | Pending |
