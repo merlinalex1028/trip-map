@@ -17,14 +17,14 @@
 
 ## Phases
 
-- [ ] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响
+- [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
 - [ ] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互
 
 ## Phase Overview
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 19 | Tailwind 基础设施 & 全局 Token | 2/3 | In Progress|  |
+| 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
 | 20 | Kawaii 组件样式全面迁移 | 所有 UI 组件呈现完整 kawaii 视觉与微交互 | STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03 | 5 |
 
 ## Phase Details
@@ -38,11 +38,11 @@
   2. 页面背景显示奶油白（#FAFAFA / #FFF5F5），视觉上与纯白有明显柔和区别
   3. 全站字体渲染为 Nunito Variable（圆润，字母有明显圆角感），与之前的 sans-serif 字体可见区别
   4. 打开地图页面，Leaflet 缩放按钮、归因链接、图层控件样式正常，与 v3.0 视觉一致，无样式崩溃
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 19-01-PLAN.md — 锁定 Tailwind v4 依赖范围、Vite 插件接入与静态契约测试
 - [x] 19-02-PLAN.md — 建立 `style.css` 入口、Nunito 字体基线和最小 Tailwind App shell 样板
-- [ ] 19-03-PLAN.md — 跑完自动化门禁并完成 Leaflet 浏览器冒烟验收
+- [x] 19-03-PLAN.md — 跑完自动化门禁并完成 Leaflet 浏览器冒烟验收
 **UI hint:** yes
 
 ### Phase 20: Kawaii 组件样式全面迁移
@@ -62,5 +62,5 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 19. Tailwind 基础设施 & 全局 Token | 0/3 | Not started | - |
+| 19. Tailwind 基础设施 & 全局 Token | 3/3 | Complete | 2026-04-09 |
 | 20. Kawaii 组件样式全面迁移 | 0/TBD | Not started | - |

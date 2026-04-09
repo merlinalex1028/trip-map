@@ -11,7 +11,7 @@
 - [x] **INFRA-01**: `apps/web` 已安装 `tailwindcss` v4 + `@tailwindcss/vite`，`vite.config.ts` 已配置 Tailwind Vite 插件
 - [x] **INFRA-02**: `apps/web/src/style.css` 包含 `@import "tailwindcss"` + `@theme {}` kawaii 调色板，Leaflet CSS 在其后引入（顺序正确）
 - [x] **INFRA-03**: `@fontsource-variable/nunito` 已安装，在 `main.ts` 导入，Nunito Variable 字体全局生效
-- [ ] **INFRA-04**: Leaflet 地图控件、缩放按钮、归因链接在 Tailwind 集成后样式正常，无 preflight 副作用
+- [x] **INFRA-04**: Leaflet 地图控件、缩放按钮、归因链接在 Tailwind 集成后样式正常，无 preflight 副作用
 
 ### Style System（样式体系）
 
@@ -52,7 +52,7 @@
 | INFRA-01 | Phase 19 | Complete |
 | INFRA-02 | Phase 19 | Complete |
 | INFRA-03 | Phase 19 | Complete |
-| INFRA-04 | Phase 19 | Pending |
+| INFRA-04 | Phase 19 | Complete |
 | STYLE-01 | Phase 19 | Complete |
 | STYLE-02 | Phase 19 | Complete |
 | STYLE-03 | Phase 20 | Pending |

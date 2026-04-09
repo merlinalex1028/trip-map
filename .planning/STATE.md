@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Kawaii UI 重构 & Tailwind 集成
-status: executing
-stopped_at: Completed 19-tailwind-token-02-PLAN.md
-last_updated: "2026-04-09T02:38:52.489Z"
+status: planning
+stopped_at: Completed 19-tailwind-token-03-PLAN.md
+last_updated: "2026-04-09T03:09:21.054Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 19 — tailwind-token
+**Current focus:** Phase 20 — kawaii 组件样式全面迁移（待规划）
 
 ## Current Position
 
-Phase: 19 (tailwind-token) — EXECUTING
-Plan: 3 of 3
-Status: Ready to execute
-Last activity: 2026-04-09
+Phase: 20
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-04-09 -- Phase 19 complete, transitioned to Phase 20
 
-Progress: [███░░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Last Shipped Milestone
 
@@ -50,7 +50,7 @@ Progress: [███░░░░░░░] 33%
 
 ## Next Steps
 
-- `/gsd-plan-phase 19` — 开始规划 Phase 19: Tailwind 基础设施 & 全局 Token
+- `/gsd-plan-phase 20` — 开始规划 Phase 20: Kawaii 组件样式全面迁移
 
 ### Quick Tasks Completed
 
@@ -68,18 +68,21 @@ Progress: [███░░░░░░░] 33%
 - [2026-04-09 | 19-tailwind-token] 用静态 Vitest 合同直接断言 `package.json` 与 `vite.config.ts` 源码字符串，锁定依赖范围和插件顺序。
 - [Phase 19-tailwind-token]: style.css 统一承接 Tailwind、Leaflet 与 legacy CSS imports，main.ts 只保留字体与单一入口。
 - [Phase 19-tailwind-token]: App.vue 的 Tailwind 迁移只覆盖 topbar、notice 和 map shell；grain/spark 等装饰继续留在少量 scoped CSS。
+- [Phase 19-tailwind-token]: 顶部栏拥挤优先通过信息层级和横向排版缓解，不靠增加头部高度。
+- [Phase 19-tailwind-token]: Leaflet popup 只保留一层主边框，避免容器与内容卡叠加出过厚 chrome。
 
 ## Performance Metrics
 
 | Phase | Plan | Duration | Tasks | Files | Date |
 |-------|------|----------|-------|-------|------|
 | 19-tailwind-token | 01 | 10m | 1 | 4 | 2026-04-09 |
-| Phase 19-tailwind-token P02 | 10 min | 2 tasks | 8 files |
+| 19-tailwind-token | 02 | 10m | 2 | 8 | 2026-04-09 |
+| 19-tailwind-token | 03 | 31m | 2 | 4 | 2026-04-09 |
 
 ## Session Continuity
 
-Last Session: 2026-04-09T02:38:52.487Z
-Stopped At: Completed 19-tailwind-token-02-PLAN.md
+Last Session: 2026-04-09T03:09:21.054Z
+Stopped At: Completed 19-tailwind-token-03-PLAN.md
 
 ---
-*Last updated: 2026-04-08 — Roadmap created, Phase 19 ready to plan*
+*Last updated: 2026-04-09 — Phase 19 complete, Phase 20 ready to plan*
