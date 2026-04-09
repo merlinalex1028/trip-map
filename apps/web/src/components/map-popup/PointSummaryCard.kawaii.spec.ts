@@ -8,6 +8,12 @@ import { mount } from '@vue/test-utils'
 import PointSummaryCard from './PointSummaryCard.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
+type ViewSummarySurface = {
+  mode: 'view'
+  point: MapPointDisplay
+  boundarySupportState: 'supported' | 'missing' | 'not-applicable'
+}
+
 const ambiguousResolve = (() => {
   if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
     throw new Error('Expected ambiguous canonical resolve fixture')
@@ -58,7 +64,6 @@ function createViewPoint(overrides: Partial<MapPointDisplay> = {}): MapPointDisp
   return {
     ...createDraftPoint(PHASE12_RESOLVED_BEIJING, {
       id: `saved-${PHASE12_RESOLVED_BEIJING.placeId}`,
-      source: 'saved',
     }),
     source: 'saved',
     ...overrides,
@@ -91,7 +96,9 @@ function createCanonicalDraftPoint(overrides: Partial<DraftMapPoint> = {}): Draf
   })
 }
 
-function makeViewSurface(overrides: Partial<MapPointDisplay> = {}): SummarySurfaceState {
+function makeViewSurface(
+  overrides: Partial<MapPointDisplay> = {},
+): ViewSummarySurface {
   return {
     mode: 'view',
     point: createViewPoint(overrides),
@@ -99,7 +106,7 @@ function makeViewSurface(overrides: Partial<MapPointDisplay> = {}): SummarySurfa
   }
 }
 
-function makeCandidateSurface(): SummarySurfaceState {
+function makeCandidateSurface(): Extract<SummarySurfaceState, { mode: 'candidate-select' }> {
   return {
     mode: 'candidate-select',
     fallbackPoint: createCanonicalDraftPoint(),
@@ -155,8 +162,8 @@ describe('PointSummaryCard kawaii contracts', () => {
     expect(typePill.attributes('class')).toContain('rounded-full')
     expect(typePill.attributes('class')).toContain('px-3')
     expect(typePill.attributes('class')).toContain('py-1')
-    expect(primaryCta.exists()).toBe(true)
-    expect(secondaryCta.exists()).toBe(true)
+    expect(primaryCta.attributes('data-kawaii-role')).toBe('primary-cta')
+    expect(secondaryCta.attributes('data-kawaii-role')).toBe('secondary-cta')
   })
 
   it('keeps primary hit areas tall and candidate / notice spacing roomy', () => {

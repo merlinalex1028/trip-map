@@ -126,6 +126,44 @@ const showIlluminateButton = computed(() => !isCandidateMode.value)
 const illuminateHint = computed(() =>
   props.isIlluminatable ? null : '该地点暂不支持点亮',
 )
+const cloudCardClass =
+  'point-summary-card grid flex-1 min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden relative rounded-3xl border-4 border-white p-6 gap-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,245,255,0.94))] shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)]'
+const badgeClass =
+  'point-summary-card__badge w-fit rounded-full px-3 py-1 border border-white/80 bg-[linear-gradient(135deg,rgba(255,241,168,0.78),rgba(255,232,242,0.96))] text-[0.75rem] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-strong)] shadow-[0_10px_20px_rgba(244,143,177,0.16)]'
+const typePillClass =
+  'point-summary-card__type-label w-fit rounded-full px-3 py-1 border border-[#d6ebf2] bg-[#effafc] text-[0.78rem] font-bold text-[var(--color-ink-strong)]'
+const noticeClass =
+  'point-summary-card__notice rounded-2xl border border-dashed border-[#d7dcea] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(238,243,248,0.92))] p-4'
+const candidateActionBaseClass =
+  'point-summary-card__candidate-action relative grid justify-items-start gap-4 text-left min-h-11 rounded-[1.4rem] border p-4 shadow-[0_12px_24px_rgba(168,121,165,0.14)]'
+const candidateActionAvailableClass =
+  'border-white/80 bg-[linear-gradient(180deg,rgba(255,252,255,0.98),rgba(255,247,251,0.92))] text-[var(--color-ink-strong)]'
+const candidateActionSavedClass =
+  'border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.98),rgba(223,244,248,0.92))] text-[var(--color-ink-strong)]'
+const candidateActionRecommendedClass =
+  'border-[#f4b4c9] bg-[linear-gradient(135deg,rgba(255,241,168,0.42),rgba(255,232,242,0.98))] text-[var(--color-ink-strong)]'
+const primaryCtaBaseClass =
+  'point-summary-card__illuminate-btn min-h-11 rounded-full px-4 py-2 text-[var(--font-label-size)] font-bold whitespace-nowrap shadow-[0_14px_28px_rgba(244,143,177,0.22)]'
+const primaryCtaOffClass =
+  'border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] text-[var(--color-accent-strong)]'
+const primaryCtaOnClass =
+  'border border-[#c8e8ef] bg-[linear-gradient(135deg,rgba(147,219,237,0.74),rgba(223,244,248,0.94))] text-[color-mix(in_srgb,var(--color-secondary-strong)_72%,var(--color-ink-strong)_28%)] shadow-[0_14px_28px_rgba(104,159,192,0.2)]'
+
+const illuminateButtonClass = computed(() => [
+  primaryCtaBaseClass,
+  props.isSaved ? primaryCtaOnClass : primaryCtaOffClass,
+])
+
+function getCandidateActionClass(item: CandidateListItem) {
+  return [
+    candidateActionBaseClass,
+    item.isRecommended
+      ? candidateActionRecommendedClass
+      : getCandidateStatus(item.statusHint) === 'saved'
+        ? candidateActionSavedClass
+        : candidateActionAvailableClass,
+  ]
+}
 
 function handleIlluminateToggle() {
   if (props.isPending || !props.isIlluminatable) return
@@ -147,13 +185,14 @@ function handleContinueWithFallback() {
 
 <template>
   <article
-    class="point-summary-card"
+    :class="cloudCardClass"
     data-region="point-summary-card"
+    data-kawaii-surface="cloud"
     :data-summary-mode="summaryMode"
     :data-record-source="recordSource"
   >
-    <header class="point-summary-card__header" data-popup-section="header">
-      <p class="point-summary-card__badge">
+    <header class="point-summary-card__header grid gap-4" data-popup-section="header">
+      <p :class="badgeClass" data-kawaii-role="badge">
         {{
           surface.mode === 'candidate-select'
             ? '确认地点'
@@ -162,23 +201,24 @@ function handleContinueWithFallback() {
               : '查看地点'
         }}
       </p>
-      <div class="point-summary-card__title-row">
+      <div class="point-summary-card__title-row grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3">
         <h2 :class="['point-summary-card__title', titleClass]" data-display="true" tabindex="-1">
           {{ summaryTitle }}
         </h2>
         <span
           v-if="summaryTypeLabel"
-          class="point-summary-card__type-label"
+          :class="typePillClass"
           data-place-type-label="true"
+          data-kawaii-role="type-pill"
         >
           {{ summaryTypeLabel }}
         </span>
         <button
           v-if="showIlluminateButton"
-          class="point-summary-card__illuminate-btn"
-          :class="{ 'point-summary-card__illuminate-btn--on': isSaved }"
+          :class="illuminateButtonClass"
           :data-illuminate-state="illuminateState"
           :data-illuminatable="String(isIlluminatable)"
+          data-kawaii-role="primary-cta"
           :disabled="isPending || !isIlluminatable"
           :aria-label="illuminateHint ?? undefined"
           :title="illuminateHint ?? undefined"
@@ -197,40 +237,41 @@ function handleContinueWithFallback() {
       </p>
     </header>
 
-    <div class="point-summary-card__content" data-popup-section="content">
-      <div class="point-summary-card__scroll-region" data-scroll-region="true">
+    <div class="point-summary-card__content flex min-h-0 overflow-hidden" data-popup-section="content">
+      <div class="point-summary-card__scroll-region grid flex-1 min-h-0 gap-4 overflow-y-auto pr-1.5" data-scroll-region="true">
         <p
           v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
-          class="point-summary-card__notice"
+          :class="noticeClass"
           data-notice-tone="fallback"
         >
           {{ isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice }}
         </p>
         <p
           v-if="boundarySupportNotice"
-          class="point-summary-card__notice"
+          :class="noticeClass"
           data-notice-tone="fallback"
         >
           {{ boundarySupportNotice }}
         </p>
 
-        <div v-if="isCandidateMode" class="point-summary-card__section">
-          <div class="point-summary-card__candidate-list">
+        <div v-if="isCandidateMode" class="point-summary-card__section grid gap-4">
+          <div class="point-summary-card__candidate-list grid gap-4">
             <template v-for="item in candidateItems" :key="item.candidate.cityId">
               <button
                 v-if="item.isRecommended"
-                class="point-summary-card__candidate-action"
+                :class="getCandidateActionClass(item)"
                 :data-candidate-status="getCandidateStatus(item.statusHint)"
                 data-candidate-recommended="true"
                 data-cta-tone="selected"
+                data-kawaii-role="secondary-cta"
                 type="button"
                 @click="handleCandidateConfirm(item.candidate)"
               >
-                <span class="point-summary-card__candidate-headline">
+                <span class="point-summary-card__candidate-headline grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <span class="point-summary-card__candidate-city">
                     {{ item.canonicalCandidate.displayName }}
                   </span>
-                  <span class="point-summary-card__candidate-type">
+                  <span class="point-summary-card__candidate-type" :class="typePillClass">
                     {{ item.canonicalCandidate.typeLabel }}
                   </span>
                 </span>
@@ -242,17 +283,18 @@ function handleContinueWithFallback() {
               </button>
               <button
                 v-else
-                class="point-summary-card__candidate-action"
+                :class="getCandidateActionClass(item)"
                 :data-candidate-status="getCandidateStatus(item.statusHint)"
                 data-cta-tone="selected"
+                data-kawaii-role="secondary-cta"
                 type="button"
                 @click="handleCandidateConfirm(item.candidate)"
               >
-                <span class="point-summary-card__candidate-headline">
+                <span class="point-summary-card__candidate-headline grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
                   <span class="point-summary-card__candidate-city">
                     {{ item.canonicalCandidate.displayName }}
                   </span>
-                  <span class="point-summary-card__candidate-type">
+                  <span class="point-summary-card__candidate-type" :class="typePillClass">
                     {{ item.canonicalCandidate.typeLabel }}
                   </span>
                 </span>
@@ -276,32 +318,9 @@ function handleContinueWithFallback() {
 
 <style scoped>
 .point-summary-card {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  flex: 1 1 auto;
-  gap: var(--space-md);
-  min-height: 0;
-  padding: var(--space-lg);
-  border: 0;
-  border-radius: var(--radius-card);
   background:
-    radial-gradient(circle at top right, rgba(255, 241, 168, 0.18), transparent 20%),
-    var(--texture-ribbon),
-    var(--gradient-panel-strong);
-  box-shadow: none;
-  overflow: hidden;
-  position: relative;
-}
-
-.point-summary-card__header,
-.point-summary-card__content,
-.point-summary-card__scroll-region,
-.point-summary-card__section,
-.point-summary-card__candidate-list,
-.point-summary-card__title-row,
-.point-summary-card__candidate-headline {
-  display: grid;
-  gap: var(--space-sm);
+    radial-gradient(circle at top right, rgba(255, 241, 168, 0.22), transparent 22%),
+    radial-gradient(circle at left center, rgba(223, 244, 248, 0.38), transparent 28%);
 }
 
 .point-summary-card__badge,
@@ -316,21 +335,6 @@ function handleContinueWithFallback() {
   margin: 0;
 }
 
-.point-summary-card__badge {
-  width: fit-content;
-  padding: 0.34rem 0.72rem;
-  border: 1px solid color-mix(in srgb, var(--color-frame-strong) 58%, white 42%);
-  border-radius: var(--radius-pill);
-  background: var(--gradient-accent-soft);
-  color: var(--color-ink-strong);
-  font-size: 0.75rem;
-  font-weight: var(--font-weight-label);
-  line-height: var(--font-label-line-height);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: var(--shadow-button);
-}
-
 .point-summary-card__title {
   color: var(--color-ink-strong);
   font-size: clamp(1.45rem, 2vw, 1.8rem);
@@ -339,27 +343,9 @@ function handleContinueWithFallback() {
   letter-spacing: 0.03em;
 }
 
-.point-summary-card__title-row {
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-}
-
-.point-summary-card__candidate-headline {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-}
-
-.point-summary-card__type-label,
 .point-summary-card__candidate-type {
-  width: fit-content;
-  padding: 0.24rem 0.62rem;
-  border: 1px solid color-mix(in srgb, var(--color-secondary) 52%, white 48%);
-  border-radius: var(--radius-pill);
-  background: rgba(223, 244, 248, 0.9);
-  color: var(--color-ink-strong);
-  font-size: 0.78rem;
-  font-weight: var(--font-weight-label);
-  line-height: var(--font-label-line-height);
+  display: inline-flex;
+  align-items: center;
 }
 
 .point-summary-card__meta,
@@ -369,19 +355,6 @@ function handleContinueWithFallback() {
   color: var(--color-ink-muted);
   font-size: var(--font-label-size);
   line-height: var(--font-label-line-height);
-}
-
-.point-summary-card__notice {
-  margin: 0;
-  color: var(--color-ink-strong);
-  font-size: var(--font-label-size);
-  font-weight: var(--font-weight-label);
-  line-height: var(--font-label-line-height);
-  padding: 0.82rem 0.96rem;
-  border: 1px dashed color-mix(in srgb, var(--color-secondary) 48%, var(--color-frame) 52%);
-  border-radius: var(--radius-control);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(238, 243, 248, 0.92));
 }
 
 .point-summary-card__candidate-cta {
@@ -420,21 +393,8 @@ function handleContinueWithFallback() {
 }
 
 .point-summary-card__candidate-action {
-  position: relative;
-  display: grid;
-  justify-items: start;
-  padding: 0.98rem 1rem;
-  gap: var(--space-xs);
-  text-align: left;
   cursor: pointer;
-  min-height: 44px;
-  border: var(--border-soft);
-  border-radius: calc(var(--radius-control) + 2px);
-  background:
-    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(255, 247, 251, 0.92));
-  color: var(--color-ink-strong);
   font-size: var(--font-label-size);
-  box-shadow: var(--shadow-button);
   transition:
     transform var(--motion-emphasis) ease,
     border-color var(--motion-emphasis) ease,
@@ -453,19 +413,14 @@ function handleContinueWithFallback() {
 
 .point-summary-card__candidate-action[data-candidate-status='saved'] {
   border-color: color-mix(in srgb, var(--color-secondary) 66%, white 34%);
-  background:
-    linear-gradient(180deg, rgba(235, 249, 253, 0.98), rgba(223, 244, 248, 0.9));
 }
 
 .point-summary-card__candidate-action[data-candidate-status='available'] {
-  background:
-    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(255, 247, 251, 0.92));
+  border-color: color-mix(in srgb, var(--color-frame) 58%, white 42%);
 }
 
 .point-summary-card__candidate-action[data-candidate-recommended='true'] {
   border-color: color-mix(in srgb, var(--color-accent) 58%, var(--color-lemon) 42%);
-  background:
-    linear-gradient(135deg, rgba(255, 241, 168, 0.42), rgba(255, 232, 242, 0.96));
 }
 
 .point-summary-card__candidate-action:hover,
@@ -483,30 +438,13 @@ function handleContinueWithFallback() {
 }
 
 .point-summary-card__illuminate-btn {
-  padding: 0.38rem 0.82rem;
-  border: 1px solid color-mix(in srgb, var(--color-frame) 56%, white 44%);
-  border-radius: var(--radius-pill);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 243, 248, 0.94));
-  color: var(--color-ink-muted);
-  font-size: var(--font-label-size);
-  font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
   cursor: pointer;
-  white-space: nowrap;
-  min-height: 32px;
-  box-shadow: var(--shadow-button);
   transition:
     transform var(--motion-emphasis) ease,
     background var(--motion-emphasis) ease,
     border-color var(--motion-emphasis) ease,
     color var(--motion-emphasis) ease;
-}
-
-.point-summary-card__illuminate-btn--on {
-  border-color: color-mix(in srgb, var(--color-secondary) 68%, white 32%);
-  background: linear-gradient(135deg, rgba(147, 219, 237, 0.72), rgba(223, 244, 248, 0.94));
-  color: color-mix(in srgb, var(--color-secondary-strong) 72%, var(--color-ink-strong) 28%);
 }
 
 .point-summary-card__illuminate-btn:disabled {
