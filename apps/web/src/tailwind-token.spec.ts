@@ -96,12 +96,12 @@ describe('tailwind token contracts', () => {
     expect(tokensSource).toContain('--font-family-display:')
     expect(tokensSource).toContain('--color-page: #FAFAFA;')
     expect(tokensSource).toContain('--color-page-bottom: #FFF5F5;')
+    expect(tokensSource).toContain('--color-state-selected:')
 
     expect(globalSource).toContain('font-family: var(--font-family-body);')
     expect(globalSource).toContain('background: linear-gradient(180deg, var(--color-page), var(--color-page-bottom));')
     expect(globalSource).toContain('.leaflet-container svg {')
     expect(globalSource).toContain('max-width: none;')
     expect(globalSource).toContain('max-height: none;')
-    expect(globalSource).toContain('--color-state-selected:')
   })
 })

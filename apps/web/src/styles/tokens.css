@@ -24,13 +24,14 @@
   --font-display-line-height: 1.1;
 
   --font-family-body:
-    'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    'Nunito Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
   --font-family-display:
-    'Hiragino Maru Gothic ProN', 'Hannotate SC', 'Marker Felt', 'Trebuchet MS',
-    'Noto Sans SC', sans-serif;
+    'Nunito Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
 
-  --color-page: #fff7fb;
-  --color-page-bottom: #eff8ff;
+  --color-page: #FAFAFA;
+  --color-page-bottom: #FFF5F5;
   --color-surface: #fdf5ff;
   --color-surface-soft: #fffaf2;
   --color-surface-alt: #eef8ff;
@@ -82,11 +83,11 @@
   --shadow-dusty: var(--shadow-surface);
 
   --gradient-page:
-    linear-gradient(180deg, rgba(255, 247, 251, 0.96), rgba(239, 248, 255, 0.92));
+    linear-gradient(180deg, rgba(250, 250, 250, 0.96), rgba(255, 245, 245, 0.92));
   --gradient-panel:
-    linear-gradient(180deg, rgba(255, 252, 255, 0.96), rgba(237, 247, 255, 0.92));
+    linear-gradient(180deg, rgba(253, 245, 255, 0.96), rgba(255, 245, 245, 0.92));
   --gradient-panel-strong:
-    linear-gradient(145deg, rgba(255, 245, 251, 0.97), rgba(235, 247, 255, 0.94));
+    linear-gradient(145deg, rgba(255, 245, 251, 0.97), rgba(241, 232, 255, 0.94));
   --gradient-accent:
     linear-gradient(135deg, rgba(255, 214, 235, 0.98), rgba(255, 241, 168, 0.92));
   --gradient-accent-soft:

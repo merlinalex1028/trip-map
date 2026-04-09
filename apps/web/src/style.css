@@ -1,0 +1,21 @@
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+@import './styles/tokens.css';
+@import './styles/global.css';
+
+@theme {
+  --color-sakura-100: #FFD7EA;
+  --color-sakura-300: #F48FB1;
+  --color-sakura-500: #FF78AD;
+  --color-mint-100: #D8F6E8;
+  --color-mint-300: #B8EAD6;
+  --color-mint-500: #7ED9B6;
+  --color-lavender-100: #F1E8FF;
+  --color-lavender-300: #DBC4FF;
+  --color-lavender-500: #B79BEA;
+  --color-cream-100: #FAFAFA;
+  --color-cream-200: #FFF5F5;
+  --color-cream-300: #FDF5FF;
+  --font-sans: 'Nunito Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', sans-serif;
+}
