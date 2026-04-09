@@ -281,16 +281,16 @@ Source: `apps/web/src/components/map-popup/PointSummaryCard.kawaii.spec.ts`. [VE
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | 如果 planner 需要同步 `REQUIREMENTS.md` / `ROADMAP.md` 元数据，建议把它放在 `20-VERIFICATION.md` 与 milestone audit 更新之后作为次级任务。 [ASSUMED] | Open Questions | 任务顺序可能不够优，导致 planner 选择不同的文档同步节奏。 |
+| A1 | 如果 planner 需要同步 `REQUIREMENTS.md` / `ROADMAP.md` 元数据，建议把它放在 `20-VERIFICATION.md` 与 milestone audit 更新之后作为次级任务。 [ASSUMED] | Resolved Questions | 任务顺序可能不够优，导致 planner 选择不同的文档同步节奏。 |
 | A2 | docs-only wave merge 可以继续只跑 quick run，而不是默认升级到 full suite。 [ASSUMED] | Validation Architecture | 可能低估 planner 想要的验证强度。 |
 | A3 | 本研究在 2026-05-09 前对当前仓库结构仍然有效，前提是 Phase 20/22 文档与 specs 未发生变化。 [ASSUMED] | Metadata | 若 phase 文档或测试入口提前变化，部分计划建议会过期。 |
 
-## Open Questions
+## Resolved Questions
 
 1. **是否在 Phase 22 内同步更新 `REQUIREMENTS.md` / `ROADMAP.md` 的状态元数据？**
-   - What we know: `22-CONTEXT.md` 把这件事留给 downstream discretion，但要求不改变 “docs closure 优先” 的边界。 [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-CONTEXT.md]
-   - What's unclear: planner 是否希望把 requirement traceability 的 `Pending` 一并翻成完成，以避免 audit 已通过但元数据仍滞后。 [VERIFIED: .planning/REQUIREMENTS.md]
-   - Recommendation: 把它列为次级任务，放在 `20-VERIFICATION.md` 与 milestone audit 更新之后执行；如果只改一处能维持一致性，也不要抢在主产物之前。 [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-CONTEXT.md] [ASSUMED]
+   - Resolution: **RESOLVED (2026-04-09)**。采用 `22-02-PLAN.md` Task 2 的最小元数据同步方案，在 `20-VERIFICATION.md` 与 `.planning/v4.0-v4.0-MILESTONE-AUDIT.md` 完成更新之后，再按 closure 结果同步 `ROADMAP.md` / `REQUIREMENTS.md`；若 audit 与 tracking 已天然一致，则不额外扩写内容。 [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-02-PLAN.md] [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-CONTEXT.md]
+   - Why this closes the question: 该方案满足 `22-CONTEXT.md` 留给 downstream discretion 的边界，同时保持 “docs closure 优先”，不把元数据同步提前成主产物。 [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-CONTEXT.md]
+   - Planning consequence: research 与 plan 现已对齐，Phase 22 默认保留 2-plan 结构，其中 `22-02` Task 2 专门负责必要且最小的 tracking sync。 [VERIFIED: .planning/phases/22-v4-kawaii-audit-closure/22-02-PLAN.md]
 
 ## Environment Availability
 
@@ -380,7 +380,7 @@ None — `App.kawaii.spec.ts`、`MapContextPopup.kawaii.spec.ts`、`PointSummary
 
 ### Tertiary (LOW confidence)
 
-- Open question recommendations around whether to同步 `REQUIREMENTS.md` / `ROADMAP.md` 元数据 and whether per-wave merge should stay on quick run are planning建议，不是已锁定事实。 [ASSUMED]
+- Resolved metadata-sync note and the recommendation that docs-only wave merges stay on quick run remain planning guidance rather than new product-scope facts. [ASSUMED]
 
 ## Metadata
 
