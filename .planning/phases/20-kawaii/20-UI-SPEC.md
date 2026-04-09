@@ -1,10 +1,11 @@
 ---
 phase: 20
 slug: kawaii
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-09
+reviewed_at: 2026-04-09T13:26:22+08:00
 ---
 
 # Phase 20 — UI Design Contract
@@ -86,6 +87,7 @@ Source: color families inherit from `apps/web/src/style.css` and `apps/web/src/s
 | Destructive confirmation | `取消点亮`：不新增模态或 drawer；首次点击直接进入 pending disabled 态，失败后回滚并通过顶部 notice 提示 |
 
 Supplemental CTA copy: candidate confirm action keeps `确认地点`; saved-state toggle label keeps `已点亮`. These labels are already present in `PointSummaryCard.vue` and should not be改写成更长、更解释型的按钮文案。
+Context note: primary CTA `点亮` remains acceptable because the popup title / candidate context always provides the action object; do not reuse `点亮` as a detached generic button label outside the place-specific surface.
 
 ---
 
