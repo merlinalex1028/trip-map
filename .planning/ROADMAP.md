@@ -24,7 +24,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 19 | Tailwind 基础设施 & 全局 Token | 前端具备 Tailwind 工具类环境与 kawaii 设计 token | INFRA-01, INFRA-02, INFRA-03, INFRA-04, STYLE-01, STYLE-02 | 4 |
+| 19 | Tailwind 基础设施 & 全局 Token | 1/3 | In Progress|  |
 | 20 | Kawaii 组件样式全面迁移 | 所有 UI 组件呈现完整 kawaii 视觉与微交互 | STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03 | 5 |
 
 ## Phase Details
@@ -38,9 +38,9 @@
   2. 页面背景显示奶油白（#FAFAFA / #FFF5F5），视觉上与纯白有明显柔和区别
   3. 全站字体渲染为 Nunito Variable（圆润，字母有明显圆角感），与之前的 sans-serif 字体可见区别
   4. 打开地图页面，Leaflet 缩放按钮、归因链接、图层控件样式正常，与 v3.0 视觉一致，无样式崩溃
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
-- [ ] 19-01-PLAN.md — 锁定 Tailwind v4 依赖范围、Vite 插件接入与静态契约测试
+- [x] 19-01-PLAN.md — 锁定 Tailwind v4 依赖范围、Vite 插件接入与静态契约测试
 - [ ] 19-02-PLAN.md — 建立 `style.css` 入口、Nunito 字体基线和最小 Tailwind App shell 样板
 - [ ] 19-03-PLAN.md — 跑完自动化门禁并完成 Leaflet 浏览器冒烟验收
 **UI hint:** yes
