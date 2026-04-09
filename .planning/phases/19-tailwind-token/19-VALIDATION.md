@@ -1,10 +1,11 @@
 ---
 phase: 19
 slug: tailwind-token
-status: draft
+status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-04-08
+updated: 2026-04-09
 ---
 
 # Phase 19 — Validation Strategy
@@ -38,21 +39,21 @@ created: 2026-04-08
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 19-01-01 | 01 | 1 | INFRA-01 | T-19-01, T-19-02 | Tailwind v4 与 `@tailwindcss/vite` 仅安装在 `apps/web`，且 `vite.config.ts` 维持 `plugins: [tailwindcss(), vue()]`，把工具链篡改面压在目标包范围内 | static/unit | `pnpm --filter @trip-map/web exec vitest run src/tailwind-token.spec.ts` | ❌ created in 19-01 | ⬜ pending |
-| 19-02-01 | 02 | 2 | INFRA-02, INFRA-03, STYLE-01, STYLE-02 | T-19-03 | `src/style.css` 保持 Tailwind 在前、Leaflet 在后、legacy CSS 作为兼容层的 import hub，`main.ts` 导入 Nunito，`@theme` 暴露 12 个最小 token 与 `--font-sans` | static/unit | `pnpm --filter @trip-map/web exec vitest run src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec node -e "const pkg=require('./package.json'); const ok=pkg.devDependencies?.['@fontsource-variable/nunito']==='^5.2.7'; process.exit(ok?0:1)"` | ✅ spec from 19-01 | ⬜ pending |
-| 19-02-02 | 02 | 2 | STYLE-01, STYLE-02 | T-19-04 | `App.vue` 只迁移壳层级 Tailwind utility，保留 `LeafletMapStage` 主舞台和地图业务逻辑边界，不在地图容器引入 transform/filter 风险类 | unit/component | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit` | ✅ existing App.spec.ts | ⬜ pending |
-| 19-03-01 | 03 | 3 | INFRA-04 | T-19-05 | 最终自动化质量门覆盖静态契约、App shell smoke、typecheck 与生产构建，保证发货前所有已规划 gate 为绿色 | integration/build | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit && pnpm --filter @trip-map/web build` | ✅ prior plans provide inputs | ⬜ pending |
-| 19-03-02 | 03 | 3 | INFRA-04 | T-19-06 | 浏览器冒烟必须输出到 `.planning/phases/19-tailwind-token/19-03-SUMMARY.md`，把 `approved` 或失败清单沉淀为可审计证据 | manual browser smoke | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit && pnpm --filter @trip-map/web build` | ❌ summary created in 19-03 | ⬜ pending |
+| 19-01-01 | 19-01 | 1 | INFRA-01 | T-19-01, T-19-02 | Tailwind v4 与 `@tailwindcss/vite` 已限制在 `apps/web`，且 `vite.config.ts` 维持 `plugins: [tailwindcss(), vue()]`，工具链入口与作用域均已锁定 | static/unit | `pnpm --filter @trip-map/web exec vitest run src/tailwind-token.spec.ts` | ✅ `apps/web/src/tailwind-token.spec.ts` | ✅ pass |
+| 19-02-01 | 19-02 | 2 | INFRA-02, INFRA-03, STYLE-01, STYLE-02 | T-19-03 | `src/style.css` 已作为单一入口承接 Tailwind、Leaflet 与 legacy CSS，`main.ts` 已导入 Nunito，`@theme` 已暴露 foundation token 与 `--font-sans` | static/unit | `pnpm --filter @trip-map/web exec vitest run src/tailwind-token.spec.ts` | ✅ `apps/web/src/tailwind-token.spec.ts` | ✅ pass |
+| 19-02-02 | 19-02 | 2 | STYLE-01, STYLE-02 | T-19-04 | `App.vue` 只迁移壳层级 Tailwind utility，继续保留 `LeafletMapStage` 主舞台和地图业务逻辑边界，地图容器未引入 transform/filter 风险类 | unit/component | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit` | ✅ `apps/web/src/App.spec.ts` | ✅ pass |
+| 19-03-01 | 19-03 | 3 | INFRA-04 | T-19-05 | 最终自动化质量门已覆盖静态契约、App shell smoke、typecheck 与生产构建，计划内 gate 全部通过 | integration/build | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit && pnpm --filter @trip-map/web build` | ✅ `apps/web/src/App.spec.ts`, `apps/web/src/tailwind-token.spec.ts` | ✅ pass |
+| 19-03-02 | 19-03 | 3 | INFRA-04 | T-19-06 | 浏览器冒烟结果已沉淀到 `.planning/phases/19-tailwind-token/19-03-SUMMARY.md`，初次失败与最终 `approved` 审批链均已存在 | manual browser smoke | `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts && pnpm --filter @trip-map/web exec vue-tsc --noEmit && pnpm --filter @trip-map/web build` | ✅ `.planning/phases/19-tailwind-token/19-03-SUMMARY.md` | ✅ pass |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: ✅ pass · ❌ fail · ⚠️ flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `apps/web/src/tailwind-token.spec.ts` — 静态校验 `apps/web/package.json`、`vite.config.ts`、`main.ts`、`style.css` 中的 Tailwind / Nunito / Leaflet 顺序与 token 合同
-- [ ] `apps/web/src/App.spec.ts` — 扩展或确认壳层 smoke，覆盖奶油白背景、字体基线或最小 Tailwind 壳层输出
-- [ ] `.planning/phases/19-tailwind-token/19-03-SUMMARY.md` — 记录浏览器手动冒烟结果，至少确认 Leaflet 缩放按钮、归因链接、图层控件、popup 在 Tailwind preflight 接入后未崩坏
+- [x] `apps/web/src/tailwind-token.spec.ts` — 静态校验 `apps/web/package.json`、`vite.config.ts`、`main.ts`、`style.css` 中的 Tailwind / Nunito / Leaflet 顺序与 token 合同
+- [x] `apps/web/src/App.spec.ts` — 壳层 smoke 已覆盖奶油白背景、字体基线与最小 Tailwind 壳层输出
+- [x] `.planning/phases/19-tailwind-token/19-03-SUMMARY.md` — 已记录浏览器手动冒烟结果，并确认 Leaflet 缩放按钮、归因链接、图层控件、popup 在 Tailwind preflight 接入后未崩坏
 
 ---
 
