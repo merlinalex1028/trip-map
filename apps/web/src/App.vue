@@ -48,7 +48,8 @@ onUnmounted(() => {
       class="relative z-[1] grid min-h-screen grid-rows-[1fr] gap-4 px-4 pb-4 pt-[4.5rem] md:px-8 md:pb-8 md:pt-[5rem]"
     >
       <header
-        class="fixed inset-x-0 top-0 z-[4] flex h-14 items-center justify-between gap-3 border-b border-white/70 bg-cream-200/90 px-4 shadow-[0_16px_30px_rgba(155,116,160,0.10)] backdrop-blur-xl md:h-16 md:px-8"
+        class="fixed inset-x-0 top-0 z-[4] flex h-14 md:h-16 items-center justify-between gap-3 border-b border-white/70 bg-cream-200/90 px-4 shadow-[0_16px_30px_rgba(155,116,160,0.10)] backdrop-blur-xl md:px-8"
+        data-kawaii-shell="thin"
         data-region="topbar"
       >
         <div class="flex min-w-0 flex-col justify-center gap-0.5">
@@ -73,17 +74,18 @@ onUnmounted(() => {
       </header>
       <div
         v-if="interactionNotice"
-        class="fixed left-1/2 top-[4.25rem] z-[5] w-[28rem] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full border border-white/80 bg-white/80 px-4 py-3 text-center text-sm text-[var(--color-ink-strong)] shadow-[var(--shadow-float)] backdrop-blur-xl md:top-[4.75rem]"
+        class="fixed left-1/2 top-[4.25rem] z-[5] w-[28rem] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full border border-white/80 bg-white/82 px-4 py-3 text-center text-sm text-[var(--color-ink-strong)] shadow-[var(--shadow-float)] backdrop-blur-xl md:top-[4.75rem]"
         :class="{
           'app-shell__notice--warning': interactionNotice.tone === 'warning',
         }"
+        data-kawaii-notice="pill"
         role="status"
         aria-live="polite"
       >
         {{ interactionNotice.message }}
       </div>
       <section
-        class="relative flex min-h-0 flex-col overflow-hidden rounded-[32px] border border-white/80 bg-white/60 p-3 shadow-[var(--shadow-stage)] md:p-[18px]"
+        class="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-[32px] border border-white/80 bg-white/65 p-4 md:p-6 shadow-[var(--shadow-stage)]"
         data-region="map-shell"
       >
         <LeafletMapStage class="min-h-0 flex-1" />
