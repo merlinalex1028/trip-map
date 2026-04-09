@@ -41,7 +41,7 @@ Declared values (must be multiples of 4):
 | 2xl | 48px | 主要区块断点间距；仅用于页面层与大卡片之间的视觉断开（source: `tokens.css`, default freeze） |
 | 3xl | 64px | 页面级留白上限；仅用于桌面大视口节奏，不下放到 popup 内部（source: `tokens.css`, default freeze） |
 
-Exceptions: `min-h-11`/`44px` 保留给 primary / secondary CTA 命中高度（source: `PointSummaryCard.kawaii.spec.ts`）；顶栏英文 tag 的 `py-[0.14rem]` 属现有微调遗留，只允许留在当前 topbar，不向其他 surface 扩散（source: `App.vue`）。
+Exceptions: `min-h-11`/`44px` 保留给 primary / secondary CTA 命中高度（source: `PointSummaryCard.kawaii.spec.ts`）；除此之外不声明任何非 4 倍数 spacing 例外。
 
 ---
 
@@ -64,10 +64,23 @@ Exceptions: `min-h-11`/`44px` 保留给 primary / secondary CTA 命中高度（s
 |------|-------|-------|
 | Dominant (60%) | `#FAFAFA` | 页面背景、地图外层背景、整体奶油白基底（source: `REQUIREMENTS.md`, `style.css`, `tokens.css`） |
 | Secondary (30%) | `#FFF5F5` | topbar、map shell、popup/card 的柔和二级表面与浅色 chrome（source: `style.css`, `App.vue`, `tokens.css`） |
-| Accent (10%) | `#FF78AD` | 主 CTA `点亮/已点亮`、推荐候选强调、focus/selection 高亮；不得用于地图宿主、popup 外壳或静态说明文本（source: `PointSummaryCard.vue`, `tokens.css`） |
+| Accent (10%) | `#FF78AD` | 主 CTA `点亮地点/已点亮`、推荐候选强调、focus/selection 高亮；不得用于地图宿主、popup 外壳或静态说明文本（source: `PointSummaryCard.vue`, `tokens.css`） |
 | Destructive | `#C86464` | 仅保留给未来 destructive action；Phase 22 不新增 destructive UI（source: `tokens.css`, `22-CONTEXT.md`） |
 
-Accent reserved for: `点亮/已点亮` 主按钮、推荐候选卡强调边界/CTA 文案、focus-visible outline、文本选区；绝不扩散到 Leaflet map host、popup light shell、badge/type pill 或普通 notice。
+Accent reserved for: `点亮地点/已点亮` 主按钮、推荐候选卡强调边界/CTA 文案、focus-visible outline、文本选区；绝不扩散到 Leaflet map host、popup light shell、badge/type pill 或普通 notice。
+
+---
+
+## Visual Hierarchy
+
+主视觉锚点固定为 popup 内部的 **cloud card**，因为标题、候选信息、状态提示与动作入口都在这一层完成阅读与决策；`popup shell` 只承担轻量承托，不与 cloud card 抢主导。
+
+视觉优先级顺序固定为：`primary CTA` > `cloud card` > `popup shell` > `topbar`。
+
+- `primary CTA`：全 phase 唯一允许使用高饱和 accent 的操作锚点，第一眼可见，负责收束动作。
+- `cloud card`：主内容容器，承担信息密度、标题层级与情绪化 kawaii 视觉记忆点，是主要阅读入口。
+- `popup shell`：只作为柔和外壳与边界层，优先级必须低于 cloud card，不得通过更重底色、描边或阴影反客为主。
+- `topbar`：始终维持全局导航/品牌框架角色；当 popup 打开时，它退居背景层，不得与当前地点决策流竞争注意力。
 
 ---
 
@@ -75,7 +88,7 @@ Accent reserved for: `点亮/已点亮` 主按钮、推荐候选卡强调边界/
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | `点亮`（source: `PointSummaryCard.vue`） |
+| Primary CTA | `点亮地点`（source: user revision for checker fix; aligned from existing `点亮` in `PointSummaryCard.vue`） |
 | Empty state heading | `暂无可确认候选地点`（source: `PointSummaryCard.vue`） |
 | Empty state body | `请稍后重试。若仍无候选，保留当前 canonical 地点身份与文本信息。`（前半句 source: `PointSummaryCard.vue`；后半句为 Phase 20 fallback 流程归纳，source: `20-CONTEXT.md`, `22-RESEARCH.md`） |
 | Error state | `记录服务暂不可用，请先启动 pnpm dev 或单独运行 pnpm dev:server。`；交互失败时沿用 `确认地点失败，请稍后重试` / `识别请求失败，请稍后重试`（source: `LeafletMapStage.vue`, repo grep） |
