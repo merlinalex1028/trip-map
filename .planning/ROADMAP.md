@@ -18,14 +18,14 @@
 ## Phases
 
 - [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
-- [ ] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互
+- [x] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互 (completed 2026-04-09)
 
 ## Phase Overview
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
-| 20 | Kawaii 组件样式全面迁移 | 所有 UI 组件呈现完整 kawaii 视觉与微交互 | STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03 | 5 |
+| 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
 
 ## Phase Details
 
@@ -55,12 +55,12 @@ Plans:
   3. 组件内外间距宽松，元素之间有明显呼吸感，不出现拥挤或紧贴边缘的情况
   4. 鼠标悬停可交互元素时，元素平滑放大并轻微上浮，过渡时间约 300ms，动作流畅不跳跃
   5. 点击按钮时有轻微下压感（scale 缩小），松开后弹回，所有过渡使用 ease-out，无生硬线性动画
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 Plans:
-- [ ] 20-01-PLAN.md — App 薄壳 topbar、notice 与 map shell 的 spacing / thin-shell 合同
-- [ ] 20-02-PLAN.md — Map popup 外壳减法、轻箭头壳层与 pointer-events 安全护栏
-- [ ] 20-03-PLAN.md — PointSummaryCard 云朵内卡、三档按钮/徽章层级与 300ms ease-out 微交互
-- [ ] 20-04-PLAN.md — Phase 20 验证文档收口、自动化门禁与人工视觉验收
+- [x] 20-01-PLAN.md — App 薄壳 topbar、notice 与 map shell 的 spacing / thin-shell 合同
+- [x] 20-02-PLAN.md — Map popup 外壳减法、轻箭头壳层与 pointer-events 安全护栏
+- [x] 20-03-PLAN.md — PointSummaryCard 云朵内卡、三档按钮/徽章层级与 300ms ease-out 微交互
+- [x] 20-04-PLAN.md — Phase 20 验证文档收口、自动化门禁与人工视觉验收
 **UI hint:** yes
 
 ## Progress Table

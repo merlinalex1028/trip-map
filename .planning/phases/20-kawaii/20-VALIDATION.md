@@ -1,8 +1,8 @@
 ---
 phase: 20
 slug: kawaii
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: true
 created: 2026-04-09
 updated: 2026-04-09
@@ -75,6 +75,12 @@ updated: 2026-04-09
 | Long city names remain readable beside type pill and primary CTA | STYLE-03, STYLE-05 | Layout overlap risk only appears with realistic long labels and actual popup width | Open a popup for a long-name place (for example `Phongsaly`-style label), confirm the title wraps/shrinks without being covered by the type pill or `点亮` button |
 | Records bootstrap degrades with an explicit warning when backend is absent | INFRA-04 | Network errors are visible in browser runtime, not only in unit tests | If testing web-only mode, run `pnpm dev:web` without `pnpm dev:server`; confirm the app shows a warning notice telling the developer to start `pnpm dev` or `pnpm dev:server` |
 
+### Manual Verification Record
+
+- `2026-04-09`: 用户在真实浏览器中完成主路径验收并回复 `approved`。
+- 验收确认：thin-shell topbar 首屏高度正常；popup 外轻内重层级正常；hover / active 微交互体感正确且锚点不漂移。
+- 验收过程中新发现并已回流修复：长城市名标题挤压 type pill / primary CTA；records bootstrap 在 web-only dev 环境下缺少明确 warning notice。
+
 ---
 
 ## Validation Sign-Off
@@ -84,7 +90,7 @@ updated: 2026-04-09
 - [x] Wave 0 covers App shell, popup outer shell, and point-summary cloud card contracts
 - [x] No watch-mode flags
 - [x] Feedback latency < 30s
-- [ ] Manual browser verification completed
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] Manual browser verification completed
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending manual browser verification
+**Approval:** approved (2026-04-09)

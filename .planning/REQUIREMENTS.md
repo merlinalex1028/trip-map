@@ -17,15 +17,15 @@
 
 - [x] **STYLE-01**: 页面全局背景为奶油白（#FAFAFA / #FFF5F5），Tailwind 工具类可使用 `sakura`、`mint`、`lavender`、`cream` 颜色
 - [x] **STYLE-02**: 全站字体为 Nunito Variable（圆润友好），通过 `@theme --font-sans` 设置为默认字体
-- [ ] **STYLE-03**: 所有按钮/徽章为 pill-shaped（`rounded-full`），配合彩色柔光阴影（阴影色与背景色匹配）
-- [ ] **STYLE-04**: 卡片/容器使用大圆角（`rounded-3xl`）+ `border-4 border-white` + 柔和 box-shadow，呈现 floating-cloud 浮动效果
-- [ ] **STYLE-05**: 布局宽松，组件内外使用 generous padding/margin（`p-6` / `gap-4` 以上），元素不拥挤
+- [x] **STYLE-03**: 所有按钮/徽章为 pill-shaped（`rounded-full`），配合彩色柔光阴影（阴影色与背景色匹配）
+- [x] **STYLE-04**: 卡片/容器使用大圆角（`rounded-3xl`）+ `border-4 border-white` + 柔和 box-shadow，呈现 floating-cloud 浮动效果
+- [x] **STYLE-05**: 布局宽松，组件内外使用 generous padding/margin（`p-6` / `gap-4` 以上），元素不拥挤
 
 ### Interactions（微交互）
 
-- [ ] **INTER-01**: 可交互元素（按钮、卡片）hover 时平滑放大（`scale-105`）并上浮（`-translate-y-1`），过渡 300ms ease-out
-- [ ] **INTER-02**: 按钮点击（active state）轻压（`scale-95`），体感弹性
-- [ ] **INTER-03**: 所有过渡使用 ease-out timing（300ms），避免 linear / ease-in 硬动画
+- [x] **INTER-01**: 可交互元素（按钮、卡片）hover 时平滑放大（`scale-105`）并上浮（`-translate-y-1`），过渡 300ms ease-out
+- [x] **INTER-02**: 按钮点击（active state）轻压（`scale-95`），体感弹性
+- [x] **INTER-03**: 所有过渡使用 ease-out timing（300ms），避免 linear / ease-in 硬动画
 
 ## Future Requirements
 
@@ -55,12 +55,12 @@
 | INFRA-04 | Phase 19 | Complete |
 | STYLE-01 | Phase 19 | Complete |
 | STYLE-02 | Phase 19 | Complete |
-| STYLE-03 | Phase 20 | Pending |
-| STYLE-04 | Phase 20 | Pending |
-| STYLE-05 | Phase 20 | Pending |
-| INTER-01 | Phase 20 | Pending |
-| INTER-02 | Phase 20 | Pending |
-| INTER-03 | Phase 20 | Pending |
+| STYLE-03 | Phase 20 | Complete |
+| STYLE-04 | Phase 20 | Complete |
+| STYLE-05 | Phase 20 | Complete |
+| INTER-01 | Phase 20 | Complete |
+| INTER-02 | Phase 20 | Complete |
+| INTER-03 | Phase 20 | Complete |
 
 **Coverage:**
 - v4.0 requirements: 12 total
