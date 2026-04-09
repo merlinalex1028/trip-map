@@ -57,6 +57,14 @@ updated: 2026-04-09
 
 ---
 
+## Automated Evidence
+
+- `2026-04-09`: `pnpm --filter @trip-map/web exec vitest run src/App.spec.ts src/tailwind-token.spec.ts` -> pass
+- `2026-04-09`: `pnpm --filter @trip-map/web exec vue-tsc --noEmit` -> pass
+- `2026-04-09`: `pnpm --filter @trip-map/web build` -> pass
+
+---
+
 ## Manual-Only Verifications
 
 | Behavior | Requirement | Why Manual | Test Instructions |
@@ -64,6 +72,15 @@ updated: 2026-04-09
 | Leaflet 缩放按钮、归因链接、图层控件视觉与交互稳定 | INFRA-04 | `happy-dom` 不能可靠复现真实浏览器下的第三方 CSS reset 影响 | 启动 `apps/web`，打开地图页面，确认 zoom controls、attribution、layer controls 样式正常，无错位、无被裁切、无按钮失真 |
 | 页面背景呈现奶油白而非纯白硬底 | STYLE-01 | 需要确认真实视觉基调与地图首屏的整体观感 | 打开首页，确认根画布与壳层背景位于 `#FAFAFA` / `#FFF5F5` 范围，且不会压暗地图内容 |
 | 全站默认字体明显切换为 Nunito Variable | INFRA-03, STYLE-02 | 自动化可校验导入与 token，但不能完全替代真实字形观感判断 | 刷新页面，对比标题栏与正文的英文/数字字形，确认已呈现圆润字体特征，不再落回旧 sans-serif 基线 |
+
+### Manual Verification Record
+
+- Environment: pnpm --filter @trip-map/web dev --host 127.0.0.1 --port 4173
+- URL: http://127.0.0.1:4173/
+- Checklist: 奶油白壳层、Nunito 标题字形、Leaflet 缩放按钮、归因链接、图层控件、popup 锚定与排版
+- Initial result: failed
+- Final result: approved
+- Approved at: 2026-04-09
 
 ---
 
@@ -74,6 +91,7 @@ updated: 2026-04-09
 - [x] Wave 0 covers all MISSING references
 - [x] No watch-mode flags
 - [x] Feedback latency < 20s
+- [x] Manual browser verification completed
 - [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+Approval: approved (2026-04-09)
