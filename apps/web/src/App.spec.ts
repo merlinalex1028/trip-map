@@ -86,7 +86,7 @@ describe('App shell', () => {
     vi.unstubAllGlobals()
   })
 
-  it('renders the poster shell from the package-local app entry', async () => {
+  it('renders the minimal tailwind app shell without breaking the map stage', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
     const wrapper = mount(App, {
@@ -95,10 +95,15 @@ describe('App shell', () => {
       }
     })
 
-    expect(wrapper.find('.poster-shell').exists()).toBe(true)
+    expect(wrapper.classes()).toContain('bg-cream-100')
+    expect(wrapper.classes()).toContain('font-sans')
     expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
+    expect(wrapper.get('[data-region="map-stage"]').classes()).toContain('min-h-0')
+    expect(wrapper.get('[data-region="map-stage"]').classes()).toContain('flex-1')
     expect(wrapper.text()).toContain('旅记')
+    expect(wrapper.text()).toContain('Travel Diary')
     expect(wrapper.text()).not.toContain('旅行世界地图')
   })
 })
