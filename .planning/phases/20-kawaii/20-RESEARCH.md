@@ -330,17 +330,15 @@ const buttonClass = computed(() => [
 
 现有研究结论本身已验证完毕；仅测试文件命名与拆分方式仍属于 planner 可自行确认的实现级假设 [VERIFIED: apps/web/src/App.spec.ts][VERIFIED: apps/web/src/components/map-popup/MapContextPopup.spec.ts][VERIFIED: apps/web/src/components/map-popup/PointSummaryCard.spec.ts].
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **主 CTA / 次 CTA / 信息徽章是否要抽成共享 class 常量或小型样式映射，而不是直接散落在模板字符串里？**
-   - What we know: 当前代码没有 base button 组件，样式主要分散在 `PointSummaryCard.vue` 与 `App.vue` [VERIFIED: apps/web/src/components/map-popup/PointSummaryCard.vue][VERIFIED: apps/web/src/App.vue].
-   - What's unclear: planner 是选择“每个组件内局部 class 常量”还是“抽一个轻量 shared style map”更符合最小改动 [VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md].
-   - Recommendation: 先在计划里把共享抽象限制为“同文件 `computed` / 常量 class 组合”，避免为 Phase 20 额外创建通用 UI kit [VERIFIED: CLAUDE.md][VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md].
+   - Resolution: 保持抽象层级停留在组件内局部 class 组合 / `computed` 映射，不在 Phase 20 新建跨文件通用 UI kit 或 base button 抽象 [VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md][VERIFIED: .planning/phases/20-kawaii/20-03-PLAN.md].
+   - Why this is settled: 已生成计划把主要视觉收口集中在 `PointSummaryCard.vue`，并把 `App.vue`、`MapContextPopup.vue`、`PointSummaryCard.vue` 按现有边界拆成独立计划，符合“最小改动、沿既有结构推进”的项目约束 [VERIFIED: CLAUDE.md][VERIFIED: .planning/phases/20-kawaii/20-01-PLAN.md][VERIFIED: .planning/phases/20-kawaii/20-02-PLAN.md][VERIFIED: .planning/phases/20-kawaii/20-03-PLAN.md].
 
 2. **notice 是否需要与 popup/card 完全同级的 cloud card 视觉，还是只需 pill 化和呼吸感增强？**
-   - What we know: 主路径范围明确包含 notice，但 topbar 必须保持薄壳 [VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md][VERIFIED: apps/web/src/App.vue].
-   - What's unclear: notice 若也上重云朵边框，是否会与 topbar 轻壳护栏冲突 [VERIFIED: .planning/phases/19-tailwind-token/19-CONTEXT.md].
-   - Recommendation: 计划中把 notice 定位为“轻量 pill notice”，不与 popup/card 争夺主视觉 [VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md].
+   - Resolution: notice 明确定位为轻量 pill notice，不升级为与 popup/card 同级的主云朵卡视觉 [VERIFIED: .planning/phases/20-kawaii/20-CONTEXT.md][VERIFIED: .planning/phases/20-kawaii/20-UI-SPEC.md][VERIFIED: .planning/phases/20-kawaii/20-01-PLAN.md].
+   - Why this is settled: `App.vue` 的 topbar 必须继续保持 thin-shell，不增加头部高度；计划 20-01 已把 notice 约束为 `data-kawaii-notice="pill"` 和 pill 语言，不与 popup/card 争夺主视觉 [VERIFIED: .planning/phases/19-tailwind-token/19-CONTEXT.md][VERIFIED: .planning/quick/260408-nw1-kawaii/260408-nw1-SUMMARY.md][VERIFIED: .planning/phases/20-kawaii/20-01-PLAN.md].
 
 ## Environment Availability
 
