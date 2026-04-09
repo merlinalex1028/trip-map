@@ -19,7 +19,7 @@
 
 - [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
 - [x] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互 (completed 2026-04-09)
-- [ ] **Phase 21: v4 基础设施验证补完** - 补齐 Phase 19 的 validation / verification 证据链，让 Tailwind、字体与 Leaflet preflight requirement 重新进入可审计状态
+- [x] **Phase 21: v4 基础设施验证补完** - 补齐 Phase 19 的 validation / verification 证据链，让 Tailwind、字体与 Leaflet preflight requirement 重新进入可审计状态 (completed 2026-04-09)
 - [ ] **Phase 22: v4 Kawaii 验证归档与复审收口** - 补齐 Phase 20 的 verification 证据并收口里程碑复审资料，为重新 audit 与归档做准备
 
 ## Phase Overview
@@ -28,7 +28,7 @@
 |---|-------|------|--------------|------------------|
 | 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
 | 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
-| 21 | v4 基础设施验证补完 | 0/0 | Planned     | - |
+| 21 | v4 基础设施验证补完 | 2/2 | Complete    | 2026-04-09 |
 | 22 | v4 Kawaii 验证归档与复审收口 | 0/0 | Planned     | - |
 
 ## Phase Details
@@ -76,9 +76,10 @@ Plans:
   1. `19-VALIDATION.md` 与实际自动化/人工验证证据一致，不再停留在 `draft`
   2. Phase 19 存在可审计的 `VERIFICATION.md`，明确记录 requirement coverage 与 evidence
   3. `INFRA-01~04`、`STYLE-01~02` 在重新审计时不再因缺失 verification source 而落入 orphaned
-**Plans:** 0/0 plans complete
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] To be planned
+- [x] 21-01-PLAN.md — 刷新 Phase 19 validation 文档，使 Wave 0 / automated / manual evidence 与实际交付对齐
+- [x] 21-02-PLAN.md — 生成 Phase 19 formal VERIFICATION 报告并把六项 INFRA/STYLE requirement 重新挂回可审计 evidence
 **UI hint:** yes
 
 ### Phase 22: v4 Kawaii 验证归档与复审收口
@@ -101,5 +102,5 @@ Plans:
 |-------|----------------|--------|-----------|
 | 19. Tailwind 基础设施 & 全局 Token | 3/3 | Complete | 2026-04-09 |
 | 20. Kawaii 组件样式全面迁移 | 4/4 | Complete | 2026-04-09 |
-| 21. v4 基础设施验证补完 | 0/0 | Planned | - |
+| 21. v4 基础设施验证补完 | 2/2 | Complete | 2026-04-09 |
 | 22. v4 Kawaii 验证归档与复审收口 | 0/0 | Planned | - |
