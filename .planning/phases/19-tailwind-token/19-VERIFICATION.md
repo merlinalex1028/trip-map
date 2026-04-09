@@ -2,7 +2,7 @@
 phase: 19-tailwind-token
 verified: 2026-04-09T18:02:09+08:00
 status: passed
-score: 3/3 must-haves verified
+score: 6/6 requirements satisfied
 closure_source:
   - 19-VALIDATION.md
   - 19-01-SUMMARY.md
@@ -55,11 +55,22 @@ closure_source:
 
 ## Requirements Coverage
 
-本节在本计划 Task 2 中补全为逐条 requirement coverage 表，以同一份 formal verification 报告承接 `INFRA-01~04`、`STYLE-01~02` 的审计证据映射。
+| Requirement | Source Plan | Description | Status | Evidence |
+| --- | --- | --- | --- | --- |
+| INFRA-01 | `19-01` | `apps/web` 具备 package-scoped Tailwind v4 与 `@tailwindcss/vite`，且 `vite.config.ts` 已接入 Tailwind Vite 插件 | SATISFIED | `19-01-SUMMARY.md` 记录 `tailwindcss@^4.2.2`、`@tailwindcss/vite@^4.2.2` 与 `plugins: [tailwindcss(), vue()]`；`19-VALIDATION.md` 的 `19-01-01` 标记 `INFRA-01` 自动化通过 |
+| INFRA-02 | `19-02` | `apps/web/src/style.css` 作为单一 CSS 入口承接 Tailwind、Leaflet 与 legacy CSS，import 顺序正确 | SATISFIED | `19-02-SUMMARY.md` 记录 `style.css` single CSS entry 与 import ordering；`19-VALIDATION.md` 的 `19-02-01` 标记 `INFRA-02` 自动化通过 |
+| INFRA-03 | `19-02` | `@fontsource-variable/nunito` 已安装并由 `main.ts` 导入，Nunito Variable 成为全局字体基线 | SATISFIED | `19-02-SUMMARY.md` 记录 Nunito dependency、`main.ts` 导入与 `--font-sans` 基线；`19-VALIDATION.md` 的 `19-02-01` 与 manual-only verification 覆盖 `INFRA-03` |
+| INFRA-04 | `19-03` | Leaflet 缩放按钮、归因链接、图层控件与 popup 在 Tailwind preflight 接入后保持正常 | SATISFIED | `19-03-SUMMARY.md` 记录 vitest、`vue-tsc --noEmit`、build 与浏览器 `approved`；`19-VALIDATION.md` 的 `19-03-01` / `19-03-02` 标记 `INFRA-04` 通过 |
+| STYLE-01 | `19-02` | 页面全局背景为 cream 基调，Tailwind 工具类可消费 `sakura`、`mint`、`lavender`、`cream` 颜色 | SATISFIED | `19-02-SUMMARY.md` 记录 cream token 与 foundation-only Tailwind theme；`19-VALIDATION.md` 的 `19-02-01` / `19-02-02` 覆盖 `STYLE-01`，manual-only verification 记录奶油白首屏检查 |
+| STYLE-02 | `19-02` | 全站默认字体为 Nunito Variable，并通过 `@theme --font-sans` 设为默认字体 | SATISFIED | `19-02-SUMMARY.md` 记录 Nunito baseline 与 `--font-sans`；`19-VALIDATION.md` 的 `19-02-01` / `19-02-02` 覆盖 `STYLE-02`，manual-only verification 记录字形复核 |
 
 ## Gaps Summary
 
-Phase 19 verification source has now been established as a formal artifact. This document closes the missing phase-level verification-report gap identified by the milestone audit; it does not introduce new product functionality.
+No remaining Phase 19 verification gaps.
+
+This report closes the `orphaned` / missing `verification source` findings recorded in `v4.0-v4.0-MILESTONE-AUDIT.md` for `INFRA-01`, `INFRA-02`, `INFRA-03`, `INFRA-04`, `STYLE-01`, and `STYLE-02`.
+
+The closure is evidence-source only: it consolidates `19-VALIDATION.md`, `19-01-SUMMARY.md`, `19-02-SUMMARY.md`, and `19-03-SUMMARY.md` into a single formal verification artifact for re-audit consumption, and it does not represent new product functionality.
 
 ---
 
