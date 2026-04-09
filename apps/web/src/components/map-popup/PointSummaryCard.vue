@@ -127,7 +127,7 @@ const illuminateHint = computed(() =>
   props.isIlluminatable ? null : '该地点暂不支持点亮',
 )
 const cloudCardClass =
-  'point-summary-card grid flex-1 min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden relative rounded-3xl border-4 border-white p-6 gap-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,245,255,0.94))] shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)]'
+  'point-summary-card grid flex-1 min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden relative rounded-3xl border-4 border-white p-6 gap-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,245,255,0.94))] shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1'
 const badgeClass =
   'point-summary-card__badge w-fit rounded-full px-3 py-1 border border-white/80 bg-[linear-gradient(135deg,rgba(255,241,168,0.78),rgba(255,232,242,0.96))] text-[0.75rem] font-bold uppercase tracking-[0.08em] text-[var(--color-ink-strong)] shadow-[0_10px_20px_rgba(244,143,177,0.16)]'
 const typePillClass =
@@ -135,17 +135,17 @@ const typePillClass =
 const noticeClass =
   'point-summary-card__notice rounded-2xl border border-dashed border-[#d7dcea] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(238,243,248,0.92))] p-4'
 const candidateActionBaseClass =
-  'point-summary-card__candidate-action relative grid justify-items-start gap-4 text-left min-h-11 rounded-[1.4rem] border p-4 shadow-[0_12px_24px_rgba(168,121,165,0.14)]'
+  'point-summary-card__candidate-action relative grid justify-items-start gap-4 text-left min-h-11 rounded-[1.4rem] border p-4 transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95'
 const candidateActionAvailableClass =
-  'border-white/80 bg-[linear-gradient(180deg,rgba(255,252,255,0.98),rgba(255,247,251,0.92))] text-[var(--color-ink-strong)]'
+  'border-white/80 bg-[linear-gradient(180deg,rgba(255,252,255,0.98),rgba(255,247,251,0.92))] text-[var(--color-ink-strong)] shadow-[0_12px_24px_rgba(168,121,165,0.14)]'
 const candidateActionSavedClass =
-  'border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.98),rgba(223,244,248,0.92))] text-[var(--color-ink-strong)]'
+  'border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.98),rgba(223,244,248,0.92))] text-[var(--color-ink-strong)] shadow-[0_12px_24px_rgba(104,159,192,0.18)]'
 const candidateActionRecommendedClass =
-  'border-[#f4b4c9] bg-[linear-gradient(135deg,rgba(255,241,168,0.42),rgba(255,232,242,0.98))] text-[var(--color-ink-strong)]'
+  'border-[#f4b4c9] bg-[linear-gradient(135deg,rgba(255,241,168,0.42),rgba(255,232,242,0.98))] text-[var(--color-ink-strong)] shadow-[0_12px_24px_rgba(183,146,214,0.18)]'
 const primaryCtaBaseClass =
-  'point-summary-card__illuminate-btn min-h-11 rounded-full px-4 py-2 text-[var(--font-label-size)] font-bold whitespace-nowrap shadow-[0_14px_28px_rgba(244,143,177,0.22)]'
+  'point-summary-card__illuminate-btn min-h-11 rounded-full px-4 py-2 text-[var(--font-label-size)] font-bold whitespace-nowrap transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95'
 const primaryCtaOffClass =
-  'border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] text-[var(--color-accent-strong)]'
+  'border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] text-[var(--color-accent-strong)] shadow-[0_14px_28px_rgba(244,143,177,0.34)]'
 const primaryCtaOnClass =
   'border border-[#c8e8ef] bg-[linear-gradient(135deg,rgba(147,219,237,0.74),rgba(223,244,248,0.94))] text-[color-mix(in_srgb,var(--color-secondary-strong)_72%,var(--color-ink-strong)_28%)] shadow-[0_14px_28px_rgba(104,159,192,0.2)]'
 
@@ -323,6 +323,14 @@ function handleContinueWithFallback() {
     radial-gradient(circle at left center, rgba(223, 244, 248, 0.38), transparent 28%);
 }
 
+[data-kawaii-surface="cloud"]:hover,
+[data-kawaii-surface="cloud"]:focus-within {
+  border-color: color-mix(in srgb, rgba(244, 143, 177, 0.4) 38%, white 62%);
+  box-shadow:
+    0 28px 56px rgba(168, 121, 165, 0.2),
+    0 12px 28px rgba(104, 159, 192, 0.16);
+}
+
 .point-summary-card__badge,
 .point-summary-card__title,
 .point-summary-card__meta,
@@ -395,11 +403,6 @@ function handleContinueWithFallback() {
 .point-summary-card__candidate-action {
   cursor: pointer;
   font-size: var(--font-label-size);
-  transition:
-    transform var(--motion-emphasis) ease,
-    border-color var(--motion-emphasis) ease,
-    box-shadow var(--motion-emphasis) ease,
-    background var(--motion-emphasis) ease;
 }
 
 .point-summary-card__candidate-action::before {
@@ -425,7 +428,6 @@ function handleContinueWithFallback() {
 
 .point-summary-card__candidate-action:hover,
 .point-summary-card__candidate-action:focus-visible {
-  transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--color-frame-strong) 72%, white 28%);
   box-shadow:
     0 14px 24px rgba(168, 121, 165, 0.16),
@@ -440,11 +442,6 @@ function handleContinueWithFallback() {
 .point-summary-card__illuminate-btn {
   line-height: var(--font-label-line-height);
   cursor: pointer;
-  transition:
-    transform var(--motion-emphasis) ease,
-    background var(--motion-emphasis) ease,
-    border-color var(--motion-emphasis) ease,
-    color var(--motion-emphasis) ease;
 }
 
 .point-summary-card__illuminate-btn:disabled {
@@ -454,7 +451,9 @@ function handleContinueWithFallback() {
 
 .point-summary-card__illuminate-btn:not(:disabled):hover,
 .point-summary-card__illuminate-btn:not(:disabled):focus-visible {
-  transform: translateY(-1px);
+  box-shadow:
+    0 16px 30px rgba(244, 143, 177, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .point-summary-card__illuminate-btn:focus-visible {
@@ -463,8 +462,16 @@ function handleContinueWithFallback() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .point-summary-card__illuminate-btn {
-    transition: none;
+  [data-kawaii-surface="cloud"] {
+    transform: none !important;
+  }
+
+  [data-kawaii-role="primary-cta"] {
+    transform: none !important;
+  }
+
+  [data-kawaii-role="secondary-cta"] {
+    transform: none !important;
   }
 }
 </style>

@@ -6,6 +6,7 @@ import {
 import { mount } from '@vue/test-utils'
 
 import PointSummaryCard from './PointSummaryCard.vue'
+import pointSummaryCardSource from './PointSummaryCard.vue?raw'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 type ViewSummarySurface = {
@@ -221,5 +222,72 @@ describe('PointSummaryCard kawaii contracts', () => {
     expect(viewWrapper.find('b').exists()).toBe(false)
     expect(viewWrapper.find('img').exists()).toBe(false)
     expect(candidateWrapper.find('script').exists()).toBe(false)
+  })
+
+  it('locks the cloud card and ctas to the 300ms ease-out motion family', () => {
+    const viewWrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface() },
+    })
+    const candidateWrapper = mount(PointSummaryCard, {
+      props: { surface: makeCandidateSurface() },
+    })
+
+    const cloudClass = viewWrapper.get('[data-kawaii-surface="cloud"]').attributes('class') ?? ''
+    const primaryCtaClass = viewWrapper.get('[data-kawaii-role="primary-cta"]').attributes('class') ?? ''
+    const secondaryCtaClass =
+      candidateWrapper.get('[data-kawaii-role="secondary-cta"]').attributes('class') ?? ''
+
+    expect(cloudClass).toContain('transition-all')
+    expect(cloudClass).toContain('duration-300')
+    expect(cloudClass).toContain('ease-out')
+    expect(cloudClass).toContain('hover:scale-105')
+    expect(cloudClass).toContain('hover:-translate-y-1')
+    expect(cloudClass).not.toContain('active:scale-95')
+
+    for (const className of [primaryCtaClass, secondaryCtaClass]) {
+      expect(className).toContain('transition-all')
+      expect(className).toContain('duration-300')
+      expect(className).toContain('ease-out')
+      expect(className).toContain('hover:scale-105')
+      expect(className).toContain('hover:-translate-y-1')
+      expect(className).toContain('active:scale-95')
+    }
+  })
+
+  it('keeps badges, type pills, and notices free from scale / translate motion classes', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface({
+          fallbackNotice: '当前仅能按国家/地区保留这个点位。',
+        }),
+      },
+    })
+
+    const staticClasses = [
+      wrapper.get('[data-kawaii-role="badge"]').attributes('class') ?? '',
+      wrapper.get('[data-kawaii-role="type-pill"]').attributes('class') ?? '',
+      wrapper.get('[data-notice-tone="fallback"]').attributes('class') ?? '',
+    ]
+
+    for (const className of staticClasses) {
+      expect(className).not.toContain('hover:scale-105')
+      expect(className).not.toContain('hover:-translate-y-1')
+      expect(className).not.toContain('active:scale-95')
+    }
+  })
+
+  it('keeps reduced-motion guards and removes legacy motion strings from the source contract', () => {
+    expect(pointSummaryCardSource).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(pointSummaryCardSource).toMatch(
+      /\[data-kawaii-surface="cloud"\][\s\S]*transform:\s*none !important;/,
+    )
+    expect(pointSummaryCardSource).toMatch(
+      /\[data-kawaii-role="primary-cta"\][\s\S]*transform:\s*none !important;/,
+    )
+    expect(pointSummaryCardSource).toMatch(
+      /\[data-kawaii-role="secondary-cta"\][\s\S]*transform:\s*none !important;/,
+    )
+    expect(pointSummaryCardSource).not.toContain('var(--motion-emphasis) ease')
+    expect(pointSummaryCardSource).not.toContain('translateY(-1px)')
   })
 })
