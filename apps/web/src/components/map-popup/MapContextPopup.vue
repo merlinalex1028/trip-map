@@ -123,24 +123,15 @@ defineExpose({
   min-width: var(--map-context-popup-min-width);
   max-width: var(--map-context-popup-max-width);
   min-height: 0;
-  padding: 0.38rem;
+  padding: 0.28rem;
   border: var(--border-soft);
   border-radius: calc(var(--radius-card) + 6px);
   background:
     var(--texture-ribbon),
     var(--gradient-panel-strong);
   overflow: hidden;
-  box-shadow: var(--shadow-stage);
+  box-shadow: 0 18px 38px rgba(155, 116, 160, 0.16);
   backdrop-filter: blur(16px);
-}
-
-.map-context-popup::before {
-  content: '';
-  position: absolute;
-  inset: 0.32rem;
-  border: var(--border-highlight);
-  border-radius: calc(var(--radius-card) + 2px);
-  pointer-events: none;
 }
 
 .map-context-popup__body {
@@ -164,7 +155,7 @@ defineExpose({
     var(--texture-ribbon),
     var(--gradient-panel-strong);
   transform: translateY(-50%) rotate(45deg);
-  box-shadow: 6px 8px 20px rgba(155, 116, 160, 0.12);
+  box-shadow: 4px 8px 16px rgba(155, 116, 160, 0.12);
 }
 
 .map-context-popup__title {

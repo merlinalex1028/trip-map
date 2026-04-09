@@ -282,24 +282,15 @@ function handleContinueWithFallback() {
   gap: var(--space-md);
   min-height: 0;
   padding: var(--space-lg);
-  border: var(--border-soft);
+  border: 0;
   border-radius: var(--radius-card);
   background:
     radial-gradient(circle at top right, rgba(255, 241, 168, 0.18), transparent 20%),
     var(--texture-ribbon),
     var(--gradient-panel-strong);
-  box-shadow: var(--shadow-surface);
+  box-shadow: none;
   overflow: hidden;
   position: relative;
-}
-
-.point-summary-card::before {
-  content: '';
-  position: absolute;
-  inset: 0.4rem;
-  border: var(--border-highlight);
-  border-radius: calc(var(--radius-card) - 6px);
-  pointer-events: none;
 }
 
 .point-summary-card__header,

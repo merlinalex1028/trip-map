@@ -48,22 +48,24 @@ onUnmounted(() => {
       class="relative z-[1] grid min-h-screen grid-rows-[1fr] gap-4 px-4 pb-4 pt-[4.5rem] md:px-8 md:pb-8 md:pt-[5rem]"
     >
       <header
-        class="fixed inset-x-0 top-0 z-[4] flex h-14 items-center justify-between gap-2 border-b border-white/70 bg-cream-200/90 px-4 shadow-[0_16px_30px_rgba(155,116,160,0.10)] backdrop-blur-xl md:h-16 md:px-8"
+        class="fixed inset-x-0 top-0 z-[4] flex h-14 items-center justify-between gap-3 border-b border-white/70 bg-cream-200/90 px-4 shadow-[0_16px_30px_rgba(155,116,160,0.10)] backdrop-blur-xl md:h-16 md:px-8"
         data-region="topbar"
       >
-        <div class="grid min-w-0 gap-[0.08rem]">
-          <p
-            class="w-fit rounded-full border border-white/80 bg-white/78 px-[0.44rem] py-[0.1rem] text-[0.62rem] leading-[1.05] tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
-          >
-            Travel Diary
-          </p>
-          <h1
-            class="m-0 text-[clamp(1.12rem,2vw,1.5rem)] leading-none font-semibold tracking-[0.05em] text-[var(--color-ink-strong)]"
-            data-display="true"
-          >
-            旅记
-          </h1>
-          <p class="hidden text-[0.72rem] leading-[1.1] text-[var(--color-ink-muted)] sm:block">
+        <div class="flex min-w-0 flex-col justify-center gap-0.5">
+          <div class="flex min-w-0 items-center gap-2">
+            <h1
+              class="m-0 shrink-0 text-[clamp(1.18rem,2vw,1.5rem)] leading-none font-semibold tracking-[0.04em] text-[var(--color-ink-strong)]"
+              data-display="true"
+            >
+              旅记
+            </h1>
+            <p
+              class="min-w-0 truncate rounded-full border border-white/80 bg-white/82 px-2 py-[0.14rem] text-[0.6rem] leading-none tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
+            >
+              Travel Diary
+            </p>
+          </div>
+          <p class="max-w-[18rem] truncate text-[0.72rem] leading-[1.15] text-[var(--color-ink-muted)]">
             收集每次落点的心动坐标
           </p>
         </div>
