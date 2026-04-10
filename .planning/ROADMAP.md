@@ -29,7 +29,7 @@
 | 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
 | 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
 | 21 | v4 基础设施验证补完 | 2/2 | Complete    | 2026-04-09 |
-| 22 | v4 Kawaii 验证归档与复审收口 | 2/2 | Complete | 2026-04-10 |
+| 22 | v4 Kawaii 验证归档与复审收口 | 2/2 | Complete    | 2026-04-10 |
 
 ## Phase Details
 
