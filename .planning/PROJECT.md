@@ -12,7 +12,7 @@
 
 ## Current State
 
-- **v4.0 进行中**：Phase 19-21 已完成，Phase 22 将负责 Phase 20 verification 与 milestone re-audit 收口
+- **v4.0 已完成 phase 执行**：Phase 19-22 全部完成，canonical milestone audit 已通过，当前可直接进入 `/gsd-complete-milestone v4.0`
 - **v3.0 已于 2026-04-03 交付**：8 phases (11-18)，39 plans，29/29 requirements satisfied
 - 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
 - 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
@@ -36,19 +36,19 @@
 
 ### Active
 
-- [ ] 全局 CSS 变量 / design token 替换为 Tailwind 配置
-- [ ] 现有样式（scoped style、全局 css）全面迁移为 Tailwind 工具类
-- [ ] 按钮/徽章为 pill-shaped，阴影色与背景匹配
-- [ ] 卡片/容器使用 2xl 圆角 + border-4 border-white + 柔和 shadow
-- [ ] 布局宽松：generous padding / margin
-- [ ] hover：scale-105 + -translate-y-1，300ms ease-out
-- [ ] active：scale-95 squish 效果
+- [ ] 里程碑归档与后续版本规划
 
 ### Validated
 
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — Validated in Phase 21
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），Tailwind 主题 token 已提供 `sakura` / `mint` / `lavender` / `cream` — Validated in Phase 21
 - ✓ 引入 Nunito Variable 并通过 `@theme --font-sans` 在全局生效 — Validated in Phase 21
+- ✓ 现有样式（scoped style、全局 css）已迁移到 Tailwind 工具类主路径 — Validated in Phase 20 / Phase 22 re-audit
+- ✓ 按钮/徽章为 pill-shaped，阴影色与背景匹配 — Validated in Phase 22
+- ✓ 卡片/容器使用 floating-cloud 大圆角 + 厚白边 + 柔和 shadow — Validated in Phase 22
+- ✓ 布局宽松：generous padding / margin — Validated in Phase 22
+- ✓ hover：scale-105 + -translate-y-1，300ms ease-out — Validated in Phase 22
+- ✓ active：scale-95 squish 效果 — Validated in Phase 22
 - ✓ Kawaii 主题 token 基础结构 — v3.0 quick tasks（260408-nch/nw1）
 - ✓ 顶部栏紧凑布局 — v3.0 quick task 260408-nw1
 
@@ -102,4 +102,4 @@ This document evolves at milestone boundaries.
 4. Core Value check — still the right priority?
 
 ---
-*Last updated: 2026-04-09 — Phase 21 complete, waiting for Phase 22*
+*Last updated: 2026-04-10 — Phase 22 complete, v4.0 ready for milestone completion*
