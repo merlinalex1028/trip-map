@@ -10,6 +10,16 @@
 
 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
 
+## Current Milestone: v5.0 账号体系与云同步基础版
+
+**Goal:** 让用户从本地单机旅行地图升级到可登录、可跨设备同步旅行记录的旅行地图。
+
+**Target features:**
+- 用户可以注册、登录、退出，并拥有独立账号身份
+- 旅行记录与账号绑定，刷新或更换设备后仍能看到同一份点亮记录
+- 在现有中国 + 海外行政区链路上继续扩展海外可识别/可点亮覆盖
+- 清理会直接阻塞账号化、同步和覆盖扩展落地的技术债
+
 ## Current State
 
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
@@ -21,15 +31,18 @@
 
 ## Next Milestone Goals
 
-- 定义 v5.0 的产品目标与 requirements
-- 决定是否优先推进账号体系、多设备同步，或继续拓展海外地理覆盖
-- 在新 milestone 开始前重新审视 out-of-scope 与当前技术债优先级
+- 完成账号体系与跨设备同步闭环，把“本地单机”升级为“账号化记录”
+- 扩展海外行政区覆盖，让同步后的旅行记录在更多海外地点可识别、可点亮
+- 只清理会直接阻塞账号化、同步和覆盖扩展的技术债
 
 ## Requirements
 
 ### Active
 
-- [ ] 通过 `/gsd-new-milestone` 定义下一轮 milestone requirements
+- [ ] 用户可以注册、登录、退出，并拥有独立账号身份
+- [ ] 旅行记录与账号绑定，刷新或更换设备后仍能看到同一份点亮记录
+- [ ] 海外地点识别与点亮覆盖继续扩展到更实用的可用范围
+- [ ] 清理直接阻塞账号化 / 同步 / 覆盖扩展的技术债
 
 ### Validated
 
@@ -91,13 +104,20 @@
 
 ## Evolution
 
-This document evolves at milestone boundaries.
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition**:
+1. Requirements invalidated? -> Move to Out of Scope with reason
+2. Requirements validated? -> Move to Validated with phase reference
+3. New requirements emerged? -> Add to Active
+4. Decisions to log? -> Add to Key Decisions
+5. "What This Is" still accurate? -> Update if drifted
 
 **After each milestone**:
-1. Archive previous state in `<details>` above
-2. Update Current State with shipped version
-3. Define Next Milestone Goals
-4. Core Value check — still the right priority?
+1. Full review of all sections
+2. Core Value check -> still the right priority?
+3. Audit Out of Scope -> reasons still valid?
+4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — after v4.0 milestone archive*
+*Last updated: 2026-04-10 — after v5.0 milestone start*

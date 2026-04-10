@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Kawaii UI 重构 & Tailwind 集成
-status: milestone_archived
-stopped_at: v4.0 archived
-last_updated: "2026-04-10T10:02:00+08:00"
-last_activity: 2026-04-10 -- v4.0 milestone archived
+milestone: v5.0
+milestone_name: 账号体系与云同步基础版
+status: defining_requirements
+stopped_at: milestone requirements definition
+last_updated: "2026-04-10T17:56:14+08:00"
+last_activity: 2026-04-10 -- Milestone v5.0 started
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -21,17 +21,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-10)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** no active milestone
+**Current focus:** v5.0 requirements definition
 
 ## Current Position
 
-Milestone: v4.0 — ARCHIVED
-Phase: none
-Plan: none
-Status: Waiting for next milestone definition
-Last activity: 2026-04-10 -- v4.0 milestone archived
+Milestone: v5.0 — 账号体系与云同步基础版
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-10 -- Milestone v5.0 started
 
-Progress: [██████████] 100%
+Progress: [----------] 0%
 
 ## Last Shipped Milestone
 
@@ -52,14 +52,14 @@ Progress: [██████████] 100%
 
 ## Next Steps
 
-- `/gsd-new-milestone` — 初始化下一个 milestone 的目标、requirements 与 roadmap
-- `/gsd-progress` — 查看当前归档后的项目状态
-- `/gsd-check-todos` — 如果要先处理 backlog / todo，再决定下一个 milestone
+- 完成 v5.0 requirements 定义与范围确认
+- 生成 v5.0 roadmap 并映射 requirements -> phases
+- 进入首个 phase 的 `/gsd-discuss-phase` 或 `/gsd-plan-phase`
 
 ## Session Continuity
 
-Last Session: 2026-04-10T10:02:00+08:00
-Stopped At: v4.0 archived
+Last Session: 2026-04-10T17:56:14+08:00
+Stopped At: milestone requirements definition
 
 ---
-*Last updated: 2026-04-10 — v4.0 archived, ready for next milestone*
+*Last updated: 2026-04-10 — v5.0 started, defining requirements*
