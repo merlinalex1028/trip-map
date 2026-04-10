@@ -60,29 +60,29 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| AUTH-04 | TBD | Pending |
-| AUTH-05 | TBD | Pending |
-| SYNC-01 | TBD | Pending |
-| SYNC-02 | TBD | Pending |
-| SYNC-03 | TBD | Pending |
-| SYNC-04 | TBD | Pending |
-| SYNC-05 | TBD | Pending |
-| MIGR-01 | TBD | Pending |
-| MIGR-02 | TBD | Pending |
-| MIGR-03 | TBD | Pending |
-| MIGR-04 | TBD | Pending |
-| OVRS-01 | TBD | Pending |
-| OVRS-02 | TBD | Pending |
-| OVRS-03 | TBD | Pending |
+| AUTH-01 | Phase 23 | Pending |
+| AUTH-02 | Phase 23 | Pending |
+| AUTH-03 | Phase 23 | Pending |
+| AUTH-04 | Phase 24 | Pending |
+| AUTH-05 | Phase 23 | Pending |
+| SYNC-01 | Phase 23 | Pending |
+| SYNC-02 | Phase 23 | Pending |
+| SYNC-03 | Phase 25 | Pending |
+| SYNC-04 | Phase 25 | Pending |
+| SYNC-05 | Phase 25 | Pending |
+| MIGR-01 | Phase 24 | Pending |
+| MIGR-02 | Phase 24 | Pending |
+| MIGR-03 | Phase 24 | Pending |
+| MIGR-04 | Phase 24 | Pending |
+| OVRS-01 | Phase 26 | Pending |
+| OVRS-02 | Phase 26 | Pending |
+| OVRS-03 | Phase 26 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-10 — initial v5.0 definition*
+*Last updated: 2026-04-10 — roadmap mapped to phases 23-26*
