@@ -1,109 +1,102 @@
-# Features Research: Kawaii UI Design System
+# Feature Landscape: v5.0 账号体系、云同步与海外覆盖
 
-**Domain:** v4.0 Kawaii UI 重构 & Tailwind 集成
-**Date:** 2026-04-08
-**Confidence:** HIGH
+**Domain:** 既有旅行地图产品的新增里程碑特性研究
+**Researched:** 2026-04-10
+**Confidence:** MEDIUM-HIGH
+**Scope lens:** 只覆盖 v5.0 新能力，不重复现有 canonical resolve / 点亮 / Kawaii UI。
 
-## Table Stakes (必须实现)
+## 需求类别
 
-| Feature | Description | Tailwind Pattern |
-|---------|-------------|-----------------|
-| Pastel color palette | 奶油白底色 + 樱花粉/薄荷绿/淡紫 | bg-[#FAFAFA] + @theme extension |
-| Rounded fonts | Nunito Variable / Quicksand 字体 | font-nunito via @theme --font-sans |
-| Pill buttons | 全圆角按钮/徽章 | rounded-full |
-| Colored soft shadow | 按钮阴影色匹配背景 | shadow-[0_4px_14px_0_rgba(255,183,178,0.4)] |
-| Floating-cloud cards | 大圆角 + 白色厚边框 + 柔和 shadow | rounded-3xl border-4 border-white shadow-xl |
-| Hover lift | 轻弹放大上浮 | hover:scale-105 hover:-translate-y-1 transition-all duration-300 ease-out |
-| Active squish | 点击轻压 | active:scale-95 |
-| Generous spacing | 宽松 padding / margin | p-6 md:p-8 gap-4 gap-6 |
+1. **账号身份**
+   用户能创建账号、登录、退出，并明确知道当前数据属于哪个身份。
+2. **跨设备同步**
+   用户在新设备登录后，应看到同一份旅行记录；本地旧记录升级到账号时要可解释。
+3. **海外覆盖扩展**
+   用户在更多海外地点点击时，能得到稳定的可识别、可点亮或可解释的结果。
+4. **隐私与迁移护栏**
+   用户应知道哪些数据会同步、哪些不会同步，以及退出账号后设备上还剩什么。
 
-## Differentiators (锦上添花)
+## Table Stakes
 
-| Feature | Description | Notes |
-|---------|-------------|-------|
-| Component-matched shadows | 每种颜色系有对应色调阴影 | Tailwind v4 @theme 自定义 shadow utilities |
-| Backdrop blur on topbar | 半透明毛玻璃顶栏 | bg-white/80 backdrop-blur-sm |
-| Map marker kawaii style | 地图 marker 圆润可爱化 | CSS border-radius + kawaii token colors |
+| 类别 | Feature | 用户视角行为 | v5.0 依赖/前置 |
+|------|---------|-------------|----------------|
+| 账号身份 | 注册 / 登录 / 退出闭环 | 用户可以注册、登录、退出；刷新后仍保持登录；退出后当前设备不再显示该账号的云端记录 | 需要新增稳定身份层；现有 `TravelRecord` 尚无账号归属字段 |
+| 账号身份 | 延迟要求登录，而不是首屏强拦 | 未登录用户仍可浏览地图；在“保存/同步我的旅行记录”时再引导登录升级 | 需要 guest -> account 升级入口与文案 |
+| 跨设备同步 | 账号即记录真源 | 同一账号在另一台设备登录后，自动拉到同一份点亮记录，不要求用户手动导入 | 需要 server-owned records 与账号绑定 |
+| 跨设备同步 | 首次登录时处理本地旧记录 | 本地已有旅行记录的用户首次登录时，可明确选择“合并到账号”或“以云端为准” | 需要本地快照读取、去重和一次性迁移流程 |
+| 跨设备同步 | 删除/取消点亮可同步 | 在 A 设备取消点亮后，B 设备刷新或重进后看到一致结果 | 需要 record mutation 时间语义；当前契约只有 `createdAt`，不足以支撑同步解释 |
+| 跨设备同步 | 失败可解释 | 网络失败或登录失效时，用户知道“本地是否已保存”“云端是否已同步成功” | 需要同步状态反馈、重试入口 |
+| 海外覆盖扩展 | 更实用的海外 admin1 覆盖 | 美国州、省级行政区等高需求海外区域可稳定识别、点亮、重开 | 依赖 canonical taxonomy 与边界数据继续扩充 |
+| 海外覆盖扩展 | 不支持时有明确兜底 | 点到未覆盖区域时，明确提示“暂不支持该地区点亮”，而不是静默失败 | 依赖现有 canonical fallback 文案链路 |
+| 海外覆盖扩展 | 标签本地化与层级解释 | 海外地点标题、副标题、类型标签保持稳定，不因设备或语言切换而变得不可理解 | 依赖现有 `displayName` / `subtitle` / `typeLabel` 继续稳定化 |
+| 隐私与迁移护栏 | 明确同步边界 | 用户知道同步的是旅行记录，不是后台持续定位；退出账号不会误删服务器外的历史说明 | 需要账号设置页最小闭环 |
 
-## Anti-Features (明确排除)
+## Differentiators
 
-| Feature | Reason |
-|---------|--------|
-| JS animation libraries (framer-motion, animejs) | 纯 CSS transition 已满足需求，添加库是过度工程 |
-| Dark mode | 本次不要求，且与 kawaii 浅色主题冲突 |
-| Complex CSS animations / keyframes | 超出 PRD 范围，bouncy ease-out 已足够 |
+| 类别 | Feature | 为什么有价值 | 适合 v5.0 吗 |
+|------|---------|-------------|--------------|
+| 账号身份 | 一键登录入口 | `Sign in with Apple` 这类一键登录可降低注册摩擦，尤其适合移动端地图产品 | 可做增量，但不是 v5.0 必须首发 |
+| 跨设备同步 | 首次登录自动建议合并本地记录 | 能保住 v1-v4 老用户已有点亮数据，减少“登录后记录没了”的流失 | 是，建议作为核心体验而非附加项 |
+| 跨设备同步 | 最近同步时间 / 当前账号提示 | 用户能快速判断“我看到的是不是最新数据、是不是登错号了” | 是，低成本高解释性 |
+| 海外覆盖扩展 | 国家内完成度 | 例如“美国已点亮 12/50 个州”，比单纯已点亮更有持续使用价值 | 适合作为轻量差异化，可建立在 admin1 覆盖之上 |
+| 海外覆盖扩展 | 可配置的国家/地区计数口径 | 对争议地区、属地归属、国家计数口径提供稳定规则或少量可配置项 | 有价值，但建议先固定一套规则，配置化留后续 |
+| 分享/成长 | 账号下基础统计 | 登录后显示“已点亮国家/地区数、最近新增地点”，强化账号存在感 | 可做轻量版，不要扩成社交系统 |
 
-## Component-Specific Patterns
+## Explicit Anti-Features
 
-### 全局背景
-```html
-<body class="bg-[#FAFAFA] font-nunito">
-```
+| Anti-Feature | 为什么本里程碑不要做 | 替代/收敛方案 |
+|--------------|----------------------|----------------|
+| 强制首屏注册登录 | Apple HIG 明确建议延后登录请求；地图产品先给可见价值再促登录，转化更稳 | 允许未登录浏览；在保存、同步、跨设备场景触发升级 |
+| 实时位置追踪 / 旅行轨迹自动采集 | 隐私、耗电、权限和误差成本明显更高，也偏离当前“点击点亮 + canonical confirm”主线 | 继续坚持用户显式点亮；同步的只是用户确认后的记录 |
+| 多移动端同时实时编辑保证 | Polarsteps 官方仍提示同账号多移动端同时使用可能出现同步问题，说明这不是 table stakes | v5.0 采用“最终一致 + 明确刷新/重试”，不要承诺协同编辑 |
+| 全球统一城市级覆盖 | 市级全球统一边界与别名体系成本过高，会拖垮本次里程碑 | v5.0 先把海外高频国家的 admin1 覆盖做实 |
+| 家庭共享地图 / 好友协作地图 | 会立刻引入多主体权限、共享冲突、隐私设置，范围失控 | 先做单用户账号体系 |
+| 行程规划、愿望清单、旅行日记系统 | 这是很多同类产品的增购/增量功能，但不属于“账号化 + 同步 + 覆盖扩展”闭环 | 只保留 travel record 主链路，其他延后 |
 
-### 顶部栏 (TopBar)
-```html
-<div class="bg-white/80 backdrop-blur-sm border-b border-[#FFB7B2]/20 px-4 py-2 flex items-center">
-  <span class="font-nunito font-semibold text-lg text-[#d4746f]">旅记</span>
-</div>
-```
+## v5.0 推荐范围
 
-### 主要按钮 (Primary Button)
-```html
-<button class="
-  rounded-full px-6 py-2
-  bg-[#FFB7B2] text-white font-nunito font-semibold
-  shadow-[0_4px_14px_0_rgba(255,183,178,0.5)]
-  hover:scale-105 hover:-translate-y-1
-  active:scale-95
-  transition-all duration-300 ease-out
-">
-```
+### 必须进 v5.0
 
-### 卡片/Popup (Cards)
-```html
-<div class="
-  rounded-3xl border-4 border-white
-  bg-white/90 backdrop-blur-sm
-  shadow-[0_8px_32px_0_rgba(199,206,234,0.4)]
-  p-6
-  transition-all duration-300 ease-out
-  hover:scale-[1.02] hover:-translate-y-1
-">
-```
+1. 账号注册、登录、退出、会话保持
+2. 旅行记录与账号绑定，登录后自动拉取云端记录
+3. 老本地用户首次登录的记录合并/迁移
+4. 跨设备的一致点亮/取消点亮
+5. 海外 admin1 覆盖扩展到一批高频国家/地区
+6. 对未覆盖地区给出明确不可点亮说明
 
-### 徽章 (Badges)
-```html
-<span class="
-  rounded-full px-3 py-1 text-sm font-nunito
-  bg-[#C7CEEA]/30 text-[#6b7db5]
-  border border-[#C7CEEA]/50
-">
-```
+### 可以延后
 
-## Font Loading Strategy
+1. Apple/Google 第三方登录
+2. 国家内完成度、轻量统计面板
+3. 争议地区口径自定义
+4. 分享地图、好友对比、联合地图
 
-使用 `@fontsource-variable/nunito`（npm 包，零 CORS 风险，不依赖 Google Fonts CDN）：
+## 依赖与顺序
 
-```ts
-// main.ts
-import '@fontsource-variable/nunito'
-```
+1. **先做账号身份，再做同步**
+   没有稳定 user identity，就不存在“跨设备是同一份记录”。
+2. **先补记录同步语义，再谈多端一致**
+   当前 `packages/contracts/src/records.ts` 里的 `TravelRecord` 只有 `createdAt`，没有账号归属、更新时间、删除/冲突解释字段；至少需要补足可解释的 mutation 语义。
+3. **先做迁移策略，再默认云端化**
+   既有用户从本地单机升级到账号体系，是 v5.0 最容易出体验事故的点。
+4. **海外覆盖应按需求密度扩展，不要追求全球均匀**
+   先覆盖高频出境国家/地区的 admin1，再继续下钻。
 
-```css
-/* @theme block in global CSS */
---font-sans: 'Nunito Variable', ui-sans-serif, system-ui;
-```
+## 结论
 
-**不推荐** Google Fonts CDN link：可能存在网络延迟、FOUC（无样式内容闪烁）风险。
+对 v5.0 来说，真正的 table stakes 不是“做一个登录页”，而是把“账号身份 + 记录归属 + 跨设备一致 + 海外未覆盖可解释”做成闭环。差异化可以从“老用户无损升级”“国家内完成度”“轻量统计”切入，但不要在本里程碑引入实时轨迹、社交协作或全球城市级覆盖。
 
-## Feature Dependencies
+## Sources
 
-- 所有组件样式 → Tailwind v4 集成（前置 Phase）
-- 字体工具类 → @fontsource-variable/nunito 安装
-- 颜色工具类 → @theme 配置 kawaii palette
-- hover/active 效果 → Tailwind transition utilities（内置，无额外安装）
-- Leaflet 地图样式 → 需要 Tailwind preflight 安全隔离
-
----
-*Feature research for: v4.0 Kawaii UI 重构 & Tailwind 集成*
-*Written: 2026-04-08*
+- Apple Human Interface Guidelines: Sign in with Apple overview — 建议在用户感知到价值后再请求登录。HIGH  
+  https://developer.apple.com/design/human-interface-guidelines/sign-in-with-apple/overview/
+- Apple Support: Visited Places appear on all devices signed in with the same Apple Account，可删除历史。HIGH  
+  https://support.apple.com/guide/personal-safety/keep-your-location-history-private-in-maps-ipsae6d4500b/web
+- Google Maps Help: 保存地点后可在任意已登录设备查看。HIGH  
+  https://support.google.com/maps/answer/3184808
+- Polarsteps Support: 同账号同时在多个移动设备使用，官方仍提示可能出现同步问题。MEDIUM-HIGH  
+  https://support.polarsteps.com/hc/en-us/articles/24266689867538-Can-I-use-the-app-on-multiple-devices
+- Visited official site: 账号保存旅行数据并可跨设备访问；支持州/省/地区视图与国家计数定制。MEDIUM  
+  https://visitedapp.com/
+- Visited features page: 区域地图、城市地图、行程等属于附加能力而非最低闭环。MEDIUM  
+  https://visitedapp.com/features/

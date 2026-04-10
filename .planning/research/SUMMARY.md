@@ -1,123 +1,162 @@
-# Research Summary: v4.0 Kawaii UI 重构 & Tailwind 集成
+# Project Research Summary
 
 **Project:** 旅行世界地图
-**Milestone:** v4.0
-**Date:** 2026-04-08
+**Domain:** local-first 旅行地图向账号化、云同步、海外 admin1 扩展升级
+**Milestone:** v5.0
+**Researched:** 2026-04-10
 **Confidence:** HIGH
 
 ## Executive Summary
 
-本里程碑是纯前端 UI 层改造：为 `apps/web`（Vue 3 + Vite 8）引入 Tailwind CSS v4，并将整体界面升级为 Kawaii/Anime 可爱风格。技术路径清晰且低风险——Tailwind v4 的 Vite 插件原生支持 Vite 8，CSS-first 配置（无需 `tailwind.config.js`）可直接映射现有 kawaii token，字体通过 npm 包离线加载。最大的工程风险是 Tailwind preflight 与 Leaflet CSS 的顺序冲突，以及 CSS transform 不能用于地图容器，这两点有明确的防护方案。
+v5.0 的本质不是补一个登录页，而是把现有单机旅行地图升级成“可登录、可跨设备同步、可在更多海外地区稳定点亮”的账号化产品。基于现有代码和研究，最佳路径不是换框架或引入外部平台，而是在既有 `Vue 3 + Leaflet + NestJS + Prisma + PostgreSQL` 基线之上，加一层服务端会话鉴权、每用户记录归属和更稳的海外数据管线。
 
----
+推荐做法是保留公开的地点解析链路，只把“记录保存与读取”切到账号上下文：浏览地图仍可匿名，用户在保存或同步时再升级登录；服务端通过 `sid` HttpOnly cookie + session 表识别用户；前端通过单一 bootstrap 请求恢复 `user + records`；海外覆盖继续走 canonical dataset + geometry manifest + shard 资产扩展，不把地理问题塞进 auth/records 业务模型。
 
-## Recommended Stack
+最大风险不在 UI，而在三件事：旧本地数据首次登录迁移、切账号后的前端状态串号、以及海外 place/boundary ID 演进后历史记录失去可重开性。路线图应先锁定 ownership 和 session 边界，再处理首登导入与多端一致，最后再扩大海外覆盖。
 
-| Package | Version | Purpose | Install Target |
-|---------|---------|---------|---------------|
-| `tailwindcss` | ^4.2.2 | Tailwind CSS v4 核心 | `apps/web` devDep |
-| `@tailwindcss/vite` | ^4.2.2 | Vite 8 专用插件（非 PostCSS） | `apps/web` devDep |
-| `@fontsource-variable/nunito` | latest | 离线 Nunito 可变字体 | `apps/web` dep |
+## Key Findings
 
-**不需要安装：** `tailwind.config.js`（v4 无需）、PostCSS 插件、JS 动画库。
+### Recommended Stack
 
----
+继续沿用现有 monorepo 和主栈，不引入 Auth SaaS、JWT 刷新体系、WebSocket 同步或新地图引擎。v5.0 只补最小但足够的账号化能力。
 
-## Key Feature Patterns
+**Core technologies:**
+- `Vue 3 + Pinia + Leaflet + Tailwind v4`：保留现有前端与地图渲染基线，改动面最小。
+- `NestJS 11 + Fastify 5`：适合加 auth module、guard、cookie 插件和 bootstrap 接口。
+- `Prisma 6 + PostgreSQL`：适合建 `User`、`AuthSession`、每用户记录唯一约束与 RLS 护栏。
+- `@fastify/cookie`：承载 `sid` HttpOnly cookie，会话模式比前端 token 更贴合当前浏览器场景。
+- `argon2`：密码哈希默认选型。
+- `geoBoundaries gbOpen ADM1`：作为海外扩展主数据源，继续喂给现有 geometry manifest/shard 管线。
 
-### Table Stakes
+**Critical stack decisions:**
+- 鉴权采用 opaque `sid` cookie + 服务端 session 表，不采用 JWT refresh 架构。
+- 客户端统一 `credentials: 'include'`，不在 `localStorage` 保存 auth token。
+- 综合 `ARCHITECTURE.md` 与 `PITFALLS.md`，推荐新增 `UserTravelRecord` 作为 v5 主表，并把旧 `TravelRecord` 作为 legacy 隔离；这比原地回填 owner 更安全。
 
-| Feature | Tailwind Implementation |
-|---------|------------------------|
-| 奶油白全局背景 | `class="bg-[#FAFAFA]"` on body |
-| Kawaii 字体 | `@theme { --font-sans: 'Nunito Variable', ... }` |
-| Pill 按钮 | `rounded-full px-6 py-2` |
-| 樱花粉柔光阴影 | `shadow-[0_4px_14px_0_rgba(255,183,178,0.5)]` |
-| Floating-cloud 卡片 | `rounded-3xl border-4 border-white shadow-xl` |
-| Hover 轻弹 | `hover:scale-105 hover:-translate-y-1 transition-all duration-300 ease-out` |
-| Active 轻压 | `active:scale-95` |
+### Expected Features
 
----
+v5.0 的 table stakes 是“账号身份 + 记录归属 + 首登迁移 + 多端一致 + 海外可解释覆盖”闭环，不是单独上线登录表单。
 
-## Architecture Approach
+**Must have (table stakes):**
+- 注册、登录、退出、刷新后会话保持。
+- 未登录仍可浏览地图，在保存/同步时再引导登录升级。
+- 旅行记录与账号绑定，登录后自动拉取当前账号的云端记录。
+- 老用户首次登录时可明确处理本地旧记录：合并到账号或以云端为准。
+- 点亮/取消点亮在多设备间保持最终一致。
+- 海外高频国家的 admin1 覆盖扩展，并对未覆盖地区明确提示“不支持”。
+- 明确同步边界：同步的是旅行记录，不是持续定位或轨迹采集。
 
-### CSS 引入顺序（关键）
+**Should have (competitive):**
+- 当前账号标识与最近同步时间，帮助用户判断是否看到最新数据。
+- 国家内完成度或轻量统计，增强账号价值感。
 
-```css
-/* style.css */
-@import "tailwindcss";              /* 1. Tailwind + preflight */
-@import 'leaflet/dist/leaflet.css'; /* 2. Leaflet（必须在 preflight 后） */
+**Defer (v2+):**
+- Apple/Google 第三方登录。
+- 实时多端协同、后台位置追踪、旅行轨迹自动采集。
+- 全球城市级统一覆盖、家庭共享地图、好友协作、社交分享。
 
-@theme {                            /* 3. Kawaii token */
-  --color-sakura: #FFB7B2;
-  --color-mint: #B5EAD7;
-  --color-lavender: #C7CEEA;
-  --color-cream: #FAFAFA;
-  --font-sans: 'Nunito Variable', ui-sans-serif, system-ui;
-}
-```
+### Architecture Approach
 
-### Vite 配置修改
+架构上应把 auth、records、canonical/geometry 三条边界分清：`/places/resolve` 与 `/places/confirm` 继续公开；`/auth/bootstrap` 成为唯一的登录恢复入口；`/records` 全部切成“当前用户记录”；海外覆盖继续通过 canonical dataset 与 geometry manifest 扩展，不与账号模型耦合。
 
-```ts
-import tailwindcss from '@tailwindcss/vite'
-export default defineConfig({
-  plugins: [tailwindcss(), vue()],
-})
-```
+**Major components:**
+1. `auth` module + session guard：注册、登录、退出、恢复会话，并把 cookie 解析成当前用户上下文。
+2. `bootstrap` endpoint + `auth-session` store：一次返回 `user + records`，前端据此初始化登录态和地图记录。
+3. `UserTravelRecord` repository/service：按 `(userId, placeId)` 做读写、删除、去重与幂等。
+4. canonical places + geometry pipeline：维护稳定 `placeId`、可演进 `boundaryId`，并扩展海外 ADM1 数据资产。
 
-### 字体加载
+### Critical Pitfalls
 
-```ts
-// main.ts
-import '@fontsource-variable/nunito'
-```
+1. **仍把记录当全局 `placeId` 唯一**：会直接阻塞多用户；必须改成每用户命名空间。
+2. **只做登录，不做 ownership filter / RLS / guard 三层护栏**：会导致串读串删；应用层和数据库层都要收口。
+3. **登录/退出/切账号后前端不重置 store**：会出现串号或空白假象；bootstrap 生命周期必须绑定 session。
+4. **忽略首登本地记录导入**：老用户会误以为数据丢失；必须单独设计一次性迁移流程和解释文案。
+5. **点亮/取消点亮缺少稳定幂等语义**：多设备下容易闪烁和回滚；服务端应返回最终 canonical record，而不是让前端猜 `409`。
+6. **海外扩容先改边界、后补 ID 兼容**：历史记录会失去可重开性；必须优先稳定 canonical ID，并预留 alias/backfill。
 
----
+## Implications for Roadmap
 
-## Critical Pitfalls
+基于研究，建议把 v5.0 切成 4 个 phase，而不是把 auth、sync、海外覆盖混在一个实现阶段。
 
-| # | Pitfall | Prevention |
-|---|---------|------------|
-| 1 | Tailwind preflight 重置 Leaflet 样式 | Leaflet CSS 在 `@import "tailwindcss"` 之后引入 |
-| 2 | 用 v3 方式创建 `tailwind.config.js` | v4 无需 config 文件，用 `@theme {}` 块 |
-| 3 | 动态拼接 class 名导致生产丢失工具类 | 始终使用完整类名字符串 |
-| 4 | Google Fonts CDN 导致 FOUC | 使用 `@fontsource-variable/nunito` npm 包 |
-| 5 | scoped 样式与 Tailwind 工具类特异性冲突 | 迁移时彻底删除对应 scoped 规则 |
-| 6 | 地图容器使用 CSS transform | Hover/scale 只用于 UI 组件，绝不用于 Leaflet 容器 |
+### Phase 1: Auth & Ownership Foundation
+**Rationale:** 没有稳定用户身份和记录归属，就不存在后续同步。
+**Delivers:** `User`、`AuthSession`、`UserTravelRecord`、`sid` cookie、auth guard、受保护的 `/records`、`/auth/bootstrap`。
+**Addresses:** 注册/登录/退出、账号即记录真源。
+**Avoids:** 全局唯一 `placeId`、跨用户串读串删、只开登录不做 ownership 护栏。
 
----
+### Phase 2: Session Boundary & Local Import
+**Rationale:** v5 最大体验风险来自“老本地用户第一次登录后发生什么”。
+**Delivers:** `auth-session` store、统一 API wrapper、登录/退出切账号重置、首登本地记录合并或云端优先流程、同步边界说明。
+**Addresses:** 延迟登录升级、老用户迁移、同步边界可解释。
+**Avoids:** 串号、空白假象、首次登录误判为数据丢失、强制登录墙。
 
-## Roadmap Implications
+### Phase 3: Sync Semantics & Multi-Device Hardening
+**Rationale:** 先有 ownership 和 session，再谈多端一致才不会把错误放大。
+**Delivers:** 记录 upsert/幂等删除、明确的 mutation 成功语义、401 与网络失败分流、必要的 pending/retry 状态。
+**Addresses:** 跨设备一致点亮/取消点亮、失败可解释、最近同步时间。
+**Avoids:** 409 冲突误判、弱网回滚闪烁、多设备同时操作不一致。
 
-建议 2 个 phase 完成本里程碑：
+### Phase 4: Overseas Coverage Foundation
+**Rationale:** 海外扩容应在每用户记录模型稳定后落地，否则会叠加 place/boundary 迁移风险。
+**Delivers:** priority country list、`geoBoundaries gbOpen ADM1` 接入、canonical/geometry 扩容、未覆盖提示、历史记录 reopen 回归。
+**Addresses:** 更实用的海外 admin1 覆盖、未覆盖可解释、标签与层级稳定。
+**Avoids:** 全球范围失控、ADM2/ADM3 过度扩张、边界重命名导致历史记录失效。
 
-**Phase 19: Tailwind 基础设施 + 全局 token**
-- 安装 4 个包，配置 Vite 插件
-- 写 `@theme {}` 块，建立 sakura/mint/lavender/cream 调色板
-- 全局字体生效
-- 验证 Leaflet 地图控件样式未受影响
+### Phase Ordering Rationale
 
-**Phase 20: 全面 Kawaii 组件样式迁移**
-- 顶部栏：半透明毛玻璃 + 樱花粉标题
-- 按钮/徽章：pill-shaped + 彩色柔光阴影
-- Popup/卡片：floating-cloud 大圆角白边框
-- hover/active 微交互全量应用
-- 清理所有遗留 scoped 样式
+- Phase 1 必须先于所有 phase，因为 user identity 和 ownership 是同步的前提。
+- Phase 2 必须单列，因为“首登迁移”和“切账号状态重置”是最高风险体验断层。
+- Phase 3 只做基础版最终一致，不承诺实时协同，能显著控制范围。
+- Phase 4 最后做，确保 place/boundary 兼容问题不会和 auth/sync 迁移同时爆发。
 
----
+### Research Flags
+
+Phases likely needing deeper research during planning:
+- **Phase 2:** 需要细化首登导入策略、合并规则、用户文案与回滚策略。
+- **Phase 4:** 需要确认首批国家清单、geoBoundaries 质量、place/boundary alias 方案和回归夹具。
+
+Phases with standard patterns (skip research-phase):
+- **Phase 1:** NestJS + Fastify cookie session、Prisma 关系模型、guard 模式成熟。
+- **Phase 3:** 若范围收敛到“服务端权威快照 + 幂等写入 + 明确错误态”，实现模式较标准。
 
 ## Confidence Assessment
 
-| Area | Level | Notes |
-|------|-------|-------|
-| Stack | HIGH | Tailwind v4 + Vite 8 peerDep 已验证，npm 包版本可查 |
-| Features | HIGH | PRD 已极度具体，无需额外功能发现 |
-| Architecture | HIGH | Vite 插件模式清晰，CSS 引入顺序有官方指导 |
-| Pitfalls | HIGH | 来自 Tailwind v4 文档 + Leaflet 已知行为 + 项目历史 |
+| Area | Confidence | Notes |
+|------|------------|-------|
+| Stack | HIGH | 主要基于现有代码、NestJS/Prisma/MDN 官方资料，技术路径清晰。 |
+| Features | MEDIUM-HIGH | 用户闭环明确，但首登迁移交互和统计类差异化仍需产品取舍。 |
+| Architecture | HIGH | 与当前代码结构高度一致，组件边界和构建顺序清楚。 |
+| Pitfalls | HIGH | 风险点已被当前代码状态与多份研究交叉验证。 |
 
-**Overall:** HIGH — 本里程碑技术路径明确，无重大未知风险。
+**Overall confidence:** HIGH
+
+### Gaps to Address
+
+- **Legacy 数据处理策略**：需明确是完全隔离旧表、一次性导入，还是提供人工迁移脚本；不应隐式认领。
+- **`UserTravelRecord` vs 原表改造**：研究存在分歧；本总结建议新表切换，roadmap 需尽早确认并保持一致。
+- **海外首批覆盖范围**：需在规划时锁定 priority countries，避免“全球均匀扩张”。
+- **RLS 实施深度**：若继续启用数据库 RLS，需确认 Prisma 连接角色是否会绕过 policy。
+
+## Sources
+
+### Primary (HIGH confidence)
+- `.planning/research/STACK.md`
+- `.planning/research/FEATURES.md`
+- `.planning/research/ARCHITECTURE.md`
+- `.planning/research/PITFALLS.md`
+- `.planning/PROJECT.md`
+- NestJS docs: cookies, session, authentication, encryption and hashing
+- Prisma docs: one-to-many relations, compound unique constraints
+- MDN docs: `Request.credentials`, `Set-Cookie`
+- PostgreSQL docs: row security policies, `CREATE POLICY`
+- geoBoundaries API docs
+
+### Secondary (MEDIUM confidence)
+- Apple HIG Sign in with Apple guidance
+- Google Maps saved places behavior
+- Polarsteps multi-device support guidance
+- Visited product and feature pages
 
 ---
-*Research for: v4.0 Kawaii UI 重构 & Tailwind 集成*
-*Written: 2026-04-08*
+*Research completed: 2026-04-10*
+*Ready for roadmap: yes*
