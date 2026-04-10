@@ -5,103 +5,17 @@
 - ✅ **v1.0 MVP** — Phases 1-6，已于 2026-03-24 归档
 - ✅ **v2.0 城市主视角与可爱风格重构** — Phases 7-10，已于 2026-03-27 归档
 - ✅ **v3.0 全栈化与行政区地图重构** — Phases 11-18，已于 2026-04-03 归档（[详情](milestones/v3.0-ROADMAP.md)）
-- 🚧 **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，进行中
+- ✅ **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，已于 2026-04-10 归档（[详情](milestones/v4.0-ROADMAP.md)）
+
+## Current Status
+
+- 当前没有活动 milestone。
+- 最新已归档版本：`v4.0`
+- 下一步：运行 `/gsd-new-milestone` 定义新 milestone 的目标、requirements 与 roadmap。
+
+## Recent Deliveries
+
+- `v4.0`：Tailwind v4 + Nunito + Kawaii UI 主路径样式迁移、Phase 19/20 formal verification、canonical milestone re-audit passed。
 
 ---
-
-# v4.0 Kawaii UI 重构 & Tailwind 集成
-
-**Milestone:** v4.0
-**Phases:** 19-22
-**Requirements:** 12
-
-## Phases
-
-- [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
-- [x] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互 (completed 2026-04-09)
-- [x] **Phase 21: v4 基础设施验证补完** - 补齐 Phase 19 的 validation / verification 证据链，让 Tailwind、字体与 Leaflet preflight requirement 重新进入可审计状态 (completed 2026-04-09)
-- [x] **Phase 22: v4 Kawaii 验证归档与复审收口** - 补齐 Phase 20 的 verification 证据并收口里程碑复审资料，为重新 audit 与归档做准备 (completed 2026-04-10)
-
-## Phase Overview
-
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
-| 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
-| 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
-| 21 | v4 基础设施验证补完 | 2/2 | Complete    | 2026-04-09 |
-| 22 | v4 Kawaii 验证归档与复审收口 | 2/2 | Complete    | 2026-04-10 |
-
-## Phase Details
-
-### Phase 19: Tailwind 基础设施 & 全局 Token
-**Goal:** 前端开发环境具备可用的 Tailwind CSS 工具类，kawaii 调色板与圆润字体作为全局 token 生效，Leaflet 地图控件不受 preflight 干扰
-**Depends on:** Phase 18 (v3.0 delivered)
-**Requirements:** INFRA-01, INFRA-02, INFRA-03, INFRA-04, STYLE-01, STYLE-02
-**Success Criteria** (what must be TRUE):
-  1. 开发者在任意 Vue SFC 的 `class` 属性中输入 `bg-sakura-100 text-lavender-500` 等 kawaii 工具类，浏览器立即渲染对应颜色，无需额外配置
-  2. 页面背景显示奶油白（#FAFAFA / #FFF5F5），视觉上与纯白有明显柔和区别
-  3. 全站字体渲染为 Nunito Variable（圆润，字母有明显圆角感），与之前的 sans-serif 字体可见区别
-  4. 打开地图页面，Leaflet 缩放按钮、归因链接、图层控件样式正常，与 v3.0 视觉一致，无样式崩溃
-**Plans:** 3/3 plans complete
-Plans:
-- [x] 19-01-PLAN.md — 锁定 Tailwind v4 依赖范围、Vite 插件接入与静态契约测试
-- [x] 19-02-PLAN.md — 建立 `style.css` 入口、Nunito 字体基线和最小 Tailwind App shell 样板
-- [x] 19-03-PLAN.md — 跑完自动化门禁并完成 Leaflet 浏览器冒烟验收
-**UI hint:** yes
-
-### Phase 20: Kawaii 组件样式全面迁移
-**Goal:** 所有可见 UI 组件（按钮、徽章、弹窗卡片、popup、drawer）均采用 kawaii 视觉语言，hover/active 微交互流畅自然
-**Depends on:** Phase 19
-**Requirements:** STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03
-**Success Criteria** (what must be TRUE):
-  1. 所有按钮和徽章呈现完整圆角 pill 形状（两端半圆），阴影颜色与按钮背景色匹配，无直角按钮残留
-  2. 弹窗卡片（popup、drawer）具有大圆角（2xl/3xl）、白色厚边框（border-4 border-white）和柔和投影，整体呈现浮动云朵效果
-  3. 组件内外间距宽松，元素之间有明显呼吸感，不出现拥挤或紧贴边缘的情况
-  4. 鼠标悬停可交互元素时，元素平滑放大并轻微上浮，过渡时间约 300ms，动作流畅不跳跃
-  5. 点击按钮时有轻微下压感（scale 缩小），松开后弹回，所有过渡使用 ease-out，无生硬线性动画
-**Plans:** 4/4 plans complete
-Plans:
-- [x] 20-01-PLAN.md — App 薄壳 topbar、notice 与 map shell 的 spacing / thin-shell 合同
-- [x] 20-02-PLAN.md — Map popup 外壳减法、轻箭头壳层与 pointer-events 安全护栏
-- [x] 20-03-PLAN.md — PointSummaryCard 云朵内卡、三档按钮/徽章层级与 300ms ease-out 微交互
-- [x] 20-04-PLAN.md — Phase 20 验证文档收口、自动化门禁与人工视觉验收
-**UI hint:** yes
-
-### Phase 21: v4 基础设施验证补完
-**Goal:** 补齐 Phase 19 的 validation / verification 证据链，消除 v4.0 审计中 INFRA-01~04、STYLE-01~02 的 orphaned 状态
-**Depends on:** Phase 20
-**Requirements:** INFRA-01, INFRA-02, INFRA-03, INFRA-04, STYLE-01, STYLE-02
-**Gap Closure:** Closes gaps from `v4.0-v4.0-MILESTONE-AUDIT.md` for Phase 19 verification completeness
-**Success Criteria** (what must be TRUE):
-  1. `19-VALIDATION.md` 与实际自动化/人工验证证据一致，不再停留在 `draft`
-  2. Phase 19 存在可审计的 `VERIFICATION.md`，明确记录 requirement coverage 与 evidence
-  3. `INFRA-01~04`、`STYLE-01~02` 在重新审计时不再因缺失 verification source 而落入 orphaned
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 21-01-PLAN.md — 刷新 Phase 19 validation 文档，使 Wave 0 / automated / manual evidence 与实际交付对齐
-- [x] 21-02-PLAN.md — 生成 Phase 19 formal VERIFICATION 报告并把六项 INFRA/STYLE requirement 重新挂回可审计 evidence
-**UI hint:** yes
-
-### Phase 22: v4 Kawaii 验证归档与复审收口
-**Goal:** 补齐 Phase 20 的 verification 证据并收口 v4.0 复审资料，使 STYLE/INTER requirement 能通过 milestone re-audit
-**Depends on:** Phase 21
-**Requirements:** STYLE-03, STYLE-04, STYLE-05, INTER-01, INTER-02, INTER-03
-**Gap Closure:** Closes gaps from `v4.0-v4.0-MILESTONE-AUDIT.md` for Phase 20 verification completeness
-**Success Criteria** (what must be TRUE):
-  1. Phase 20 存在可审计的 `VERIFICATION.md`，并与 `20-VALIDATION.md`、实际 summary 一致
-  2. v4.0 的 Kawaii shell / popup / cloud card / CTA motion 证据链在重新审计时完整
-  3. milestone re-audit 可把 STYLE-03~05、INTER-01~03 从 orphaned 恢复为 satisfied
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 22-01-PLAN.md — 生成 Phase 20 formal verification，收束既有 validation / summary / spec 证据
-- [x] 22-02-PLAN.md — 原位更新 v4.0 milestone audit，并同步最小 closure 元数据
-**UI hint:** yes
-
-## Progress Table
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 19. Tailwind 基础设施 & 全局 Token | 3/3 | Complete | 2026-04-09 |
-| 20. Kawaii 组件样式全面迁移 | 4/4 | Complete | 2026-04-09 |
-| 21. v4 基础设施验证补完 | 2/2 | Complete | 2026-04-09 |
-| 22. v4 Kawaii 验证归档与复审收口 | 2/2 | Complete | 2026-04-10 |
+*Last updated: 2026-04-10 — v4.0 archived, waiting for next milestone*

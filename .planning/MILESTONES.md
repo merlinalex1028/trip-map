@@ -1,5 +1,19 @@
 # Milestones
 
+## v4.0 Kawaii UI 重构 & Tailwind 集成 (Shipped: 2026-04-10)
+
+**Phases completed:** 4 phases, 11 plans, 19 tasks
+
+**Key accomplishments:**
+
+- `apps/web` 已完成 Tailwind v4、Vite 插件顺序、单一 CSS 入口与 Nunito Variable 字体基线的正式落地。
+- App shell、MapContextPopup 与 PointSummaryCard 已完成 Kawaii/Tailwind 主路径样式迁移，并把 hover / active / spacing 合同锁进可执行 spec。
+- Phase 19 与 Phase 20 都已补齐 formal verification，旧的 verification-source 缺口不再阻塞里程碑审计。
+- v4.0 的 canonical milestone audit 已原位翻转为 `passed`，12/12 requirements、2/2 verification-bearing phases 全部通过。
+- roadmap、requirements、project state 已与 v4.0 收口状态同步，当前仓库已准备进入下一个 milestone 规划。
+
+---
+
 ## v3.0 全栈化与行政区地图重构 (Shipped: 2026-04-03)
 
 **Phases completed:** 8 phases, 39 plans, 45 tasks

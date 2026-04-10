@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统离线判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v3.0` 已交付：产品现在是 `web + server + contracts` 全栈 monorepo，支持 server authoritative canonical resolve（中国市级 / 海外一级行政区）、Leaflet 地图引擎、PostgreSQL 持久化旅行记录与 GeoJSON 边界点亮。
+`v4.0` 已交付：前端现在采用 Tailwind v4 + Nunito Variable + Kawaii 视觉主路径，App shell、popup 与 summary card 已统一到可审计的 pastel / pill / floating-cloud 风格，同时保留既有 Leaflet 地图主舞台与真实地点记录链路。
 
 ## Core Value
 
@@ -12,53 +12,51 @@
 
 ## Current State
 
-- **v4.0 已完成 phase 执行**：Phase 19-22 全部完成，canonical milestone audit 已通过，当前可直接进入 `/gsd-complete-milestone v4.0`
-- **v3.0 已于 2026-04-03 交付**：8 phases (11-18)，39 plans，29/29 requirements satisfied
+- **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
+- **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
 - 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
 - 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
-- 前端：Vue 3 + Leaflet，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
+- 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
-- Milestone audit: `passed`（29/29 requirements，18/18 phases verified）
 
-## Current Milestone: v4.0 Kawaii UI 重构 & Tailwind 集成
+## Next Milestone Goals
 
-**Goal：** 为前端引入 Tailwind CSS 基础设施，并将整体 UI 全面升级为 Kawaii/Anime 可爱风格。
-
-**Target features:**
-- Tailwind CSS 集成到 `apps/web`，替换现有 scoped/inline 样式
-- 奶油白底 + 樱花粉/薄荷绿/淡紫 pastel 调色板全局 token
-- 圆润友好字体（Nunito / Quicksand / Varela Round）
-- 按钮/徽章全圆角 pill + 彩色柔光阴影
-- 卡片大圆角（2xl）+ 白色厚边框 floating cloud 效果
-- hover 弹起（scale 1.05 + -4px）/ click 轻压（scale 0.95）/ 300ms bouncy 过渡
+- 定义 v5.0 的产品目标与 requirements
+- 决定是否优先推进账号体系、多设备同步，或继续拓展海外地理覆盖
+- 在新 milestone 开始前重新审视 out-of-scope 与当前技术债优先级
 
 ## Requirements
 
 ### Active
 
-- [ ] 里程碑归档与后续版本规划
+- [ ] 通过 `/gsd-new-milestone` 定义下一轮 milestone requirements
 
 ### Validated
 
-- ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — Validated in Phase 21
-- ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），Tailwind 主题 token 已提供 `sakura` / `mint` / `lavender` / `cream` — Validated in Phase 21
-- ✓ 引入 Nunito Variable 并通过 `@theme --font-sans` 在全局生效 — Validated in Phase 21
-- ✓ 现有样式（scoped style、全局 css）已迁移到 Tailwind 工具类主路径 — Validated in Phase 20 / Phase 22 re-audit
-- ✓ 按钮/徽章为 pill-shaped，阴影色与背景匹配 — Validated in Phase 22
-- ✓ 卡片/容器使用 floating-cloud 大圆角 + 厚白边 + 柔和 shadow — Validated in Phase 22
-- ✓ 布局宽松：generous padding / margin — Validated in Phase 22
-- ✓ hover：scale-105 + -translate-y-1，300ms ease-out — Validated in Phase 22
-- ✓ active：scale-95 squish 效果 — Validated in Phase 22
-- ✓ Kawaii 主题 token 基础结构 — v3.0 quick tasks（260408-nch/nw1）
-- ✓ 顶部栏紧凑布局 — v3.0 quick task 260408-nw1
+- ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
+- ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
+- ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
+- ✓ App shell、popup、PointSummaryCard 已完成 Kawaii/Tailwind 主路径迁移 — v4.0
+- ✓ pill-shaped 按钮/徽章、floating-cloud 卡片、宽松 spacing、hover / active motion 合同均已通过 formal verification 与 milestone audit — v4.0
 
 ### Out of Scope
 
-- 后端逻辑变更 — 本次纯前端 UI 层改造
-- 用户账号体系 — 延至后续里程碑
-- 多设备同步 — 延至后续里程碑
+- 后端逻辑大改 — 下一 milestone 再评估
+- Dark mode — 目前仍非优先项
+- JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
+- 用户账号体系、多设备同步、更多海外国家支持 — 留待下一 milestone 明确定义范围
 
 ## Archived Milestone Snapshots
+
+<details>
+<summary>v4.0 Kawaii UI 重构 & Tailwind 集成 (Phases 19-22)</summary>
+
+- Tailwind v4、Vite 插件顺序、单一 CSS 入口与 Nunito Variable 已在 `apps/web` 稳定落地
+- App shell、MapContextPopup、PointSummaryCard 完成 Kawaii/Tailwind 主路径迁移
+- Phase 19 与 Phase 20 formal verification 已补齐
+- canonical v4.0 milestone audit 已 re-audit 为 `passed`
+
+</details>
 
 <details>
 <summary>v3.0 全栈化与行政区地图重构 (Phases 11-18)</summary>
@@ -102,4 +100,4 @@ This document evolves at milestone boundaries.
 4. Core Value check — still the right priority?
 
 ---
-*Last updated: 2026-04-10 — Phase 22 complete, v4.0 ready for milestone completion*
+*Last updated: 2026-04-10 — after v4.0 milestone archive*
