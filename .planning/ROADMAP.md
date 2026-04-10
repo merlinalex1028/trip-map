@@ -20,7 +20,7 @@
 - [x] **Phase 19: Tailwind 基础设施 & 全局 Token** - 安装 Tailwind v4、配置 Vite 插件、建立 kawaii 调色板与字体 token，确保 Leaflet 不受 preflight 影响 (completed 2026-04-09)
 - [x] **Phase 20: Kawaii 组件样式全面迁移** - 将所有 UI 组件迁移为 pill 按钮、floating-cloud 卡片，落地 hover/active 微交互 (completed 2026-04-09)
 - [x] **Phase 21: v4 基础设施验证补完** - 补齐 Phase 19 的 validation / verification 证据链，让 Tailwind、字体与 Leaflet preflight requirement 重新进入可审计状态 (completed 2026-04-09)
-- [ ] **Phase 22: v4 Kawaii 验证归档与复审收口** - 补齐 Phase 20 的 verification 证据并收口里程碑复审资料，为重新 audit 与归档做准备
+- [x] **Phase 22: v4 Kawaii 验证归档与复审收口** - 补齐 Phase 20 的 verification 证据并收口里程碑复审资料，为重新 audit 与归档做准备 (completed 2026-04-10)
 
 ## Phase Overview
 
@@ -29,7 +29,7 @@
 | 19 | Tailwind 基础设施 & 全局 Token | 3/3 | Complete    | 2026-04-09 |
 | 20 | Kawaii 组件样式全面迁移 | 4/4 | Complete    | 2026-04-09 |
 | 21 | v4 基础设施验证补完 | 2/2 | Complete    | 2026-04-09 |
-| 22 | v4 Kawaii 验证归档与复审收口 | 0/6 | Planned     | - |
+| 22 | v4 Kawaii 验证归档与复审收口 | 2/2 | Complete | 2026-04-10 |
 
 ## Phase Details
 
@@ -91,10 +91,10 @@ Plans:
   1. Phase 20 存在可审计的 `VERIFICATION.md`，并与 `20-VALIDATION.md`、实际 summary 一致
   2. v4.0 的 Kawaii shell / popup / cloud card / CTA motion 证据链在重新审计时完整
   3. milestone re-audit 可把 STYLE-03~05、INTER-01~03 从 orphaned 恢复为 satisfied
-**Plans:** 0/2 plans complete
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 22-01-PLAN.md — 生成 Phase 20 formal verification，收束既有 validation / summary / spec 证据
-- [ ] 22-02-PLAN.md — 原位更新 v4.0 milestone audit，并同步最小 closure 元数据
+- [x] 22-01-PLAN.md — 生成 Phase 20 formal verification，收束既有 validation / summary / spec 证据
+- [x] 22-02-PLAN.md — 原位更新 v4.0 milestone audit，并同步最小 closure 元数据
 **UI hint:** yes
 
 ## Progress Table
@@ -104,4 +104,4 @@ Plans:
 | 19. Tailwind 基础设施 & 全局 Token | 3/3 | Complete | 2026-04-09 |
 | 20. Kawaii 组件样式全面迁移 | 4/4 | Complete | 2026-04-09 |
 | 21. v4 基础设施验证补完 | 2/2 | Complete | 2026-04-09 |
-| 22. v4 Kawaii 验证归档与复审收口 | 0/2 | Planned | - |
+| 22. v4 Kawaii 验证归档与复审收口 | 2/2 | Complete | 2026-04-10 |
