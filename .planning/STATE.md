@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: 账号体系与云同步基础版
 status: executing
-stopped_at: Completed 23-01-PLAN.md
-last_updated: "2026-04-12T08:41:01.997Z"
+stopped_at: Completed 23-02-PLAN.md
+last_updated: "2026-04-12T08:54:10.792Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 1
-  percent: 14
+  completed_plans: 2
+  percent: 29
 ---
 
 # Project State
@@ -27,30 +27,32 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 23 (auth-ownership-foundation) — EXECUTING
-Plan: 2 of 7
-Status: Executing Phase 23
-Last activity: 2026-04-12 — Completed 23-01 plan
+Plan: 3 of 7
+Status: Ready to execute
+Last activity: 2026-04-12
 
-Progress: [█░░░░░░░░░] 14%
+Progress: [███░░░░░░░] 29%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: 12m
-- Total execution time: 0.2 hours
+- Total plans completed: 2
+- Average duration: 9m
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 23 | 1 | 12m | 12m |
+| 23 | 2 | 18m | 9m |
 
 **Recent Trend:**
 
-- Last 5 plans: 23-01 (12m)
+- Last 5 plans: 23-01 (12m), 23-02 (6m)
 - Trend: Stable
+
+| Phase 23 P02 | 6m | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -64,6 +66,8 @@ Recent decisions affecting current work:
 - 海外覆盖仅承诺优先国家/地区的 admin1 扩展，不做全球城市级统一覆盖。
 - [Phase 23]: Legacy TravelRecord/SmokeRecord remain isolated; ownership begins in UserTravelRecord for Phase 23.
 - [Phase 23]: Auth ownership migration used Prisma diff/db execute/migrate resolve because a prior RLS migration breaks shadow DB replay.
+- [Phase 23]: Phase 23 auth sessions use AuthSession.id as the sid cookie value with HttpOnly SameSite=Lax current-device semantics.
+- [Phase 23]: Register and login responses return only the AuthUser summary; passwordHash remains server-only.
 
 ### Pending Todos
 
@@ -76,9 +80,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12T08:41:01.994Z
-Stopped at: Completed 23-01-PLAN.md
-Resume file: .planning/phases/23-auth-ownership-foundation/23-02-PLAN.md
+Last session: 2026-04-12T08:54:10.780Z
+Stopped at: Completed 23-02-PLAN.md
+Resume file: .planning/phases/23-auth-ownership-foundation/23-03-PLAN.md
 
 ---
-*Last updated: 2026-04-12 — Phase 23 plan 01 executed*
+*Last updated: 2026-04-12 — Phase 23 plan 02 executed*

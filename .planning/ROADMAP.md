@@ -37,7 +37,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 **Plans**: 7 plans
 Plans:
 - [x] 23-01-PLAN.md — 建立 auth/contracts 与 ownership Prisma schema 基座
-- [ ] 23-02-PLAN.md — 实现邮箱密码注册登录退出与当前设备 session 核心 auth module
+- [x] 23-02-PLAN.md — 实现邮箱密码注册登录退出与当前设备 session 核心 auth module
 - [ ] 23-06-PLAN.md — 补齐 bootstrap 恢复入口与 sid session 恢复逻辑
 - [ ] 23-07-PLAN.md — 补齐 current-user guard、decorator 与 auth module 导出
 - [ ] 23-03-PLAN.md — 将 `/records` 收口为 current-user ownership 真源
@@ -83,7 +83,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 23. Auth & Ownership Foundation | 1/7 | In Progress|  |
+| 23. Auth & Ownership Foundation | 2/7 | In Progress|  |
 | 24. Session Boundary & Local Import | 0/TBD | Not started | - |
 | 25. Sync Semantics & Multi-Device Hardening | 0/TBD | Not started | - |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |

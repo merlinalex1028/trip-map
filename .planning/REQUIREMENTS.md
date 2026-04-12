@@ -8,8 +8,8 @@
 
 ### Authentication（账号身份）
 
-- [ ] **AUTH-01**: 用户可以使用邮箱和密码注册新账号
-- [ ] **AUTH-02**: 用户可以使用邮箱和密码登录，并能主动退出当前账号
+- [x] **AUTH-01**: 用户可以使用邮箱和密码注册新账号
+- [x] **AUTH-02**: 用户可以使用邮箱和密码登录，并能主动退出当前账号
 - [ ] **AUTH-03**: 用户刷新页面或重新打开应用后，会话仍能恢复到同一账号
 - [ ] **AUTH-04**: 未登录用户仍可浏览地图，只在保存或同步旅行记录时被引导登录
 - [ ] **AUTH-05**: 已登录用户可以明确看到当前账号身份，并能从界面进入退出操作
@@ -60,8 +60,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 23 | Pending |
-| AUTH-02 | Phase 23 | Pending |
+| AUTH-01 | Phase 23 | Complete |
+| AUTH-02 | Phase 23 | Complete |
 | AUTH-03 | Phase 23 | Pending |
 | AUTH-04 | Phase 24 | Pending |
 | AUTH-05 | Phase 23 | Pending |
