@@ -129,17 +129,55 @@ describe('map-points store', () => {
   })
 
   // -------------------------------------------------------------------------
+  // session boundary helpers
+  // -------------------------------------------------------------------------
+
+  describe('session boundary helpers', () => {
+    it('replaceTravelRecords swaps the active snapshot', () => {
+      const store = useMapPointsStore()
+      const records = [
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ]
+
+      store.replaceTravelRecords(records)
+
+      expect(store.travelRecords).toEqual(records)
+      expect(store.hasBootstrapped).toBe(true)
+    })
+
+    it('resetTravelRecordsForSessionBoundary clears stale records and selection state', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+      store.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+
+      store.resetTravelRecordsForSessionBoundary()
+
+      expect(store.travelRecords).toEqual([])
+      expect(store.selectedPointId).toBeNull()
+      expect(store.summaryMode).toBeNull()
+      expect(store.pendingPlaceIds.size).toBe(0)
+      expect(store.hasBootstrapped).toBe(true)
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // illuminate
   // -------------------------------------------------------------------------
 
   describe('illuminate', () => {
     it('adds record optimistically and replaces with server record on success', async () => {
       const store = useMapPointsStore()
-      createMock.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+      const serverRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'server-record-authoritative',
+        subtitle: '北京市 · 中国',
+      })
+      createMock.mockResolvedValueOnce(serverRecord)
 
       await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
-      expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.travelRecords).toEqual([serverRecord])
       expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
       expect(createMock).toHaveBeenCalledWith(
         expect.objectContaining({
