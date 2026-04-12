@@ -42,6 +42,32 @@ export class AuthRepository {
     })
   }
 
+  async createUserWithSession(input: {
+    username: string
+    email: string
+    passwordHash: string
+    expiresAt: Date
+  }): Promise<{ user: User, session: AuthSession }> {
+    return this.prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.create({
+        data: {
+          username: input.username,
+          email: input.email,
+          passwordHash: input.passwordHash,
+        },
+      })
+
+      const session = await transaction.authSession.create({
+        data: {
+          userId: user.id,
+          expiresAt: input.expiresAt,
+        },
+      })
+
+      return { user, session }
+    })
+  }
+
   async findActiveSessionWithUserById(
     sessionId: string,
     now: Date,

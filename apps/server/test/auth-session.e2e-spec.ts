@@ -166,6 +166,62 @@ describe('Auth session API', () => {
     expect(secondResponse.statusCode).toBe(409)
   })
 
+  it('POST /auth/register returns 400 when username is blank after trim', async () => {
+    const payload = createRegisterPayload('blank-username')
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: {
+        ...payload,
+        username: '   ',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+  })
+
+  it('POST /auth/register trims username before persisting and returning it', async () => {
+    const payload = createRegisterPayload('trimmed-username')
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: {
+        ...payload,
+        username: '  traveler-trimmed  ',
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toEqual({
+      user: {
+        id: expect.any(String),
+        username: 'traveler-trimmed',
+        email: payload.email,
+        createdAt: expect.any(String),
+      },
+    })
+
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+    })
+
+    expect(user?.username).toBe('traveler-trimmed')
+  })
+
+  it('POST /auth/register returns 400 when username exceeds 32 characters after trim', async () => {
+    const payload = createRegisterPayload('username-too-long')
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: {
+        ...payload,
+        username: `  ${'a'.repeat(33)}  `,
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+  })
+
   it('POST /auth/login returns 200 with a new current-device sid without affecting other sessions', async () => {
     const payload = createRegisterPayload('login-multi-device')
 

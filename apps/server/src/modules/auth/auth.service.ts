@@ -73,13 +73,10 @@ export class AuthService {
     const passwordHash = await argon2.hash(input.password)
 
     try {
-      const user = await this.authRepository.createUser({
-        username: input.username.trim(),
+      const { user, session } = await this.authRepository.createUserWithSession({
+        username: input.username,
         email,
         passwordHash,
-      })
-      const session = await this.authRepository.createSession({
-        userId: user.id,
         expiresAt: new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000),
       })
 
