@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: 账号体系与云同步基础版
 status: executing
-stopped_at: Completed 23-02-PLAN.md
-last_updated: "2026-04-12T08:54:10.792Z"
+stopped_at: Completed 23-06-PLAN.md
+last_updated: "2026-04-12T09:07:37.521Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 2
-  percent: 29
+  completed_plans: 3
+  percent: 43
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 23 (auth-ownership-foundation) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-04-12
 
@@ -53,6 +53,7 @@ Progress: [███░░░░░░░] 29%
 - Trend: Stable
 
 | Phase 23 P02 | 6m | 2 tasks | 11 files |
+| Phase 23 P06 | 5m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,7 @@ Recent decisions affecting current work:
 - [Phase 23]: Auth ownership migration used Prisma diff/db execute/migrate resolve because a prior RLS migration breaks shadow DB replay.
 - [Phase 23]: Phase 23 auth sessions use AuthSession.id as the sid cookie value with HttpOnly SameSite=Lax current-device semantics.
 - [Phase 23]: Register and login responses return only the AuthUser summary; passwordHash remains server-only.
+- [Phase 23]: 将 sid -> current user 的恢复逻辑抽到 AuthService.restoreSession，供后续 guard/current-user 原语直接复用。
 
 ### Pending Todos
 
@@ -80,9 +82,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12T08:54:10.780Z
-Stopped at: Completed 23-02-PLAN.md
-Resume file: .planning/phases/23-auth-ownership-foundation/23-03-PLAN.md
+Last session: 2026-04-12T09:07:37.519Z
+Stopped at: Completed 23-06-PLAN.md
+Resume file: None
 
 ---
 *Last updated: 2026-04-12 — Phase 23 plan 02 executed*
