@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   Inject,
   Post,
@@ -11,7 +12,7 @@ import {
 } from '@nestjs/common'
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { LoginResponse, RegisterResponse } from '@trip-map/contracts'
+import type { AuthBootstrapResponse, LoginResponse, RegisterResponse } from '@trip-map/contracts'
 
 import { LoginDto } from './dto/login.dto.js'
 import { RegisterDto } from './dto/register.dto.js'
@@ -27,6 +28,14 @@ function getSessionCookieOptions() {
     maxAge: SESSION_MAX_AGE_SECONDS,
     secure: process.env.NODE_ENV === 'production',
   }
+}
+
+function clearSessionCookie(reply: FastifyReply) {
+  reply.setCookie(SESSION_COOKIE_NAME, '', {
+    ...getSessionCookieOptions(),
+    maxAge: 0,
+    expires: new Date(0),
+  })
 }
 
 @ApiTags('auth')
@@ -84,10 +93,23 @@ export class AuthController {
     @Res({ passthrough: true }) reply: FastifyReply,
   ): Promise<void> {
     await this.authService.logout(request.cookies?.[SESSION_COOKIE_NAME])
-    reply.setCookie(SESSION_COOKIE_NAME, '', {
-      ...getSessionCookieOptions(),
-      maxAge: 0,
-      expires: new Date(0),
-    })
+    clearSessionCookie(reply)
+  }
+
+  @Get('bootstrap')
+  @HttpCode(200)
+  @ApiOperation({ summary: '按当前设备 sid 恢复账号与 records 快照' })
+  @ApiOkResponse()
+  async bootstrap(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ): Promise<AuthBootstrapResponse> {
+    const result = await this.authService.bootstrap(request.cookies?.[SESSION_COOKIE_NAME])
+
+    if (result.clearSessionCookie) {
+      clearSessionCookie(reply)
+    }
+
+    return result.response
   }
 }

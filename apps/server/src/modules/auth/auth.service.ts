@@ -1,7 +1,15 @@
 import argon2 from 'argon2'
 import { ConflictException, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
-import type { AuthUser, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse } from '@trip-map/contracts'
-import { Prisma, type User } from '@prisma/client'
+import type {
+  AuthBootstrapResponse,
+  AuthUser,
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+  TravelRecord,
+} from '@trip-map/contracts'
+import { Prisma, type User, type UserTravelRecord } from '@prisma/client'
 
 import { AuthRepository } from './auth.repository.js'
 
@@ -23,6 +31,35 @@ function toAuthUser(user: User): AuthUser {
     createdAt: user.createdAt.toISOString(),
   }
 }
+
+function toContractTravelRecord(record: UserTravelRecord): TravelRecord {
+  return {
+    id: record.id,
+    placeId: record.placeId,
+    boundaryId: record.boundaryId,
+    placeKind: record.placeKind as TravelRecord['placeKind'],
+    datasetVersion: record.datasetVersion,
+    displayName: record.displayName,
+    regionSystem: record.regionSystem as TravelRecord['regionSystem'],
+    adminType: record.adminType as TravelRecord['adminType'],
+    typeLabel: record.typeLabel ?? '',
+    parentLabel: record.parentLabel ?? '',
+    subtitle: record.subtitle,
+    createdAt: record.createdAt.toISOString(),
+  }
+}
+
+export type SessionRestoreResult
+  = | { kind: 'missing' }
+    | { kind: 'invalid' }
+    | {
+      kind: 'authenticated'
+      session: {
+        sessionId: string
+        userId: string
+        user: AuthUser
+      }
+    }
 
 @Injectable()
 export class AuthService {
@@ -96,5 +133,61 @@ export class AuthService {
     }
 
     await this.authRepository.deleteSessionById(session.id)
+  }
+
+  async restoreSession(sessionId: string | undefined): Promise<SessionRestoreResult> {
+    if (!sessionId) {
+      return { kind: 'missing' }
+    }
+
+    const session = await this.authRepository.findActiveSessionWithUserById(sessionId, new Date())
+
+    if (!session) {
+      await this.authRepository.deleteSessionById(sessionId)
+      return { kind: 'invalid' }
+    }
+
+    return {
+      kind: 'authenticated',
+      session: {
+        sessionId: session.id,
+        userId: session.userId,
+        user: toAuthUser(session.user),
+      },
+    }
+  }
+
+  async bootstrap(sessionId: string | undefined): Promise<{
+    response: AuthBootstrapResponse
+    clearSessionCookie: boolean
+  }> {
+    const restoredSession = await this.restoreSession(sessionId)
+
+    if (restoredSession.kind === 'missing') {
+      return {
+        response: { authenticated: false },
+        clearSessionCookie: false,
+      }
+    }
+
+    if (restoredSession.kind === 'invalid') {
+      return {
+        response: { authenticated: false },
+        clearSessionCookie: true,
+      }
+    }
+
+    const records = await this.authRepository.findUserTravelRecordsByUserId(
+      restoredSession.session.userId,
+    )
+
+    return {
+      response: {
+        authenticated: true,
+        user: restoredSession.session.user,
+        records: records.map(toContractTravelRecord),
+      },
+      clearSessionCookie: false,
+    }
   }
 }

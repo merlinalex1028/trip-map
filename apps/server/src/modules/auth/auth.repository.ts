@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { AuthSession, Prisma, User } from '@prisma/client'
+import type { AuthSession, Prisma, User, UserTravelRecord } from '@prisma/client'
 
 import { PrismaService } from '../../prisma/prisma.service.js'
 
@@ -42,6 +42,23 @@ export class AuthRepository {
     })
   }
 
+  async findActiveSessionWithUserById(
+    sessionId: string,
+    now: Date,
+  ): Promise<(AuthSession & { user: User }) | null> {
+    return this.prisma.authSession.findFirst({
+      where: {
+        id: sessionId,
+        expiresAt: {
+          gt: now,
+        },
+      },
+      include: {
+        user: true,
+      },
+    })
+  }
+
   async findActiveSessionById(sessionId: string, now: Date): Promise<AuthSession | null> {
     return this.prisma.authSession.findFirst({
       where: {
@@ -49,6 +66,17 @@ export class AuthRepository {
         expiresAt: {
           gt: now,
         },
+      },
+    })
+  }
+
+  async findUserTravelRecordsByUserId(userId: string): Promise<UserTravelRecord[]> {
+    return this.prisma.userTravelRecord.findMany({
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'asc',
       },
     })
   }
