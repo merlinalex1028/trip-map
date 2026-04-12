@@ -151,7 +151,7 @@ watch(
       aria-modal="true"
       data-auth-dialog
       aria-labelledby="auth-dialog-title"
-      class="mx-auto w-full max-w-[30rem] overflow-hidden rounded-[32px] border border-white/85 bg-[var(--color-surface)]/96 p-0 text-[var(--color-ink-strong)] shadow-[var(--shadow-stage)] backdrop-blur-xl"
+      class="mx-auto w-full max-w-[30rem] shrink-0 overflow-hidden rounded-[32px] border border-white/85 bg-[var(--color-surface)]/96 p-0 text-[var(--color-ink-strong)] shadow-[var(--shadow-stage)] backdrop-blur-xl"
       @keydown.esc.prevent="handleDialogClose"
     >
       <div class="flex items-start justify-between gap-4 border-b border-white/80 px-6 pb-5 pt-6">
