@@ -35,6 +35,7 @@ vi.mock('../services/api/records', () => {
 
 function makeRecord(
   place = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<TravelRecord> = {},
 ): TravelRecord {
   return {
     id: `server-rec-${place.placeId}`,
@@ -49,6 +50,7 @@ function makeRecord(
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
     createdAt: new Date().toISOString(),
+    ...overrides,
   }
 }
 

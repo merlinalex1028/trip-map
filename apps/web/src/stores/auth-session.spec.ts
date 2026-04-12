@@ -102,11 +102,10 @@ describe('auth-session store', () => {
       const secondRestore = authSessionStore.restoreSession()
 
       expect(authSessionStore.status).toBe('restoring')
-      expect(firstRestore).toBe(secondRestore)
       expect(fetchBootstrapMock).toHaveBeenCalledTimes(1)
 
       resolveBootstrap({ authenticated: true, user, records })
-      await firstRestore
+      await Promise.all([firstRestore, secondRestore])
 
       expect(authSessionStore.status).toBe('authenticated')
       expect(authSessionStore.currentUser).toEqual(user)

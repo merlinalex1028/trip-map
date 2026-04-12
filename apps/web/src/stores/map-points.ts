@@ -2,6 +2,7 @@ import type { CanonicalPlaceCandidate, TravelRecord } from '@trip-map/contracts'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed, shallowRef } from 'vue'
 
+import { isUnauthorizedApiClientError } from '../services/api/client'
 import {
   fetchTravelRecords,
   createTravelRecord,
@@ -13,6 +14,7 @@ import {
 } from '../services/city-boundaries'
 import type { GeoCityCandidate } from '../types/geo'
 import type { DraftMapPoint, MapPointDisplay, SummaryMode, SummarySurfaceState } from '../types/map-point'
+import { useAuthSessionStore } from './auth-session'
 
 interface SavedPointReuseDecision {
   type: 'reused' | 'created-draft'
@@ -172,12 +174,40 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     try {
       const records = await fetchTravelRecords()
-      travelRecords.value = records
+      replaceTravelRecords(records)
       return true
-    } catch {
-      travelRecords.value = []
+    } catch (error) {
+      if (isUnauthorizedApiClientError(error)) {
+        const authSessionStore = useAuthSessionStore()
+
+        if (authSessionStore.currentUser) {
+          authSessionStore.handleUnauthorized()
+        } else {
+          resetTravelRecordsForSessionBoundary()
+        }
+
+        return true
+      }
+
+      resetTravelRecordsForSessionBoundary()
       return false
     }
+  }
+
+  function replaceTravelRecords(records: TravelRecord[]) {
+    travelRecords.value = [...records]
+    pendingPlaceIds.value = new Set()
+    hasBootstrapped.value = true
+  }
+
+  function resetTravelRecordsForSessionBoundary() {
+    travelRecords.value = []
+    pendingPlaceIds.value = new Set()
+    draftPoint.value = null
+    pendingCanonicalSelection.value = null
+    selectedPointId.value = null
+    summaryMode.value = null
+    hasBootstrapped.value = true
   }
 
   function clearActivePoint() {
@@ -363,10 +393,18 @@ export const useMapPointsStore = defineStore('map-points', () => {
       travelRecords.value = travelRecords.value.map((r) =>
         r.placeId === placeId ? record : r,
       )
-    } catch {
+    } catch (error) {
       travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
       selectedPointId.value = null
       summaryMode.value = null
+
+      if (isUnauthorizedApiClientError(error)) {
+        const authSessionStore = useAuthSessionStore()
+
+        if (authSessionStore.currentUser) {
+          authSessionStore.handleUnauthorized()
+        }
+      }
     } finally {
       const next = new Set(pendingPlaceIds.value)
       next.delete(placeId)
@@ -385,8 +423,16 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     try {
       await deleteTravelRecord(placeId)
-    } catch {
+    } catch (error) {
       travelRecords.value = [...travelRecords.value, prev]
+
+      if (isUnauthorizedApiClientError(error)) {
+        const authSessionStore = useAuthSessionStore()
+
+        if (authSessionStore.currentUser) {
+          authSessionStore.handleUnauthorized()
+        }
+      }
     } finally {
       const next = new Set(pendingPlaceIds.value)
       next.delete(placeId)
@@ -417,6 +463,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     summarySurfaceState,
     selectedBoundaryId,
     bootstrapFromApi,
+    replaceTravelRecords,
+    resetTravelRecordsForSessionBoundary,
     clearActivePoint,
     startDraftFromDetection,
     replaceDraftFromDetection,
