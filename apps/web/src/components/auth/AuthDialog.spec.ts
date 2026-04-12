@@ -146,6 +146,39 @@ describe('AuthDialog', () => {
     expect(wrapper.get('[role="alert"]').text()).toContain('登录失败')
   })
 
+  it('preserves the centered dialog layout contract after 登录 fails', async () => {
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'login').mockRejectedValue(
+        new ApiClientError({
+          status: 401,
+          code: 'auth-submit-unauthorized',
+          message: 'Invalid email or password',
+        }),
+      )
+    })
+    const authSessionStore = useAuthSessionStore()
+
+    await wrapper.get('input[name="email"]').setValue('alice@example.com')
+    await wrapper.get('input[name="password"]').setValue('wrong-password')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    const backdrop = wrapper.get('[data-auth-dialog-backdrop]')
+    const dialog = wrapper.get('[data-auth-dialog]')
+
+    expect(authSessionStore.isAuthModalOpen).toBe(true)
+    expect(wrapper.get('[role="alert"]').text()).toContain('登录失败')
+    expect(backdrop.classes()).toEqual(
+      expect.arrayContaining(['fixed', 'inset-0', 'flex', 'items-center', 'justify-center']),
+    )
+    expect(dialog.classes()).toEqual(
+      expect.arrayContaining(['mx-auto', 'w-full', 'max-w-[30rem]']),
+    )
+    expect(dialog.attributes('role')).toBe('dialog')
+    expect(dialog.attributes('aria-modal')).toBe('true')
+    expect(dialog.element.tagName).toBe('DIV')
+  })
+
   it('limits 注册用户名到 32 characters in the rendered input contract', async () => {
     const { wrapper } = mountDialog()
 
