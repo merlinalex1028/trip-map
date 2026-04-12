@@ -24,6 +24,7 @@
 
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
+- **Phase 23 已于 2026-04-12 完成**：9 plans 全部执行并复验通过，账号注册/登录/退出、会话恢复、账号归属 records 真源与 gap closure 均已闭环
 - 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
 - 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
@@ -39,13 +40,13 @@
 
 ### Active
 
-- [ ] 用户可以注册、登录、退出，并拥有独立账号身份
-- [ ] 旅行记录与账号绑定，刷新或更换设备后仍能看到同一份点亮记录
 - [ ] 海外地点识别与点亮覆盖继续扩展到更实用的可用范围
 - [ ] 清理直接阻塞账号化 / 同步 / 覆盖扩展的技术债
 
 ### Validated
 
+- ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — Phase 23
+- ✓ 旅行记录已绑定到账号，并可通过会话恢复重新加载同一份账号记录 — Phase 23
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -120,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-10 — after v5.0 milestone start*
+*Last updated: 2026-04-12 — after Phase 23 completion*
