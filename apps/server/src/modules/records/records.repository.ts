@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { SmokeRecordCreateRequest } from '@trip-map/contracts'
-import type { SmokeRecord, TravelRecord } from '@prisma/client'
+import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
 import { PrismaService } from '../../prisma/prisma.service.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
@@ -30,13 +30,34 @@ export class RecordsRepository {
     })
   }
 
-  async findAllTravelRecords(): Promise<TravelRecord[]> {
-    return this.prisma.travelRecord.findMany({ orderBy: { createdAt: 'desc' } })
+  async findAllTravelRecords(userId: string): Promise<UserTravelRecord[]> {
+    return this.prisma.userTravelRecord.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    })
   }
 
-  async createTravelRecord(input: CreateTravelRecordDto): Promise<TravelRecord> {
-    return this.prisma.travelRecord.create({
-      data: {
+  async createTravelRecord(userId: string, input: CreateTravelRecordDto): Promise<UserTravelRecord> {
+    return this.prisma.userTravelRecord.upsert({
+      where: {
+        userId_placeId: {
+          userId,
+          placeId: input.placeId,
+        },
+      },
+      update: {
+        boundaryId: input.boundaryId,
+        placeKind: input.placeKind,
+        datasetVersion: input.datasetVersion,
+        displayName: input.displayName,
+        regionSystem: input.regionSystem,
+        adminType: input.adminType,
+        typeLabel: input.typeLabel,
+        parentLabel: input.parentLabel,
+        subtitle: input.subtitle,
+      },
+      create: {
+        userId,
         placeId: input.placeId,
         boundaryId: input.boundaryId,
         placeKind: input.placeKind,
@@ -51,10 +72,29 @@ export class RecordsRepository {
     })
   }
 
-  async deleteTravelRecordByPlaceId(placeId: string): Promise<TravelRecord | null> {
-    const record = await this.prisma.travelRecord.findUnique({ where: { placeId } })
-    if (!record) return null
-    await this.prisma.travelRecord.delete({ where: { placeId } })
+  async deleteTravelRecordByPlaceId(userId: string, placeId: string): Promise<UserTravelRecord | null> {
+    const record = await this.prisma.userTravelRecord.findUnique({
+      where: {
+        userId_placeId: {
+          userId,
+          placeId,
+        },
+      },
+    })
+
+    if (!record) {
+      return null
+    }
+
+    await this.prisma.userTravelRecord.delete({
+      where: {
+        userId_placeId: {
+          userId,
+          placeId,
+        },
+      },
+    })
+
     return record
   }
 }

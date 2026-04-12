@@ -8,11 +8,14 @@ import {
   Param,
   Post,
   UsePipes,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common'
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
-import type { SmokeRecordResponse, TravelRecord as ContractTravelRecord } from '@trip-map/contracts'
+import type { AuthUser, SmokeRecordResponse, TravelRecord as ContractTravelRecord } from '@trip-map/contracts'
 
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js'
+import { SessionAuthGuard } from '../auth/guards/session-auth.guard.js'
 import { CreateSmokeRecordDto } from './dto/create-smoke-record.dto.js'
 import { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
 import { RecordsService } from './records.service.js'
@@ -43,14 +46,18 @@ export class RecordsController {
   @Get()
   @ApiOperation({ summary: '获取所有旅行记录' })
   @ApiOkResponse()
-  async findAll(): Promise<ContractTravelRecord[]> {
-    return this.recordsService.findAllTravel()
+  @UseGuards(SessionAuthGuard)
+  async findAll(
+    @CurrentUser() user: AuthUser,
+  ): Promise<ContractTravelRecord[]> {
+    return this.recordsService.findAllTravel(user.id)
   }
 
   @Post()
   @HttpCode(201)
   @ApiOperation({ summary: '创建旅行记录' })
   @ApiCreatedResponse()
+  @UseGuards(SessionAuthGuard)
   @UsePipes(new ValidationPipe({
     whitelist: true,
     transform: true,
@@ -58,16 +65,21 @@ export class RecordsController {
     expectedType: CreateTravelRecordDto,
   }))
   async createTravel(
+    @CurrentUser() user: AuthUser,
     @Body() body: CreateTravelRecordDto,
   ): Promise<ContractTravelRecord> {
-    return this.recordsService.createTravel(body)
+    return this.recordsService.createTravel(user.id, body)
   }
 
   @Delete(':placeId')
   @HttpCode(204)
   @ApiOperation({ summary: '删除旅行记录' })
   @ApiNoContentResponse()
-  async deleteTravel(@Param('placeId') placeId: string): Promise<void> {
-    return this.recordsService.deleteTravel(placeId)
+  @UseGuards(SessionAuthGuard)
+  async deleteTravel(
+    @CurrentUser() user: AuthUser,
+    @Param('placeId') placeId: string,
+  ): Promise<void> {
+    return this.recordsService.deleteTravel(user.id, placeId)
   }
 }

@@ -1,5 +1,5 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
-import type { SmokeRecord, TravelRecord } from '@prisma/client'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
 import type {
   SmokeRecordCreateRequest,
@@ -10,15 +10,6 @@ import type { PlaceKind } from '@trip-map/contracts'
 
 import { RecordsRepository } from './records.repository.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
-
-function isPrismaUniqueConstraintError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code: string }).code === 'P2002'
-  )
-}
 
 function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
   return {
@@ -39,7 +30,7 @@ function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
   }
 }
 
-function toContractTravelRecord(record: TravelRecord): ContractTravelRecord {
+function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord {
   return {
     id: record.id,
     placeId: record.placeId,
@@ -68,25 +59,18 @@ export class RecordsService {
     return toSmokeRecordResponse(record)
   }
 
-  async findAllTravel(): Promise<ContractTravelRecord[]> {
-    const records = await this.recordsRepository.findAllTravelRecords()
+  async findAllTravel(userId: string): Promise<ContractTravelRecord[]> {
+    const records = await this.recordsRepository.findAllTravelRecords(userId)
     return records.map(toContractTravelRecord)
   }
 
-  async createTravel(input: CreateTravelRecordDto): Promise<ContractTravelRecord> {
-    try {
-      const record = await this.recordsRepository.createTravelRecord(input)
-      return toContractTravelRecord(record)
-    } catch (error: unknown) {
-      if (isPrismaUniqueConstraintError(error)) {
-        throw new ConflictException(`Record for placeId "${input.placeId}" already exists`)
-      }
-      throw error
-    }
+  async createTravel(userId: string, input: CreateTravelRecordDto): Promise<ContractTravelRecord> {
+    const record = await this.recordsRepository.createTravelRecord(userId, input)
+    return toContractTravelRecord(record)
   }
 
-  async deleteTravel(placeId: string): Promise<void> {
-    const deleted = await this.recordsRepository.deleteTravelRecordByPlaceId(placeId)
+  async deleteTravel(userId: string, placeId: string): Promise<void> {
+    const deleted = await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
     if (!deleted) {
       throw new NotFoundException(`No record found for placeId "${placeId}"`)
     }
