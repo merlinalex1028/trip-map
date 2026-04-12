@@ -39,3 +39,49 @@ model TravelRecord {
   subtitle       String
   createdAt      DateTime @default(now())
 }
+
+model User {
+  id            String   @id @default(cuid())
+  username      String
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions      AuthSession[]
+  travelRecords UserTravelRecord[]
+}
+
+model AuthSession {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model UserTravelRecord {
+  id             String   @id @default(cuid())
+  userId         String
+  placeId        String
+  boundaryId     String
+  placeKind      String
+  datasetVersion String
+  displayName    String
+  regionSystem   String?
+  adminType      String?
+  typeLabel      String?
+  parentLabel    String?
+  subtitle       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, placeId])
+  @@index([userId])
+}
