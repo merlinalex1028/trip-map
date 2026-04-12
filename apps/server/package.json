@@ -13,6 +13,7 @@
     "prisma:validate": "prisma validate --schema prisma/schema.prisma"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/static": "^9.1.0",
     "@nestjs/common": "11.1.18",
     "@nestjs/config": "4.0.3",
@@ -21,6 +22,7 @@
     "@nestjs/swagger": "^11.2.6",
     "@prisma/client": "^6.19.2",
     "@trip-map/contracts": "workspace:*",
+    "argon2": "^0.44.0",
     "class-transformer": "0.5.1",
     "class-validator": "0.15.1",
     "fastify": "5.8.4",

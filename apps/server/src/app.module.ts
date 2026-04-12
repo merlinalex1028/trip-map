@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 
 import { HealthModule } from './health/health.module.js'
+import { AuthModule } from './modules/auth/auth.module.js'
 import { CanonicalPlacesModule } from './modules/canonical-places/canonical-places.module.js'
 import { RecordsModule } from './modules/records/records.module.js'
 
@@ -13,6 +14,7 @@ import { RecordsModule } from './modules/records/records.module.js'
     }),
     HealthModule,
     CanonicalPlacesModule,
+    AuthModule,
     RecordsModule,
   ],
 })

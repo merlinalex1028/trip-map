@@ -49,14 +49,14 @@ function createRegisterPayload(suffix: string) {
   }
 }
 
-function readSetCookie(response: { headers: Record<string, string | string[] | undefined> }) {
+function readSetCookie(response: { headers: Record<string, string | string[] | number | undefined> }) {
   const header = response.headers['set-cookie']
 
   if (Array.isArray(header)) {
     return header[0] ?? null
   }
 
-  return header ?? null
+  return typeof header === 'string' ? header : null
 }
 
 function extractSidCookie(setCookieHeader: string | null) {

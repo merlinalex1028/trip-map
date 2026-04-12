@@ -1,5 +1,6 @@
 import 'reflect-metadata'
 
+import fastifyCookie from '@fastify/cookie'
 import { ValidationPipe } from '@nestjs/common'
 import { NestFactory } from '@nestjs/core'
 import {
@@ -18,6 +19,8 @@ export async function createApp(): Promise<NestFastifyApplication> {
     AppModule,
     new FastifyAdapter(),
   )
+
+  await app.register(fastifyCookie)
 
   app.useGlobalPipes(
     new ValidationPipe({
