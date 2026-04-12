@@ -8,6 +8,7 @@ import {
 import { createPinia, setActivePinia } from 'pinia'
 
 import { useMapPointsStore } from './map-points'
+import { useMapUiStore } from './map-ui'
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -162,6 +163,16 @@ describe('map-points store', () => {
       expect(store.pendingPlaceIds.size).toBe(0)
       expect(store.hasBootstrapped).toBe(true)
     })
+
+    it('treats anonymous session reset as a bootstrapped boundary without calling /records', () => {
+      const store = useMapPointsStore()
+
+      store.resetTravelRecordsForSessionBoundary()
+
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(store.travelRecords).toEqual([])
+      expect(store.hasBootstrapped).toBe(true)
+    })
   })
 
   // -------------------------------------------------------------------------
@@ -213,12 +224,16 @@ describe('map-points store', () => {
     it('rolls back on API failure', async () => {
       createMock.mockRejectedValueOnce(new Error('create failed'))
       const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
 
       await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
       expect(store.travelRecords.some((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
       expect(store.selectedPointId).toBeNull()
       expect(store.summaryMode).toBeNull()
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+      })
     })
 
     it('reuses existing record without API call when already illuminated', async () => {

@@ -668,6 +668,45 @@ describe('LeafletMapStage', () => {
     })
   })
 
+  describe('records bootstrap boundaries', () => {
+    it('does not fetch /records again during anonymous map startup', async () => {
+      mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      await nextTick()
+      await flushPromises()
+
+      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
+    })
+
+    it('consumes the authenticated snapshot without refetching /records', async () => {
+      const fc = makeFakeFeatureCollection()
+      const mapPointsStore = useMapPointsStore()
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
+        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+        layer: 'CN',
+        geometryDatasetVersion: '2026-03-31-geo-v1',
+        assetKey: 'cn/beijing.json',
+        renderableId: PHASE12_RESOLVED_BEIJING.boundaryId,
+      })
+      geometryLoaderMock.loadGeometryShard.mockResolvedValue(fc)
+
+      mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      await nextTick()
+      await flushPromises()
+
+      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
+      expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
+        '2026-03-31-geo-v1',
+        'cn/beijing.json',
+      )
+      expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
+    })
+  })
+
   // -------------------------------------------------------------------------
   // ILLUMINATE ACTIONS (REQ-16-01, REQ-16-02)
   // -------------------------------------------------------------------------

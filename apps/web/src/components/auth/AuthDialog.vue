@@ -146,11 +146,12 @@ watch(
     class="fixed inset-0 z-[8] flex items-center justify-center bg-[rgba(87,66,95,0.18)] px-4 py-6 backdrop-blur-sm"
     data-auth-dialog-backdrop
   >
-    <dialog
-      open
-      class="m-0 w-full max-w-[30rem] overflow-hidden rounded-[32px] border border-white/85 bg-[var(--color-surface)]/96 p-0 text-[var(--color-ink-strong)] shadow-[var(--shadow-stage)] backdrop-blur-xl"
+    <div
+      role="dialog"
+      aria-modal="true"
       data-auth-dialog
       aria-labelledby="auth-dialog-title"
+      class="mx-auto w-full max-w-[30rem] overflow-hidden rounded-[32px] border border-white/85 bg-[var(--color-surface)]/96 p-0 text-[var(--color-ink-strong)] shadow-[var(--shadow-stage)] backdrop-blur-xl"
       @keydown.esc.prevent="handleDialogClose"
     >
       <div class="flex items-start justify-between gap-4 border-b border-white/80 px-6 pb-5 pt-6">
@@ -307,12 +308,6 @@ watch(
           </button>
         </form>
       </div>
-    </dialog>
+    </div>
   </div>
 </template>
-
-<style scoped>
-dialog::backdrop {
-  background: transparent;
-}
-</style>
