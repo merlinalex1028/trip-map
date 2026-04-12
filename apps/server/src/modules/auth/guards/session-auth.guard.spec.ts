@@ -1,11 +1,9 @@
 import { UnauthorizedException } from '@nestjs/common'
-import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants'
-import { RouteParamtypes } from '@nestjs/common/enums/route-paramtypes.enum'
 import type { ExecutionContext } from '@nestjs/common'
 import type { AuthUser } from '@trip-map/contracts'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CurrentUser } from '../decorators/current-user.decorator.js'
+import { getCurrentUserFromRequest } from '../decorators/current-user.decorator.js'
 import { SessionAuthGuard } from './session-auth.guard.js'
 
 type RequestWithAuthContext = {
@@ -22,22 +20,6 @@ function createExecutionContext(request: RequestWithAuthContext): ExecutionConte
       getRequest: () => request,
     }),
   } as ExecutionContext
-}
-
-function readCurrentUserFactory() {
-  class TestController {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    handler(@CurrentUser() _user: AuthUser) {}
-  }
-
-  const metadata = Reflect.getMetadata(ROUTE_ARGS_METADATA, TestController, 'handler') as Record<
-    string,
-    { factory: (data: unknown, context: ExecutionContext) => AuthUser | undefined }
-  >
-
-  const entry = metadata[`${RouteParamtypes.CUSTOM}:0`]
-
-  return entry.factory
 }
 
 describe('SessionAuthGuard', () => {
@@ -137,8 +119,7 @@ describe('CurrentUser decorator', () => {
     const request: RequestWithAuthContext = {
       authUser,
     }
-    const factory = readCurrentUserFactory()
 
-    expect(factory(undefined, createExecutionContext(request))).toEqual(authUser)
+    expect(getCurrentUserFromRequest(request as never)).toEqual(authUser)
   })
 })

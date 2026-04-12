@@ -157,6 +157,16 @@ export class AuthService {
     }
   }
 
+  async resolveAuthenticatedUserFromSession(sessionId: string | undefined): Promise<AuthUser | null> {
+    const restoredSession = await this.restoreSession(sessionId)
+
+    if (restoredSession.kind !== 'authenticated') {
+      return null
+    }
+
+    return restoredSession.session.user
+  }
+
   async bootstrap(sessionId: string | undefined): Promise<{
     response: AuthBootstrapResponse
     clearSessionCookie: boolean
