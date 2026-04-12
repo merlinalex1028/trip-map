@@ -18,7 +18,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 - Integer phases (23, 24, 25, 26): Planned milestone work
 - Decimal phases (23.1, 24.1): Urgent insertions if needed later
 
-- [x] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源 (completed 2026-04-12)
+- [ ] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源（gap closure planned）
 - [ ] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置
 - [ ] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义
 - [ ] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈
@@ -34,7 +34,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
   2. 已登录用户可以在界面中明确看到当前账号身份，并能从稳定入口执行退出操作。
   3. 登录后用户只能看到当前账号自己的旅行记录，不会读到其他账号或匿名上下文的数据。
   4. 登录后新点亮的地点会绑定到当前账号，并在重新进入应用后仍可从云端重新加载出来。
-**Plans**: 7 plans
+**Plans**: 9 plans
 Plans:
 - [x] 23-01-PLAN.md — 建立 auth/contracts 与 ownership Prisma schema 基座
 - [x] 23-02-PLAN.md — 实现邮箱密码注册登录退出与当前设备 session 核心 auth module
@@ -43,6 +43,8 @@ Plans:
 - [x] 23-03-PLAN.md — 将 `/records` 收口为 current-user ownership 真源
 - [x] 23-04-PLAN.md — 建立 web auth-session store 与 authenticated records 生命周期
 - [x] 23-05-PLAN.md — 接入顶栏账号入口、认证弹层、restoring 蒙层与 UI 验证
+- [ ] 23-08-PLAN.md — 修补后端注册原子性与 trim-first 用户名校验
+- [ ] 23-09-PLAN.md — 修补前端 auth submit 401 分流与弹层/records 边界稳定
 **UI hint**: yes
 
 ### Phase 24: Session Boundary & Local Import
@@ -83,7 +85,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 23. Auth & Ownership Foundation | 7/7 | Complete   | 2026-04-12 |
+| 23. Auth & Ownership Foundation | 7/9 | Gap closure planned | - |
 | 24. Session Boundary & Local Import | 0/TBD | Not started | - |
 | 25. Sync Semantics & Multi-Device Hardening | 0/TBD | Not started | - |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
