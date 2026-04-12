@@ -4,14 +4,14 @@ milestone: v5.0
 milestone_name: 账号体系与云同步基础版
 status: executing
 stopped_at: Completed 23-07-PLAN.md
-last_updated: "2026-04-12T09:31:28.712Z"
+last_updated: "2026-04-12T10:00:34.021Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 23 (auth-ownership-foundation) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-04-12
 
@@ -55,6 +55,7 @@ Progress: [███░░░░░░░] 29%
 | Phase 23 P02 | 6m | 2 tasks | 11 files |
 | Phase 23 P06 | 5m | 2 tasks | 4 files |
 | Phase 23 P07 | 17 | 2 tasks | 8 files |
+| Phase 23 P03 | 12 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,8 @@ Recent decisions affecting current work:
 - [Phase 23]: SessionAuthGuard 只信任 request.cookies.sid，并统一把认证结果写入 request.authUser。
 - [Phase 23]: AuthService 保留 bootstrap/restoreSession 语义，同时补 resolveAuthenticatedUserFromSession 供 guard 复用。
 - [Phase 23]: server test 脚本通过轻量 wrapper 去掉 pnpm 追加的前导 --，保证 plan 里的单文件验证命令可执行。
+- [Phase 23]: Records routes now require SessionAuthGuard and derive owner exclusively from CurrentUser/session.
+- [Phase 23]: Records persistence now uses UserTravelRecord with (userId, placeId) compound-key upsert/delete; legacy TravelRecord stays isolated for backfill/reopen validation.
 
 ### Pending Todos
 
