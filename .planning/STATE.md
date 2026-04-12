@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: 账号体系与云同步基础版
 status: executing
-stopped_at: Completed 23-06-PLAN.md
-last_updated: "2026-04-12T09:07:37.521Z"
+stopped_at: Completed 23-07-PLAN.md
+last_updated: "2026-04-12T09:31:28.712Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 7
-  completed_plans: 3
-  percent: 43
+  completed_plans: 4
+  percent: 57
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 
 Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 23 (auth-ownership-foundation) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-04-12
 
@@ -54,6 +54,7 @@ Progress: [███░░░░░░░] 29%
 
 | Phase 23 P02 | 6m | 2 tasks | 11 files |
 | Phase 23 P06 | 5m | 2 tasks | 4 files |
+| Phase 23 P07 | 17 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 23]: Phase 23 auth sessions use AuthSession.id as the sid cookie value with HttpOnly SameSite=Lax current-device semantics.
 - [Phase 23]: Register and login responses return only the AuthUser summary; passwordHash remains server-only.
 - [Phase 23]: 将 sid -> current user 的恢复逻辑抽到 AuthService.restoreSession，供后续 guard/current-user 原语直接复用。
+- [Phase 23]: SessionAuthGuard 只信任 request.cookies.sid，并统一把认证结果写入 request.authUser。
+- [Phase 23]: AuthService 保留 bootstrap/restoreSession 语义，同时补 resolveAuthenticatedUserFromSession 供 guard 复用。
+- [Phase 23]: server test 脚本通过轻量 wrapper 去掉 pnpm 追加的前导 --，保证 plan 里的单文件验证命令可执行。
 
 ### Pending Todos
 
@@ -82,8 +86,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12T09:07:37.519Z
-Stopped at: Completed 23-06-PLAN.md
+Last session: 2026-04-12T09:31:28.709Z
+Stopped at: Completed 23-07-PLAN.md
 Resume file: None
 
 ---

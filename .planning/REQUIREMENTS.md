@@ -16,8 +16,8 @@
 
 ### Sync & Ownership（记录归属与云同步）
 
-- [ ] **SYNC-01**: 登录后用户只能读取当前账号自己的旅行记录
-- [ ] **SYNC-02**: 登录后用户点亮地点时，旅行记录会绑定到当前账号并保存到云端
+- [x] **SYNC-01**: 登录后用户只能读取当前账号自己的旅行记录
+- [x] **SYNC-02**: 登录后用户点亮地点时，旅行记录会绑定到当前账号并保存到云端
 - [ ] **SYNC-03**: 登录后用户取消点亮地点时，云端对应记录会同步删除或标记为取消
 - [ ] **SYNC-04**: 同一账号在另一台设备登录后，可以看到与原设备一致的旅行记录
 - [ ] **SYNC-05**: 点亮、取消点亮与拉取记录失败时，用户能得到明确的同步成功、失败或需要重新登录提示
@@ -65,8 +65,8 @@
 | AUTH-03 | Phase 23 | Complete |
 | AUTH-04 | Phase 24 | Pending |
 | AUTH-05 | Phase 23 | Pending |
-| SYNC-01 | Phase 23 | Pending |
-| SYNC-02 | Phase 23 | Pending |
+| SYNC-01 | Phase 23 | Complete |
+| SYNC-02 | Phase 23 | Complete |
 | SYNC-03 | Phase 25 | Pending |
 | SYNC-04 | Phase 25 | Pending |
 | SYNC-05 | Phase 25 | Pending |
