@@ -12,24 +12,30 @@ vi.mock('./components/LeafletMapStage.vue', () => ({
   }),
 }))
 
-function mountApp() {
+function mountApp(
+  setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
 
-  return mount(App, {
+  const authSessionStore = useAuthSessionStore()
+  setup?.(authSessionStore)
+  const wrapper = mount(App, {
     global: {
       plugins: [pinia],
     },
   })
+
+  return {
+    authSessionStore,
+    wrapper,
+  }
 }
 
 describe('App auth shell', () => {
-  beforeEach(() => {
+  it('calls restoreSession exactly once on the first app mount', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-  })
-
-  it('calls restoreSession exactly once on the first app mount', async () => {
     const authSessionStore = useAuthSessionStore()
     authSessionStore.status = 'anonymous'
 
@@ -39,7 +45,7 @@ describe('App auth shell', () => {
 
     mount(App, {
       global: {
-        plugins: [authSessionStore.$pinia],
+        plugins: [pinia],
       },
     })
 
@@ -49,23 +55,13 @@ describe('App auth shell', () => {
   })
 
   it('shows a single 登录 / 注册 chip in the topbar when anonymous', async () => {
-    const authSessionStore = useAuthSessionStore()
-    authSessionStore.status = 'anonymous'
-    authSessionStore.currentUser = null
-
-    const restoreSessionSpy = vi
-      .spyOn(authSessionStore, 'restoreSession')
-      .mockResolvedValue(undefined)
-
-    const wrapper = mount(App, {
-      global: {
-        plugins: [authSessionStore.$pinia],
-      },
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
     })
 
     await nextTick()
-
-    expect(restoreSessionSpy).toHaveBeenCalledTimes(1)
 
     const topbar = wrapper.get('[data-region="topbar"]')
     const loginRegisterChips = wrapper
@@ -79,26 +75,20 @@ describe('App auth shell', () => {
   })
 
   it('shows only username, email, and 退出登录 in the authenticated dropdown', async () => {
-    const authSessionStore = useAuthSessionStore()
-    authSessionStore.status = 'authenticated'
-    authSessionStore.currentUser = {
-      id: 'user-1',
-      username: 'Alice',
-      email: 'alice@example.com',
-      createdAt: '2026-04-12T00:00:00.000Z',
-    }
-
-    vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
-
-    const wrapper = mount(App, {
-      global: {
-        plugins: [authSessionStore.$pinia],
-      },
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
     })
 
     await nextTick()
 
-    await wrapper.get('button').trigger('click')
+    await wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
 
     expect(wrapper.get('[data-region="topbar"]').text()).toContain('Alice')
     expect(wrapper.text()).toContain('Alice')
@@ -110,16 +100,10 @@ describe('App auth shell', () => {
   })
 
   it('keeps LeafletMapStage mounted and renders the restoring overlay inside data-region="map-shell"', async () => {
-    const authSessionStore = useAuthSessionStore()
-    authSessionStore.status = 'restoring'
-    authSessionStore.currentUser = null
-
-    vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
-
-    const wrapper = mount(App, {
-      global: {
-        plugins: [authSessionStore.$pinia],
-      },
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'restoring'
+      authSessionStore.currentUser = null
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
     })
 
     await nextTick()

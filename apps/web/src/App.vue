@@ -1,12 +1,19 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 
+import AuthDialog from './components/auth/AuthDialog.vue'
+import AuthRestoreOverlay from './components/auth/AuthRestoreOverlay.vue'
+import AuthTopbarControl from './components/auth/AuthTopbarControl.vue'
 import LeafletMapStage from './components/LeafletMapStage.vue'
+import { useAuthSessionStore } from './stores/auth-session'
 import { useMapUiStore } from './stores/map-ui'
 
+const authSessionStore = useAuthSessionStore()
 const mapUiStore = useMapUiStore()
+const { restoreSession } = authSessionStore
 const { clearInteractionNotice } = mapUiStore
+const { status } = storeToRefs(authSessionStore)
 const { interactionNotice } = storeToRefs(mapUiStore)
 
 let noticeTimer: number | null = null
@@ -29,6 +36,10 @@ watch(
     }, 2600)
   }
 )
+
+onMounted(() => {
+  void restoreSession()
+})
 
 onUnmounted(() => {
   if (!noticeTimer) {
@@ -70,7 +81,9 @@ onUnmounted(() => {
             收集每次落点的心动坐标
           </p>
         </div>
-        <div class="min-h-px basis-10 md:basis-20" aria-hidden="true"></div>
+        <div class="flex min-w-[9rem] items-center justify-end md:min-w-[12rem]">
+          <AuthTopbarControl />
+        </div>
       </header>
       <div
         v-if="interactionNotice"
@@ -89,8 +102,10 @@ onUnmounted(() => {
         data-region="map-shell"
       >
         <LeafletMapStage class="min-h-0 flex-1" />
+        <AuthRestoreOverlay :visible="status === 'restoring'" />
       </section>
     </main>
+    <AuthDialog />
   </div>
 </template>
 

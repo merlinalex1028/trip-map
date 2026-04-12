@@ -5,13 +5,16 @@ import { nextTick } from 'vue'
 import AuthDialog from './AuthDialog.vue'
 import { useAuthSessionStore } from '../../stores/auth-session'
 
-function mountDialog() {
+function mountDialog(
+  setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
+) {
   const pinia = createPinia()
   setActivePinia(pinia)
 
   const authSessionStore = useAuthSessionStore()
   authSessionStore.isAuthModalOpen = true
   authSessionStore.authMode = 'login'
+  setup?.(authSessionStore)
 
   const wrapper = mount(AuthDialog, {
     attachTo: document.body,
@@ -21,8 +24,8 @@ function mountDialog() {
   })
 
   return {
-    wrapper,
     authSessionStore,
+    wrapper,
   }
 }
 
@@ -66,13 +69,15 @@ describe('AuthDialog', () => {
   })
 
   it('calls login and closeAuthModal after a successful 登录 submit', async () => {
-    const { wrapper, authSessionStore } = mountDialog()
-    const loginSpy = vi.spyOn(authSessionStore, 'login').mockResolvedValue(undefined)
-    const closeAuthModalSpy = vi
-      .spyOn(authSessionStore, 'closeAuthModal')
-      .mockImplementation(() => {
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'login').mockResolvedValue(undefined)
+      vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
         authSessionStore.isAuthModalOpen = false
       })
+    })
+    const authSessionStore = useAuthSessionStore()
+    const loginSpy = vi.mocked(authSessionStore.login)
+    const closeAuthModalSpy = vi.mocked(authSessionStore.closeAuthModal)
 
     await wrapper.get('input[name="email"]').setValue('alice@example.com')
     await wrapper.get('input[name="password"]').setValue('super-secret')
@@ -87,13 +92,15 @@ describe('AuthDialog', () => {
   })
 
   it('calls register and closeAuthModal after a successful 注册 submit', async () => {
-    const { wrapper, authSessionStore } = mountDialog()
-    const registerSpy = vi.spyOn(authSessionStore, 'register').mockResolvedValue(undefined)
-    const closeAuthModalSpy = vi
-      .spyOn(authSessionStore, 'closeAuthModal')
-      .mockImplementation(() => {
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'register').mockResolvedValue(undefined)
+      vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
         authSessionStore.isAuthModalOpen = false
       })
+    })
+    const authSessionStore = useAuthSessionStore()
+    const registerSpy = vi.mocked(authSessionStore.register)
+    const closeAuthModalSpy = vi.mocked(authSessionStore.closeAuthModal)
 
     await wrapper.get('[role="tab"][aria-controls="auth-panel-register"]').trigger('click')
     await nextTick()
