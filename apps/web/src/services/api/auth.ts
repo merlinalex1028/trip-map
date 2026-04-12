@@ -17,23 +17,35 @@ export async function fetchAuthBootstrap(): Promise<AuthBootstrapResponse> {
 export async function registerWithPassword(
   request: RegisterRequest,
 ): Promise<RegisterResponse> {
-  return apiFetchJson<RegisterResponse>('/auth/register', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiFetchJson<RegisterResponse>(
+    '/auth/register',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
-  })
+    {
+      unauthorizedCode: 'auth-submit-unauthorized',
+    },
+  )
 }
 
 export async function loginWithPassword(request: LoginRequest): Promise<LoginResponse> {
-  return apiFetchJson<LoginResponse>('/auth/login', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  return apiFetchJson<LoginResponse>(
+    '/auth/login',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
     },
-    body: JSON.stringify(request),
-  })
+    {
+      unauthorizedCode: 'auth-submit-unauthorized',
+    },
+  )
 }
 
 export async function logoutCurrentSession(): Promise<void> {

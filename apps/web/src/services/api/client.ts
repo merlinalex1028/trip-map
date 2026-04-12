@@ -7,10 +7,12 @@ export function createApiUrl(path: string) {
   return `${baseUrl}${normalizedPath}`
 }
 
-type ApiClientErrorCode = 'unauthorized' | 'http-error'
+type ApiClientUnauthorizedCode = 'session-unauthorized' | 'auth-submit-unauthorized'
+type ApiClientErrorCode = ApiClientUnauthorizedCode | 'http-error'
 
 interface ApiFetchJsonOptions {
   responseType?: 'json' | 'none'
+  unauthorizedCode?: ApiClientUnauthorizedCode
 }
 
 export class ApiClientError extends Error {
@@ -26,7 +28,14 @@ export class ApiClientError extends Error {
 }
 
 export function isUnauthorizedApiClientError(error: unknown): error is ApiClientError {
-  return error instanceof ApiClientError && error.code === 'unauthorized'
+  return (
+    error instanceof ApiClientError
+    && (error.code === 'session-unauthorized' || error.code === 'auth-submit-unauthorized')
+  )
+}
+
+export function isSessionUnauthorizedApiClientError(error: unknown): error is ApiClientError {
+  return error instanceof ApiClientError && error.code === 'session-unauthorized'
 }
 
 export async function apiFetchJson<T>(
@@ -42,7 +51,7 @@ export async function apiFetchJson<T>(
   if (response.status === 401) {
     throw new ApiClientError({
       status: response.status,
-      code: 'unauthorized',
+      code: options.unauthorizedCode ?? 'session-unauthorized',
       message: 'Unauthorized',
     })
   }

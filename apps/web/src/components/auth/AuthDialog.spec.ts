@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
 
 import AuthDialog from './AuthDialog.vue'
+import { ApiClientError } from '../../services/api/client'
 import { useAuthSessionStore } from '../../stores/auth-session'
 
 function mountDialog(
@@ -105,7 +106,7 @@ describe('AuthDialog', () => {
     await wrapper.get('[role="tab"][aria-controls="auth-panel-register"]').trigger('click')
     await nextTick()
 
-    await wrapper.get('input[name="username"]').setValue('Alice')
+    await wrapper.get('input[name="username"]').setValue('  Alice  ')
     await wrapper.get('input[name="email"]').setValue('alice@example.com')
     await wrapper.get('input[name="password"]').setValue('super-secret')
     await wrapper.get('form').trigger('submit')
@@ -117,5 +118,61 @@ describe('AuthDialog', () => {
       password: 'super-secret',
     })
     expect(closeAuthModalSpy).toHaveBeenCalled()
+  })
+
+  it('keeps the dialog open and shows a form error when 登录 fails with auth-submit 401', async () => {
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'login').mockRejectedValue(
+        new ApiClientError({
+          status: 401,
+          code: 'auth-submit-unauthorized',
+          message: 'Invalid email or password',
+        }),
+      )
+      vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
+        authSessionStore.isAuthModalOpen = false
+      })
+    })
+    const authSessionStore = useAuthSessionStore()
+    const closeAuthModalSpy = vi.mocked(authSessionStore.closeAuthModal)
+
+    await wrapper.get('input[name="email"]').setValue('alice@example.com')
+    await wrapper.get('input[name="password"]').setValue('wrong-password')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(closeAuthModalSpy).not.toHaveBeenCalled()
+    expect(authSessionStore.isAuthModalOpen).toBe(true)
+    expect(wrapper.get('[role="alert"]').text()).toContain('登录失败')
+  })
+
+  it('limits 注册用户名到 32 characters in the rendered input contract', async () => {
+    const { wrapper } = mountDialog()
+
+    await wrapper.get('[role="tab"][aria-controls="auth-panel-register"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.get('input[name="username"]').attributes('maxlength')).toBe('32')
+    expect(wrapper.get('input[name="username"]').attributes('minlength')).toBe('2')
+  })
+
+  it('blocks blank usernames after trim before sending 注册请求', async () => {
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'register').mockResolvedValue(undefined)
+    })
+    const authSessionStore = useAuthSessionStore()
+    const registerSpy = vi.mocked(authSessionStore.register)
+
+    await wrapper.get('[role="tab"][aria-controls="auth-panel-register"]').trigger('click')
+    await nextTick()
+
+    await wrapper.get('input[name="username"]').setValue('   ')
+    await wrapper.get('input[name="email"]').setValue('alice@example.com')
+    await wrapper.get('input[name="password"]').setValue('super-secret')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(registerSpy).not.toHaveBeenCalled()
+    expect(wrapper.get('[role="alert"]').text()).toContain('用户名至少需要 2 个字符')
   })
 })

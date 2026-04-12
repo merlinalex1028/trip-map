@@ -13,6 +13,7 @@ import {
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
+import { ApiClientError } from '../services/api/client'
 import { useMapPointsStore } from './map-points'
 import { useMapUiStore } from './map-ui'
 import { useAuthSessionStore } from './auth-session'
@@ -201,6 +202,58 @@ describe('auth-session store', () => {
       expect(authSessionStore.currentUser).toEqual(user)
       expect(mapPointsStore.travelRecords).toEqual(records)
     })
+
+    it.each([
+      ['login', () => loginMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'auth-submit-unauthorized',
+          message: 'Invalid email or password',
+        }),
+      ), (store: ReturnType<typeof useAuthSessionStore>, request: LoginRequest) => store.login(request), {
+        email: 'alice@example.com',
+        password: 'wrong-password',
+      }],
+      ['register', () => registerMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'auth-submit-unauthorized',
+          message: 'Invalid registration request',
+        }),
+      ), (store: ReturnType<typeof useAuthSessionStore>, request: RegisterRequest) => store.register(request), {
+        username: 'Alice',
+        email: 'alice@example.com',
+        password: 'wrong-password',
+      }],
+    ])(
+      'keeps current session boundary intact when %s receives auth-submit 401',
+      async (_mode, mockFailure, runAction, request) => {
+        const authSessionStore = useAuthSessionStore()
+        const mapPointsStore = useMapPointsStore()
+        const mapUiStore = useMapUiStore()
+        const user = makeUser()
+        const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+
+        authSessionStore.status = 'authenticated'
+        authSessionStore.currentUser = user
+        authSessionStore.isAuthModalOpen = true
+        mapPointsStore.replaceTravelRecords(records)
+        const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
+
+        mockFailure()
+
+        await expect(runAction(authSessionStore, request as never)).rejects.toBeInstanceOf(ApiClientError)
+
+        expect(fetchBootstrapMock).not.toHaveBeenCalled()
+        expect(authSessionStore.status).toBe('authenticated')
+        expect(authSessionStore.currentUser).toEqual(user)
+        expect(authSessionStore.isAuthModalOpen).toBe(true)
+        expect(authSessionStore.isSubmitting).toBe(false)
+        expect(mapPointsStore.travelRecords).toEqual(records)
+        expect(resetSpy).not.toHaveBeenCalled()
+        expect(mapUiStore.interactionNotice).toBeNull()
+      },
+    )
   })
 
   describe('logout', () => {
@@ -242,6 +295,30 @@ describe('auth-session store', () => {
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
       })
+    })
+
+    it('treats bootstrap 401 as a real session expiry and clears the boundary', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const user = makeUser()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = user
+      mapPointsStore.replaceTravelRecords(records)
+      fetchBootstrapMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'session-unauthorized',
+          message: 'Session expired',
+        }),
+      )
+
+      await authSessionStore.restoreSession()
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(authSessionStore.currentUser).toBeNull()
+      expect(mapPointsStore.travelRecords).toEqual([])
     })
   })
 })

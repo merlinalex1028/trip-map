@@ -16,6 +16,8 @@ const loginEmailInput = useTemplateRef<HTMLInputElement>('loginEmailInput')
 const registerUsernameInput = useTemplateRef<HTMLInputElement>('registerUsernameInput')
 const submitError = shallowRef('')
 const lastFocusedElement = shallowRef<HTMLElement | null>(null)
+const REGISTER_USERNAME_MIN_LENGTH = 2
+const REGISTER_USERNAME_MAX_LENGTH = 32
 
 const loginForm = reactive<LoginRequest>({
   email: '',
@@ -73,8 +75,20 @@ async function handleSubmit() {
         password: loginForm.password,
       })
     } else {
+      const normalizedUsername = registerForm.username.trim()
+
+      if (normalizedUsername.length < REGISTER_USERNAME_MIN_LENGTH) {
+        submitError.value = '用户名至少需要 2 个字符。'
+        return
+      }
+
+      if (normalizedUsername.length > REGISTER_USERNAME_MAX_LENGTH) {
+        submitError.value = '用户名最多 32 个字符。'
+        return
+      }
+
       await register({
-        username: registerForm.username,
+        username: normalizedUsername,
         email: registerForm.email,
         password: registerForm.password,
       })
@@ -242,11 +256,12 @@ watch(
               <span class="mb-2 block">用户名</span>
               <input
                 ref="registerUsernameInput"
-                v-model.trim="registerForm.username"
+                v-model="registerForm.username"
                 name="username"
                 type="text"
                 autocomplete="username"
-                maxlength="40"
+                minlength="2"
+                maxlength="32"
                 required
                 class="min-h-11 w-full rounded-[22px] border border-white/85 bg-white/86 px-4 py-3 text-sm outline-none transition duration-[var(--motion-quick)] focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[color:color-mix(in_srgb,var(--color-accent)_24%,white_76%)]"
               />

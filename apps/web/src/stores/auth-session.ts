@@ -13,7 +13,7 @@ import {
   logoutCurrentSession,
   registerWithPassword,
 } from '../services/api/auth'
-import { isUnauthorizedApiClientError } from '../services/api/client'
+import { isSessionUnauthorizedApiClientError } from '../services/api/client'
 import { useMapPointsStore } from './map-points'
 import { useMapUiStore } from './map-ui'
 
@@ -101,7 +101,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
       await request()
       await hydrateAuthenticatedSnapshot()
     } catch (error) {
-      if (isUnauthorizedApiClientError(error)) {
+      if (isSessionUnauthorizedApiClientError(error)) {
         handleUnauthorized()
         return
       }
@@ -133,7 +133,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
 
         applyAuthenticatedSnapshot(bootstrap)
       } catch (error) {
-        if (isUnauthorizedApiClientError(error)) {
+        if (isSessionUnauthorizedApiClientError(error)) {
           applyAnonymousSnapshot()
           return
         }
@@ -178,7 +178,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
         },
       })
     } catch (error) {
-      if (isUnauthorizedApiClientError(error)) {
+      if (isSessionUnauthorizedApiClientError(error)) {
         handleUnauthorized()
         return
       }
