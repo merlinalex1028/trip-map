@@ -41,7 +41,7 @@ Plans:
 - [x] 23-06-PLAN.md — 补齐 bootstrap 恢复入口与 sid session 恢复逻辑
 - [x] 23-07-PLAN.md — 补齐 current-user guard、decorator 与 auth module 导出
 - [x] 23-03-PLAN.md — 将 `/records` 收口为 current-user ownership 真源
-- [ ] 23-04-PLAN.md — 建立 web auth-session store 与 authenticated records 生命周期
+- [x] 23-04-PLAN.md — 建立 web auth-session store 与 authenticated records 生命周期
 - [ ] 23-05-PLAN.md — 接入顶栏账号入口、认证弹层、restoring 蒙层与 UI 验证
 **UI hint**: yes
 
@@ -83,7 +83,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 23. Auth & Ownership Foundation | 5/7 | In Progress|  |
+| 23. Auth & Ownership Foundation | 6/7 | In Progress|  |
 | 24. Session Boundary & Local Import | 0/TBD | Not started | - |
 | 25. Sync Semantics & Multi-Device Hardening | 0/TBD | Not started | - |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
