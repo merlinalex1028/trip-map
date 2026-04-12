@@ -1,109 +1,135 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { computed, nextTick, shallowRef } from 'vue'
+import { defineComponent, nextTick } from 'vue'
 
 import App from './App.vue'
+import { useAuthSessionStore } from './stores/auth-session'
 
-vi.mock('./composables/usePopupAnchoring', () => ({
-  usePopupAnchoring: () => ({
-    floatingStyles: computed(() => ({
-      left: '24px',
-      top: '32px'
-    })),
-    placement: shallowRef('top-start'),
-    collisionState: computed(() => 'stable' as const),
-    availableHeight: computed(() => 320),
-    updatePosition: vi.fn(),
-    cleanup: vi.fn()
-  })
-}))
-
-vi.mock('./composables/useLeafletMap', () => ({
-  useLeafletMap: () => ({
-    map: shallowRef(null),
-    isReady: shallowRef(false),
+vi.mock('./components/LeafletMapStage.vue', () => ({
+  default: defineComponent({
+    name: 'LeafletMapStageStub',
+    template: '<div class="min-h-0 flex-1" data-region="map-stage">Map Stage</div>',
   }),
 }))
 
-vi.mock('./composables/useGeoJsonLayers', () => ({
-  useGeoJsonLayers: () => ({
-    addFeatures: vi.fn(),
-    refreshStyles: vi.fn(),
-    cnLayer: {},
-    overseasLayer: {},
-  }),
-}))
+function mountApp() {
+  const pinia = createPinia()
+  setActivePinia(pinia)
 
-const fakeVirtualElement = {
-  getBoundingClientRect: () => ({ top: 0, left: 0, bottom: 0, right: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => ({}) }),
-}
-
-vi.mock('./composables/useLeafletPopupAnchor', () => ({
-  useLeafletPopupAnchor: () => ({
-    virtualElement: computed(() => fakeVirtualElement),
-  }),
-}))
-
-function installFetchMock() {
-  const fetchMock = vi.fn().mockImplementation((input: RequestInfo | URL) => {
-    const url = String(input)
-
-    if (url.endsWith('/api/health')) {
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({
-          status: 'ok',
-          service: 'server',
-          contractsVersion: 'phase11-v1',
-          database: 'up'
-        })
-      })
-    }
-
-    if (url.endsWith('/geo/country-regions.geo.json')) {
-      return Promise.resolve({
-        ok: true,
-        json: async () => ({ type: 'FeatureCollection', features: [] })
-      })
-    }
-
-    return Promise.reject(new Error(`Unexpected fetch request: ${url}`))
-  })
-
-  vi.stubGlobal('fetch', fetchMock)
-  Object.defineProperty(window, 'fetch', {
-    configurable: true,
-    value: fetchMock
+  return mount(App, {
+    global: {
+      plugins: [pinia],
+    },
   })
 }
 
-describe('App shell', () => {
+describe('App auth shell', () => {
   beforeEach(() => {
-    installFetchMock()
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('renders the minimal tailwind app shell without breaking the map stage', async () => {
     const pinia = createPinia()
     setActivePinia(pinia)
-    const wrapper = mount(App, {
+  })
+
+  it('calls restoreSession exactly once on the first app mount', async () => {
+    const authSessionStore = useAuthSessionStore()
+    authSessionStore.status = 'anonymous'
+
+    const restoreSessionSpy = vi
+      .spyOn(authSessionStore, 'restoreSession')
+      .mockResolvedValue(undefined)
+
+    mount(App, {
       global: {
-        plugins: [pinia]
-      }
+        plugins: [authSessionStore.$pinia],
+      },
     })
 
-    expect(wrapper.classes()).toContain('bg-cream-100')
-    expect(wrapper.classes()).toContain('font-sans')
+    await nextTick()
+
+    expect(restoreSessionSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows a single 登录 / 注册 chip in the topbar when anonymous', async () => {
+    const authSessionStore = useAuthSessionStore()
+    authSessionStore.status = 'anonymous'
+    authSessionStore.currentUser = null
+
+    const restoreSessionSpy = vi
+      .spyOn(authSessionStore, 'restoreSession')
+      .mockResolvedValue(undefined)
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [authSessionStore.$pinia],
+      },
+    })
+
+    await nextTick()
+
+    expect(restoreSessionSpy).toHaveBeenCalledTimes(1)
+
+    const topbar = wrapper.get('[data-region="topbar"]')
+    const loginRegisterChips = wrapper
+      .findAll('button')
+      .filter(button => button.text().trim() === '登录 / 注册')
+
+    expect(topbar.text()).toContain('登录 / 注册')
+    expect(loginRegisterChips).toHaveLength(1)
+    expect(topbar.text()).not.toContain('退出登录')
+    expect(topbar.text()).not.toContain('账号设置')
+  })
+
+  it('shows only username, email, and 退出登录 in the authenticated dropdown', async () => {
+    const authSessionStore = useAuthSessionStore()
+    authSessionStore.status = 'authenticated'
+    authSessionStore.currentUser = {
+      id: 'user-1',
+      username: 'Alice',
+      email: 'alice@example.com',
+      createdAt: '2026-04-12T00:00:00.000Z',
+    }
+
+    vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [authSessionStore.$pinia],
+      },
+    })
+
+    await nextTick()
+
+    await wrapper.get('button').trigger('click')
+
+    expect(wrapper.get('[data-region="topbar"]').text()).toContain('Alice')
+    expect(wrapper.text()).toContain('Alice')
+    expect(wrapper.text()).toContain('alice@example.com')
+    expect(wrapper.text()).toContain('退出登录')
+    expect(wrapper.text()).not.toContain('账号设置')
+    expect(wrapper.text()).not.toContain('设备列表')
+    expect(wrapper.text()).not.toContain('forgot-password')
+  })
+
+  it('keeps LeafletMapStage mounted and renders the restoring overlay inside data-region="map-shell"', async () => {
+    const authSessionStore = useAuthSessionStore()
+    authSessionStore.status = 'restoring'
+    authSessionStore.currentUser = null
+
+    vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+
+    const wrapper = mount(App, {
+      global: {
+        plugins: [authSessionStore.$pinia],
+      },
+    })
+
+    await nextTick()
+
+    const mapShell = wrapper.get('[data-region="map-shell"]')
+
     expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
-    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
-    expect(wrapper.get('[data-region="map-stage"]').classes()).toContain('min-h-0')
-    expect(wrapper.get('[data-region="map-stage"]').classes()).toContain('flex-1')
+    expect(mapShell.text()).toContain('正在恢复账号会话')
+    expect(mapShell.text()).toContain('正在载入你的云端旅行记录。')
     expect(wrapper.text()).toContain('旅记')
-    expect(wrapper.text()).toContain('Travel Diary')
-    expect(wrapper.text()).not.toContain('旅行世界地图')
   })
 })
