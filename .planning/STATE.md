@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: 账号体系与云同步基础版
-status: executing
-stopped_at: Completed 23-04-PLAN.md
-last_updated: "2026-04-12T10:34:32.189Z"
+status: verifying
+stopped_at: Completed 23-05-PLAN.md
+last_updated: "2026-04-12T12:41:59.866Z"
 last_activity: 2026-04-12
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 23 (auth-ownership-foundation) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-12
 
 Progress: [███░░░░░░░] 29%
@@ -57,6 +57,7 @@ Progress: [███░░░░░░░] 29%
 | Phase 23 P07 | 17 | 2 tasks | 8 files |
 | Phase 23 P03 | 12 min | 2 tasks | 6 files |
 | Phase 23 P04 | 16m | 2 tasks | 7 files |
+| Phase 23 P05 | 21m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Recent decisions affecting current work:
 - [Phase 23]: Records persistence now uses UserTravelRecord with (userId, placeId) compound-key upsert/delete; legacy TravelRecord stays isolated for backfill/reopen validation.
 - [Phase 23]: 注册与登录成功后统一再走一次 fetchAuthBootstrap，用服务端 bootstrap 快照同时刷新 currentUser 与 records。
 - [Phase 23]: 账号切换、logout 与 unauthorized 回收都先 resetTravelRecordsForSessionBoundary，再决定是否注入新 records。
+- [Phase 23]: Auth shell 继续复用 auth-session store 作为唯一真源，App 只负责首次 restore bootstrap 与组合挂载。
+- [Phase 23]: restoring 态只覆盖 data-region="map-shell"，保留顶栏与 LeafletMapStage 在 DOM 中持续存在。
+- [Phase 23]: 顶栏 authenticated menu 严格收口为用户名、邮箱、退出登录，不引入设置页或设备管理占位。
 
 ### Pending Todos
 
@@ -92,8 +96,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-12T10:34:32.185Z
-Stopped at: Completed 23-04-PLAN.md
+Last session: 2026-04-12T12:41:59.864Z
+Stopped at: Completed 23-05-PLAN.md
 Resume file: None
 
 ---

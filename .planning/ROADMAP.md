@@ -18,7 +18,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 - Integer phases (23, 24, 25, 26): Planned milestone work
 - Decimal phases (23.1, 24.1): Urgent insertions if needed later
 
-- [ ] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源
+- [x] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源 (completed 2026-04-12)
 - [ ] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置
 - [ ] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义
 - [ ] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈
@@ -42,7 +42,7 @@ Plans:
 - [x] 23-07-PLAN.md — 补齐 current-user guard、decorator 与 auth module 导出
 - [x] 23-03-PLAN.md — 将 `/records` 收口为 current-user ownership 真源
 - [x] 23-04-PLAN.md — 建立 web auth-session store 与 authenticated records 生命周期
-- [ ] 23-05-PLAN.md — 接入顶栏账号入口、认证弹层、restoring 蒙层与 UI 验证
+- [x] 23-05-PLAN.md — 接入顶栏账号入口、认证弹层、restoring 蒙层与 UI 验证
 **UI hint**: yes
 
 ### Phase 24: Session Boundary & Local Import
@@ -83,7 +83,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 23. Auth & Ownership Foundation | 6/7 | In Progress|  |
+| 23. Auth & Ownership Foundation | 7/7 | Complete   | 2026-04-12 |
 | 24. Session Boundary & Local Import | 0/TBD | Not started | - |
 | 25. Sync Semantics & Multi-Device Hardening | 0/TBD | Not started | - |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
