@@ -1,7 +1,6 @@
 import type { TravelRecord } from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
-import { createPinia, setActivePinia } from 'pinia'
-import { storeToRefs } from 'pinia'
+import { createPinia, setActivePinia, storeToRefs } from 'pinia'
 import { computed, defineComponent, nextTick } from 'vue'
 
 import App from './App.vue'

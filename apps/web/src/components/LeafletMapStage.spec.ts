@@ -362,15 +362,16 @@ describe('LeafletMapStage', () => {
       })
       geometryLoaderMock.loadGeometryShard.mockResolvedValue(fc)
 
-      // Pre-save two points: one CN, one OVERSEAS via illuminate
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+      // Inject the authenticated bootstrap snapshot directly.
+      const mapPointsStore = useMapPointsStore()
+      mapPointsStore.replaceTravelRecords([
         makeRecord(PHASE12_RESOLVED_BEIJING),
         makeRecord(PHASE12_RESOLVED_CALIFORNIA),
       ])
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
-      // Set map ready to trigger bootstrapFromApi and preloadSavedBoundaryShards
+      // Set map ready to trigger authoritative layer preload and consume the injected snapshot.
       ;(leafletMapContainer.isReadyRef as any).value = true
       await nextTick()
       await flushPromises()
@@ -383,7 +384,7 @@ describe('LeafletMapStage', () => {
       expect(overseasCalls.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('shows a warning notice when records bootstrap cannot reach the server', async () => {
+    it('keeps startup silent when records bootstrap is owned by auth-session restore', async () => {
       recordsApiMock.fetchTravelRecords.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
@@ -393,10 +394,8 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       const mapUiStore = useMapUiStore()
-      expect(mapUiStore.interactionNotice).toMatchObject({
-        tone: 'warning',
-        message: '记录服务暂不可用，请先启动 pnpm dev 或单独运行 pnpm dev:server。',
-      })
+      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
+      expect(mapUiStore.interactionNotice).toBeNull()
     })
   })
 

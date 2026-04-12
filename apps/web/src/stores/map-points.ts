@@ -15,6 +15,7 @@ import {
 import type { GeoCityCandidate } from '../types/geo'
 import type { DraftMapPoint, MapPointDisplay, SummaryMode, SummarySurfaceState } from '../types/map-point'
 import { useAuthSessionStore } from './auth-session'
+import { useMapUiStore } from './map-ui'
 
 interface SavedPointReuseDecision {
   type: 'reused' | 'created-draft'
@@ -164,6 +165,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
+  const RECORD_WRITE_FAILED_NOTICE = '点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
 
   async function bootstrapFromApi() {
     if (hasBootstrapped.value) {
@@ -404,6 +406,11 @@ export const useMapPointsStore = defineStore('map-points', () => {
         if (authSessionStore.currentUser) {
           authSessionStore.handleUnauthorized()
         }
+      } else {
+        useMapUiStore().setInteractionNotice({
+          tone: 'warning',
+          message: RECORD_WRITE_FAILED_NOTICE,
+        })
       }
     } finally {
       const next = new Set(pendingPlaceIds.value)

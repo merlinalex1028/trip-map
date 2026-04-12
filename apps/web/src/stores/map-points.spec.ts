@@ -233,6 +233,7 @@ describe('map-points store', () => {
       expect(store.summaryMode).toBeNull()
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
+        message: '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
       })
     })
 
