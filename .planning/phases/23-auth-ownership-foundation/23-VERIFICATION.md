@@ -1,7 +1,7 @@
 ---
 phase: 23-auth-ownership-foundation
-verified: 2026-04-12T16:01:36Z
-status: human_needed
+verified: 2026-04-14T01:58:36Z
+status: passed
 score: 7/7 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -17,14 +17,16 @@ human_verification:
   - test: "真实浏览器下验证登录失败后的认证弹层仍保持居中"
     expected: "输入错误密码后，弹层保持打开，错误提示出现但面板仍位于视口中央，不出现偏左或原生 dialog 位移"
     why_human: "当前自动化只验证 `data-auth-dialog-backdrop`/`data-auth-dialog` 的 DOM 与 class 合同，无法像浏览器渲染那样确认最终视觉定位"
+    status: approved
+    approved_at: 2026-04-14T01:58:36Z
 ---
 
 # Phase 23: Auth & Ownership Foundation Verification Report
 
 **Phase Goal:** 用户可以拥有独立账号身份，且账号成为旅行记录的唯一归属真源  
-**Verified:** 2026-04-12T16:01:36Z  
-**Status:** human_needed  
-**Re-verification:** Yes — after gap closure plans 23-10 and 23-11
+**Verified:** 2026-04-14T01:58:36Z  
+**Status:** passed  
+**Re-verification:** Yes — after gap closure plans 23-10 and 23-11, plus human approval on 2026-04-14
 
 ## Goal Achievement
 
@@ -133,21 +135,21 @@ human_verification:
 | --- | --- | --- | --- | --- |
 | - | - | No blocker anti-patterns detected in scanned Phase 23 artifacts. | ℹ️ Info | 扫描到的 `null`/空态多为 Pinia 初始状态或分支清理逻辑，未发现 placeholder、TODO、静态空响应或仅日志实现。 |
 
-### Human Verification Required
+### Human Verification Outcome
 
 ### 1. 认证弹层错误态居中
 
 **Test:** 在真实浏览器中以匿名状态打开登录弹层，输入正确邮箱和错误密码后提交。  
 **Expected:** 弹层保持打开，出现“登录失败”提示后仍处于视口中央，未出现偏左、跳位或原生 `<dialog>` 定位残留。  
-**Why human:** 当前自动化只验证 DOM/class contract，不能像真实浏览器那样确认最终视觉定位。
+**Result:** User approved on 2026-04-14. The visual centering issue is considered closed.
 
 ### Gaps Summary
 
 本次重新验证没有发现新的实现缺口。23-10 已关闭 restore 阶段误打 `/records` 与 records 写入静默失败两个 UAT 问题，23-11 已把错误态认证弹层的布局合同收口到应用自控 surface。所有与 Phase 23 目标直接相关的 must-haves 都有代码、接线与自动化命令支撑。
 
-当前唯一剩余项是 23-11 的真实浏览器视觉确认，因此按验证规则状态记为 `human_needed`，而不是 `passed`。
+本次重新验证与人工确认后，Phase 23 已不存在剩余 blocker、major 或待人工确认项。阶段目标已完整达成，可正式标记为 `passed` 并推进到下一阶段。
 
 ---
 
-_Verified: 2026-04-12T16:01:36Z_  
+_Verified: 2026-04-14T01:58:36Z_  
 _Verifier: Codex (gsd-verifier)_  

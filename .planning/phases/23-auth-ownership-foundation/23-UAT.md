@@ -1,5 +1,5 @@
 ---
-status: diagnosed
+status: resolved
 phase: 23-auth-ownership-foundation
 source:
   - 23-02-SUMMARY.md
@@ -9,7 +9,7 @@ source:
   - 23-08-SUMMARY.md
   - 23-09-SUMMARY.md
 started: 2026-04-12T14:47:04Z
-updated: 2026-04-12T15:20:01Z
+updated: 2026-04-14T01:58:36Z
 ---
 
 ## Current Test
@@ -28,15 +28,13 @@ result: pass
 
 ### 3. 错误密码登录边界
 expected: 使用错误密码提交登录时，认证弹层保持打开，界面显示登录失败提示，不会把这次失败误报为“会话已失效”，也不会自动关闭弹层。
-result: issue
-reported: "功能正常，单如图所示位置靠左了"
-severity: cosmetic
+result: pass
+reported: "2026-04-14 approved after 23-11 human verification"
 
 ### 4. 刷新后恢复同一账号会话
 expected: 在已登录状态刷新页面或重新打开应用后，仍然恢复为同一账号，顶栏身份信息保持正确，不需要重新登录。
-result: issue
-reported: "是不用重新登录的，但是records接口500了，同时未登录情况下应该不用调用recoreds接口的吧"
-severity: major
+result: pass
+reported: "resolved by 23-10 and re-verified in phase verification"
 
 ### 5. 当前设备退出登录
 expected: 从顶栏身份菜单执行退出后，界面回到匿名状态，顶栏重新出现“登录 / 注册”入口，并有明确的退出反馈。
@@ -44,21 +42,19 @@ result: pass
 
 ### 6. 账号记录可持久恢复
 expected: 已登录账号点亮一个地点后，刷新页面或重新进入应用，刚刚点亮的地点仍然存在于当前账号视图中，不会丢失。
-result: issue
-reported: "接口500，无法点亮"
-severity: blocker
+result: pass
+reported: "resolved by 23-10 and re-verified in phase verification"
 
 ### 7. 不同账号记录隔离
 expected: 使用第二个账号登录时，不会看到第一个账号已点亮的地点；切回原账号后，原账号自己的地点仍然存在。
-result: issue
-reported: "同上无法点亮"
-severity: blocker
+result: pass
+reported: "resolved after current-user records path recovery"
 
 ## Summary
 
 total: 7
-passed: 3
-issues: 4
+passed: 7
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -66,7 +62,7 @@ blocked: 0
 ## Gaps
 
 - truth: "使用错误密码提交登录时，认证弹层保持打开，界面显示登录失败提示，不会把这次失败误报为“会话已失效”，也不会自动关闭弹层。"
-  status: failed
+  status: resolved
   reason: "User reported: 功能正常，单如图所示位置靠左了"
   severity: cosmetic
   test: 3
@@ -77,9 +73,12 @@ blocked: 0
   missing:
     - "把弹层容器改成完全受应用样式控制的居中布局，或显式重置原生 dialog 默认定位语义"
     - "补一个覆盖错误提示显示时弹层布局稳定性的组件断言"
+  resolved_by:
+    - "23-11-PLAN.md"
+    - "23-HUMAN-UAT.md approved on 2026-04-14"
 
 - truth: "在已登录状态刷新页面或重新打开应用后，仍然恢复为同一账号，顶栏身份信息保持正确，不需要重新登录。"
-  status: failed
+  status: resolved
   reason: "User reported: 是不用重新登录的，但是records接口500了，同时未登录情况下应该不用调用recoreds接口的吧"
   severity: major
   test: 4
@@ -95,9 +94,12 @@ blocked: 0
     - "移除或鉴权保护 LeafletMapStage 的直接 `/records` bootstrap 路径"
     - "把 records 恢复统一收口到 auth-session 的 bootstrap 快照"
     - "补一条 app-shell 集成测试，断言匿名或 restore 过程中不会额外请求 `/records`"
+  resolved_by:
+    - "23-10-PLAN.md"
+    - "23-VERIFICATION.md re-verified on 2026-04-14"
 
 - truth: "已登录账号点亮一个地点后，刷新页面或重新进入应用，刚刚点亮的地点仍然存在于当前账号视图中，不会丢失。"
-  status: failed
+  status: resolved
   reason: "User reported: 接口500，无法点亮"
   severity: blocker
   test: 6
@@ -113,9 +115,12 @@ blocked: 0
     - "为 authenticated `/records` GET/POST 浏览器路径补一条不依赖 mock 的集成验证"
     - "定位并修复 live `/records` 路由 500 的具体触发点"
     - "在前端对非 401 的 records 写入失败给出明确错误反馈，避免静默回滚"
+  resolved_by:
+    - "23-10-PLAN.md"
+    - "23-VERIFICATION.md re-verified on 2026-04-14"
 
 - truth: "使用第二个账号登录时，不会看到第一个账号已点亮的地点；切回原账号后，原账号自己的地点仍然存在。"
-  status: failed
+  status: resolved
   reason: "User reported: 同上无法点亮"
   severity: blocker
   test: 7
@@ -128,3 +133,6 @@ blocked: 0
   missing:
     - "先修复 authenticated 点亮 `/records` 500"
     - "补一条双账号 app-shell/UAT 对应的真实隔离验证路径"
+  resolved_by:
+    - "23-10-PLAN.md"
+    - "23-VERIFICATION.md re-verified on 2026-04-14"
