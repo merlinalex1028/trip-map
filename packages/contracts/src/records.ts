@@ -26,3 +26,14 @@ export interface TravelRecord {
 }
 
 export interface CreateTravelRecordRequest extends CanonicalPlaceSummary {}
+
+export interface ImportTravelRecordsRequest {
+  records: CreateTravelRecordRequest[]
+}
+
+export interface ImportTravelRecordsResponse {
+  importedCount: number
+  mergedDuplicateCount: number
+  finalCount: number
+  records: TravelRecord[]
+}
