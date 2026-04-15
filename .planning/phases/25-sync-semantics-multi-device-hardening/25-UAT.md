@@ -1,12 +1,12 @@
 ---
-status: partial
+status: diagnosed
 phase: 25-sync-semantics-multi-device-hardening
 source:
   - 25-01-SUMMARY.md
   - 25-02-SUMMARY.md
   - 25-03-SUMMARY.md
 started: 2026-04-15T03:53:40Z
-updated: 2026-04-15T05:53:58Z
+updated: 2026-04-15T05:57:28Z
 ---
 
 ## Current Test
@@ -53,5 +53,20 @@ blocked: 2
   reason: "User reported: A窗口点亮失败"
   severity: blocker
   test: 1
-  artifacts: []
-  missing: []
+  root_cause: "前台自动 refresh 与 illuminate() 没有并发协调；focus/visibility 触发的 refresh 会用旧 bootstrap 快照整体覆盖 travelRecords，清掉 optimistic record，而 illuminate 成功回调只会 map 替换现有项，无法把被并发移除的记录重新插回。"
+  artifacts:
+    - path: "apps/web/src/App.vue"
+      issue: "认证态 focus/visibility 立即触发 foreground refresh，双窗口切换会命中竞态窗口"
+    - path: "apps/web/src/stores/auth-session.ts"
+      issue: "same-user refresh 成功后直接 replaceTravelRecords，没有避让 in-flight mutation"
+    - path: "apps/web/src/stores/map-points.ts"
+      issue: "illuminate 成功路径依赖 optimistic row 仍存在，被 refresh 清掉后不会重新插回 authoritative record"
+    - path: "apps/web/src/stores/auth-session.spec.ts"
+      issue: "仅覆盖 refresh 单独路径，未覆盖与点亮并发"
+    - path: "apps/web/src/stores/map-points.spec.ts"
+      issue: "仅覆盖 illuminate 单独路径，未覆盖 refresh 重叠竞态"
+  missing:
+    - "为 foreground refresh 和点亮/取消点亮建立并发协调，避免 refresh 覆盖 in-flight optimistic state"
+    - "让 illuminate 成功路径在目标记录已被并发移除时也能重新写回 authoritative record"
+    - "补充 refresh 与 illuminate 并发重叠的 store / app regression"
+  debug_session: ".planning/debug/phase-25-uat1-a-window-fails.md"
