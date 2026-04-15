@@ -299,6 +299,57 @@ describe('auth-session store', () => {
       expect(authSessionStore.currentUser).toBeNull()
       expect(mapPointsStore.travelRecords).toEqual([])
     })
+
+    it('keeps same-user overlap refresh lightweight while a concurrent illuminate target is still pending', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const currentUser = makeUser()
+      const optimisticRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'pending-cn-beijing',
+      })
+      const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.travelRecords = [optimisticRecord]
+      mapPointsStore.pendingPlaceIds = new Set([PHASE12_RESOLVED_BEIJING.placeId])
+      fetchBootstrapMock.mockResolvedValueOnce({
+        authenticated: true,
+        user: currentUser,
+        records: [],
+      })
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(resetSpy).not.toHaveBeenCalled()
+      expect(mapPointsStore.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(mapPointsStore.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
+    })
+
+    it('does not let same-user overlap refresh resurrect a concurrently unilluminated place or announce an account switch', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const currentUser = makeUser()
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.travelRecords = []
+      mapPointsStore.pendingPlaceIds = new Set([PHASE12_RESOLVED_BEIJING.placeId])
+      fetchBootstrapMock.mockResolvedValueOnce({
+        authenticated: true,
+        user: currentUser,
+        records: [makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-refresh-record' })],
+      })
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(mapPointsStore.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(mapPointsStore.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
+    })
   })
 
   describe('register', () => {

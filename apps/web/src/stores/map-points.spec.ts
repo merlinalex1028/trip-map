@@ -7,6 +7,8 @@ import {
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
+import { ApiClientError } from '../services/api/client'
+import { useAuthSessionStore } from './auth-session'
 import { useMapPointsStore } from './map-points'
 import { useMapUiStore } from './map-ui'
 
@@ -315,6 +317,93 @@ describe('map-points store', () => {
       })
     })
 
+    it('keeps overlap illuminate pending state through concurrent authoritative replace and upserts the authoritative record when create resolves', async () => {
+      let resolveCreate!: (value: TravelRecord) => void
+      const store = useMapPointsStore()
+      const authoritativeRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'server-record-overlap',
+      })
+
+      createMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve
+          }),
+      )
+
+      const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+
+      store.replaceTravelRecords([])
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+
+      resolveCreate(authoritativeRecord)
+      await illuminatePromise
+
+      expect(store.travelRecords).toEqual([authoritativeRecord])
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+    })
+
+    it('keeps concurrent illuminate failure distinct from session expiry during overlap refresh handling', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const handleUnauthorizedSpy = vi.spyOn(authSessionStore, 'handleUnauthorized')
+
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      createMock.mockRejectedValueOnce(new Error('create failed'))
+
+      const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      store.replaceTravelRecords([])
+      await illuminatePromise
+
+      expect(handleUnauthorizedSpy).not.toHaveBeenCalled()
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+      })
+    })
+
+    it('routes concurrent illuminate 401 through handleUnauthorized instead of the generic overlap failure notice', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const handleUnauthorizedSpy = vi.spyOn(authSessionStore, 'handleUnauthorized')
+
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      createMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'session-unauthorized',
+          message: 'Session expired',
+        }),
+      )
+
+      const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      store.replaceTravelRecords([])
+      await illuminatePromise
+
+      expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
+      expect(mapUiStore.interactionNotice?.message).not.toBe(
+        '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+      )
+    })
+
     it('reuses existing record without API call when already illuminated', async () => {
       fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       const store = useMapPointsStore()
@@ -396,6 +485,35 @@ describe('map-points store', () => {
         tone: 'info',
         message: '已从当前账号移除。',
       })
+    })
+
+    it('keeps concurrent unilluminate converged to not illuminated when a stale authoritative replace overlaps delete', async () => {
+      let resolveDelete!: () => void
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      deleteMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveDelete = resolve
+          }),
+      )
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      const unilluminatePromise = store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-refresh' })])
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+
+      resolveDelete()
+      await unilluminatePromise
+
+      expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
     })
 
     it('keeps stale deletes converged to not illuminated when the server responds with idempotent success', async () => {

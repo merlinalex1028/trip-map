@@ -8,14 +8,30 @@ import { useAuthSessionStore } from './stores/auth-session'
 import { useMapPointsStore } from './stores/map-points'
 import { useMapUiStore } from './stores/map-ui'
 
+const authApiMock = vi.hoisted(() => ({
+  fetchAuthBootstrap: vi.fn(),
+  loginWithPassword: vi.fn(),
+  logoutCurrentSession: vi.fn(),
+  registerWithPassword: vi.fn(),
+}))
+
 const recordsApiMock = vi.hoisted(() => ({
   fetchTravelRecords: vi.fn<() => Promise<TravelRecord[]>>(),
+  createTravelRecord: vi.fn(),
+  deleteTravelRecord: vi.fn(),
+}))
+
+vi.mock('./services/api/auth', () => ({
+  fetchAuthBootstrap: authApiMock.fetchAuthBootstrap,
+  loginWithPassword: authApiMock.loginWithPassword,
+  logoutCurrentSession: authApiMock.logoutCurrentSession,
+  registerWithPassword: authApiMock.registerWithPassword,
 }))
 
 vi.mock('./services/api/records', () => ({
   fetchTravelRecords: recordsApiMock.fetchTravelRecords,
-  createTravelRecord: vi.fn(),
-  deleteTravelRecord: vi.fn(),
+  createTravelRecord: recordsApiMock.createTravelRecord,
+  deleteTravelRecord: recordsApiMock.deleteTravelRecord,
 }))
 
 vi.mock('./components/LeafletMapStage.vue', () => ({
@@ -67,8 +83,14 @@ describe('App auth shell', () => {
   })
 
   beforeEach(() => {
+    authApiMock.fetchAuthBootstrap.mockReset()
+    authApiMock.loginWithPassword.mockReset()
+    authApiMock.logoutCurrentSession.mockReset()
+    authApiMock.registerWithPassword.mockReset()
     recordsApiMock.fetchTravelRecords.mockReset()
     recordsApiMock.fetchTravelRecords.mockResolvedValue([])
+    recordsApiMock.createTravelRecord.mockReset()
+    recordsApiMock.deleteTravelRecord.mockReset()
   })
 
   it('calls restoreSession exactly once on the first app mount', async () => {
@@ -346,6 +368,85 @@ describe('App auth shell', () => {
     expect(refreshSpy!).toHaveBeenCalledTimes(1)
     expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
+  })
+
+  it('keeps the app shell on the same user during concurrent foreground refresh overlap on window focus', async () => {
+    let resolveCreate!: (value: TravelRecord) => void
+    let resolveBootstrap!: (value: {
+      authenticated: true
+      user: NonNullable<ReturnType<typeof useAuthSessionStore>['currentUser']>
+      records: TravelRecord[]
+    }) => void
+    const sameUser = {
+      id: 'user-1',
+      username: 'Alice',
+      email: 'alice@example.com',
+      createdAt: '2026-04-12T00:00:00.000Z',
+    }
+    const authoritativeRecord: TravelRecord = {
+      id: 'record-beijing-authoritative',
+      placeId: 'cn-beijing',
+      boundaryId: 'cn-beijing',
+      placeKind: 'CN_ADMIN',
+      datasetVersion: 'v3.0-test',
+      displayName: '北京市',
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '中国 · 直辖市',
+      createdAt: '2026-04-12T00:00:00.000Z',
+    }
+    const { wrapper } = mountApp((store) => {
+      store.status = 'authenticated'
+      store.currentUser = sameUser
+      vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
+    })
+    const mapPointsStore = useMapPointsStore()
+
+    recordsApiMock.createTravelRecord.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve
+        }),
+    )
+    authApiMock.fetchAuthBootstrap.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveBootstrap = resolve
+        }),
+    )
+
+    await nextTick()
+    window.dispatchEvent(new Event('focus'))
+    const illuminatePromise = mapPointsStore.illuminate({
+      placeId: authoritativeRecord.placeId,
+      boundaryId: authoritativeRecord.boundaryId,
+      placeKind: authoritativeRecord.placeKind,
+      datasetVersion: authoritativeRecord.datasetVersion,
+      displayName: authoritativeRecord.displayName,
+      regionSystem: authoritativeRecord.regionSystem,
+      adminType: authoritativeRecord.adminType,
+      typeLabel: authoritativeRecord.typeLabel,
+      parentLabel: authoritativeRecord.parentLabel,
+      subtitle: authoritativeRecord.subtitle,
+    })
+
+    resolveBootstrap({
+      authenticated: true,
+      user: sameUser,
+      records: [],
+    })
+    await flushPromises()
+
+    resolveCreate(authoritativeRecord)
+    await illuminatePromise
+    await flushPromises()
+
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-stage"]').text()).toContain('Map Stage 1 true')
+    expect(wrapper.text()).not.toContain('已切换到')
+    expect(wrapper.text()).not.toContain('账号会话已失效')
   })
 
   it('triggers a same-user foreground refresh when the page becomes visible again', async () => {
