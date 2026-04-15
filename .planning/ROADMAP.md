@@ -20,7 +20,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 
 - [x] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源（gap closure planned） (completed 2026-04-12)
 - [x] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置 (completed 2026-04-15)
-- [x] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义 (completed 2026-04-15)
+- [x] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义（gap closure replanned 2026-04-15） (completed 2026-04-15)
 - [ ] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈
 
 ## Phase Details
@@ -72,11 +72,12 @@ Plans:
   1. 已登录用户取消点亮某个地点后，云端对应记录会被移除或标记取消，后续拉取结果不再把该地点显示为已点亮。
   2. 同一账号在另一台设备登录后，可以看到与原设备一致的点亮结果，不需要人工重建记录。
   3. 点亮、取消点亮和记录拉取在成功、失败或需要重新登录时，界面都会给出明确且可区分的反馈。
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
 - [x] 25-01-PLAN.md — 服务端删除幂等语义与 multi-session bootstrap 一致性回归
 - [x] 25-02-PLAN.md — same-user foreground refresh 与轻量 authoritative snapshot 替换
 - [x] 25-03-PLAN.md — 点亮/取消点亮/refresh 的同步反馈分层与 notice 语义
+- [ ] 25-04-PLAN.md — 修补 foreground refresh 与点亮/取消点亮重叠时的竞态覆盖
 **UI hint**: yes
 
 ### Phase 26: Overseas Coverage Foundation
@@ -96,7 +97,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 23. Auth & Ownership Foundation | 11/11 | Complete    | 2026-04-14 |
 | 24. Session Boundary & Local Import | 4/4 | Complete    | 2026-04-15 |
-| 25. Sync Semantics & Multi-Device Hardening | 3/3 | Complete   | 2026-04-15 |
+| 25. Sync Semantics & Multi-Device Hardening | 3/4 | Gap closure planned | 2026-04-15 |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
 
 ---
