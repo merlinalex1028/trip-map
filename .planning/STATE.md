@@ -4,13 +4,13 @@ milestone: v5.0
 milestone_name: 账号体系与云同步基础版
 status: planning
 stopped_at: Phase 26 ready for planning
-last_updated: "2026-04-15T03:37:59Z"
-last_activity: 2026-04-15 -- Phase 25 completed after sync semantics execution and verification
+last_updated: "2026-04-15T06:53:47.402Z"
+last_activity: 2026-04-15 -- Phase 25 completed after overlap hardening execution and verification
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 18
-  completed_plans: 18
+  total_plans: 19
+  completed_plans: 19
   percent: 100
 ---
 
@@ -29,7 +29,7 @@ Milestone: v5.0 — 账号体系与云同步基础版
 Phase: 26 (overseas-coverage-foundation) — READY FOR PLANNING
 Plan: Not started
 Status: Phase 25 complete — next phase ready for planning
-Last activity: 2026-04-15 -- Phase 25 completed after sync semantics execution and verification
+Last activity: 2026-04-15 -- Phase 25 completed after overlap hardening execution and verification
 
 Progress: [██████████] 100%
 
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 | Phase 25 P01 | - | - | - |
 | Phase 25 P02 | - | - | - |
 | Phase 25 P03 | - | - | - |
+| Phase 25 P04 | 6m | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 23]: Auth shell 继续复用 auth-session store 作为唯一真源，App 只负责首次 restore bootstrap 与组合挂载。
 - [Phase 23]: restoring 态只覆盖 data-region="map-shell"，保留顶栏与 LeafletMapStage 在 DOM 中持续存在。
 - [Phase 23]: 顶栏 authenticated menu 严格收口为用户名、邮箱、退出登录，不引入设置页或设备管理占位。
+- [Phase 25]: same-user refresh 继续保持轻刷新，但改走 applyAuthoritativeTravelRecords() 以避开 in-flight placeId 的竞态覆盖。
+- [Phase 25]: 点亮成功路径改为按 placeId upsert authoritative record，避免 optimistic row 被并发 refresh 移除后无法写回。
+- [Phase 25]: 取消点亮成功后再次按 placeId 过滤本地列表，确保 stale refresh 重叠后仍收敛为未点亮。
 
 ### Pending Todos
 
@@ -96,7 +100,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-14T03:26:04.844Z
+Last session: 2026-04-15T06:53:47.399Z
 Stopped at: Phase 26 ready for planning
 Resume file: .planning/ROADMAP.md
 

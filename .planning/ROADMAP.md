@@ -77,7 +77,7 @@ Plans:
 - [x] 25-01-PLAN.md — 服务端删除幂等语义与 multi-session bootstrap 一致性回归
 - [x] 25-02-PLAN.md — same-user foreground refresh 与轻量 authoritative snapshot 替换
 - [x] 25-03-PLAN.md — 点亮/取消点亮/refresh 的同步反馈分层与 notice 语义
-- [ ] 25-04-PLAN.md — 修补 foreground refresh 与点亮/取消点亮重叠时的竞态覆盖
+- [x] 25-04-PLAN.md — 修补 foreground refresh 与点亮/取消点亮重叠时的竞态覆盖
 **UI hint**: yes
 
 ### Phase 26: Overseas Coverage Foundation
@@ -97,7 +97,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 23. Auth & Ownership Foundation | 11/11 | Complete    | 2026-04-14 |
 | 24. Session Boundary & Local Import | 4/4 | Complete    | 2026-04-15 |
-| 25. Sync Semantics & Multi-Device Hardening | 3/4 | Gap closure planned | 2026-04-15 |
+| 25. Sync Semantics & Multi-Device Hardening | 4/4 | Complete   | 2026-04-15 |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
 
 ---
