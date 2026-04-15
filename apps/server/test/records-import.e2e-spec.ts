@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
+import type { CreateTravelRecordRequest } from '@trip-map/contracts'
 import { fileURLToPath } from 'node:url'
 
 import { createApp } from '../src/main.js'
@@ -43,7 +44,7 @@ const DUPLICATE_PLACE_ID = `test-import-duplicate-${Date.now()}`
 const AUTHORITATIVE_PLACE_ID = `test-import-authoritative-${Date.now()}`
 const IDEMPOTENT_PLACE_ID = `test-import-idempotent-${Date.now()}`
 
-const baseRecord = {
+const baseRecord: Omit<CreateTravelRecordRequest, 'placeId'> = {
   boundaryId: 'boundary-test-001',
   placeKind: 'CN_ADMIN',
   datasetVersion: 'v3.0-test',
@@ -53,7 +54,7 @@ const baseRecord = {
   typeLabel: '直辖市',
   parentLabel: '中国',
   subtitle: '中国 · 直辖市',
-} as const
+}
 
 function createRegisterPayload(suffix: string) {
   return {
@@ -78,7 +79,10 @@ function extractSidCookie(setCookieHeader: string | null) {
   return match?.[0] ?? null
 }
 
-function createImportRecord(placeId: string, overrides: Partial<typeof baseRecord> = {}) {
+function createImportRecord(
+  placeId: string,
+  overrides: Partial<CreateTravelRecordRequest> = {},
+): CreateTravelRecordRequest {
   return {
     placeId,
     ...baseRecord,
@@ -328,3 +332,4 @@ describe('POST /records/import', () => {
       .filter((record: { placeId: string }) => record.placeId === IDEMPOTENT_PLACE_ID)
     expect(importedRecords).toHaveLength(1)
   })
+})

@@ -342,22 +342,19 @@ await prisma.like.upsert({
 | A3 | 用户显式选择“以当前账号云端记录为准”后，应清理 legacy local snapshot，避免反复提示。 [ASSUMED] | Common Pitfalls | 若产品希望稍后仍可再次导入，则需要不同的 resolved marker，而不是直接清 key。 |
 | A4 | 为了准确返回结果摘要，本 phase 值得新增服务端 import endpoint，而不是只复用单条 `/records`。 [ASSUMED] | Primary recommendation / Don't Hand-Roll | 若团队坚持零后端改动，planner 需要额外设计前端计数和失败恢复机制。 |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **本 phase 的导入源只包含浏览器 localStorage，还是也包含 legacy `TravelRecord` 表？**
-   - What we know: 历史浏览器 key `trip-map:point-state:v2` 已被明确找到；legacy `TravelRecord` 表也仍存在。 [VERIFIED: git history][VERIFIED: codebase grep]
-   - What's unclear: 用户口中的“本地旧记录”是否只指浏览器本地，还是也包含 pre-owner server rows。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md][ASSUMED]
-   - Recommendation: planner 默认按 browser-local 规划，并把 legacy DB 表是否纳入 scope 作为 discuss/确认项。 [ASSUMED]
+   - Resolution: 第 24 阶段的“本地旧记录”范围正式锁定为浏览器 `localStorage` key `trip-map:point-state:v2`；不把 legacy `TravelRecord` 表回填纳入本 phase。 [RESOLVED 2026-04-14]
+   - Why: `24-CONTEXT.md` 与当前 phase goal 都围绕“首登本地导入选择”展开，且历史浏览器 snapshot 已有明确结构；如果同时纳入 legacy DB 表，会把 Phase 24 从“session boundary + local import”扩大成 ownership/backfill migration。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md][VERIFIED: git history][VERIFIED: codebase grep]
 
 2. **重复地点的优先级是 cloud wins 还是 local wins？**
-   - What we know: context 只锁了“按 canonical `placeId` 去重合并”，没有锁元数据覆盖优先级。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md]
-   - What's unclear: 当同一 `placeId` 在云端和本地都存在时，`displayName/subtitle/typeLabel` 是否允许被本地旧值更新。 [ASSUMED]
-   - Recommendation: planner 先按 “cloud wins, local counts as merged duplicate” 规划，除非用户明确要求覆盖。 [ASSUMED]
+   - Resolution: 同一 canonical `placeId` 在云端和本地都存在时，采用 `cloud wins`；本地重复仅计入 `mergedDuplicateCount`，不覆盖云端 authoritative metadata。 [RESOLVED 2026-04-14]
+   - Why: Phase 23 已把当前账号云端 records 建立为正式真源；Phase 24 的导入目标是迁移 legacy 本地数据，不是让旧本地快照反向覆盖当前账号真源。 [VERIFIED: .planning/phases/23-auth-ownership-foundation/23-VERIFICATION.md][VERIFIED: codebase grep]
 
 3. **选择“以当前账号云端记录为准”后，本地记录是否应保留一个可恢复入口？**
-   - What we know: D-03/D-04 要求一次性明确选择；未要求撤销/回滚。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md]
-   - What's unclear: 用户是否需要“今天先跳过，明天再导”的温和路径。 [ASSUMED]
-   - Recommendation: 按 scope 先不做撤销入口；若保留数据，至少也要单独记录 `resolved` 状态避免重复弹窗。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md][ASSUMED]
+   - Resolution: 本 phase 不提供撤销/回滚或“稍后再导”的恢复入口；用户一旦选择“以当前账号云端记录为准”，即清理 legacy local snapshot，避免重复弹窗。 [RESOLVED 2026-04-14]
+   - Why: D-03/D-04 已锁定“一次性明确选择”的产品语义，且 deferred ideas 明确把回滚/撤销留到后续阶段。继续保留本地数据会让后续每次登录都需要额外 resolved marker，增加边界复杂度。 [VERIFIED: .planning/phases/24-session-boundary-local-import/24-CONTEXT.md]
 
 ## Environment Availability
 

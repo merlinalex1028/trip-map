@@ -21,6 +21,7 @@ import {
 import { lookupCountryRegionByCoordinates, prefetchCountryRegions } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
+import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCityCandidate, GeoDetectionResult } from '../types/geo'
 import type { DraftMapPoint } from '../types/map-point'
@@ -42,6 +43,7 @@ const popupRef = useTemplateRef<PopupComponentExpose>('popup')
 
 const mapPointsStore = useMapPointsStore()
 const mapUiStore = useMapUiStore()
+const authSessionStore = useAuthSessionStore()
 
 const {
   displayPoints,
@@ -55,6 +57,10 @@ const {
   travelRecords,
   pendingPlaceIds,
 } = storeToRefs(mapPointsStore)
+const {
+  currentUser,
+  status: authStatus,
+} = storeToRefs(authSessionStore)
 
 const { pendingGeoHit } = storeToRefs(mapUiStore)
 
@@ -478,6 +484,11 @@ async function handleIlluminate() {
   const surface = summarySurfaceState.value
   if (!surface || surface.mode === 'candidate-select') return
   const point = surface.point
+
+  if (authStatus.value !== 'authenticated' || !currentUser.value) {
+    authSessionStore.openAuthModal('login')
+    return
+  }
 
   if (
     !isActivePointIlluminatable.value ||

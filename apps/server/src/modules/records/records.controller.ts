@@ -12,12 +12,18 @@ import {
   ValidationPipe,
 } from '@nestjs/common'
 import { ApiCreatedResponse, ApiNoContentResponse, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
-import type { AuthUser, SmokeRecordResponse, TravelRecord as ContractTravelRecord } from '@trip-map/contracts'
+import type {
+  AuthUser,
+  ImportTravelRecordsResponse,
+  SmokeRecordResponse,
+  TravelRecord as ContractTravelRecord,
+} from '@trip-map/contracts'
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js'
 import { SessionAuthGuard } from '../auth/guards/session-auth.guard.js'
 import { CreateSmokeRecordDto } from './dto/create-smoke-record.dto.js'
 import { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
+import { ImportTravelRecordsDto } from './dto/import-travel-records.dto.js'
 import { RecordsService } from './records.service.js'
 
 @ApiTags('records')
@@ -69,6 +75,24 @@ export class RecordsController {
     @Body() body: CreateTravelRecordDto,
   ): Promise<ContractTravelRecord> {
     return this.recordsService.createTravel(user.id, body)
+  }
+
+  @Post('import')
+  @HttpCode(201)
+  @ApiOperation({ summary: '导入本地旅行记录' })
+  @ApiCreatedResponse()
+  @UseGuards(SessionAuthGuard)
+  @UsePipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+    forbidNonWhitelisted: true,
+    expectedType: ImportTravelRecordsDto,
+  }))
+  async importTravel(
+    @CurrentUser() user: AuthUser,
+    @Body() body: ImportTravelRecordsDto,
+  ): Promise<ImportTravelRecordsResponse> {
+    return this.recordsService.importTravel(user.id, body)
   }
 
   @Delete(':placeId')

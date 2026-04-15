@@ -1,4 +1,9 @@
-import type { CreateTravelRecordRequest, TravelRecord } from '@trip-map/contracts'
+import type {
+  CreateTravelRecordRequest,
+  ImportTravelRecordsRequest,
+  ImportTravelRecordsResponse,
+  TravelRecord,
+} from '@trip-map/contracts'
 import { apiFetchJson } from './client'
 
 export async function fetchTravelRecords(): Promise<TravelRecord[]> {
@@ -27,4 +32,14 @@ export async function deleteTravelRecord(placeId: string): Promise<void> {
       responseType: 'none',
     },
   )
+}
+
+export async function importTravelRecords(
+  request: ImportTravelRecordsRequest,
+): Promise<ImportTravelRecordsResponse> {
+  return apiFetchJson<ImportTravelRecordsResponse>('/records/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
 }
