@@ -30,15 +30,13 @@ const { interactionNotice } = storeToRefs(mapUiStore)
 
 let noticeTimer: number | null = null
 
-watch(
-  () => interactionNotice.value?.message,
-  (message) => {
+watch(interactionNotice, (notice) => {
     if (noticeTimer) {
       window.clearTimeout(noticeTimer)
       noticeTimer = null
     }
 
-    if (!message) {
+    if (!notice?.message) {
       return
     }
 
@@ -46,8 +44,7 @@ watch(
       clearInteractionNotice()
       noticeTimer = null
     }, 2600)
-  }
-)
+  })
 
 onMounted(() => {
   void restoreSession()

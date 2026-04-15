@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import type { AuthUser } from '@trip-map/contracts'
 import type { FastifyRequest } from 'fastify'
@@ -12,6 +12,7 @@ type AuthenticatedRequest = FastifyRequest & {
 @Injectable()
 export class SessionAuthGuard implements CanActivate {
   constructor(
+    @Inject(AuthService)
     private readonly authService: AuthService,
   ) {}
 

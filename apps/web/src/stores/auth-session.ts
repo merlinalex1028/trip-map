@@ -47,6 +47,7 @@ const FOREGROUND_REFRESH_FAILED_NOTICE =
 export const useAuthSessionStore = defineStore('auth-session', () => {
   const status = shallowRef<AuthStatus>('restoring')
   const currentUser = shallowRef<AuthUser | null>(null)
+  const boundaryVersion = shallowRef(0)
   const isAuthModalOpen = shallowRef(false)
   const authMode = shallowRef<AuthMode>('login')
   const isSubmitting = shallowRef(false)
@@ -91,6 +92,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
     const mapPointsStore = useMapPointsStore()
     const mapUiStore = useMapUiStore()
 
+    boundaryVersion.value += 1
     mapPointsStore.resetTravelRecordsForSessionBoundary()
     currentUser.value = null
     status.value = 'anonymous'
@@ -116,6 +118,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
     const switchedAccount =
       previousUser !== null && previousUser.id !== response.user.id
 
+    boundaryVersion.value += 1
     mapPointsStore.resetTravelRecordsForSessionBoundary()
     mapPointsStore.replaceTravelRecords(response.records)
     currentUser.value = response.user
@@ -340,6 +343,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
   return {
     status,
     currentUser,
+    boundaryVersion,
     isAuthModalOpen,
     authMode,
     isSubmitting,

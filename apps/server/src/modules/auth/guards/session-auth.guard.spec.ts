@@ -1,9 +1,13 @@
+import 'reflect-metadata'
+
+import { Test } from '@nestjs/testing'
 import { UnauthorizedException } from '@nestjs/common'
 import type { ExecutionContext } from '@nestjs/common'
 import type { AuthUser } from '@trip-map/contracts'
 import { describe, expect, it, vi } from 'vitest'
 
 import { getCurrentUserFromRequest } from '../decorators/current-user.decorator.js'
+import { AuthService } from '../auth.service.js'
 import { SessionAuthGuard } from './session-auth.guard.js'
 
 type RequestWithAuthContext = {
@@ -23,6 +27,25 @@ function createExecutionContext(request: RequestWithAuthContext): ExecutionConte
 }
 
 describe('SessionAuthGuard', () => {
+  it('resolves AuthService through Nest DI', async () => {
+    const authService = {
+      resolveAuthenticatedUserFromSession: vi.fn(),
+    }
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        SessionAuthGuard,
+        {
+          provide: AuthService,
+          useValue: authService,
+        },
+      ],
+    }).compile()
+
+    const guard = moduleRef.get(SessionAuthGuard)
+
+    expect(guard).toBeInstanceOf(SessionAuthGuard)
+  })
+
   it('throws UnauthorizedException when request.cookies.sid is missing', async () => {
     const authService = {
       resolveAuthenticatedUserFromSession: vi.fn(),

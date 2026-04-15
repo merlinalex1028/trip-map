@@ -404,6 +404,36 @@ describe('map-points store', () => {
       )
     })
 
+    it('does not write an old-session illuminate result back after the auth boundary resets', async () => {
+      let resolveCreate!: (value: TravelRecord) => void
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      createMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveCreate = resolve
+          }),
+      )
+
+      const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+
+      authSessionStore.handleUnauthorized()
+      resolveCreate(makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-session-record' }))
+      await illuminatePromise
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(store.travelRecords).toEqual([])
+      expect(store.pendingPlaceIds.size).toBe(0)
+    })
+
     it('reuses existing record without API call when already illuminated', async () => {
       fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       const store = useMapPointsStore()
@@ -516,6 +546,38 @@ describe('map-points store', () => {
 
       expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
       expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+    })
+
+    it('does not restore old-session records when unilluminate fails after the auth boundary resets', async () => {
+      let rejectDelete!: (reason?: unknown) => void
+      const authSessionStore = useAuthSessionStore()
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      deleteMock.mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectDelete = reject
+          }),
+      )
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+
+      const unilluminatePromise = store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      authSessionStore.handleUnauthorized()
+      rejectDelete(new Error('delete failed after logout'))
+      await unilluminatePromise
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(store.travelRecords).toEqual([])
+      expect(store.pendingPlaceIds.size).toBe(0)
     })
 
     it('keeps stale deletes converged to not illuminated when the server responds with idempotent success', async () => {

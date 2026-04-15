@@ -303,6 +303,47 @@ describe('App auth shell', () => {
     expect(wrapper.text()).toContain('已退出当前账号')
   })
 
+  it('re-arms the auto-dismiss timer when the same notice message appears again', async () => {
+    vi.useFakeTimers()
+
+    try {
+      const { wrapper } = mountApp((authSessionStore) => {
+        authSessionStore.status = 'anonymous'
+        authSessionStore.currentUser = null
+        vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+      })
+      const mapUiStore = useMapUiStore()
+
+      await nextTick()
+
+      mapUiStore.setInteractionNotice({
+        tone: 'info',
+        message: '已同步到当前账号。',
+      })
+      await nextTick()
+
+      vi.advanceTimersByTime(2000)
+
+      mapUiStore.setInteractionNotice({
+        tone: 'info',
+        message: '已同步到当前账号。',
+      })
+      await nextTick()
+
+      vi.advanceTimersByTime(1000)
+      await nextTick()
+
+      expect(wrapper.text()).toContain('已同步到当前账号。')
+
+      vi.advanceTimersByTime(1600)
+      await nextTick()
+
+      expect(wrapper.text()).not.toContain('已同步到当前账号。')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('keeps topbar identity and map-stage record count in sync after an account switch notice', async () => {
     const { wrapper } = mountApp((authSessionStore) => {
       const mapPointsStore = useMapPointsStore()

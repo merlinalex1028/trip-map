@@ -230,6 +230,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
     hasBootstrapped.value = true
   }
 
+  function hasSessionBoundaryChanged(boundaryVersionAtStart: number) {
+    return useAuthSessionStore().boundaryVersion !== boundaryVersionAtStart
+  }
+
   function resetTravelRecordsForSessionBoundary() {
     travelRecords.value = []
     pendingPlaceIds.value = new Set()
@@ -366,6 +370,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     parentLabel: TravelRecord['parentLabel']
     subtitle: string | null
   }) {
+    const authSessionStore = useAuthSessionStore()
+    const boundaryVersionAtStart = authSessionStore.boundaryVersion
     const {
       placeId,
       boundaryId,
@@ -420,6 +426,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         subtitle: subtitle ?? '',
       })
 
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       const hasExistingRecord = travelRecords.value.some((r) => r.placeId === placeId)
       travelRecords.value = hasExistingRecord
         ? travelRecords.value.map((r) => (r.placeId === placeId ? record : r))
@@ -429,13 +439,15 @@ export const useMapPointsStore = defineStore('map-points', () => {
         message: RECORD_WRITE_SUCCESS_NOTICE,
       })
     } catch (error) {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
       selectedPointId.value = null
       summaryMode.value = null
 
       if (isUnauthorizedApiClientError(error)) {
-        const authSessionStore = useAuthSessionStore()
-
         if (authSessionStore.currentUser) {
           authSessionStore.handleUnauthorized()
         }
@@ -446,6 +458,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         })
       }
     } finally {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       const next = new Set(pendingPlaceIds.value)
       next.delete(placeId)
       pendingPlaceIds.value = next
@@ -453,6 +469,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   async function unilluminate(placeId: string) {
+    const authSessionStore = useAuthSessionStore()
+    const boundaryVersionAtStart = authSessionStore.boundaryVersion
     const previousRecords = [...travelRecords.value]
     const prev = previousRecords.find((r) => r.placeId === placeId)
     if (!prev) {
@@ -464,17 +482,24 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     try {
       await deleteTravelRecord(placeId)
+
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
       useMapUiStore().setInteractionNotice({
         tone: 'info',
         message: RECORD_DELETE_SUCCESS_NOTICE,
       })
     } catch (error) {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       travelRecords.value = previousRecords
 
       if (isUnauthorizedApiClientError(error)) {
-        const authSessionStore = useAuthSessionStore()
-
         if (authSessionStore.currentUser) {
           authSessionStore.handleUnauthorized()
         }
@@ -485,6 +510,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         })
       }
     } finally {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
       const next = new Set(pendingPlaceIds.value)
       next.delete(placeId)
       pendingPlaceIds.value = next
