@@ -233,7 +233,7 @@ describe('auth-session store', () => {
       const previousRecords = [makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'record-prev' })]
       const nextRecords = [makeRecord(PHASE12_RESOLVED_CALIFORNIA, { id: 'record-next' })]
       const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
-      const replaceSpy = vi.spyOn(mapPointsStore, 'replaceTravelRecords')
+      const applySpy = vi.spyOn(mapPointsStore, 'applyAuthoritativeTravelRecords')
 
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = currentUser
@@ -248,7 +248,7 @@ describe('auth-session store', () => {
 
       expect(fetchBootstrapMock).toHaveBeenCalledTimes(1)
       expect(resetSpy).not.toHaveBeenCalled()
-      expect(replaceSpy).toHaveBeenLastCalledWith(nextRecords)
+      expect(applySpy).toHaveBeenLastCalledWith(nextRecords)
       expect(mapPointsStore.travelRecords).toEqual(nextRecords)
       expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
     })

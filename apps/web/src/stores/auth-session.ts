@@ -229,7 +229,7 @@ export const useAuthSessionStore = defineStore('auth-session', () => {
         }
 
         const mapPointsStore = useMapPointsStore()
-        mapPointsStore.replaceTravelRecords(bootstrap.records)
+        mapPointsStore.applyAuthoritativeTravelRecords(bootstrap.records)
         currentUser.value = bootstrap.user
         status.value = 'authenticated'
       } catch (error) {

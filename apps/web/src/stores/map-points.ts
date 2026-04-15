@@ -205,6 +205,31 @@ export const useMapPointsStore = defineStore('map-points', () => {
     hasBootstrapped.value = true
   }
 
+  function applyAuthoritativeTravelRecords(records: TravelRecord[]) {
+    if (pendingPlaceIds.value.size === 0) {
+      travelRecords.value = [...records]
+      hasBootstrapped.value = true
+      return
+    }
+
+    const snapshotByPlaceId = new Map(records.map((record) => [record.placeId, record]))
+    const currentByPlaceId = new Map(travelRecords.value.map((record) => [record.placeId, record]))
+
+    for (const placeId of pendingPlaceIds.value) {
+      const currentRecord = currentByPlaceId.get(placeId)
+
+      if (currentRecord) {
+        snapshotByPlaceId.set(placeId, currentRecord)
+        continue
+      }
+
+      snapshotByPlaceId.delete(placeId)
+    }
+
+    travelRecords.value = Array.from(snapshotByPlaceId.values())
+    hasBootstrapped.value = true
+  }
+
   function resetTravelRecordsForSessionBoundary() {
     travelRecords.value = []
     pendingPlaceIds.value = new Set()
@@ -395,9 +420,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         subtitle: subtitle ?? '',
       })
 
-      travelRecords.value = travelRecords.value.map((r) =>
-        r.placeId === placeId ? record : r,
-      )
+      const hasExistingRecord = travelRecords.value.some((r) => r.placeId === placeId)
+      travelRecords.value = hasExistingRecord
+        ? travelRecords.value.map((r) => (r.placeId === placeId ? record : r))
+        : [...travelRecords.value, record]
       useMapUiStore().setInteractionNotice({
         tone: 'info',
         message: RECORD_WRITE_SUCCESS_NOTICE,
@@ -438,6 +464,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     try {
       await deleteTravelRecord(placeId)
+      travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
       useMapUiStore().setInteractionNotice({
         tone: 'info',
         message: RECORD_DELETE_SUCCESS_NOTICE,
@@ -488,6 +515,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     selectedBoundaryId,
     bootstrapFromApi,
     replaceTravelRecords,
+    applyAuthoritativeTravelRecords,
     resetTravelRecordsForSessionBoundary,
     clearActivePoint,
     startDraftFromDetection,

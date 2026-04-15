@@ -336,7 +336,7 @@ describe('map-points store', () => {
       expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
 
-      store.replaceTravelRecords([])
+      store.applyAuthoritativeTravelRecords([])
 
       expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
@@ -364,7 +364,7 @@ describe('map-points store', () => {
       createMock.mockRejectedValueOnce(new Error('create failed'))
 
       const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      store.replaceTravelRecords([])
+      store.applyAuthoritativeTravelRecords([])
       await illuminatePromise
 
       expect(handleUnauthorizedSpy).not.toHaveBeenCalled()
@@ -395,7 +395,7 @@ describe('map-points store', () => {
       )
 
       const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-      store.replaceTravelRecords([])
+      store.applyAuthoritativeTravelRecords([])
       await illuminatePromise
 
       expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
@@ -504,7 +504,9 @@ describe('map-points store', () => {
       expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
 
-      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-refresh' })])
+      store.applyAuthoritativeTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-refresh' }),
+      ])
 
       expect(store.isPlacePending(PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
