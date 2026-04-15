@@ -153,11 +153,84 @@ describe('map-points store', () => {
       fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       const store = useMapPointsStore()
       await store.bootstrapFromApi()
+      store.startDraftFromDetection({
+        id: 'draft-point',
+        name: '北京',
+        countryName: '中国',
+        countryCode: 'CN',
+        precision: 'city-high',
+        cityId: null,
+        cityName: '北京',
+        cityContextLabel: '中国 · 直辖市',
+        placeId: PHASE12_RESOLVED_BEIJING.placeId,
+        placeKind: PHASE12_RESOLVED_BEIJING.placeKind,
+        datasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+        regionSystem: PHASE12_RESOLVED_BEIJING.regionSystem,
+        adminType: PHASE12_RESOLVED_BEIJING.adminType,
+        typeLabel: PHASE12_RESOLVED_BEIJING.typeLabel,
+        parentLabel: PHASE12_RESOLVED_BEIJING.parentLabel,
+        subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
+        boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+        boundaryDatasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+        fallbackNotice: null,
+        x: 0,
+        y: 0,
+        lat: 39.9042,
+        lng: 116.4074,
+        clickLat: 39.9042,
+        clickLng: 116.4074,
+        source: 'detected',
+        isFeatured: false,
+        description: '',
+        coordinatesLabel: '39.9042°N, 116.4074°E',
+      })
+      store.startPendingCanonicalSelection({
+        draftPoint: {
+          id: 'pending-point',
+          name: 'California',
+          countryName: 'United States',
+          countryCode: 'US',
+          precision: 'city-high',
+          cityId: null,
+          cityName: 'California',
+          cityContextLabel: 'United States · 一级行政区',
+          placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+          placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
+          datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+          regionSystem: PHASE12_RESOLVED_CALIFORNIA.regionSystem,
+          adminType: PHASE12_RESOLVED_CALIFORNIA.adminType,
+          typeLabel: PHASE12_RESOLVED_CALIFORNIA.typeLabel,
+          parentLabel: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
+          subtitle: PHASE12_RESOLVED_CALIFORNIA.subtitle,
+          boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+          boundaryDatasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+          fallbackNotice: null,
+          x: 0,
+          y: 0,
+          lat: 36.7783,
+          lng: -119.4179,
+          clickLat: 36.7783,
+          clickLng: -119.4179,
+          source: 'detected',
+          isFeatured: false,
+          description: '',
+          coordinatesLabel: '36.7783°N, 119.4179°W',
+        },
+        prompt: '请选择一个 canonical 地点',
+        recommendedPlaceId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+        candidates: [],
+        click: {
+          lat: 36.7783,
+          lng: -119.4179,
+        },
+      })
       store.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
 
       store.resetTravelRecordsForSessionBoundary()
 
       expect(store.travelRecords).toEqual([])
+      expect(store.draftPoint).toBeNull()
+      expect(store.pendingCanonicalSelection).toBeNull()
       expect(store.selectedPointId).toBeNull()
       expect(store.summaryMode).toBeNull()
       expect(store.pendingPlaceIds.size).toBe(0)
@@ -182,6 +255,7 @@ describe('map-points store', () => {
   describe('illuminate', () => {
     it('adds record optimistically and replaces with server record on success', async () => {
       const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
       const serverRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
         id: 'server-record-authoritative',
         subtitle: '北京市 · 中国',
@@ -201,6 +275,10 @@ describe('map-points store', () => {
           subtitle: PHASE12_RESOLVED_BEIJING.subtitle,
         }),
       )
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '已同步到当前账号。',
+      })
     })
 
     it('adds record optimistically before await', async () => {
@@ -291,6 +369,7 @@ describe('map-points store', () => {
       fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
       deleteMock.mockRejectedValueOnce(new Error('delete failed'))
       const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
       await store.bootstrapFromApi()
       const originalCount = store.travelRecords.length
 
@@ -298,6 +377,36 @@ describe('map-points store', () => {
 
       expect(store.travelRecords.length).toBe(originalCount)
       expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+      })
+    })
+
+    it('surfaces a success notice after unilluminate completes', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      await store.bootstrapFromApi()
+
+      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.travelRecords.some((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '已从当前账号移除。',
+      })
+    })
+
+    it('keeps stale deletes converged to not illuminated when the server responds with idempotent success', async () => {
+      fetchMock.mockResolvedValueOnce([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      deleteMock.mockResolvedValueOnce(undefined)
+      const store = useMapPointsStore()
+      await store.bootstrapFromApi()
+
+      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(store.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
     })
 
     it('does nothing if placeId not found', async () => {

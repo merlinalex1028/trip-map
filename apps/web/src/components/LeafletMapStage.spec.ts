@@ -10,6 +10,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 import LeafletMapStage from './LeafletMapStage.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
+import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
 
@@ -711,7 +712,38 @@ describe('LeafletMapStage', () => {
   // -------------------------------------------------------------------------
 
   describe('illuminate actions', () => {
+    it('opens the login modal instead of writing records when the user is anonymous', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const openAuthModalSpy = vi.spyOn(authSessionStore, 'openAuthModal')
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+      await flushPromises()
+
+      expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
+      expect(openAuthModalSpy).toHaveBeenCalledWith('login')
+      expect(mapPointsStore.summarySurfaceState?.mode).toBe('detected-preview')
+    })
+
     it('loads the geometry shard after a successful canonical illuminate', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapUiStore = useMapUiStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
       const fc = makeFakeFeatureCollection()
       geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
         boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
@@ -742,9 +774,21 @@ describe('LeafletMapStage', () => {
         'cn/beijing.json',
       )
       expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '已同步到当前账号。',
+      })
     })
 
     it('renders fallback illuminate affordance as disabled and surfaces an info notice', async () => {
+      const authSessionStore = useAuthSessionStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
       const mapPointsStore = useMapPointsStore()
       const mapUiStore = useMapUiStore()
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
@@ -780,6 +824,41 @@ describe('LeafletMapStage', () => {
       await nextTick()
 
       expect(mapUiStore.interactionNotice?.message).toBe('该地点暂不支持点亮')
+    })
+
+    it('surfaces a success notice after unilluminate via the popup action', async () => {
+      const authSessionStore = useAuthSessionStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+        makeRecord(PHASE12_RESOLVED_BEIJING),
+      ])
+      recordsApiMock.deleteTravelRecord.mockResolvedValueOnce(undefined)
+
+      await mapPointsStore.bootstrapFromApi()
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.get('[data-illuminate-state="on"]').trigger('click')
+      await flushPromises()
+
+      expect(mapPointsStore.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '已从当前账号移除。',
+      })
     })
   })
 

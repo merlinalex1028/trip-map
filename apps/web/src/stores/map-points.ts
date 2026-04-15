@@ -165,7 +165,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
+  const RECORD_WRITE_SUCCESS_NOTICE = '已同步到当前账号。'
   const RECORD_WRITE_FAILED_NOTICE = '点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
+  const RECORD_DELETE_SUCCESS_NOTICE = '已从当前账号移除。'
+  const RECORD_DELETE_FAILED_NOTICE = '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
 
   async function bootstrapFromApi() {
     if (hasBootstrapped.value) {
@@ -395,6 +398,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
       travelRecords.value = travelRecords.value.map((r) =>
         r.placeId === placeId ? record : r,
       )
+      useMapUiStore().setInteractionNotice({
+        tone: 'info',
+        message: RECORD_WRITE_SUCCESS_NOTICE,
+      })
     } catch (error) {
       travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
       selectedPointId.value = null
@@ -420,7 +427,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   async function unilluminate(placeId: string) {
-    const prev = travelRecords.value.find((r) => r.placeId === placeId)
+    const previousRecords = [...travelRecords.value]
+    const prev = previousRecords.find((r) => r.placeId === placeId)
     if (!prev) {
       return
     }
@@ -430,8 +438,12 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
     try {
       await deleteTravelRecord(placeId)
+      useMapUiStore().setInteractionNotice({
+        tone: 'info',
+        message: RECORD_DELETE_SUCCESS_NOTICE,
+      })
     } catch (error) {
-      travelRecords.value = [...travelRecords.value, prev]
+      travelRecords.value = previousRecords
 
       if (isUnauthorizedApiClientError(error)) {
         const authSessionStore = useAuthSessionStore()
@@ -439,6 +451,11 @@ export const useMapPointsStore = defineStore('map-points', () => {
         if (authSessionStore.currentUser) {
           authSessionStore.handleUnauthorized()
         }
+      } else {
+        useMapUiStore().setInteractionNotice({
+          tone: 'warning',
+          message: RECORD_DELETE_FAILED_NOTICE,
+        })
       }
     } finally {
       const next = new Set(pendingPlaceIds.value)

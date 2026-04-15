@@ -19,8 +19,8 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 - Decimal phases (23.1, 24.1): Urgent insertions if needed later
 
 - [x] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源（gap closure planned） (completed 2026-04-12)
-- [ ] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置
-- [ ] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义
+- [x] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置 (completed 2026-04-15)
+- [x] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义 (completed 2026-04-15)
 - [ ] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈
 
 ## Phase Details
@@ -56,7 +56,12 @@ Plans:
   2. 本地已有旅行记录的用户首次登录时，可以明确选择“导入本地记录到账号”或“以当前账号云端记录为准”。
   3. 选择导入本地记录时，系统会按 canonical place 去重，避免同一地点在账号中重复出现。
   4. 用户退出登录或切换账号后，界面会清空上一账号的点亮结果，并重新加载当前会话对应的数据。
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [x] 24-01-PLAN.md — 建立受保护的 `/records/import` bulk import 与 authoritative summary
+- [x] 24-02-PLAN.md — 建立 legacy local snapshot reader 与 auth-session 导入决策状态机
+- [x] 24-03-PLAN.md — 接入首次登录导入决策对话框与匿名点亮登录升级
+- [x] 24-04-PLAN.md — 补齐 logout / switch-account / unauthorized 的边界清理与提示
 **UI hint**: yes
 
 ### Phase 25: Sync Semantics & Multi-Device Hardening
@@ -67,7 +72,11 @@ Plans:
   1. 已登录用户取消点亮某个地点后，云端对应记录会被移除或标记取消，后续拉取结果不再把该地点显示为已点亮。
   2. 同一账号在另一台设备登录后，可以看到与原设备一致的点亮结果，不需要人工重建记录。
   3. 点亮、取消点亮和记录拉取在成功、失败或需要重新登录时，界面都会给出明确且可区分的反馈。
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [x] 25-01-PLAN.md — 服务端删除幂等语义与 multi-session bootstrap 一致性回归
+- [x] 25-02-PLAN.md — same-user foreground refresh 与轻量 authoritative snapshot 替换
+- [x] 25-03-PLAN.md — 点亮/取消点亮/refresh 的同步反馈分层与 notice 语义
 **UI hint**: yes
 
 ### Phase 26: Overseas Coverage Foundation
@@ -86,9 +95,9 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 23. Auth & Ownership Foundation | 11/11 | Complete    | 2026-04-14 |
-| 24. Session Boundary & Local Import | 0/TBD | Not started | - |
-| 25. Sync Semantics & Multi-Device Hardening | 0/TBD | Not started | - |
+| 24. Session Boundary & Local Import | 4/4 | Complete    | 2026-04-15 |
+| 25. Sync Semantics & Multi-Device Hardening | 3/3 | Complete   | 2026-04-15 |
 | 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
 
 ---
-*Last updated: 2026-04-14 — Phase 23 completed after human verification*
+*Last updated: 2026-04-15 — Phase 25 completed after sync semantics verification*

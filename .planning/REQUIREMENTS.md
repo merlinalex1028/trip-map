@@ -11,23 +11,23 @@
 - [x] **AUTH-01**: 用户可以使用邮箱和密码注册新账号
 - [x] **AUTH-02**: 用户可以使用邮箱和密码登录，并能主动退出当前账号
 - [x] **AUTH-03**: 用户刷新页面或重新打开应用后，会话仍能恢复到同一账号
-- [ ] **AUTH-04**: 未登录用户仍可浏览地图，只在保存或同步旅行记录时被引导登录
+- [x] **AUTH-04**: 未登录用户仍可浏览地图，只在保存或同步旅行记录时被引导登录
 - [x] **AUTH-05**: 已登录用户可以明确看到当前账号身份，并能从界面进入退出操作
 
 ### Sync & Ownership（记录归属与云同步）
 
 - [x] **SYNC-01**: 登录后用户只能读取当前账号自己的旅行记录
 - [x] **SYNC-02**: 登录后用户点亮地点时，旅行记录会绑定到当前账号并保存到云端
-- [ ] **SYNC-03**: 登录后用户取消点亮地点时，云端对应记录会同步删除或标记为取消
-- [ ] **SYNC-04**: 同一账号在另一台设备登录后，可以看到与原设备一致的旅行记录
-- [ ] **SYNC-05**: 点亮、取消点亮与拉取记录失败时，用户能得到明确的同步成功、失败或需要重新登录提示
+- [x] **SYNC-03**: 登录后用户取消点亮地点时，云端对应记录会同步删除或标记为取消
+- [x] **SYNC-04**: 同一账号在另一台设备登录后，可以看到与原设备一致的旅行记录
+- [x] **SYNC-05**: 点亮、取消点亮与拉取记录失败时，用户能得到明确的同步成功、失败或需要重新登录提示
 
 ### Session & Migration（会话边界与首次迁移）
 
-- [ ] **MIGR-01**: 本地已有旅行记录的用户首次登录时，可以选择将本地记录合并到账号
-- [ ] **MIGR-02**: 本地已有旅行记录的用户首次登录时，也可以选择以当前账号云端记录为准而不导入本地记录
-- [ ] **MIGR-03**: 本地记录导入账号时，会按 canonical place 去重，避免同一地点重复出现
-- [ ] **MIGR-04**: 用户退出登录或切换账号后，界面会清空上一账号的记录并重新加载当前会话的数据
+- [x] **MIGR-01**: 本地已有旅行记录的用户首次登录时，可以选择将本地记录合并到账号
+- [x] **MIGR-02**: 本地已有旅行记录的用户首次登录时，也可以选择以当前账号云端记录为准而不导入本地记录
+- [x] **MIGR-03**: 本地记录导入账号时，会按 canonical place 去重，避免同一地点重复出现
+- [x] **MIGR-04**: 用户退出登录或切换账号后，界面会清空上一账号的记录并重新加载当前会话的数据
 
 ### Overseas Coverage（海外覆盖扩展）
 
@@ -63,17 +63,17 @@
 | AUTH-01 | Phase 23 | Complete |
 | AUTH-02 | Phase 23 | Complete |
 | AUTH-03 | Phase 23 | Complete |
-| AUTH-04 | Phase 24 | Pending |
+| AUTH-04 | Phase 24 | Complete |
 | AUTH-05 | Phase 23 | Complete |
 | SYNC-01 | Phase 23 | Complete |
 | SYNC-02 | Phase 23 | Complete |
-| SYNC-03 | Phase 25 | Pending |
-| SYNC-04 | Phase 25 | Pending |
-| SYNC-05 | Phase 25 | Pending |
-| MIGR-01 | Phase 24 | Pending |
-| MIGR-02 | Phase 24 | Pending |
-| MIGR-03 | Phase 24 | Pending |
-| MIGR-04 | Phase 24 | Pending |
+| SYNC-03 | Phase 25 | Complete |
+| SYNC-04 | Phase 25 | Complete |
+| SYNC-05 | Phase 25 | Complete |
+| MIGR-01 | Phase 24 | Complete |
+| MIGR-02 | Phase 24 | Complete |
+| MIGR-03 | Phase 24 | Complete |
+| MIGR-04 | Phase 24 | Complete |
 | OVRS-01 | Phase 26 | Pending |
 | OVRS-02 | Phase 26 | Pending |
 | OVRS-03 | Phase 26 | Pending |
@@ -85,4 +85,4 @@
 
 ---
 *Requirements defined: 2026-04-10*
-*Last updated: 2026-04-12 — Phase 23 completed*
+*Last updated: 2026-04-15 — Phase 25 completed after sync semantics verification*

@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, watch } from 'vue'
 
 import AuthDialog from './components/auth/AuthDialog.vue'
+import LocalImportDecisionDialog from './components/auth/LocalImportDecisionDialog.vue'
 import AuthRestoreOverlay from './components/auth/AuthRestoreOverlay.vue'
 import AuthTopbarControl from './components/auth/AuthTopbarControl.vue'
 import LeafletMapStage from './components/LeafletMapStage.vue'
@@ -11,9 +12,20 @@ import { useMapUiStore } from './stores/map-ui'
 
 const authSessionStore = useAuthSessionStore()
 const mapUiStore = useMapUiStore()
-const { restoreSession } = authSessionStore
+const {
+  dismissLocalImportSummary,
+  importLocalRecordsIntoAccount,
+  keepCloudRecordsAsSourceOfTruth,
+  refreshAuthenticatedSnapshot,
+  restoreSession,
+} = authSessionStore
 const { clearInteractionNotice } = mapUiStore
-const { status } = storeToRefs(authSessionStore)
+const {
+  isSubmitting,
+  localImportSummary,
+  pendingLocalImportDecision,
+  status,
+} = storeToRefs(authSessionStore)
 const { interactionNotice } = storeToRefs(mapUiStore)
 
 let noticeTimer: number | null = null
@@ -39,15 +51,50 @@ watch(
 
 onMounted(() => {
   void restoreSession()
+  window.addEventListener('focus', handleWindowFocus)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
-  if (!noticeTimer) {
+  if (noticeTimer) {
+    window.clearTimeout(noticeTimer)
+  }
+
+  window.removeEventListener('focus', handleWindowFocus)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
+
+function handleImportLocalRecords() {
+  void importLocalRecordsIntoAccount()
+}
+
+function handleKeepCloudRecords() {
+  keepCloudRecordsAsSourceOfTruth()
+}
+
+function handleDismissLocalImportSummary() {
+  dismissLocalImportSummary()
+}
+
+function triggerForegroundRefresh() {
+  if (status.value !== 'authenticated') {
     return
   }
 
-  window.clearTimeout(noticeTimer)
-})
+  void refreshAuthenticatedSnapshot()
+}
+
+function handleWindowFocus() {
+  triggerForegroundRefresh()
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState !== 'visible') {
+    return
+  }
+
+  triggerForegroundRefresh()
+}
 </script>
 
 <template>
@@ -105,6 +152,14 @@ onUnmounted(() => {
         <AuthRestoreOverlay :visible="status === 'restoring'" />
       </section>
     </main>
+    <LocalImportDecisionDialog
+      :decision="pendingLocalImportDecision"
+      :summary="localImportSummary"
+      :submitting="isSubmitting"
+      @import="handleImportLocalRecords"
+      @keep-cloud="handleKeepCloudRecords"
+      @dismiss-summary="handleDismissLocalImportSummary"
+    />
     <AuthDialog />
   </div>
 </template>

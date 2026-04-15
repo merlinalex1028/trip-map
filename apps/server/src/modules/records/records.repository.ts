@@ -5,6 +5,29 @@ import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
 
+interface ImportTravelRecordsResult {
+  importedCount: number
+  mergedDuplicateCount: number
+  finalCount: number
+  records: UserTravelRecord[]
+}
+
+function toTravelRecordData(userId: string, input: CreateTravelRecordDto) {
+  return {
+    userId,
+    placeId: input.placeId,
+    boundaryId: input.boundaryId,
+    placeKind: input.placeKind,
+    datasetVersion: input.datasetVersion,
+    displayName: input.displayName,
+    regionSystem: input.regionSystem,
+    adminType: input.adminType,
+    typeLabel: input.typeLabel,
+    parentLabel: input.parentLabel,
+    subtitle: input.subtitle,
+  }
+}
+
 @Injectable()
 export class RecordsRepository {
   constructor(
@@ -45,56 +68,72 @@ export class RecordsRepository {
           placeId: input.placeId,
         },
       },
-      update: {
-        boundaryId: input.boundaryId,
-        placeKind: input.placeKind,
-        datasetVersion: input.datasetVersion,
-        displayName: input.displayName,
-        regionSystem: input.regionSystem,
-        adminType: input.adminType,
-        typeLabel: input.typeLabel,
-        parentLabel: input.parentLabel,
-        subtitle: input.subtitle,
-      },
-      create: {
-        userId,
-        placeId: input.placeId,
-        boundaryId: input.boundaryId,
-        placeKind: input.placeKind,
-        datasetVersion: input.datasetVersion,
-        displayName: input.displayName,
-        regionSystem: input.regionSystem,
-        adminType: input.adminType,
-        typeLabel: input.typeLabel,
-        parentLabel: input.parentLabel,
-        subtitle: input.subtitle,
-      },
+      update: toTravelRecordData(userId, input),
+      create: toTravelRecordData(userId, input),
     })
   }
 
-  async deleteTravelRecordByPlaceId(userId: string, placeId: string): Promise<UserTravelRecord | null> {
-    const record = await this.prisma.userTravelRecord.findUnique({
-      where: {
-        userId_placeId: {
-          userId,
-          placeId,
-        },
-      },
-    })
+  async importTravelRecords(userId: string, inputs: CreateTravelRecordDto[]): Promise<ImportTravelRecordsResult> {
+    const uniqueByPlaceId = new Map<string, CreateTravelRecordDto>()
 
-    if (!record) {
-      return null
+    for (const input of inputs) {
+      if (!uniqueByPlaceId.has(input.placeId)) {
+        uniqueByPlaceId.set(input.placeId, input)
+      }
     }
 
-    await this.prisma.userTravelRecord.delete({
+    const uniqueInputs = [...uniqueByPlaceId.values()]
+
+    if (uniqueInputs.length === 0) {
+      const records = await this.findAllTravelRecords(userId)
+      return {
+        importedCount: 0,
+        mergedDuplicateCount: 0,
+        finalCount: records.length,
+        records,
+      }
+    }
+
+    const existingRecords = await this.prisma.userTravelRecord.findMany({
       where: {
-        userId_placeId: {
-          userId,
-          placeId,
+        userId,
+        placeId: {
+          in: uniqueInputs.map((input) => input.placeId),
         },
       },
+      select: {
+        placeId: true,
+      },
     })
+    const existingPlaceIds = new Set(existingRecords.map((record) => record.placeId))
+    const recordsToCreate = uniqueInputs.filter((input) => !existingPlaceIds.has(input.placeId))
 
-    return record
+    let importedCount = 0
+
+    if (recordsToCreate.length > 0) {
+      const result = await this.prisma.userTravelRecord.createMany({
+        data: recordsToCreate.map((input) => toTravelRecordData(userId, input)),
+        skipDuplicates: true,
+      })
+      importedCount = result.count
+    }
+
+    const records = await this.findAllTravelRecords(userId)
+
+    return {
+      importedCount,
+      mergedDuplicateCount: inputs.length - importedCount,
+      finalCount: records.length,
+      records,
+    }
+  }
+
+  async deleteTravelRecordByPlaceId(userId: string, placeId: string): Promise<void> {
+    await this.prisma.userTravelRecord.deleteMany({
+      where: {
+        userId,
+        placeId,
+      },
+    })
   }
 }

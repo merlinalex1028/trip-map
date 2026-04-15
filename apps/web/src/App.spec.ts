@@ -6,6 +6,7 @@ import { computed, defineComponent, nextTick } from 'vue'
 import App from './App.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapPointsStore } from './stores/map-points'
+import { useMapUiStore } from './stores/map-ui'
 
 const recordsApiMock = vi.hoisted(() => ({
   fetchTravelRecords: vi.fn<() => Promise<TravelRecord[]>>(),
@@ -35,6 +36,8 @@ vi.mock('./components/LeafletMapStage.vue', () => ({
   }),
 }))
 
+const mountedWrappers: Array<{ unmount: () => void }> = []
+
 function mountApp(
   setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
 ) {
@@ -48,6 +51,7 @@ function mountApp(
       plugins: [pinia],
     },
   })
+  mountedWrappers.push(wrapper)
 
   return {
     authSessionStore,
@@ -56,6 +60,12 @@ function mountApp(
 }
 
 describe('App auth shell', () => {
+  afterEach(() => {
+    while (mountedWrappers.length > 0) {
+      mountedWrappers.pop()?.unmount()
+    }
+  })
+
   beforeEach(() => {
     recordsApiMock.fetchTravelRecords.mockReset()
     recordsApiMock.fetchTravelRecords.mockResolvedValue([])
@@ -71,11 +81,12 @@ describe('App auth shell', () => {
       .spyOn(authSessionStore, 'restoreSession')
       .mockResolvedValue(undefined)
 
-    mount(App, {
+    const wrapper = mount(App, {
       global: {
         plugins: [pinia],
       },
     })
+    mountedWrappers.push(wrapper)
 
     await nextTick()
 
@@ -182,4 +193,213 @@ describe('App auth shell', () => {
     expect(wrapper.get('[data-region="map-stage"]').text()).toContain('Map Stage 1 true')
     expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
   })
+
+  it('mounts the local import decision dialog when pendingLocalImportDecision exists', async () => {
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      authSessionStore.pendingLocalImportDecision = {
+        legacyRecordCount: 2,
+        records: [],
+      }
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+
+    expect(wrapper.get('[data-local-import-dialog]').text()).toContain('导入本地记录到当前账号')
+    expect(wrapper.get('[data-local-import-dialog]').text()).toContain('以当前账号云端记录为准')
+  })
+
+  it('closes the import decision dialog after choosing cloud records while keeping the app shell mounted', async () => {
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      authSessionStore.pendingLocalImportDecision = {
+        legacyRecordCount: 1,
+        records: [],
+      }
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+    await wrapper.get('[data-local-import-action="keep-cloud"]').trigger('click')
+    await nextTick()
+
+    expect(wrapper.find('[data-local-import-dialog]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
+  })
+
+  it('shows the authoritative import summary after local records are imported', async () => {
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      authSessionStore.localImportSummary = {
+        importedCount: 2,
+        mergedDuplicateCount: 1,
+        finalCount: 5,
+      }
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+
+    expect(wrapper.get('[data-local-import-dialog]').text()).toContain('已导入 2 条本地记录')
+    expect(wrapper.get('[data-local-import-dialog]').text()).toContain('mergedDuplicateCount')
+    expect(wrapper.get('[data-local-import-dialog]').text()).toContain('finalCount')
+  })
+
+  it('renders the logout boundary notice in the app shell', async () => {
+    const { wrapper } = mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+      useMapUiStore().setInteractionNotice({
+        tone: 'info',
+        message: '已退出当前账号',
+      })
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).toContain('已退出当前账号')
+  })
+
+  it('keeps topbar identity and map-stage record count in sync after an account switch notice', async () => {
+    const { wrapper } = mountApp((authSessionStore) => {
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-2',
+        username: 'Bob',
+        email: 'bob@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      mapPointsStore.replaceTravelRecords([
+        {
+          id: 'record-california',
+          placeId: 'us-california',
+          boundaryId: 'us-california',
+          placeKind: 'OVERSEAS_ADMIN1',
+          datasetVersion: 'v3.0-test',
+          displayName: 'California',
+          regionSystem: 'OVERSEAS',
+          adminType: 'ADMIN1',
+          typeLabel: 'State',
+          parentLabel: 'United States',
+          subtitle: 'United States · State',
+          createdAt: '2026-04-12T00:00:00.000Z',
+        },
+      ])
+      mapUiStore.setInteractionNotice({
+        tone: 'info',
+        message: '已切换到 Bob',
+      })
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+
+    expect(wrapper.text()).toContain('已切换到 Bob')
+    expect(wrapper.get('[data-region="topbar"]').text()).toContain('Bob')
+    expect(wrapper.get('[data-region="map-stage"]').text()).toContain('Map Stage 1 true')
+  })
+
+  it('triggers a same-user foreground refresh on window focus while keeping the map shell mounted', async () => {
+    let refreshSpy: ReturnType<typeof vi.spyOn>
+    const { wrapper } = mountApp((store) => {
+      store.status = 'authenticated'
+      store.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
+      refreshSpy = vi
+        .spyOn(store, 'refreshAuthenticatedSnapshot')
+        .mockResolvedValue(undefined)
+    })
+
+    await nextTick()
+    window.dispatchEvent(new Event('focus'))
+    await flushPromises()
+
+    expect(refreshSpy!).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
+  })
+
+  it('triggers a same-user foreground refresh when the page becomes visible again', async () => {
+    let refreshSpy: ReturnType<typeof vi.spyOn>
+    mountApp((store) => {
+      store.status = 'authenticated'
+      store.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
+      refreshSpy = vi
+        .spyOn(store, 'refreshAuthenticatedSnapshot')
+        .mockResolvedValue(undefined)
+    })
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    })
+
+    await nextTick()
+    document.dispatchEvent(new Event('visibilitychange'))
+    await flushPromises()
+
+    expect(refreshSpy!).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['anonymous', 'restoring'] as const)(
+    'does not trigger foreground refresh while status is %s',
+    async (sessionStatus) => {
+      let refreshSpy: ReturnType<typeof vi.spyOn>
+      mountApp((store) => {
+        store.status = sessionStatus
+        store.currentUser = null
+        vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
+        refreshSpy = vi
+          .spyOn(store, 'refreshAuthenticatedSnapshot')
+          .mockResolvedValue(undefined)
+      })
+
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'visible',
+      })
+
+      await nextTick()
+      window.dispatchEvent(new Event('focus'))
+      document.dispatchEvent(new Event('visibilitychange'))
+      await flushPromises()
+
+      expect(refreshSpy!).not.toHaveBeenCalled()
+    },
+  )
 })

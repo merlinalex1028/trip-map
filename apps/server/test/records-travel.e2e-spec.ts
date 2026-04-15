@@ -85,6 +85,7 @@ describe('Current-user travel records API', () => {
   const prisma = new PrismaClient()
   let currentUserId: string
   let sidCookie: string
+  let otherSidCookie: string
 
   beforeAll(async () => {
     app = await createApp()
@@ -135,6 +136,16 @@ describe('Current-user travel records API', () => {
     currentUserId = registerResponse.json().user.id
     sidCookie = extractSidCookie(readSetCookie(registerResponse))!
     expect(sidCookie).toBeTruthy()
+
+    const otherRegisterResponse = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload: createRegisterPayload('other-user'),
+    })
+
+    expect(otherRegisterResponse.statusCode).toBe(201)
+    otherSidCookie = extractSidCookie(readSetCookie(otherRegisterResponse))!
+    expect(otherSidCookie).toBeTruthy()
 
     await prisma.userTravelRecord.deleteMany({
       where: { userId: currentUserId },
@@ -307,7 +318,7 @@ describe('Current-user travel records API', () => {
     expect(found).toBeUndefined()
   })
 
-  it('DELETE /records/:placeId with non-existent placeId returns 404', async () => {
+  it('DELETE /records/:placeId with non-existent placeId returns 204 for the current user', async () => {
     const response = await app.inject({
       method: 'DELETE',
       url: `/records/non-existent-place-id-${Date.now()}`,
@@ -316,7 +327,50 @@ describe('Current-user travel records API', () => {
       },
     })
 
-    expect(response.statusCode).toBe(404)
+    expect(response.statusCode).toBe(204)
+  })
+
+  it('DELETE /records/:placeId from another user does not remove the current user record', async () => {
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: {
+        ...validRecord,
+        placeId: TEST_PLACE_ID_2,
+      },
+    })
+
+    expect(createResponse.statusCode).toBe(201)
+
+    const otherDeleteResponse = await app.inject({
+      method: 'DELETE',
+      url: `/records/${TEST_PLACE_ID_2}`,
+      headers: {
+        cookie: otherSidCookie,
+      },
+    })
+
+    expect(otherDeleteResponse.statusCode).toBe(204)
+
+    const currentUserRecordsResponse = await app.inject({
+      method: 'GET',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+    })
+
+    expect(currentUserRecordsResponse.statusCode).toBe(200)
+    expect(currentUserRecordsResponse.json()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placeId: TEST_PLACE_ID_2,
+        }),
+      ]),
+    )
   })
 
   it('backfills legacy travel rows by placeId and restores canonical metadata for legacy reopen surfaces', async () => {

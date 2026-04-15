@@ -1,7 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
 import type {
+  ImportTravelRecordsResponse,
   SmokeRecordCreateRequest,
   SmokeRecordResponse,
   TravelRecord as ContractTravelRecord,
@@ -10,6 +11,7 @@ import type { PlaceKind } from '@trip-map/contracts'
 
 import { RecordsRepository } from './records.repository.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
+import type { ImportTravelRecordsDto } from './dto/import-travel-records.dto.js'
 
 function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
   return {
@@ -69,10 +71,18 @@ export class RecordsService {
     return toContractTravelRecord(record)
   }
 
-  async deleteTravel(userId: string, placeId: string): Promise<void> {
-    const deleted = await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
-    if (!deleted) {
-      throw new NotFoundException(`No record found for placeId "${placeId}"`)
+  async importTravel(userId: string, input: ImportTravelRecordsDto): Promise<ImportTravelRecordsResponse> {
+    const result = await this.recordsRepository.importTravelRecords(userId, input.records)
+
+    return {
+      importedCount: result.importedCount,
+      mergedDuplicateCount: result.mergedDuplicateCount,
+      finalCount: result.finalCount,
+      records: result.records.map(toContractTravelRecord),
     }
+  }
+
+  async deleteTravel(userId: string, placeId: string): Promise<void> {
+    await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
   }
 }

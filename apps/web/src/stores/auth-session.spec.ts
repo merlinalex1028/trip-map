@@ -1,6 +1,8 @@
 import type {
   AuthBootstrapResponse,
   AuthUser,
+  CreateTravelRecordRequest,
+  ImportTravelRecordsResponse,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -23,12 +25,18 @@ const {
   registerMock,
   loginMock,
   logoutMock,
+  importTravelRecordsMock,
+  loadLegacyPointStorageSnapshotMock,
+  clearLegacyPointStorageSnapshotMock,
 } = vi.hoisted(() => {
   return {
     fetchBootstrapMock: vi.fn<() => Promise<AuthBootstrapResponse>>(),
     registerMock: vi.fn<() => Promise<RegisterResponse>>(),
     loginMock: vi.fn<() => Promise<LoginResponse>>(),
     logoutMock: vi.fn<() => Promise<void>>(),
+    importTravelRecordsMock: vi.fn<() => Promise<ImportTravelRecordsResponse>>(),
+    loadLegacyPointStorageSnapshotMock: vi.fn(),
+    clearLegacyPointStorageSnapshotMock: vi.fn(),
   }
 })
 
@@ -38,6 +46,20 @@ vi.mock('../services/api/auth', () => {
     registerWithPassword: registerMock,
     loginWithPassword: loginMock,
     logoutCurrentSession: logoutMock,
+  }
+})
+
+vi.mock('../services/api/records', () => {
+  return {
+    importTravelRecords: importTravelRecordsMock,
+  }
+})
+
+vi.mock('../services/legacy-point-storage', () => {
+  return {
+    POINT_STORAGE_KEY: 'trip-map:point-state:v2',
+    loadLegacyPointStorageSnapshot: loadLegacyPointStorageSnapshotMock,
+    clearLegacyPointStorageSnapshot: clearLegacyPointStorageSnapshotMock,
   }
 })
 
@@ -72,6 +94,25 @@ function makeRecord(
   }
 }
 
+function makeLegacyImportRecord(
+  place = PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<CreateTravelRecordRequest> = {},
+): CreateTravelRecordRequest {
+  return {
+    placeId: place.placeId,
+    boundaryId: place.boundaryId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    displayName: place.displayName,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
+    typeLabel: place.typeLabel,
+    parentLabel: place.parentLabel,
+    subtitle: place.subtitle,
+    ...overrides,
+  }
+}
+
 describe('auth-session store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -79,6 +120,14 @@ describe('auth-session store', () => {
     registerMock.mockReset()
     loginMock.mockReset()
     logoutMock.mockReset()
+    importTravelRecordsMock.mockReset()
+    loadLegacyPointStorageSnapshotMock.mockReset()
+    clearLegacyPointStorageSnapshotMock.mockReset()
+    loadLegacyPointStorageSnapshotMock.mockReturnValue({
+      status: 'empty',
+      snapshot: null,
+      records: [],
+    })
   })
 
   describe('restoreSession', () => {
@@ -113,6 +162,35 @@ describe('auth-session store', () => {
       expect(mapPointsStore.travelRecords).toEqual(records)
     })
 
+    it('opens a one-time import decision after authenticated bootstrap when legacy records exist', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const user = makeUser()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+      const legacyRecords = [
+        makeLegacyImportRecord(PHASE12_RESOLVED_BEIJING),
+        makeLegacyImportRecord(PHASE12_RESOLVED_CALIFORNIA),
+      ]
+
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user, records })
+      loadLegacyPointStorageSnapshotMock.mockReturnValueOnce({
+        status: 'ready',
+        snapshot: {
+          version: 2,
+          userPoints: [],
+          seedOverrides: [],
+          deletedSeedIds: [],
+        },
+        records: legacyRecords,
+      })
+
+      await authSessionStore.restoreSession()
+
+      expect(authSessionStore.pendingLocalImportDecision).toEqual({
+        legacyRecordCount: 2,
+        records: legacyRecords,
+      })
+    })
+
     it('falls back to anonymous and clears stale records when no active session exists', async () => {
       const authSessionStore = useAuthSessionStore()
       const mapPointsStore = useMapPointsStore()
@@ -143,6 +221,83 @@ describe('auth-session store', () => {
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
       })
+    })
+  })
+
+  describe('refreshAuthenticatedSnapshot', () => {
+    it('replaces records for the same user without resetting the session boundary or announcing an account switch', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const currentUser = makeUser()
+      const previousRecords = [makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'record-prev' })]
+      const nextRecords = [makeRecord(PHASE12_RESOLVED_CALIFORNIA, { id: 'record-next' })]
+      const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
+      const replaceSpy = vi.spyOn(mapPointsStore, 'replaceTravelRecords')
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.replaceTravelRecords(previousRecords)
+      fetchBootstrapMock.mockResolvedValueOnce({
+        authenticated: true,
+        user: currentUser,
+        records: nextRecords,
+      })
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(fetchBootstrapMock).toHaveBeenCalledTimes(1)
+      expect(resetSpy).not.toHaveBeenCalled()
+      expect(replaceSpy).toHaveBeenLastCalledWith(nextRecords)
+      expect(mapPointsStore.travelRecords).toEqual(nextRecords)
+      expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
+    })
+
+    it('keeps the current snapshot when same-user refresh fails with a non-401 error', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const currentUser = makeUser()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.replaceTravelRecords(records)
+      fetchBootstrapMock.mockRejectedValueOnce(new Error('socket hang up'))
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(authSessionStore.status).toBe('authenticated')
+      expect(authSessionStore.currentUser).toEqual(currentUser)
+      expect(mapPointsStore.travelRecords).toEqual(records)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '云端记录刷新失败，当前仍显示上次同步结果，请稍后重试。',
+      })
+    })
+
+    it('treats same-user refresh 401 as session expiry', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const currentUser = makeUser()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.replaceTravelRecords(records)
+      fetchBootstrapMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'session-unauthorized',
+          message: 'Session expired',
+        }),
+      )
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(authSessionStore.currentUser).toBeNull()
+      expect(mapPointsStore.travelRecords).toEqual([])
     })
   })
 
@@ -201,6 +356,133 @@ describe('auth-session store', () => {
       expect(authSessionStore.status).toBe('authenticated')
       expect(authSessionStore.currentUser).toEqual(user)
       expect(mapPointsStore.travelRecords).toEqual(records)
+    })
+
+    it('resets the previous account boundary before hydrating another authenticated user and announces the switch', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const userA = makeUser({ id: 'user-1', username: 'Alice', email: 'alice@example.com' })
+      const userB = makeUser({ id: 'user-2', username: 'Bob', email: 'bob@example.com' })
+      const request: LoginRequest = {
+        email: 'bob@example.com',
+        password: 'super-secret',
+      }
+      const nextRecords = [makeRecord(PHASE12_RESOLVED_CALIFORNIA, { id: 'record-california-next' })]
+      const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
+      const replaceSpy = vi.spyOn(mapPointsStore, 'replaceTravelRecords')
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = userA
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'record-beijing-prev' })])
+      loginMock.mockResolvedValueOnce({ user: userB })
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user: userB, records: nextRecords })
+
+      await authSessionStore.login(request)
+
+      expect(resetSpy).toHaveBeenCalled()
+      expect(replaceSpy).toHaveBeenLastCalledWith(nextRecords)
+      expect(resetSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        replaceSpy.mock.invocationCallOrder[replaceSpy.mock.invocationCallOrder.length - 1] ?? 0,
+      )
+      expect(authSessionStore.currentUser).toEqual(userB)
+      expect(mapPointsStore.travelRecords).toEqual(nextRecords)
+      expect(mapUiStore.interactionNotice?.message).toContain('已切换到')
+    })
+
+    it('does not enter the migration gate when no legacy snapshot exists', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const user = makeUser({ id: 'user-2', username: 'Bob', email: 'bob@example.com' })
+      const request: LoginRequest = {
+        email: 'bob@example.com',
+        password: 'super-secret',
+      }
+
+      authSessionStore.openAuthModal('login')
+      loginMock.mockResolvedValueOnce({ user })
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user, records: [] })
+
+      await authSessionStore.login(request)
+
+      expect(authSessionStore.pendingLocalImportDecision).toBeNull()
+    })
+
+    it('imports local records through the bulk import API and replaces the authoritative snapshot', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const user = makeUser({ id: 'user-2', username: 'Bob', email: 'bob@example.com' })
+      const request: LoginRequest = {
+        email: 'bob@example.com',
+        password: 'super-secret',
+      }
+      const legacyRecords = [makeLegacyImportRecord(PHASE12_RESOLVED_CALIFORNIA)]
+      const importedRecord = makeRecord(PHASE12_RESOLVED_CALIFORNIA, {
+        id: 'server-rec-imported',
+      })
+
+      authSessionStore.openAuthModal('login')
+      loginMock.mockResolvedValueOnce({ user })
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user, records: [] })
+      loadLegacyPointStorageSnapshotMock.mockReturnValueOnce({
+        status: 'ready',
+        snapshot: {
+          version: 2,
+          userPoints: [],
+          seedOverrides: [],
+          deletedSeedIds: [],
+        },
+        records: legacyRecords,
+      })
+      importTravelRecordsMock.mockResolvedValueOnce({
+        importedCount: 1,
+        mergedDuplicateCount: 0,
+        finalCount: 1,
+        records: [importedRecord],
+      })
+
+      await authSessionStore.login(request)
+      await authSessionStore.importLocalRecordsIntoAccount()
+
+      expect(importTravelRecordsMock).toHaveBeenCalledWith({
+        records: legacyRecords,
+      })
+      expect(mapPointsStore.travelRecords).toEqual([importedRecord])
+      expect(authSessionStore.pendingLocalImportDecision).toBeNull()
+      expect(authSessionStore.localImportSummary).toEqual({
+        importedCount: 1,
+        mergedDuplicateCount: 0,
+        finalCount: 1,
+      })
+      expect(clearLegacyPointStorageSnapshotMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('clears legacy snapshot and does not reopen the gate after choosing cloud records as the source of truth', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const user = makeUser({ id: 'user-2', username: 'Bob', email: 'bob@example.com' })
+      const request: LoginRequest = {
+        email: 'bob@example.com',
+        password: 'super-secret',
+      }
+
+      authSessionStore.openAuthModal('login')
+      loginMock.mockResolvedValueOnce({ user })
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user, records: [] })
+      loadLegacyPointStorageSnapshotMock.mockReturnValueOnce({
+        status: 'ready',
+        snapshot: {
+          version: 2,
+          userPoints: [],
+          seedOverrides: [],
+          deletedSeedIds: [],
+        },
+        records: [makeLegacyImportRecord(PHASE12_RESOLVED_BEIJING)],
+      })
+
+      await authSessionStore.login(request)
+      authSessionStore.keepCloudRecordsAsSourceOfTruth()
+
+      expect(authSessionStore.pendingLocalImportDecision).toBeNull()
+      expect(clearLegacyPointStorageSnapshotMock).toHaveBeenCalledTimes(1)
     })
 
     it.each([
@@ -274,6 +556,38 @@ describe('auth-session store', () => {
       expect(authSessionStore.currentUser).toBeNull()
       expect(mapPointsStore.travelRecords).toEqual([])
     })
+
+    it('clears pending import state and import summary on logout', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const user = makeUser()
+      const records = [makeRecord(PHASE12_RESOLVED_BEIJING)]
+
+      fetchBootstrapMock.mockResolvedValueOnce({ authenticated: true, user, records })
+      loadLegacyPointStorageSnapshotMock.mockReturnValueOnce({
+        status: 'ready',
+        snapshot: {
+          version: 2,
+          userPoints: [],
+          seedOverrides: [],
+          deletedSeedIds: [],
+        },
+        records: [makeLegacyImportRecord(PHASE12_RESOLVED_BEIJING)],
+      })
+      await authSessionStore.restoreSession()
+      authSessionStore.localImportSummary = {
+        importedCount: 1,
+        mergedDuplicateCount: 0,
+        finalCount: 1,
+      }
+      logoutMock.mockResolvedValueOnce()
+
+      await authSessionStore.logout()
+
+      expect(authSessionStore.pendingLocalImportDecision).toBeNull()
+      expect(authSessionStore.localImportSummary).toBeNull()
+      expect(mapPointsStore.selectedPointId).toBeNull()
+    })
   })
 
   describe('handleUnauthorized', () => {
@@ -292,6 +606,8 @@ describe('auth-session store', () => {
       expect(authSessionStore.status).toBe('anonymous')
       expect(authSessionStore.currentUser).toBeNull()
       expect(mapPointsStore.travelRecords).toEqual([])
+      expect(authSessionStore.pendingLocalImportDecision).toBeNull()
+      expect(authSessionStore.localImportSummary).toBeNull()
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
       })
