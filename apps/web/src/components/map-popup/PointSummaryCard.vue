@@ -116,6 +116,20 @@ const boundarySupportNotice = computed(() => {
   return '当前地点暂不支持边界高亮，将仅保存 canonical 地点身份与文本信息'
 })
 
+const summaryFallbackNotice = computed(() => {
+  if (isCandidateMode.value) {
+    return fallbackPoint.value?.fallbackNotice ?? null
+  }
+
+  return summaryPoint.value?.fallbackNotice ?? null
+})
+
+const detailNotices = computed(() =>
+  [summaryFallbackNotice.value, boundarySupportNotice.value].filter(
+    (notice): notice is string => Boolean(notice),
+  ),
+)
+
 function getCandidateStatus(statusHint: string) {
   return statusHint === '已存在记录' ? 'saved' : 'available'
 }
@@ -126,6 +140,7 @@ const showIlluminateButton = computed(() => !isCandidateMode.value)
 const illuminateHint = computed(() =>
   props.isIlluminatable ? null : '该地点暂不支持点亮',
 )
+const illuminateAriaLabel = computed(() => illuminateHint.value ?? illuminateLabel.value)
 const cloudCardClass =
   'point-summary-card grid flex-1 min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden relative rounded-3xl border-4 border-white p-6 gap-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,245,255,0.94))] shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1'
 const badgeClass =
@@ -224,7 +239,7 @@ function handleContinueWithFallback() {
           :data-illuminatable="String(isIlluminatable)"
           data-kawaii-role="primary-cta"
           :disabled="isPending || !isIlluminatable"
-          :aria-label="illuminateHint ?? undefined"
+          :aria-label="illuminateAriaLabel"
           :title="illuminateHint ?? undefined"
           type="button"
           @click="handleIlluminateToggle"
@@ -244,18 +259,12 @@ function handleContinueWithFallback() {
     <div class="point-summary-card__content flex min-h-0 overflow-hidden" data-popup-section="content">
       <div class="point-summary-card__scroll-region grid flex-1 min-h-0 gap-4 overflow-y-auto pr-1.5" data-scroll-region="true">
         <p
-          v-if="isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice"
+          v-for="notice in detailNotices"
+          :key="notice"
           :class="noticeClass"
           data-notice-tone="fallback"
         >
-          {{ isCandidateMode ? fallbackPoint?.fallbackNotice : summaryPoint?.fallbackNotice }}
-        </p>
-        <p
-          v-if="boundarySupportNotice"
-          :class="noticeClass"
-          data-notice-tone="fallback"
-        >
-          {{ boundarySupportNotice }}
+          {{ notice }}
         </p>
 
         <div v-if="isCandidateMode" class="point-summary-card__section grid gap-4">

@@ -560,7 +560,7 @@ describe('LeafletMapStage', () => {
 
       const mapPointsStore = useMapPointsStore()
       expect(mapPointsStore.summaryMode).toBe('candidate-select')
-      expect(mapPointsStore.draftPoint?.placeId).toBeNull()
+      expect(mapPointsStore.draftPoint).toBeNull()
       expect(mapPointsStore.pendingCanonicalSelection?.recommendedPlaceId).toBe(
         PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId,
       )
