@@ -206,6 +206,94 @@ describe('POST /places canonical resolve', () => {
     })
   })
 
+  it('resolves Tokyo to the authoritative Japan admin1 entry', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 35.6762,
+        lng: 139.6503,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'jp-tokyo',
+        displayName: 'Tokyo',
+        typeLabel: '一级行政区',
+        subtitle: 'Japan · 一级行政区',
+      },
+    })
+  })
+
+  it('resolves Gangwon to the authoritative Korea admin1 entry', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 37.8228,
+        lng: 128.1555,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'kr-gangwon',
+        displayName: 'Gangwon',
+        typeLabel: '一级行政区',
+        subtitle: 'South Korea · 一级行政区',
+      },
+    })
+    expect(response.json().place.placeId).toMatch(/^kr-/)
+  })
+
+  it('resolves Dubai without exposing filtered AE noise identities', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 25.2048,
+        lng: 55.2708,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'resolved',
+      place: {
+        placeId: 'ae-emirate-of-dubai',
+        boundaryId: 'ne-admin1-ae-emirate-of-dubai',
+        displayName: 'Emirate of Dubai',
+        typeLabel: '一级行政区',
+      },
+    })
+    expect(response.json().place.placeId).not.toMatch(/ae-x|au-x/i)
+    expect(response.json().place.boundaryId).not.toMatch(/ae-x|au-x/i)
+    expect(response.json().place.geometryRef.boundaryId).toBe('ne-admin1-ae-emirate-of-dubai')
+  })
+
+  it('rejects filtered AU noise clicks outside the supported admin1 catalog', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: -54.5929,
+        lng: 158.898,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'failed',
+      reason: 'OUTSIDE_SUPPORTED_DATA',
+    })
+    expect(response.json()).not.toHaveProperty('place')
+  })
+
   it('returns ambiguous candidates capped at 3 with an explicit recommendation slot', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -347,6 +435,25 @@ describe('POST /places canonical resolve', () => {
       payload: {
         lat: 25.0,
         lng: -160.0,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      status: 'failed',
+      reason: 'OUTSIDE_SUPPORTED_DATA',
+      message: '当前点击位置暂未命中已接入的正式行政区数据。',
+    })
+    expect(response.json()).not.toHaveProperty('place')
+  })
+
+  it('returns OUTSIDE_SUPPORTED_DATA for non-priority overseas clicks without a place payload', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/places/resolve',
+      payload: {
+        lat: 49.2827,
+        lng: -123.1207,
       },
     })
 
