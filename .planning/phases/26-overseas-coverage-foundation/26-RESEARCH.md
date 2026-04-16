@@ -293,25 +293,22 @@ return {
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| A1 | `Singapore` 当前 Natural Earth 的 5 个 CDC 语义可以被产品接受，或者只需要轻量 country-specific override 就能满足“更实用”的要求。 [ASSUMED] | Common Pitfalls / Open Questions | 如果不成立，SG 需要单独 descope、override 数据，甚至调整 Phase 26 支持口径。 |
-| A2 | 线上/现有用户数据里没有大量需要用 backfill 修复的“Phase 26 国家海外旧记录”；否则必须补做 manifest-driven migration。 [ASSUMED] | Summary / Open Questions | 如果不成立，planner 必须加一条数据修复 plan，而不是只改新写入链路。 |
+| A1 | `Singapore` 当前 Natural Earth 的 5 个 CDC 语义在 Phase 26 作为“更实用”的 admin1 近似口径被接受；如后续产品验证不通过，再在后续 phase 做 country-specific override。 [RESOLVED: 2026-04-16 planning decision] | Common Pitfalls / Open Questions | 风险已由 support catalog 显式锁定，不再阻塞计划生成。 |
+| A2 | Phase 26 将显式交付 manifest-driven metadata backfill 路径与自动化验证，因此即使现有 DB 中已有旧海外记录，也不会只停留在“新写入正确”。 [RESOLVED: 2026-04-16 planning decision] | Summary / Open Questions | 风险被纳入 Plan 02，而不是留作未决假设。 |
 
-## Open Questions
+## Planning Resolutions
 
-1. **Singapore 的 admin1 口径是否接受 CDC 语义？**
-   - What we know: 当前 vendored Natural Earth 对 `SG` 给出 5 个 CDC 条目，而不是传统省州。 [VERIFIED: local command]
-   - What's unclear: 这是否符合“更实用”的产品目标。 [ASSUMED]
-   - Recommendation: 在 plan 前先锁定“接受 CDC”还是“SG 走特殊 override / fallback only”。 [ASSUMED]
+1. **Singapore 的 admin1 口径**
+   - Resolution: 接受 vendored Natural Earth 的 5 个 CDC 作为 Phase 26 的 `SG` admin1 支持口径，并把它们显式写进 support catalog。 [RESOLVED: 2026-04-16 planning decision]
+   - Why now: 这样能在不引入新几何源和特殊 override pipeline 的前提下，保持 `SG` 处于首批支持国家列表内。 [VERIFIED: local command][ASSUMED]
 
-2. **是否需要一次性修复历史海外记录 metadata？**
-   - What we know: 新记录链路已经会把文本字段稳定写入并回放；现有 backfill helper 只覆盖 4 个旧 fixture。 [VERIFIED: apps/server/src/modules/records/records.repository.ts][VERIFIED: apps/server/src/modules/auth/auth.service.ts][VERIFIED: apps/server/scripts/backfill-record-metadata.ts]
-   - What's unclear: 当前 DB 里是否已经有 Phase 26 范围内、但 metadata 不完整的旧记录。 [ASSUMED]
-   - Recommendation: 计划阶段先决定“只保证新写入”还是“补一条 manifest-driven migration”。 [ASSUMED]
+2. **历史海外记录 metadata**
+   - Resolution: Phase 26 不只保证“新写入正确”，还会补一条 manifest-driven metadata backfill 路径，并为 backfill 提供脚本/测试级自动化验证。 [RESOLVED: 2026-04-16 planning decision]
+   - Why now: 当前 helper 仍绑定 4 个旧 fixture，如果不在本 phase 处理，OVRS-02 对已存在海外记录就不成立。 [VERIFIED: apps/server/scripts/backfill-record-metadata.ts]
 
-3. **是否要在 Phase 26 同步裁剪海外预加载体积？**
-   - What we know: 当前 `overseas/layer.json` 为 67.5MB，地图 ready 时会预加载。 [VERIFIED: apps/web/public/geo/2026-04-02-geo-v2/overseas/layer.json][VERIFIED: apps/web/src/components/LeafletMapStage.vue]
-   - What's unclear: milestone 是否接受继续携带全球海外 layer，还是要顺手按 Phase 26 支持范围裁剪。 [ASSUMED]
-   - Recommendation: 若希望 Phase 26 真正体现“首批优先国家”，应把过滤放进 build/manifest；否则至少显式接受这个 preload 成本。 [VERIFIED: apps/web/scripts/geo/build-geometry-manifest.mjs][ASSUMED]
+3. **海外预加载体积**
+   - Resolution: Phase 26 通过 build/manifest 过滤同步裁剪 overseas layer，只保留首批 8 国支持面，不接受继续预加载全球 layer。 [RESOLVED: 2026-04-16 planning decision]
+   - Why now: 这是把“首批优先国家”变成 authoritative 支持面的最直接方式，也能顺手压缩 `overseas/layer.json` 体积。 [VERIFIED: apps/web/scripts/geo/build-geometry-manifest.mjs][VERIFIED: apps/web/public/geo/2026-04-02-geo-v2/overseas/layer.json]
 
 ## Environment Availability
 

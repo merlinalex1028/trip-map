@@ -2,8 +2,8 @@
 phase: 26
 slug: overseas-coverage-foundation
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-16
 ---
 
@@ -44,12 +44,12 @@ created: 2026-04-16
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 26-01-01 | 01 | 1 | OVRS-01 | T-26-01 / — | 仅锁定的 8 国 admin1 能进入 authoritative supported catalog；其他 overseas 区域不会被误当成本 phase 已支持点亮 | unit / e2e | `pnpm --filter @trip-map/server test test/canonical-resolve.e2e-spec.ts` | ✅ | ⬜ pending |
+| 26-01-01 | 01 | 1 | OVRS-01 | T-26-01 / — | 仅锁定的 8 国 admin1 能进入 authoritative supported catalog；`geo:build:check` 与 support catalog/manifest 检查能证明过滤在 build 产物阶段已生效 | unit / build | `pnpm --filter @trip-map/web run geo:build:check` | ✅ | ⬜ pending |
 | 26-01-02 | 01 | 1 | OVRS-01 | T-26-01 / — | `SG / AE / AU` 等异常源数据经过国家级 allowlist / override 后，返回结果符合产品支持面 | unit | `pnpm --filter @trip-map/server test test/canonical-resolve.e2e-spec.ts` | ✅ | ⬜ pending |
-| 26-02-01 | 02 | 1 | OVRS-02 | T-26-02 / — | 海外记录写入后通过 `/auth/bootstrap` 与 `/records` 回放时，`displayName` / `typeLabel` / `subtitle` 完整一致 | e2e | `pnpm --filter @trip-map/server test test/auth-bootstrap.e2e-spec.ts` | ✅ | ⬜ pending |
-| 26-02-02 | 02 | 1 | OVRS-02 | T-26-02 / — | popup 读取 `TravelRecord` 时不重新拼接海外文案，保持持久化文本真源 | unit | `pnpm --filter @trip-map/web test apps/web/src/stores/map-points.spec.ts` | ✅ | ⬜ pending |
+| 26-02-01 | 02 | 2 | OVRS-02 | T-26-02 / T-26-07 | `/records` 对 overseas payload 走 authoritative support + metadata 校验，且 backfill 证明 lookup 来自 manifest/support catalog | e2e / script | `pnpm --filter @trip-map/server test test/records-travel.e2e-spec.ts` | ✅ | ⬜ pending |
+| 26-02-02 | 02 | 2 | OVRS-02 | T-26-02 / — | 海外记录写入后通过 `/auth/bootstrap`、multi-session `/records` 回放与 popup store 消费时，`displayName` / `typeLabel` / `subtitle` 完整一致 | e2e / unit | `pnpm --filter @trip-map/server test test/auth-bootstrap.e2e-spec.ts && pnpm --filter @trip-map/server test test/records-sync.e2e-spec.ts && pnpm --filter @trip-map/web test apps/web/src/stores/map-points.spec.ts` | ✅ | ⬜ pending |
 | 26-03-01 | 03 | 2 | OVRS-03 | T-26-03 / — | unsupported 海外区域仅在 popup 内解释，不由全局 `interactionNotice` 主导 | component | `pnpm --filter @trip-map/web test apps/web/src/components/LeafletMapStage.spec.ts` | ✅ | ⬜ pending |
-| 26-03-02 | 03 | 2 | OVRS-03 | T-26-03 / — | `candidate-select` 只在 `ambiguous` 时出现，单一明确命中不强制二次确认 | component | `pnpm --filter @trip-map/web test apps/web/src/components/map-popup/PointSummaryCard.spec.ts` | ✅ | ⬜ pending |
+| 26-03-02 | 03 | 2 | OVRS-03 | T-26-03 / T-26-06 | `candidate-select` 只在 `ambiguous` 时出现，单一明确命中不强制二次确认，且 disabled CTA 契约继续成立 | component | `pnpm --filter @trip-map/web test apps/web/src/components/LeafletMapStage.spec.ts && pnpm --filter @trip-map/web test apps/web/src/components/map-popup/PointSummaryCard.spec.ts` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -57,10 +57,10 @@ created: 2026-04-16
 
 ## Wave 0 Requirements
 
-- [ ] `apps/server/test/canonical-resolve.e2e-spec.ts` — 新增 priority-country support catalog 覆盖，锁定 `JP / KR / TH / SG / MY / AE / AU / US`
-- [ ] `apps/server/test/canonical-resolve.e2e-spec.ts` — 增加至少一个非 California 的真实海外 admin1 命中样例
-- [ ] `apps/web/src/components/LeafletMapStage.spec.ts` — 断言 unsupported 解释停留在 popup，而不是 `interactionNotice`
-- [ ] `apps/server/scripts/backfill-record-metadata.ts` 的测试或替代验证 — 若本 phase 引入 metadata backfill，需证明 lookup 来源于 manifest/support catalog，而非旧 fixture
+- [x] `apps/server/test/canonical-resolve.e2e-spec.ts` — 新增 priority-country support catalog 覆盖，锁定 `JP / KR / TH / SG / MY / AE / AU / US`
+- [x] `apps/server/test/canonical-resolve.e2e-spec.ts` — 增加至少一个非 California 的真实海外 admin1 命中样例
+- [x] `apps/web/src/components/LeafletMapStage.spec.ts` — 断言 unsupported 解释停留在 popup，而不是 `interactionNotice`
+- [x] `apps/server/test/records-travel.e2e-spec.ts` 或等价脚本验证 — 若本 phase 引入 metadata backfill，需证明 lookup 来源于 manifest/support catalog，而非旧 fixture
 
 ---
 
@@ -76,11 +76,11 @@ created: 2026-04-16
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ready for planning verification
