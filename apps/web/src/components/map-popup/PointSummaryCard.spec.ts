@@ -6,6 +6,7 @@ import {
 } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 
+import { buildUnsupportedOverseasNotice } from '../../constants/overseas-support'
 import PointSummaryCard from './PointSummaryCard.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
@@ -173,6 +174,7 @@ describe('PointSummaryCard — illuminate button', () => {
     expect(btn.attributes('disabled')).toBeDefined()
     expect(btn.attributes('data-illuminatable')).toBe('false')
     expect(btn.attributes('title')).toBe('该地点暂不支持点亮')
+    expect(btn.attributes('aria-label')).toBe('该地点暂不支持点亮')
     await btn.trigger('click')
     expect(wrapper.emitted('illuminate')).toBeFalsy()
   })
@@ -261,13 +263,13 @@ describe('PointSummaryCard', () => {
     })
   })
 
-  it('marks fallback and unsupported-boundary notices with fallback tone', () => {
+  it('renders unsupported notice before the boundary-missing notice', () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: {
           mode: 'view',
           point: createViewPoint({
-            fallbackNotice: '当前仅能按国家/地区保留这个点位。',
+            fallbackNotice: buildUnsupportedOverseasNotice('British Columbia'),
           }),
           boundarySupportState: 'missing',
         } satisfies SummarySurfaceState,
@@ -277,7 +279,7 @@ describe('PointSummaryCard', () => {
     const notices = wrapper.findAll('[data-notice-tone="fallback"]')
 
     expect(notices).toHaveLength(2)
-    expect(notices[0]?.text()).toContain('当前仅能按国家/地区保留这个点位。')
+    expect(notices[0]?.text()).toContain(buildUnsupportedOverseasNotice('British Columbia'))
     expect(notices[1]?.text()).toContain('当前地点暂不支持边界高亮')
   })
 
