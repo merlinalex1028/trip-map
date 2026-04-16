@@ -25,6 +25,10 @@
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
 - **Phase 23 已于 2026-04-14 完成**：11 plans 全部执行并通过自动化复验与人工确认，账号注册/登录/退出、会话恢复、账号归属 records 真源与 gap closure 均已闭环
+- **Phase 24 已于 2026-04-15 完成**：本地旧记录导入决策、会话边界清理与首登迁移链路已闭环
+- **Phase 25 已于 2026-04-15 完成**：same-user 多设备同步语义、foreground refresh 与点亮/取消点亮竞态已稳定
+- **Phase 26 已于 2026-04-16 完成**：优先海外国家 admin1 覆盖、持久化文本真源回放与未支持地区 popup 解释链路已落地
+- **v5.0 的 4 个 phases（23-26）均已完成执行**：17/17 requirements satisfied，当前等待 milestone 级 audit / 归档
 - 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
 - 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
@@ -40,13 +44,13 @@
 
 ### Active
 
-- [ ] 海外地点识别与点亮覆盖继续扩展到更实用的可用范围
-- [ ] 清理直接阻塞账号化 / 同步 / 覆盖扩展的技术债
+- 暂无新增 active requirement；`v5.0` 四个 phases 已执行完成，等待里程碑级审计与下一 milestone 定义
 
 ### Validated
 
 - ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — Phase 23
 - ✓ 旅行记录已绑定到账号，并可通过会话恢复重新加载同一份账号记录 — Phase 23
+- ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — Phase 26
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -58,7 +62,7 @@
 - 后端逻辑大改 — 下一 milestone 再评估
 - Dark mode — 目前仍非优先项
 - JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
-- 用户账号体系、多设备同步、更多海外国家支持 — 留待下一 milestone 明确定义范围
+- 更广泛海外国家支持与更细粒度层级覆盖 — 留待下一 milestone 明确定义范围
 
 ## Archived Milestone Snapshots
 
@@ -121,4 +125,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 — after Phase 23 human verification approval*
+*Last updated: 2026-04-16 — after Phase 26 human verification approval*
