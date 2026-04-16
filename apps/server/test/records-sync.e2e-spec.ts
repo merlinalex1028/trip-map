@@ -40,6 +40,7 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 const TEST_EMAIL_PREFIX = `records-sync-${Date.now()}`
 const TEST_PASSWORD = 'Passw0rd!123'
 const TEST_PLACE_ID = `records-sync-place-${Date.now()}`
+const OVERSEAS_PLACE_ID = 'jp-tokyo'
 
 function createRegisterPayload(suffix: string) {
   return {
@@ -61,6 +62,21 @@ function createTravelPayload(placeId = TEST_PLACE_ID) {
     typeLabel: '直辖市',
     parentLabel: '中国',
     subtitle: '中国 · 直辖市',
+  }
+}
+
+function createOverseasTravelPayload(placeId = OVERSEAS_PLACE_ID) {
+  return {
+    placeId,
+    boundaryId: 'ne-admin1-jp-tokyo',
+    placeKind: 'OVERSEAS_ADMIN1',
+    datasetVersion: '2026-04-02-geo-v2',
+    displayName: 'Tokyo',
+    regionSystem: 'OVERSEAS',
+    adminType: 'ADMIN1',
+    typeLabel: '一级行政区',
+    parentLabel: 'Japan',
+    subtitle: 'Japan · 一级行政区',
   }
 }
 
@@ -214,6 +230,40 @@ describe('Records sync semantics', () => {
       records: [
         expect.objectContaining({
           placeId: TEST_PLACE_ID,
+        }),
+      ],
+    })
+  })
+
+  it('keeps overseas text fields identical across same-user multi-session bootstrap replay', async () => {
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sessionACookie,
+      },
+      payload: createOverseasTravelPayload(),
+    })
+
+    expect(createResponse.statusCode).toBe(201)
+
+    const bootstrapResponse = await app.inject({
+      method: 'GET',
+      url: '/auth/bootstrap',
+      headers: {
+        cookie: sessionBCookie,
+      },
+    })
+
+    expect(bootstrapResponse.statusCode).toBe(200)
+    expect(bootstrapResponse.json()).toMatchObject({
+      authenticated: true,
+      records: [
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          displayName: 'Tokyo',
+          typeLabel: '一级行政区',
+          subtitle: 'Japan · 一级行政区',
         }),
       ],
     })

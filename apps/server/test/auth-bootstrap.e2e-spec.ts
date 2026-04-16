@@ -77,6 +77,19 @@ const currentUserRecord = {
   subtitle: '中国 · 直辖市',
 } as const
 
+const overseasCurrentUserRecord = {
+  placeId: 'jp-tokyo',
+  boundaryId: 'ne-admin1-jp-tokyo',
+  placeKind: 'OVERSEAS_ADMIN1',
+  datasetVersion: '2026-04-02-geo-v2',
+  displayName: 'Tokyo',
+  regionSystem: 'OVERSEAS',
+  adminType: 'ADMIN1',
+  typeLabel: '一级行政区',
+  parentLabel: 'Japan',
+  subtitle: 'Japan · 一级行政区',
+} as const
+
 describe('Auth bootstrap API', () => {
   let app: NestFastifyApplication
 
@@ -215,6 +228,53 @@ describe('Auth bootstrap API', () => {
           ...currentUserRecord,
           createdAt: expect.any(String),
         },
+      ],
+    })
+  })
+
+  it('GET /auth/bootstrap replays persisted overseas text fields without recomputing them', async () => {
+    const payload = createRegisterPayload('overseas-record')
+    const registerResponse = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload,
+    })
+
+    expect(registerResponse.statusCode).toBe(201)
+    const sidCookie = extractSidCookie(readSetCookie(registerResponse))
+    expect(sidCookie).toBeTruthy()
+
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+    })
+
+    expect(user).toBeTruthy()
+
+    await prisma.userTravelRecord.create({
+      data: {
+        userId: user!.id,
+        ...overseasCurrentUserRecord,
+      },
+    })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/auth/bootstrap',
+      headers: {
+        cookie: sidCookie!,
+      },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json()).toMatchObject({
+      authenticated: true,
+      records: [
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          displayName: 'Tokyo',
+          typeLabel: '一级行政区',
+          subtitle: 'Japan · 一级行政区',
+        }),
       ],
     })
   })

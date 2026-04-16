@@ -74,6 +74,24 @@ function makeResolvedPlace(
   }
 }
 
+function makeOverseasRecord(overrides: Partial<TravelRecord> = {}): TravelRecord {
+  return {
+    id: 'server-rec-jp-tokyo',
+    placeId: 'jp-tokyo',
+    boundaryId: 'ne-admin1-jp-tokyo',
+    placeKind: 'OVERSEAS_ADMIN1',
+    datasetVersion: '2026-04-02-geo-v2',
+    displayName: 'Tokyo (Persisted)',
+    regionSystem: 'OVERSEAS',
+    adminType: 'ADMIN1',
+    typeLabel: '一级行政区（持久化）',
+    parentLabel: 'Japan',
+    subtitle: 'Persisted subtitle from record',
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Test suite
 // ---------------------------------------------------------------------------
@@ -247,6 +265,22 @@ describe('map-points store', () => {
       expect(fetchMock).not.toHaveBeenCalled()
       expect(store.travelRecords).toEqual([])
       expect(store.hasBootstrapped).toBe(true)
+    })
+
+    it('maps overseas saved records from persisted text fields without recomputing labels from placeId', () => {
+      const store = useMapPointsStore()
+      const overseasRecord = makeOverseasRecord()
+
+      store.replaceTravelRecords([overseasRecord])
+
+      expect(store.displayPoints).toHaveLength(1)
+      expect(store.displayPoints[0]).toMatchObject({
+        name: overseasRecord.displayName,
+        cityContextLabel: overseasRecord.subtitle,
+        typeLabel: overseasRecord.typeLabel,
+      })
+      expect(store.displayPoints[0]?.cityContextLabel).toBe('Persisted subtitle from record')
+      expect(store.displayPoints[0]?.typeLabel).toBe('一级行政区（持久化）')
     })
   })
 
