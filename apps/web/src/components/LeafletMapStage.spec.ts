@@ -8,6 +8,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { computed, nextTick, shallowRef } from 'vue'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
+import { buildUnsupportedOverseasNotice } from '../constants/overseas-support'
 import LeafletMapStage from './LeafletMapStage.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
@@ -564,6 +565,53 @@ describe('LeafletMapStage', () => {
       )
     })
 
+    it('keeps a single resolved overseas hit in normal detail mode instead of candidate-select', async () => {
+      canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue(
+        makeResolvedResponse(PHASE12_RESOLVED_CALIFORNIA),
+      )
+
+      const mapOnMock = vi.fn((event: string, handler: unknown) => {
+        if (event === 'click') {
+          capturedMapClickHandler = handler as typeof capturedMapClickHandler
+        }
+      })
+      const fakeMap = {
+        on: mapOnMock,
+        off: vi.fn(),
+        latLngToContainerPoint: vi.fn(() => ({ x: 100, y: 100 })),
+        removeLayer: vi.fn(),
+        addLayer: vi.fn(),
+      } as unknown as import('leaflet').Map
+
+      ;(leafletMapContainer.mapRef as any).value = fakeMap as unknown as null
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      await nextTick()
+      await flushPromises()
+
+      await triggerMapClick({ lat: 36.7783, lng: -119.4179 })
+      await flushPromises()
+
+      const mapPointsStore = useMapPointsStore()
+      expect(mapPointsStore.summaryMode).toBe('detected-preview')
+      expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
+      expect(mapPointsStore.draftPoint).toEqual(
+        expect.objectContaining({
+          placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+          boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+          name: 'California',
+        }),
+      )
+      expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe(
+        'detected-preview',
+      )
+      expect(wrapper.get('[data-illuminate-state="off"]').attributes('data-illuminatable')).toBe(
+        'true',
+      )
+    })
+
     it('clears stale selection and suppresses notice when unsupported click has no fallback hit', async () => {
       canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue({
         status: 'failed',
@@ -780,7 +828,7 @@ describe('LeafletMapStage', () => {
       })
     })
 
-    it('renders fallback illuminate affordance as disabled and surfaces an info notice', async () => {
+    it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {
       const authSessionStore = useAuthSessionStore()
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
@@ -791,39 +839,72 @@ describe('LeafletMapStage', () => {
       }
       const mapPointsStore = useMapPointsStore()
       const mapUiStore = useMapUiStore()
+      geoLookupMock.lookupCountryRegionByCoordinates.mockResolvedValue({
+        kind: 'region',
+        countryCode: 'CA',
+        countryName: 'Canada',
+        regionName: 'British Columbia',
+        displayName: 'British Columbia',
+        precision: 'region',
+        cityId: null,
+        cityName: null,
+        cityCandidates: [],
+        fallbackNotice: null,
+        lat: 49.2827,
+        lng: -123.1207,
+        confidence: 0.93,
+      })
+      canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue({
+        status: 'failed',
+        click: { lat: 49.2827, lng: -123.1207 },
+        reason: 'OUTSIDE_SUPPORTED_DATA',
+        message: '当前点击位置暂未命中已接入的正式行政区数据。',
+      })
+
+      const mapOnMock = vi.fn((event: string, handler: unknown) => {
+        if (event === 'click') {
+          capturedMapClickHandler = handler as typeof capturedMapClickHandler
+        }
+      })
+      const fakeMap = {
+        on: mapOnMock,
+        off: vi.fn(),
+        latLngToContainerPoint: vi.fn(() => ({ x: 100, y: 100 })),
+        removeLayer: vi.fn(),
+        addLayer: vi.fn(),
+      } as unknown as import('leaflet').Map
+
+      ;(leafletMapContainer.mapRef as any).value = fakeMap as unknown as null
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
+      ;(leafletMapContainer.isReadyRef as any).value = true
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
-      mapPointsStore.startDraftFromDetection(
-        makeDraftPoint(PHASE12_RESOLVED_CALIFORNIA, {
-          id: 'fallback-california',
-          name: 'California',
-          countryName: 'United States',
-          cityId: 'geo-fallback-california',
-          cityName: 'California',
-          cityContextLabel: 'United States · 一级行政区',
-          placeId: null,
-          placeKind: null,
-          datasetVersion: null,
-          typeLabel: null,
-          parentLabel: null,
-          subtitle: null,
-          boundaryId: null,
-          boundaryDatasetVersion: null,
-          fallbackNotice: '当前仅能按国家/地区保留这个点位。',
-        }),
-      )
       await nextTick()
+      await flushPromises()
+
+      await triggerMapClick({ lat: 49.2827, lng: -123.1207 })
       await flushPromises()
 
       const button = wrapper.get('[data-illuminate-state="off"]')
       expect(button.attributes('disabled')).toBeDefined()
       expect(button.attributes('data-illuminatable')).toBe('false')
+      expect(mapPointsStore.summaryMode).toBe('detected-preview')
+      expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
+      expect(mapPointsStore.draftPoint).toEqual(
+        expect.objectContaining({
+          name: 'British Columbia',
+          fallbackNotice: buildUnsupportedOverseasNotice('British Columbia'),
+          placeId: null,
+          boundaryId: null,
+        }),
+      )
+      expect(wrapper.text()).toContain(buildUnsupportedOverseasNotice('British Columbia'))
+      expect(mapUiStore.interactionNotice).toBeNull()
 
       wrapper.getComponent(MapContextPopup).vm.$emit('illuminate')
       await nextTick()
 
-      expect(mapUiStore.interactionNotice?.message).toBe('该地点暂不支持点亮')
+      expect(mapUiStore.interactionNotice).toBeNull()
     })
 
     it('surfaces a success notice after unilluminate via the popup action', async () => {

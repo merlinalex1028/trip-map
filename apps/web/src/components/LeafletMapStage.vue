@@ -8,6 +8,7 @@ import { useGeoJsonLayers } from '../composables/useGeoJsonLayers'
 import { useLeafletMap } from '../composables/useLeafletMap'
 import { useLeafletPopupAnchor } from '../composables/useLeafletPopupAnchor'
 import { usePopupAnchoring } from '../composables/usePopupAnchoring'
+import { buildUnsupportedOverseasNotice } from '../constants/overseas-support'
 import {
   confirmCanonicalPlace,
   resolveCanonicalPlace,
@@ -501,10 +502,6 @@ async function handleIlluminate() {
     !point.typeLabel ||
     !point.parentLabel
   ) {
-    setInteractionNotice({
-      tone: 'info',
-      message: '该地点暂不支持点亮',
-    })
     return
   }
 
@@ -728,7 +725,20 @@ async function recognizeMapLocation(latlng: L.LatLng) {
     if (response.reason === 'OUTSIDE_SUPPORTED_DATA') {
       const geoResult = await lookupCountryRegionByCoordinates({ lat, lng })
       if (geoResult) {
-        openSavedPointForPlaceOrStartDraft(buildFallbackDraftPoint(geoResult, { lat, lng }))
+        const fallbackNotice =
+          geoResult.countryCode !== 'CN'
+            ? buildUnsupportedOverseasNotice(geoResult.regionName ?? geoResult.displayName)
+            : geoResult.fallbackNotice
+
+        openSavedPointForPlaceOrStartDraft(
+          buildFallbackDraftPoint(
+            {
+              ...geoResult,
+              fallbackNotice,
+            },
+            { lat, lng },
+          ),
+        )
         popupLatLng.value = L.latLng(lat, lng)
         clearInteractionNotice()
         finishRecognition()
