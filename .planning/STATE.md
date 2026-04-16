@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: 账号体系与云同步基础版
-status: planning
-stopped_at: Phase 26 context gathered
-last_updated: "2026-04-15T10:51:47.274Z"
-last_activity: 2026-04-15 -- Phase 25 completed after overlap hardening execution and verification
+status: verifying
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-04-16T08:52:55.263Z"
+last_activity: 2026-04-16
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 4
+  total_plans: 22
+  completed_plans: 22
   percent: 100
 ---
 
@@ -26,10 +26,10 @@ See: .planning/PROJECT.md (updated 2026-04-10)
 ## Current Position
 
 Milestone: v5.0 — 账号体系与云同步基础版
-Phase: 26 (overseas-coverage-foundation) — READY FOR PLANNING
-Plan: Not started
-Status: Phase 25 complete — next phase ready for planning
-Last activity: 2026-04-15 -- Phase 25 completed after overlap hardening execution and verification
+Phase: 26 (overseas-coverage-foundation) — EXECUTING
+Plan: 3 of 3
+Status: Phase complete — ready for verification
+Last activity: 2026-04-16
 
 Progress: [██████████] 100%
 
@@ -60,6 +60,9 @@ Progress: [██████████] 100%
 | Phase 25 P02 | - | - | - |
 | Phase 25 P03 | - | - | - |
 | Phase 25 P04 | 6m | 2 tasks | 5 files |
+| Phase 26 P01 | 10m | 2 tasks | 6 files |
+| Phase 26 P03 | 10m | 2 tasks | 5 files |
+| Phase 26 P02 | 43m | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -89,6 +92,13 @@ Recent decisions affecting current work:
 - [Phase 25]: same-user refresh 继续保持轻刷新，但改走 applyAuthoritativeTravelRecords() 以避开 in-flight placeId 的竞态覆盖。
 - [Phase 25]: 点亮成功路径改为按 placeId upsert authoritative record，避免 optimistic row 被并发 refresh 移除后无法写回。
 - [Phase 25]: 取消点亮成功后再次按 placeId 过滤本地列表，确保 stale refresh 重叠后仍收敛为未点亮。
+- [Phase 26]: 海外 authoritative 支持面现在只通过 build-time 8 国 catalog 生成，不新增前端第二真源。
+- [Phase 26]: Tokyo、Gangwon、Dubai 与 unsupported overseas 坐标回归成为 Phase 26 resolve 基线。
+- [Phase 26]: Australia 支持采用 ISO allowlist 加 gadm_level 守卫，排除 Lord Howe、Macquarie Island 与 AU-X.. 噪声条目。
+- [Phase 26]: OUTSIDE_SUPPORTED_DATA 的海外 fallback 只通过 popup fallbackNotice + disabled CTA 解释，不再以全局 interactionNotice 为主路径。
+- [Phase 26]: candidate-select 继续只在 ambiguous 出现；单一明确 overseas resolved 命中保持正常详情与点亮入口。
+- [Phase 26]: bootstrap 与前端 store 继续直接回放持久化字段，不在 placeId 维度重新推导海外标题、副标题或类型标签。
+- [Phase 26]: 海外 admin1 的 displayName/typeLabel/parentLabel/subtitle 统一由 manifest-backed catalog 提供，服务端 resolve、records 校验和 backfill 共用同一真源。
 
 ### Pending Todos
 
@@ -100,9 +110,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-15T10:51:47.268Z
-Stopped at: Phase 26 context gathered
-Resume file: .planning/phases/26-overseas-coverage-foundation/26-CONTEXT.md
+Last session: 2026-04-16T08:52:54.924Z
+Stopped at: Completed 26-02-PLAN.md
+Resume file: None
 
 ---
 *Last updated: 2026-04-15 — Phase 25 completed after sync semantics verification*

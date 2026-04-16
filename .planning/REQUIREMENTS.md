@@ -31,9 +31,9 @@
 
 ### Overseas Coverage（海外覆盖扩展）
 
-- [ ] **OVRS-01**: 用户可以在一组优先海外国家/地区的一级行政区上稳定识别并点亮地点
-- [ ] **OVRS-02**: 已保存的海外旅行记录在刷新、重开和跨设备后，仍能稳定显示标题、类型标签和副标题
-- [ ] **OVRS-03**: 点击暂未支持的海外区域时，用户会看到明确的“暂不支持点亮该地区”说明，而不是静默失败
+- [x] **OVRS-01**: 用户可以在一组优先海外国家/地区的一级行政区上稳定识别并点亮地点
+- [x] **OVRS-02**: 已保存的海外旅行记录在刷新、重开和跨设备后，仍能稳定显示标题、类型标签和副标题
+- [x] **OVRS-03**: 点击暂未支持的海外区域时，用户会看到明确的“暂不支持点亮该地区”说明，而不是静默失败
 
 ## Future Requirements
 
@@ -74,9 +74,9 @@
 | MIGR-02 | Phase 24 | Complete |
 | MIGR-03 | Phase 24 | Complete |
 | MIGR-04 | Phase 24 | Complete |
-| OVRS-01 | Phase 26 | Pending |
-| OVRS-02 | Phase 26 | Pending |
-| OVRS-03 | Phase 26 | Pending |
+| OVRS-01 | Phase 26 | Complete |
+| OVRS-02 | Phase 26 | Complete |
+| OVRS-03 | Phase 26 | Complete |
 
 **Coverage:**
 - v5.0 requirements: 17 total

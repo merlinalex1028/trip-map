@@ -21,7 +21,7 @@ v5.0 让应用从本地单机旅行地图升级为“可登录、可跨设备同
 - [x] **Phase 23: Auth & Ownership Foundation** - 建立邮箱密码账号、会话恢复与按账号隔离的旅行记录真源（gap closure planned） (completed 2026-04-12)
 - [x] **Phase 24: Session Boundary & Local Import** - 收口匿名浏览边界、首登本地导入选择与切账号状态重置 (completed 2026-04-15)
 - [x] **Phase 25: Sync Semantics & Multi-Device Hardening** - 完成基础版跨设备最终一致、取消点亮同步与失败提示语义（gap closure replanned 2026-04-15） (completed 2026-04-15)
-- [ ] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈
+- [x] **Phase 26: Overseas Coverage Foundation** - 扩展优先海外 admin1 覆盖并补齐未支持地区的可解释反馈 (completed 2026-04-16)
 
 ## Phase Details
 
@@ -98,7 +98,7 @@ Plans:
 | 23. Auth & Ownership Foundation | 11/11 | Complete    | 2026-04-14 |
 | 24. Session Boundary & Local Import | 4/4 | Complete    | 2026-04-15 |
 | 25. Sync Semantics & Multi-Device Hardening | 4/4 | Complete   | 2026-04-15 |
-| 26. Overseas Coverage Foundation | 0/TBD | Not started | - |
+| 26. Overseas Coverage Foundation | 3/3 | Complete   | 2026-04-16 |
 
 ---
 *Last updated: 2026-04-15 — Phase 25 completed after sync semantics verification*
