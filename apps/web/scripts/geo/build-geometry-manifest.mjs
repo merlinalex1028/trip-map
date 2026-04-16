@@ -27,6 +27,10 @@ import {
   getOverseasSourcePath,
   normalizeOverseasSource,
 } from './normalize-natural-earth.mjs'
+import {
+  getOverseasAdmin1SourceFeatureId,
+  isSupportedOverseasAdmin1Feature,
+} from './overseas-admin1-support.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -370,7 +374,7 @@ function buildOverseasLayer(featureCollection, outputRoot, catalog) {
     const props = feature.properties ?? {}
     const admin1Name = props.name_en ?? props.name
 
-    if (!props.adm0_a3 || !admin1Name) {
+    if (!props.adm0_a3 || !admin1Name || !isSupportedOverseasAdmin1Feature(props)) {
       continue
     }
 
@@ -382,7 +386,7 @@ function buildOverseasLayer(featureCollection, outputRoot, catalog) {
       assetKey: OVERSEAS_LAYER_ASSET_KEY,
       sourceDataset: 'NATURAL_EARTH_ADMIN1',
       sourceVersion: catalog.sources.NATURAL_EARTH_ADMIN1.sourceVersion,
-      sourceFeatureId: props.iso_3166_2 ?? `${props.adm0_a3}/${admin1Name}`,
+      sourceFeatureId: getOverseasAdmin1SourceFeatureId(props),
     }))
   }
 
