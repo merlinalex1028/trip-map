@@ -88,7 +88,7 @@ Plans:
   1. 用户可以在首批优先海外国家/地区的一级行政区上稳定识别并点亮地点。
   2. 已保存的海外旅行记录在刷新、重开应用和跨设备后，仍能稳定显示一致的标题、类型标签和副标题。
   3. 点击暂未支持的海外区域时，界面会明确说明该地区暂不支持点亮，而不是静默失败或表现为无响应。
-**Plans**: TBD
+**Plans**: 3/3 complete
 **UI hint**: yes
 
 ## Progress
@@ -98,7 +98,7 @@ Plans:
 | 23. Auth & Ownership Foundation | 11/11 | Complete    | 2026-04-14 |
 | 24. Session Boundary & Local Import | 4/4 | Complete    | 2026-04-15 |
 | 25. Sync Semantics & Multi-Device Hardening | 4/4 | Complete   | 2026-04-15 |
-| 26. Overseas Coverage Foundation | 3/3 | Complete   | 2026-04-16 |
+| 26. Overseas Coverage Foundation | 3/3 | Complete    | 2026-04-16 |
 
 ---
-*Last updated: 2026-04-15 — Phase 25 completed after sync semantics verification*
+*Last updated: 2026-04-16 — Phase 26 completed after human verification approval*
