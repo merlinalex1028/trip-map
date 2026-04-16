@@ -63,7 +63,7 @@ Declared values (must be multiples of 4):
 | 2xl | `48px` | 大屏场景中的主舞台分段与弹出层外部安全边距（source: existing `--space-2xl`） |
 | 3xl | `64px` | 页面级留白；Phase 26 不新增超过此级别的新间距 token（source: existing `--space-3xl`） |
 
-Exceptions: `44px` 作为主按钮、候选按钮、登录升级按钮等所有交互控件的最小触达高度；候选卡内部 outline 偏移保持 `3px`，不额外扩展点击区域（source: existing `min-h-11` + current popup styles）
+Exceptions: `44px` 作为主按钮、候选按钮、登录升级按钮等所有交互控件的最小触达高度；候选卡内部 outline 偏移保持 `4px`，不额外扩展点击区域（source: existing `min-h-11` + current popup styles）
 
 ---
 
