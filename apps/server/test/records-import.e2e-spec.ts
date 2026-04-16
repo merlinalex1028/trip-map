@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import type { CreateTravelRecordRequest } from '@trip-map/contracts'
 import { fileURLToPath } from 'node:url'
 
+import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
 
 try {
@@ -43,6 +44,7 @@ const TEST_PASSWORD = 'Passw0rd!123'
 const DUPLICATE_PLACE_ID = `test-import-duplicate-${Date.now()}`
 const AUTHORITATIVE_PLACE_ID = `test-import-authoritative-${Date.now()}`
 const IDEMPOTENT_PLACE_ID = `test-import-idempotent-${Date.now()}`
+const AUTHORITATIVE_OVERSEAS_PLACE_ID = 'jp-tokyo'
 
 const baseRecord: Omit<CreateTravelRecordRequest, 'placeId'> = {
   boundaryId: 'boundary-test-001',
@@ -86,6 +88,30 @@ function createImportRecord(
   return {
     placeId,
     ...baseRecord,
+    ...overrides,
+  }
+}
+
+function createAuthoritativeOverseasImportRecord(
+  overrides: Partial<CreateTravelRecordRequest> = {},
+): CreateTravelRecordRequest {
+  const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
+
+  if (!canonicalSummary) {
+    throw new Error(`Missing canonical summary for ${AUTHORITATIVE_OVERSEAS_PLACE_ID}.`)
+  }
+
+  return {
+    placeId: canonicalSummary.placeId,
+    boundaryId: canonicalSummary.boundaryId,
+    placeKind: canonicalSummary.placeKind,
+    datasetVersion: canonicalSummary.datasetVersion,
+    displayName: canonicalSummary.displayName,
+    regionSystem: canonicalSummary.regionSystem,
+    adminType: canonicalSummary.adminType,
+    typeLabel: canonicalSummary.typeLabel,
+    parentLabel: canonicalSummary.parentLabel,
+    subtitle: canonicalSummary.subtitle,
     ...overrides,
   }
 }
@@ -331,5 +357,27 @@ describe('POST /records/import', () => {
       .records
       .filter((record: { placeId: string }) => record.placeId === IDEMPOTENT_PLACE_ID)
     expect(importedRecords).toHaveLength(1)
+  })
+
+  it('rejects /records/import payloads when overseas authoritative metadata is forged', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records/import',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: {
+        records: [
+          createAuthoritativeOverseasImportRecord({
+            subtitle: 'Forged subtitle',
+          }),
+        ],
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json()).toMatchObject({
+      message: 'Overseas travel record metadata must match authoritative catalog: subtitle.',
+    })
   })
 })

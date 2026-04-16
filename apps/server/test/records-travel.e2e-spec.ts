@@ -44,6 +44,7 @@ const TEST_PLACE_ID = `test-travel-place-${Date.now()}`
 const TEST_PLACE_ID_2 = `test-travel-place-2-${Date.now()}`
 const UNSUPPORTED_OVERSEAS_PLACE_ID = 'ca-british-columbia'
 const LEGACY_OVERSEAS_PLACE_ID = 'jp-tokyo'
+const AUTHORITATIVE_OVERSEAS_PLACE_ID = 'jp-tokyo'
 const TEST_PASSWORD = 'Passw0rd!123'
 
 const validRecord = {
@@ -70,6 +71,30 @@ const unsupportedOverseasRecord = {
   typeLabel: '一级行政区',
   parentLabel: 'Canada',
   subtitle: 'Canada · 一级行政区',
+}
+
+function createAuthoritativeOverseasRecord(
+  overrides: Partial<typeof unsupportedOverseasRecord> = {},
+) {
+  const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
+
+  if (!canonicalSummary) {
+    throw new Error(`Missing canonical summary for ${AUTHORITATIVE_OVERSEAS_PLACE_ID}.`)
+  }
+
+  return {
+    placeId: canonicalSummary.placeId,
+    boundaryId: canonicalSummary.boundaryId,
+    placeKind: canonicalSummary.placeKind,
+    datasetVersion: canonicalSummary.datasetVersion,
+    displayName: canonicalSummary.displayName,
+    regionSystem: canonicalSummary.regionSystem,
+    adminType: canonicalSummary.adminType,
+    typeLabel: canonicalSummary.typeLabel,
+    parentLabel: canonicalSummary.parentLabel,
+    subtitle: canonicalSummary.subtitle,
+    ...overrides,
+  }
 }
 
 function createRegisterPayload(suffix: string) {
@@ -319,6 +344,26 @@ describe('Current-user travel records API', () => {
     expect(response.statusCode).toBe(400)
     expect(response.json()).toMatchObject({
       message: 'Overseas travel record is outside the Phase 26 authoritative support catalog.',
+    })
+  })
+
+  it('POST /records rejects overseas payloads when authoritative metadata is forged', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: createAuthoritativeOverseasRecord({
+        datasetVersion: 'forged-dataset-version',
+        displayName: 'Forged Tokyo',
+      }),
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json()).toMatchObject({
+      message:
+        'Overseas travel record metadata must match authoritative catalog: datasetVersion, displayName.',
     })
   })
 

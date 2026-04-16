@@ -115,6 +115,7 @@ export class RecordsService {
     }
 
     const mismatchedFields = [
+      ['datasetVersion', input.datasetVersion, placeSummary.datasetVersion],
       ['displayName', input.displayName, placeSummary.displayName],
       ['regionSystem', input.regionSystem, placeSummary.regionSystem],
       ['adminType', input.adminType, placeSummary.adminType],
