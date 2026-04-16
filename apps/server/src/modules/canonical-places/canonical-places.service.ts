@@ -6,9 +6,9 @@ import { Injectable } from '@nestjs/common'
 import type {
   CanonicalPlaceCandidate,
   CanonicalResolveFailedReason,
+  CanonicalPlaceSummary,
   CanonicalResolveResponse,
   ConfirmCanonicalPlaceRequest,
-  GeometryManifestEntry,
   ResolvedCanonicalPlace,
   ResolveCanonicalPlaceRequest,
 } from '@trip-map/contracts'
@@ -20,6 +20,7 @@ import {
   type CanonicalPlaceId,
   type CanonicalResolveFixture,
 } from './fixtures/canonical-place-fixtures.js'
+import { getCanonicalPlaceSummaryByBoundaryId } from './place-metadata-catalog.js'
 
 type GeoJsonPosition = [number, number]
 
@@ -36,15 +37,6 @@ interface GeoJsonMultiPolygonGeometry {
 interface CanonicalFeatureProperties {
   boundaryId?: string
   renderableId?: string
-  placeId?: string
-  displayName?: string
-  placeKind?: ResolvedCanonicalPlace['placeKind']
-  datasetVersion?: string
-  regionSystem?: ResolvedCanonicalPlace['regionSystem']
-  adminType?: ResolvedCanonicalPlace['adminType']
-  typeLabel?: string
-  parentLabel?: string
-  subtitle?: string
 }
 
 interface GeometryFeature {
@@ -104,7 +96,16 @@ function loadSupportedResolvedGeometries(): SupportedResolvedGeometry[] {
       )
     }
 
-    const place = createResolvedPlace(entry, feature)
+    const summary = getCanonicalPlaceSummaryByBoundaryId(entry.boundaryId)
+
+    if (!summary) {
+      throw new Error(
+        `No canonical place metadata found for boundaryId "${entry.boundaryId}". ` +
+        'Ensure geometry shards were rebuilt from the latest authoritative sources.',
+      )
+    }
+
+    const place = createResolvedPlace(summary, entry)
 
     return [{
       placeId: place.placeId,
@@ -120,38 +121,11 @@ function loadGeometryShardFile(shardPath: string): GeometryFeatureCollection {
 }
 
 function createResolvedPlace(
-  entry: GeometryManifestEntry,
-  feature: GeometryFeature,
+  summary: CanonicalPlaceSummary,
+  entry: typeof GEOMETRY_MANIFEST[number],
 ): ResolvedCanonicalPlace {
-  const props = feature.properties
-
-  if (
-    !props.placeId
-    || !props.displayName
-    || !props.placeKind
-    || !props.datasetVersion
-    || !props.regionSystem
-    || !props.adminType
-    || !props.typeLabel
-    || !props.parentLabel
-    || !props.subtitle
-  ) {
-    throw new Error(
-      `Feature "${entry.boundaryId}" is missing canonical place metadata in geometry shard "${entry.assetKey}".`,
-    )
-  }
-
   return {
-    placeId: props.placeId,
-    boundaryId: entry.boundaryId,
-    placeKind: props.placeKind,
-    datasetVersion: props.datasetVersion,
-    displayName: props.displayName,
-    regionSystem: props.regionSystem,
-    adminType: props.adminType,
-    typeLabel: props.typeLabel,
-    parentLabel: props.parentLabel,
-    subtitle: props.subtitle,
+    ...summary,
     geometryRef: {
       boundaryId: entry.boundaryId,
       layer: entry.layer,

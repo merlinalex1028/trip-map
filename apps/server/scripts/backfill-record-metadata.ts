@@ -1,26 +1,15 @@
 import { PrismaClient } from '@prisma/client'
-import {
-  PHASE12_RESOLVED_ABA,
-  PHASE12_RESOLVED_BEIJING,
-  PHASE12_RESOLVED_CALIFORNIA,
-  PHASE12_RESOLVED_HONG_KONG,
-} from '@trip-map/contracts'
 import type { CanonicalPlaceSummary } from '@trip-map/contracts'
 import { fileURLToPath } from 'node:url'
+
+import { buildCanonicalMetadataLookup as buildManifestCanonicalMetadataLookup } from '../src/modules/canonical-places/place-metadata-catalog.js'
 
 type CanonicalMetadata = Pick<
   CanonicalPlaceSummary,
   'regionSystem' | 'adminType' | 'typeLabel' | 'parentLabel' | 'subtitle'
 >
 
-type CanonicalMetadataLookup = Record<string, CanonicalMetadata>
-
-const CANONICAL_PLACE_CATALOG = [
-  PHASE12_RESOLVED_BEIJING,
-  PHASE12_RESOLVED_HONG_KONG,
-  PHASE12_RESOLVED_CALIFORNIA,
-  PHASE12_RESOLVED_ABA,
-] as const
+type CanonicalMetadataLookup = ReadonlyMap<string, CanonicalMetadata>
 
 type BackfillSummary = {
   matchedTravelRows: number
@@ -64,9 +53,11 @@ function loadServerEnvFile() {
 }
 
 export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
-  return Object.fromEntries(
-    CANONICAL_PLACE_CATALOG.map((place) => [
-      place.placeId,
+  const { byPlaceId } = buildManifestCanonicalMetadataLookup()
+
+  return new Map(
+    [...byPlaceId.entries()].map(([placeId, place]) => [
+      placeId,
       {
         regionSystem: place.regionSystem,
         adminType: place.adminType,
@@ -82,14 +73,14 @@ export function buildTravelMetadataUpdate(
   placeId: string,
   lookup: CanonicalMetadataLookup,
 ): CanonicalMetadata | null {
-  return lookup[placeId] ?? null
+  return lookup.get(placeId) ?? null
 }
 
 export function buildSmokeMetadataUpdate(
   placeId: string,
   lookup: CanonicalMetadataLookup,
 ): CanonicalMetadata | null {
-  return lookup[placeId] ?? null
+  return lookup.get(placeId) ?? null
 }
 
 function createPrismaClient() {

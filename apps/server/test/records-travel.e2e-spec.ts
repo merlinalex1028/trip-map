@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
 import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
+import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
 
 try {
@@ -41,7 +42,8 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 const TEST_EMAIL_PREFIX = `records-travel-${Date.now()}`
 const TEST_PLACE_ID = `test-travel-place-${Date.now()}`
 const TEST_PLACE_ID_2 = `test-travel-place-2-${Date.now()}`
-const LEGACY_PLACE_ID = 'cn-beijing'
+const UNSUPPORTED_OVERSEAS_PLACE_ID = 'ca-british-columbia'
+const LEGACY_OVERSEAS_PLACE_ID = 'jp-tokyo'
 const TEST_PASSWORD = 'Passw0rd!123'
 
 const validRecord = {
@@ -55,6 +57,19 @@ const validRecord = {
   typeLabel: '直辖市',
   parentLabel: '中国',
   subtitle: '中国 · 直辖市',
+}
+
+const unsupportedOverseasRecord = {
+  placeId: UNSUPPORTED_OVERSEAS_PLACE_ID,
+  boundaryId: 'ne-admin1-ca-british-columbia',
+  placeKind: 'OVERSEAS_ADMIN1',
+  datasetVersion: '2026-04-02-geo-v2',
+  displayName: 'British Columbia',
+  regionSystem: 'OVERSEAS',
+  adminType: 'ADMIN1',
+  typeLabel: '一级行政区',
+  parentLabel: 'Canada',
+  subtitle: 'Canada · 一级行政区',
 }
 
 function createRegisterPayload(suffix: string) {
@@ -123,7 +138,7 @@ describe('Current-user travel records API', () => {
       },
     })
     await prisma.travelRecord.deleteMany({
-      where: { placeId: LEGACY_PLACE_ID },
+      where: { placeId: LEGACY_OVERSEAS_PLACE_ID },
     })
 
     const registerResponse = await app.inject({
@@ -179,7 +194,7 @@ describe('Current-user travel records API', () => {
       },
     })
     await prisma.travelRecord.deleteMany({
-      where: { placeId: LEGACY_PLACE_ID },
+      where: { placeId: LEGACY_OVERSEAS_PLACE_ID },
     })
     await prisma.$disconnect()
     await app.close()
@@ -291,6 +306,22 @@ describe('Current-user travel records API', () => {
     })
   })
 
+  it('POST /records rejects overseas payloads outside the Phase 26 authoritative catalog', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: unsupportedOverseasRecord,
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json()).toMatchObject({
+      message: 'Overseas travel record is outside the Phase 26 authoritative support catalog.',
+    })
+  })
+
   it('DELETE /records/:placeId with existing placeId returns 204 for the current user', async () => {
     const response = await app.inject({
       method: 'DELETE',
@@ -373,18 +404,27 @@ describe('Current-user travel records API', () => {
     )
   })
 
-  it('backfills legacy travel rows by placeId and restores canonical metadata for legacy reopen surfaces', async () => {
+  it('backfills legacy overseas travel rows from the manifest-backed canonical catalog', async () => {
+    const canonicalSummary = getCanonicalPlaceSummaryById(LEGACY_OVERSEAS_PLACE_ID)
+
+    expect(canonicalSummary).toMatchObject({
+      placeId: LEGACY_OVERSEAS_PLACE_ID,
+      displayName: 'Tokyo',
+      parentLabel: 'Japan',
+      subtitle: 'Japan · 一级行政区',
+    })
+
     await prisma.travelRecord.deleteMany({
-      where: { placeId: LEGACY_PLACE_ID },
+      where: { placeId: LEGACY_OVERSEAS_PLACE_ID },
     })
 
     await prisma.travelRecord.create({
       data: {
-        placeId: LEGACY_PLACE_ID,
-        boundaryId: 'datav-cn-beijing',
-        placeKind: 'CN_ADMIN',
+        placeId: LEGACY_OVERSEAS_PLACE_ID,
+        boundaryId: 'ne-admin1-jp-tokyo',
+        placeKind: 'OVERSEAS_ADMIN1',
         datasetVersion: 'phase12-canonical-fixture-v1',
-        displayName: '北京',
+        displayName: 'Tokyo',
         regionSystem: null,
         adminType: null,
         typeLabel: null,
@@ -396,19 +436,19 @@ describe('Current-user travel records API', () => {
     const summary = await backfillRecordMetadata(prisma)
 
     expect(summary.matchedTravelRows).toBeGreaterThan(0)
-    expect(summary.unmatchedTravelRows).not.toContain(LEGACY_PLACE_ID)
+    expect(summary.unmatchedTravelRows).not.toContain(LEGACY_OVERSEAS_PLACE_ID)
 
     const dbRecord = await prisma.travelRecord.findUnique({
-      where: { placeId: LEGACY_PLACE_ID },
+      where: { placeId: LEGACY_OVERSEAS_PLACE_ID },
     })
 
     expect(dbRecord).toMatchObject({
-      placeId: LEGACY_PLACE_ID,
-      regionSystem: 'CN',
-      adminType: 'MUNICIPALITY',
-      typeLabel: '直辖市',
-      parentLabel: '中国',
-      subtitle: '中国 · 直辖市',
+      placeId: LEGACY_OVERSEAS_PLACE_ID,
+      regionSystem: 'OVERSEAS',
+      adminType: 'ADMIN1',
+      typeLabel: '一级行政区',
+      parentLabel: 'Japan',
+      subtitle: 'Japan · 一级行政区',
     })
   })
 })
