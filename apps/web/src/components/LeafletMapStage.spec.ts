@@ -40,7 +40,6 @@ const geoLookupMock = vi.hoisted(() => ({
 }))
 
 const recordsApiMock = vi.hoisted(() => ({
-  fetchTravelRecords: vi.fn().mockResolvedValue([]),
   createTravelRecord: vi.fn(),
   deleteTravelRecord: vi.fn(),
 }))
@@ -131,7 +130,6 @@ vi.mock('../services/geo-lookup', () => ({
 }))
 
 vi.mock('../services/api/records', () => ({
-  fetchTravelRecords: recordsApiMock.fetchTravelRecords,
   createTravelRecord: recordsApiMock.createTravelRecord,
   deleteTravelRecord: recordsApiMock.deleteTravelRecord,
 }))
@@ -256,7 +254,6 @@ describe('LeafletMapStage', () => {
     geometryLoaderMock.loadGeometryShard.mockReset()
     geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
     geoLookupMock.lookupCountryRegionByCoordinates.mockReset().mockResolvedValue(null)
-    recordsApiMock.fetchTravelRecords.mockReset().mockResolvedValue([])
     recordsApiMock.createTravelRecord.mockReset().mockResolvedValue(
       makeRecord(PHASE12_RESOLVED_BEIJING),
     )
@@ -387,8 +384,6 @@ describe('LeafletMapStage', () => {
     })
 
     it('keeps startup silent when records bootstrap is owned by auth-session restore', async () => {
-      recordsApiMock.fetchTravelRecords.mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
-
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
       ;(leafletMapContainer.isReadyRef as any).value = true
@@ -396,7 +391,6 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       const mapUiStore = useMapUiStore()
-      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
       expect(mapUiStore.interactionNotice).toBeNull()
     })
   })
@@ -667,10 +661,7 @@ describe('LeafletMapStage', () => {
     it('opens saved point popup without calling resolveCanonicalPlace (D-12)', async () => {
       // Pre-save a point via illuminate so the boundary click shortcut works
       const mapPointsStore = useMapPointsStore()
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
-        makeRecord(PHASE12_RESOLVED_BEIJING),
-      ])
-      await mapPointsStore.bootstrapFromApi()
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
@@ -701,12 +692,8 @@ describe('LeafletMapStage', () => {
     it('shows MapContextPopup when summarySurfaceState is set (UIX-01)', async () => {
       const mapPointsStore = useMapPointsStore()
 
-      // Pre-save a point via illuminate so summarySurfaceState has a value
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
-        makeRecord(PHASE12_RESOLVED_BEIJING),
-      ])
-      await mapPointsStore.bootstrapFromApi()
-      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
 
       expect(mapPointsStore.summarySurfaceState).not.toBeNull()
       expect(mapPointsStore.summarySurfaceState?.mode).toBe('view')
@@ -728,7 +715,6 @@ describe('LeafletMapStage', () => {
       await nextTick()
       await flushPromises()
 
-      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
     })
 
     it('consumes the authenticated snapshot without refetching /records', async () => {
@@ -750,7 +736,6 @@ describe('LeafletMapStage', () => {
       await nextTick()
       await flushPromises()
 
-      expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
       expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
         '2026-03-31-geo-v1',
         'cn/beijing.json',
@@ -922,12 +907,9 @@ describe('LeafletMapStage', () => {
       }
       const mapPointsStore = useMapPointsStore()
       const mapUiStore = useMapUiStore()
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
-        makeRecord(PHASE12_RESOLVED_BEIJING),
-      ])
       recordsApiMock.deleteTravelRecord.mockResolvedValueOnce(undefined)
 
-      await mapPointsStore.bootstrapFromApi()
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
 
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
@@ -956,11 +938,8 @@ describe('LeafletMapStage', () => {
       const mapPointsStore = useMapPointsStore()
 
       // Pre-save a point via illuminate
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
-        makeRecord(PHASE12_RESOLVED_BEIJING),
-      ])
-      await mapPointsStore.bootstrapFromApi()
-      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
+      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
+      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()
@@ -983,13 +962,10 @@ describe('LeafletMapStage', () => {
       const mapPointsStore = useMapPointsStore()
 
       // Pre-save two points with different boundaryIds
-      recordsApiMock.fetchTravelRecords.mockResolvedValueOnce([
+      mapPointsStore.replaceTravelRecords([
         makeRecord(PHASE12_RESOLVED_BEIJING),
         makeRecord(PHASE12_RESOLVED_CALIFORNIA),
       ])
-      await mapPointsStore.bootstrapFromApi()
-      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
-      mapPointsStore.illuminate(PHASE12_RESOLVED_CALIFORNIA)
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
       await nextTick()

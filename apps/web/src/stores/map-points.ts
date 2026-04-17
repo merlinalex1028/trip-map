@@ -4,7 +4,6 @@ import { computed, shallowRef } from 'vue'
 
 import { isUnauthorizedApiClientError } from '../services/api/client'
 import {
-  fetchTravelRecords,
   createTravelRecord,
   deleteTravelRecord,
 } from '../services/api/records'
@@ -169,35 +168,6 @@ export const useMapPointsStore = defineStore('map-points', () => {
   const RECORD_WRITE_FAILED_NOTICE = '点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
   const RECORD_DELETE_SUCCESS_NOTICE = '已从当前账号移除。'
   const RECORD_DELETE_FAILED_NOTICE = '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
-
-  async function bootstrapFromApi() {
-    if (hasBootstrapped.value) {
-      return true
-    }
-
-    hasBootstrapped.value = true
-
-    try {
-      const records = await fetchTravelRecords()
-      replaceTravelRecords(records)
-      return true
-    } catch (error) {
-      if (isUnauthorizedApiClientError(error)) {
-        const authSessionStore = useAuthSessionStore()
-
-        if (authSessionStore.currentUser) {
-          authSessionStore.handleUnauthorized()
-        } else {
-          resetTravelRecordsForSessionBoundary()
-        }
-
-        return true
-      }
-
-      resetTravelRecordsForSessionBoundary()
-      return false
-    }
-  }
 
   function replaceTravelRecords(records: TravelRecord[]) {
     travelRecords.value = [...records]
@@ -542,7 +512,6 @@ export const useMapPointsStore = defineStore('map-points', () => {
     activeBoundaryCoverageState,
     summarySurfaceState,
     selectedBoundaryId,
-    bootstrapFromApi,
     replaceTravelRecords,
     applyAuthoritativeTravelRecords,
     resetTravelRecordsForSessionBoundary,

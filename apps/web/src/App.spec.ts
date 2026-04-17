@@ -16,7 +16,6 @@ const authApiMock = vi.hoisted(() => ({
 }))
 
 const recordsApiMock = vi.hoisted(() => ({
-  fetchTravelRecords: vi.fn<() => Promise<TravelRecord[]>>(),
   createTravelRecord: vi.fn(),
   deleteTravelRecord: vi.fn(),
 }))
@@ -29,7 +28,6 @@ vi.mock('./services/api/auth', () => ({
 }))
 
 vi.mock('./services/api/records', () => ({
-  fetchTravelRecords: recordsApiMock.fetchTravelRecords,
   createTravelRecord: recordsApiMock.createTravelRecord,
   deleteTravelRecord: recordsApiMock.deleteTravelRecord,
 }))
@@ -87,8 +85,6 @@ describe('App auth shell', () => {
     authApiMock.loginWithPassword.mockReset()
     authApiMock.logoutCurrentSession.mockReset()
     authApiMock.registerWithPassword.mockReset()
-    recordsApiMock.fetchTravelRecords.mockReset()
-    recordsApiMock.fetchTravelRecords.mockResolvedValue([])
     recordsApiMock.createTravelRecord.mockReset()
     recordsApiMock.deleteTravelRecord.mockReset()
   })
@@ -213,7 +209,6 @@ describe('App auth shell', () => {
     await flushPromises()
 
     expect(wrapper.get('[data-region="map-stage"]').text()).toContain('Map Stage 1 true')
-    expect(recordsApiMock.fetchTravelRecords).not.toHaveBeenCalled()
   })
 
   it('mounts the local import decision dialog when pendingLocalImportDecision exists', async () => {

@@ -6,12 +6,6 @@ import type {
 } from '@trip-map/contracts'
 import { apiFetchJson } from './client'
 
-export async function fetchTravelRecords(): Promise<TravelRecord[]> {
-  return apiFetchJson<TravelRecord[]>('/records', {
-    method: 'GET',
-  })
-}
-
 export async function createTravelRecord(
   request: CreateTravelRecordRequest,
 ): Promise<TravelRecord> {

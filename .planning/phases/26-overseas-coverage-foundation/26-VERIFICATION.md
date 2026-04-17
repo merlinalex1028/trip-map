@@ -1,27 +1,33 @@
 ---
 phase: 26-overseas-coverage-foundation
-verified: 2026-04-16T09:13:55Z
-status: human_needed
+verified: 2026-04-17T03:45:50Z
+status: passed
 score: 11/11 must-haves verified
 overrides_applied: 0
 human_verification:
   - test: "点击支持国家的 admin1（如 Tokyo / Gangwon / Dubai）"
     expected: "popup 直接进入正常详情态，点亮按钮可用，点亮后刷新或重新 bootstrap 仍显示相同标题/类型/副标题"
     why_human: "需要真实浏览器中的地图点击、popup 呈现与交互节奏确认；自动化测试只覆盖了代码路径和接口语义"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
   - test: "点击未支持的海外地区（如 British Columbia / Vancouver）"
     expected: "popup 内出现“暂不支持点亮”说明，按钮保留但禁用，页面不弹全局 interactionNotice"
     why_human: "是否‘清楚可解释’属于真实 UI/UX 体验判断，需人工确认文案位置、可见性和理解成本"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
   - test: "检查 disabled CTA 的文案、顺序和无障碍表现"
     expected: "unsupported notice 位于 boundary-missing notice 之前，按钮 title/aria-label 均为“该地点暂不支持点亮”"
     why_human: "视觉顺序、屏幕阅读器体验和浏览器原生 tooltip 呈现无法仅靠当前自动化完全替代"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
 ---
 
 # Phase 26: Overseas Coverage Foundation Verification Report
 
 **Phase Goal:** 用户可以在一组优先海外国家/地区获得更实用且可解释的 admin1 点亮体验
-**Verified:** 2026-04-16T09:13:55Z
-**Status:** human_needed
-**Re-verification:** No — initial verification
+**Verified:** 2026-04-17T03:45:50Z
+**Status:** passed
+**Re-verification:** Yes — 用户已确认支持/未支持海外区域点击体验与 disabled CTA/a11y 验收通过，人工验收于 2026-04-17 完成闭环。
 
 ## Goal Achievement
 
@@ -113,29 +119,29 @@ human_verification:
 | --- | --- | --- | --- | --- |
 | - | - | 未发现阻塞型或警告级 stub / placeholder / orphaned wiring | ℹ️ Info | 扫描到的 `null` / `[]` / `console.log` 均为初始状态或 CLI 输出，不构成空实现 |
 
-### Human Verification Required
+### Human Verification Outcome
 
 ### 1. 支持国家真实点亮
 
 **Test:** 登录后点击 `Tokyo`、`Gangwon` 或 `Dubai` 对应 admin1 区域，再点击 popup 中的“点亮”按钮。  
 **Expected:** 直接进入普通详情态，不经过 candidate-select；点亮成功后刷新页面或重新打开应用仍看到相同标题/类型/副标题。  
-**Why human:** 自动化已覆盖 resolve、保存和 bootstrap，但真实地图点选、Leaflet popup 位置与用户感知节奏仍需人工确认。
+**Result:** User approved on 2026-04-17. 支持国家 admin1 点击会直接进入正常详情链路，点亮后刷新/重开保持一致。
 
 ### 2. 未支持海外地区 popup-only 解释
 
 **Test:** 点击 `British Columbia` / `Vancouver` 一类支持面外地区。  
 **Expected:** popup 中出现“已识别到该地区 / 当前暂不支持点亮”的说明；按钮保留在原位但禁用；页面不出现全局 `interactionNotice`。  
-**Why human:** “解释是否清楚”与“是否误解为点击失效”属于体验判断，需人眼确认。
+**Result:** User approved on 2026-04-17. 未支持海外地区会在 popup 内给出清楚说明，且不会误走全局 `interactionNotice`。
 
 ### 3. 无障碍与说明顺序
 
 **Test:** 用浏览器检查 disabled 按钮的 `title`/`aria-label`，并确认 unsupported notice 在 boundary-missing notice 之前。  
 **Expected:** `title` 与 `aria-label` 都是“该地点暂不支持点亮”，且 unsupported 文案优先呈现。  
-**Why human:** 浏览器原生 tooltip、读屏器表现和视觉层级无法只靠现有 Vitest 完整覆盖。
+**Result:** User approved on 2026-04-17. disabled CTA 的 `title`/`aria-label` 与 notice 顺序都符合预期。
 
 ### Gaps Summary
 
-自动化层面未发现阻塞 Phase 26 目标达成的代码缺口，11/11 个 must-haves 均已验证。当前剩余的是必须人工完成的 UI/交互验收，因此状态为 `human_needed`，而不是 `passed`。
+自动化层面未发现阻塞 Phase 26 目标达成的代码缺口，11/11 个 must-haves 均已验证。此前唯一剩余的是 UI/交互人工验收；现在这些验收已由用户确认通过，因此 Phase 26 可正式标记为 `passed`。
 
 补充的非阻塞测试风险：
 - `LeafletMapStage.spec.ts` 的“single resolved overseas hit”用的是 California 路径，说明 direct-resolve 节奏已锁住，但浏览器中仍建议手动再点一次 Tokyo / Gangwon 这类本阶段新增国家。
@@ -143,5 +149,5 @@ human_verification:
 
 ---
 
-_Verified: 2026-04-16T09:13:55Z_  
+_Verified: 2026-04-17T03:45:50Z_  
 _Verifier: Claude (gsd-verifier)_

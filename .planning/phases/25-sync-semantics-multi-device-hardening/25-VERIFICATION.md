@@ -1,27 +1,33 @@
 ---
 phase: 25-sync-semantics-multi-device-hardening
-verified: 2026-04-15T07:16:18Z
-status: human_needed
+verified: 2026-04-17T03:45:50Z
+status: passed
 score: 9/9 must-haves verified
 overrides_applied: 0
 human_verification:
   - test: "同账号双窗口：A 点亮后切回 B 触发 foreground refresh"
     expected: "B 自动显示已点亮，A/B 都不出现“已切换到 ...”提示或匿名清场。"
     why_human: "真实浏览器 focus/visibility 时序、cookie 会话与网络时延需要在双窗口 UAT 中最终确认。"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
   - test: "同账号双窗口：A 取消点亮后切回 B，并在 B 的 stale 状态下再次取消点亮"
     expected: "B 自动收敛为未点亮；再次取消不出现假失败，提示仍区分成功、普通失败与需要重新登录。"
     why_human: "这是跨窗口时序与真实后端会话共同作用的用户流，自动化 store/spec 只能覆盖近似竞态。"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
   - test: "DB 可达环境重跑 server sync e2e"
     expected: "`pnpm --filter @trip-map/server test -- test/records-sync.e2e-spec.ts test/records-travel.e2e-spec.ts` 通过。"
     why_human: "当前环境无法连接 aws-1-ap-southeast-1.pooler.supabase.com:5432，不应把环境限制误判为代码回归。"
+    status: approved
+    approved_at: 2026-04-17T03:45:50Z
 ---
 
 # Phase 25: Sync Semantics & Multi-Device Hardening Verification Report
 
 **Phase Goal:** 用户在多设备上看到稳定一致的账号记录，并能明确理解同步成功、失败与重新登录边界  
-**Verified:** 2026-04-15T07:16:18Z  
-**Status:** human_needed  
-**Re-verification:** No — 本次为对 gap closure 后最终代码状态的完整重验；先前 `25-VERIFICATION.md` 时间戳早于 `25-UAT.md` blocker 诊断与 `25-04-SUMMARY.md` 完成时间，已失效。
+**Verified:** 2026-04-17T03:45:50Z  
+**Status:** passed  
+**Re-verification:** Yes — 用户已确认双窗口同步链路与 DB 可达环境复跑均通过，人工验收于 2026-04-17 完成闭环。
 
 ## Goal Achievement
 
@@ -100,25 +106,25 @@ human_verification:
 | --- | --- | --- | --- | --- |
 | — | — | 未发现会阻塞本 phase 目标的 TODO、placeholder、空实现或断线 stub | ℹ️ Info | grep 命中的 `return null` 仅是正常数据查询 fallback，不流向用户可见占位输出。 |
 
-### Human Verification Required
+### Human Verification Outcome
 
 ### 1. 双窗口点亮最终一致
 
 **Test:** 同账号打开 A/B 两个窗口；A 点亮一个当前未点亮地点；切到 B 并让页面重新获得焦点。  
 **Expected:** B 自动显示该地点已点亮；A/B 都不出现“已切换到 ...”或匿名清场。  
-**Why human:** 真实浏览器 focus/visibility 触发时序、cookie 会话与网络时延需要最终 UAT 确认。
+**Result:** User approved on 2026-04-17. 双窗口前台切换后，B 窗口会按预期收敛到 authoritative 已点亮状态。
 
 ### 2. 双窗口取消点亮与 stale delete
 
 **Test:** 同账号打开 A/B 两个窗口；确保同一地点已点亮；A 取消点亮后切到 B 并重新聚焦；如 B 仍保留旧状态，再次取消点亮。  
 **Expected:** B 自动收敛为未点亮；再次取消不出现假失败，成功/失败/重新登录提示仍可区分。  
-**Why human:** 这是跨窗口真实交互链路，自动化 store/spec 只能覆盖近似并发，不等于最终 UAT。
+**Result:** User approved on 2026-04-17. stale delete 与重复取消点亮没有再出现假失败，提示分流符合预期。
 
 ### 3. DB 可达环境下的 server e2e
 
 **Test:** 在可访问 `DATABASE_URL` 的环境中运行 `pnpm --filter @trip-map/server test -- test/records-sync.e2e-spec.ts test/records-travel.e2e-spec.ts`。  
 **Expected:** multi-session create/delete/bootstrap 语义通过真实数据库回归。  
-**Why human:** 当前验证环境无法连接 `aws-1-ap-southeast-1.pooler.supabase.com:5432`，这属于环境限制而非已证实的代码回归。
+**Result:** User approved on 2026-04-17. 在数据库可达环境中复跑 `records-sync.e2e-spec.ts` / `records-travel.e2e-spec.ts` 已通过。
 
 ### Gaps Summary
 
@@ -129,9 +135,9 @@ human_verification:
 - `map-points.illuminate()` 成功后改为按 `placeId` upsert authoritative record，避免 optimistic row 被并发 refresh 删除后写不回来。
 - `auth-session.spec.ts`、`map-points.spec.ts`、`App.spec.ts` 已补上 overlap / concurrent / foreground refresh 回归并在当前环境通过。
 
-四份 plan summary 与当前代码/测试基本一致；真正不一致的是旧版 `25-VERIFICATION.md`，它早于 gap closure，且未保留人工/环境复核项，因此本报告予以覆盖。
+四份 plan summary 与当前代码/测试基本一致；此前唯一剩余的是人工/环境复核项。现在这些复核已由用户确认通过，因此 Phase 25 可正式收口为 `passed`。
 
 ---
 
-_Verified: 2026-04-15T07:16:18Z_  
+_Verified: 2026-04-17T03:45:50Z_  
 _Verifier: Codex (gsd-verifier)_
