@@ -2,33 +2,23 @@
 
 ## What This Is
 
-一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统离线判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
+一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v4.0` 已交付：前端现在采用 Tailwind v4 + Nunito Variable + Kawaii 视觉主路径，App shell、popup 与 summary card 已统一到可审计的 pastel / pill / floating-cloud 风格，同时保留既有 Leaflet 地图主舞台与真实地点记录链路。
+`v5.0` 已交付：应用现在已经具备邮箱密码账号、`sid` 会话恢复、账号归属 records 真源、首次登录本地记录导入、same-user 多设备同步语义，以及 8 国 overseas admin1 覆盖与未支持地区 popup 解释链路，同时保留 Tailwind v4 + Nunito + Kawaii 的现有地图主舞台体验。
 
 ## Core Value
 
 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
 
-## Current Milestone: v5.0 账号体系与云同步基础版
-
-**Goal:** 让用户从本地单机旅行地图升级到可登录、可跨设备同步旅行记录的旅行地图。
-
-**Target features:**
-- 用户可以注册、登录、退出，并拥有独立账号身份
-- 旅行记录与账号绑定，刷新或更换设备后仍能看到同一份点亮记录
-- 在现有中国 + 海外行政区链路上继续扩展海外可识别/可点亮覆盖
-- 清理会直接阻塞账号化、同步和覆盖扩展落地的技术债
-
 ## Current State
 
+- **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
-- **Phase 23 已于 2026-04-14 完成**：11 plans 全部执行并通过自动化复验与人工确认，账号注册/登录/退出、会话恢复、账号归属 records 真源与 gap closure 均已闭环
-- **Phase 24 已于 2026-04-15 完成**：本地旧记录导入决策、会话边界清理与首登迁移链路已闭环
-- **Phase 25 已于 2026-04-15 完成**：same-user 多设备同步语义、foreground refresh 与点亮/取消点亮竞态已稳定
-- **Phase 26 已于 2026-04-16 完成**：优先海外国家 admin1 覆盖、持久化文本真源回放与未支持地区 popup 解释链路已落地
-- **v5.0 的 4 个 phases（23-26）均已完成执行**：17/17 requirements satisfied，当前等待 milestone 级 audit / 归档
+- 用户现在可注册、登录、退出，并通过 `sid` cookie 会话恢复到同一账号
+- 旅行记录已经绑定到账号，支持首次登录本地记录导入、cloud-wins 与切账号边界清理
+- same-user 多设备点亮/取消点亮、foreground refresh 与 notice 分流已经闭环
+- 8 国 overseas admin1 authoritative support catalog、persisted metadata replay 与 unsupported popup feedback 已经落地
 - 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
 - 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
@@ -36,21 +26,28 @@
 
 ## Next Milestone Goals
 
-- 完成账号体系与跨设备同步闭环，把“本地单机”升级为“账号化记录”
-- 扩展海外行政区覆盖，让同步后的旅行记录在更多海外地点可识别、可点亮
-- 只清理会直接阻塞账号化、同步和覆盖扩展的技术债
+- 引入 Apple / Google 等第三方登录，补全更低摩擦的账号接入路径
+- 增加最近同步时间、同步历史与更完整的同步状态可见性
+- 提供国家/地区完成度与基础旅行统计
+- 把 overseas 覆盖从首批 admin1 扩展到更广国家或更细粒度层级
+- 评估分享与协作能力是否进入下一个 milestone
 
 ## Requirements
 
 ### Active
 
-- 暂无新增 active requirement；`v5.0` 四个 phases 已执行完成，等待里程碑级审计与下一 milestone 定义
+- `AUTH-06`: 用户可以使用 Apple / Google 等第三方账号登录
+- `SYNC-06`: 用户可以看到最近同步时间与更完整的同步历史
+- `STAT-01`: 用户可以查看国家/地区完成度和基础旅行统计
+- `GEOX-01`: 海外覆盖从 admin1 继续扩展到更广泛国家或更细粒度层级
+- `SHARE-01`: 用户可以分享自己的旅行地图或与他人协作
 
 ### Validated
 
-- ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — Phase 23
-- ✓ 旅行记录已绑定到账号，并可通过会话恢复重新加载同一份账号记录 — Phase 23
-- ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — Phase 26
+- ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — v5.0 / Phase 23
+- ✓ 旅行记录与账号绑定，刷新或更换设备后仍能恢复到同一份账号记录 — v5.0 / Phase 23-25
+- ✓ 首次登录本地导入、本地/云端二选一与切账号边界清理已经闭环 — v5.0 / Phase 24
+- ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — v5.0 / Phase 26
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -65,6 +62,17 @@
 - 更广泛海外国家支持与更细粒度层级覆盖 — 留待下一 milestone 明确定义范围
 
 ## Archived Milestone Snapshots
+
+<details>
+<summary>v5.0 账号体系与云同步基础版 (Phases 23-26)</summary>
+
+- 邮箱密码账号、`sid` 会话恢复与 current-user records ownership 已正式交付
+- 首登本地导入、cloud-wins 与 logout / switch-account / unauthorized 边界清理已闭环
+- same-user 多设备同步、foreground refresh 与 overlap 竞态已收口
+- 8 国 overseas admin1 authoritative support catalog、persisted metadata replay 与 unsupported popup feedback 已落地
+- 17/17 requirements satisfied，v5.0 milestone audit `passed`
+
+</details>
 
 <details>
 <summary>v4.0 Kawaii UI 重构 & Tailwind 集成 (Phases 19-22)</summary>
@@ -125,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-16 — after Phase 26 human verification approval*
+*Last updated: 2026-04-17 — after v5.0 milestone archive*

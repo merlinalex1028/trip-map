@@ -1,5 +1,19 @@
 # Milestones
 
+## v5.0 账号体系与云同步基础版 (Shipped: 2026-04-17)
+
+**Phases completed:** 4 phases, 22 plans, 26 tasks
+
+**Key accomplishments:**
+
+- 邮箱密码账号、`sid` 会话恢复和 current-user ownership 真源已经闭环，用户现在可以稳定注册、登录、退出并恢复到同一账号。
+- 首次登录本地记录导入、cloud-wins 和 logout / switch-account / unauthorized 会话边界清理已经闭环。
+- same-user 多设备同步、foreground refresh、点亮/取消点亮重叠竞态与 success / warning / unauthorized 提示语义已经收口。
+- 8 国 overseas admin1 authoritative support catalog、persisted metadata replay 与 unsupported popup feedback 已落地。
+- v5.0 milestone audit 已通过，17/17 requirements satisfied，web runtime 旧 `/records` restore helper 也已清理。
+
+---
+
 ## v4.0 Kawaii UI 重构 & Tailwind 集成 (Shipped: 2026-04-10)
 
 **Phases completed:** 4 phases, 11 plans, 19 tasks
