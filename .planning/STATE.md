@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: ready_for_phase_planning
-stopped_at: v6.0 roadmap created
-last_updated: "2026-04-17T09:05:00Z"
-last_activity: 2026-04-17
+milestone: v1.0
+milestone_name: milestone
+status: requirements and roadmap defined
+stopped_at: Phase 27 context gathered
+last_updated: "2026-04-17T10:35:33.147Z"
+last_activity: 2026-04-17 — v6.0 roadmap created
 progress:
   total_phases: 4
   completed_phases: 0
@@ -85,9 +85,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T17:05:00+08:00
-Stopped at: v6.0 roadmap created
-Resume file: None
+Last session: 2026-04-17T10:35:33.143Z
+Stopped at: Phase 27 context gathered
+Resume file: .planning/phases/27-multi-visit-record-foundation/27-CONTEXT.md
 
 ---
 *Last updated: 2026-04-17 — after v6.0 roadmap creation*
