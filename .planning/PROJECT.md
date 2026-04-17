@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v5.0` 已交付：应用现在已经具备邮箱密码账号、`sid` 会话恢复、账号归属 records 真源、首次登录本地记录导入、same-user 多设备同步语义，以及 8 国 overseas admin1 覆盖与未支持地区 popup 解释链路，同时保留 Tailwind v4 + Nunito + Kawaii 的现有地图主舞台体验。
+`v6.0` 启动中：产品接下来会把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，围绕旅行时间、独立时间轴页面、基础统计和更广海外覆盖继续演进，同时保留现有账号、同步与 Kawaii 地图主舞台体验。
 
 ## Core Value
 
@@ -12,6 +12,7 @@
 
 ## Current State
 
+- **v6.0 已启动（待进入 Phase 27）**：本轮聚焦旅行时间、时间轴、统计与 overseas 覆盖增强，准备把单次点亮模型升级为可承载多次旅行记录的历史模型
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
@@ -24,23 +25,29 @@
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
 
-## Next Milestone Goals
+## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
 
-- 引入 Apple / Google 等第三方登录，补全更低摩擦的账号接入路径
-- 增加最近同步时间、同步历史与更完整的同步状态可见性
+**Goal:** 让用户能够记录每次旅行发生的时间、在同一地点保存多次去访记录，并通过独立时间轴页面与基础统计回看自己的旅行历史，同时把 overseas 覆盖扩展到更广的优先国家/地区。
+
+**Target features:**
+- 点亮地点时可选择旅行时间
+- 同一地点支持多次点亮，代表多次去访
+- 用户可从用户名面板进入独立时间轴页面
+- 时间轴页面按时间顺序展示个人旅行记录
 - 提供国家/地区完成度与基础旅行统计
-- 把 overseas 覆盖从首批 admin1 扩展到更广国家或更细粒度层级
-- 评估分享与协作能力是否进入下一个 milestone
+- 把 overseas 覆盖扩展到更广的优先国家/地区
 
 ## Requirements
 
 ### Active
 
-- `AUTH-06`: 用户可以使用 Apple / Google 等第三方账号登录
-- `SYNC-06`: 用户可以看到最近同步时间与更完整的同步历史
-- `STAT-01`: 用户可以查看国家/地区完成度和基础旅行统计
-- `GEOX-01`: 海外覆盖从 admin1 继续扩展到更广泛国家或更细粒度层级
-- `SHARE-01`: 用户可以分享自己的旅行地图或与他人协作
+- `TRIP-01`: 用户点亮地点时可以选择旅行日期
+- `TRIP-02`: 用户可以为同一地点保存多次旅行记录
+- `TRIP-03`: 用户可以从用户名面板进入独立时间轴页面，并按时间顺序查看旅行历史
+- `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数
+- `STAT-02`: 用户可以查看国家/地区完成度
+- `GEOX-01`: 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行
+- `GEOX-02`: 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类
 
 ### Validated
 
@@ -56,10 +63,14 @@
 
 ### Out of Scope
 
-- 后端逻辑大改 — 下一 milestone 再评估
+- 第三方 OAuth 登录与账号接入增强 — 本轮重点转向旅行记录表达与统计，不扩展登录体系
+- 同步历史、最近同步时间与更完整的同步状态可见性 — 本轮不处理同步可观察性增强
+- 分享、公开主页与协作能力 — 会引入权限与隐私模型，超出本轮单用户旅行表达范围
+- 旅行照片、游记正文与富文本内容 — 当前只承载旅行时间和基础统计，不做内容社区化
+- 自动轨迹、GPS 采集或外部行程导入 — 偏离当前“手动点亮 + 主动记录”的产品主线
 - Dark mode — 目前仍非优先项
 - JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
-- 更广泛海外国家支持与更细粒度层级覆盖 — 留待下一 milestone 明确定义范围
+- 全球城市级统一覆盖 — 范围过大，v6.0 先扩展优先海外国家/地区的 admin1 能力
 
 ## Archived Milestone Snapshots
 
@@ -133,4 +144,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 — after v5.0 milestone archive*
+*Last updated: 2026-04-17 — after v6.0 milestone initialization*

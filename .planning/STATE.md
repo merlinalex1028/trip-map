@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: archived
-stopped_at: v5.0 milestone archived
-last_updated: "2026-04-17T16:05:00Z"
+milestone: v6.0
+milestone_name: 旅行统计、时间轴与海外覆盖增强版
+status: ready_for_phase_planning
+stopped_at: v6.0 milestone initialized
+last_updated: "2026-04-17T08:45:00Z"
 last_activity: 2026-04-17
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** define the next milestone after v5.0 shipment
+**Current focus:** v6.0 已初始化，下一步进入 Phase 27 规划与实现
 
 ## Current Position
 
-Milestone: none active
+Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Status: v5.0 archived after completion
-Last activity: 2026-04-17
+Phase: Not started (ready for Phase 27 discussion)
+Plan: —
+Status: requirements and roadmap defined
+Last activity: 2026-04-17 — v6.0 initialized
 
 Progress: [----------] 0%
 
@@ -38,27 +40,27 @@ Progress: [----------] 0%
 
 - Last shipped milestone: v5.0
 - Archived scope: 4 phases / 22 plans / 26 tasks
-- Ready for next milestone definition
+- Current roadmap: 4 planned phases (27-30)
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 23 | 11 | - | - |
-| 24 | 4 | - | - |
-| 25 | 4 | - | - |
-| 26 | 3 | - | - |
+| 27 | 0 | - | - |
+| 28 | 0 | - | - |
+| 29 | 0 | - | - |
+| 30 | 0 | - | - |
 
 **Recent Trend:**
 
-- Last 5 plans: 25-04, 26-01, 26-02, 26-03, milestone archive
-- Trend: Stable
+- Last 5 milestones/actions: v5.0 archive, v6.0 init, requirements definition, roadmap creation pending execution, Phase 27 next
+- Trend: Scope reset for next delivery loop
 
-| Phase 25 P04 | 6m | 2 tasks | 5 files |
-| Phase 26 P01 | 10m | 2 tasks | 6 files |
-| Phase 26 P03 | 10m | 2 tasks | 5 files |
-| Phase 26 P02 | 43m | 2 tasks | 8 files |
-| Archive | - | - | - |
+| Phase 27 | pending | - | - |
+| Phase 28 | pending | - | - |
+| Phase 29 | pending | - | - |
+| Phase 30 | pending | - | - |
+| Init | complete | docs | 4 files |
 
 ## Accumulated Context
 
@@ -79,13 +81,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- 当前无 phase 级 blocker；下一步应定义新的 milestone requirements 与 roadmap。
+- 当前无 phase 级 blocker；下一步进入 Phase 27 的 discuss / plan 流程。
 
 ## Session Continuity
 
-Last session: 2026-04-17T15:21:35+08:00
-Stopped at: v5.0 milestone archived
+Last session: 2026-04-17T16:45:00+08:00
+Stopped at: v6.0 milestone initialized
 Resume file: None
 
 ---
-*Last updated: 2026-04-17 — after v5.0 milestone archive*
+*Last updated: 2026-04-17 — after v6.0 milestone initialization*
