@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
 status: ready_for_phase_planning
-stopped_at: v6.0 milestone initialized
-last_updated: "2026-04-17T08:45:00Z"
+stopped_at: v6.0 roadmap created
+last_updated: "2026-04-17T09:05:00Z"
 last_activity: 2026-04-17
 progress:
   total_phases: 4
@@ -30,7 +30,7 @@ Last shipped milestone: v5.0 — 账号体系与云同步基础版
 Phase: Not started (ready for Phase 27 discussion)
 Plan: —
 Status: requirements and roadmap defined
-Last activity: 2026-04-17 — v6.0 initialized
+Last activity: 2026-04-17 — v6.0 roadmap created
 
 Progress: [----------] 0%
 
@@ -53,7 +53,7 @@ Progress: [----------] 0%
 
 **Recent Trend:**
 
-- Last 5 milestones/actions: v5.0 archive, v6.0 init, requirements definition, roadmap creation pending execution, Phase 27 next
+- Last 5 milestones/actions: v5.0 archive, v6.0 init, requirements definition, roadmap created, Phase 27 next
 - Trend: Scope reset for next delivery loop
 
 | Phase 27 | pending | - | - |
@@ -85,9 +85,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-17T16:45:00+08:00
-Stopped at: v6.0 milestone initialized
+Last session: 2026-04-17T17:05:00+08:00
+Stopped at: v6.0 roadmap created
 Resume file: None
 
 ---
-*Last updated: 2026-04-17 — after v6.0 milestone initialization*
+*Last updated: 2026-04-17 — after v6.0 roadmap creation*

@@ -48,6 +48,7 @@
 | 同步历史 / 最近同步时间 | 本轮不处理同步可观察性增强 |
 | 分享、公开主页与协作 | 会引入权限、隐私与分享模型，超出当前单用户范围 |
 | 旅行照片、游记正文、标签收藏 | 当前只承载旅行日期、统计和时间轴，不做内容化扩展 |
+| 单条旅行记录编辑 / 局部删除 | v6.0 先闭环新增与展示，地点级取消点亮语义暂不细化到单条记录 |
 | 自动轨迹、GPS 采集或第三方行程导入 | 偏离“用户主动点亮并记录”的主线，复杂度过高 |
 | 全球城市级统一覆盖 | 范围过大，v6.0 先扩展优先海外国家/地区 admin1 |
 
@@ -55,22 +56,22 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRIP-01 | TBD | Pending roadmap |
-| TRIP-02 | TBD | Pending roadmap |
-| TRIP-03 | TBD | Pending roadmap |
-| TRIP-04 | TBD | Pending roadmap |
-| TRIP-05 | TBD | Pending roadmap |
-| STAT-01 | TBD | Pending roadmap |
-| STAT-02 | TBD | Pending roadmap |
-| STAT-03 | TBD | Pending roadmap |
-| GEOX-01 | TBD | Pending roadmap |
-| GEOX-02 | TBD | Pending roadmap |
+| TRIP-01 | Phase 27 | Pending |
+| TRIP-02 | Phase 27 | Pending |
+| TRIP-03 | Phase 27 | Pending |
+| TRIP-04 | Phase 29 | Pending |
+| TRIP-05 | Phase 29 | Pending |
+| STAT-01 | Phase 30 | Pending |
+| STAT-02 | Phase 30 | Pending |
+| STAT-03 | Phase 30 | Pending |
+| GEOX-01 | Phase 28 | Pending |
+| GEOX-02 | Phase 28 | Pending |
 
 **Coverage:**
 - v6.0 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10 ⚠️
+- Mapped to phases: 10
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-17 — after v6.0 initial definition*
+*Last updated: 2026-04-17 — after v6.0 roadmap creation*
