@@ -3,10 +3,11 @@ import { ApiProperty } from '@nestjs/swagger'
 
 import type {
   ChinaAdminType,
+  CreateTravelRecordRequest,
   PlaceKind,
 } from '@trip-map/contracts'
 
-export class CreateTravelRecordDto {
+export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -62,10 +63,10 @@ export class CreateTravelRecordDto {
   @ApiProperty({ nullable: true, example: '2025-10-01', required: false })
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'startDate must be YYYY-MM-DD' })
-  startDate?: string | null
+  startDate!: string | null
 
   @ApiProperty({ nullable: true, example: '2025-10-07', required: false })
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'endDate must be YYYY-MM-DD' })
-  endDate?: string | null
+  endDate!: string | null
 }
