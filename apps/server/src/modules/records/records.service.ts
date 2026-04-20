@@ -74,15 +74,16 @@ export class RecordsService {
 
   async createTravel(userId: string, input: CreateTravelRecordDto): Promise<ContractTravelRecord> {
     this.assertAuthoritativeOverseasRecord(input)
-    if (input.startDate && input.endDate && input.endDate < input.startDate) {
-      throw new BadRequestException('endDate must be >= startDate')
-    }
+    this.assertValidDateRange(input)
     const record = await this.recordsRepository.createTravelRecord(userId, input)
     return toContractTravelRecord(record)
   }
 
   async importTravel(userId: string, input: ImportTravelRecordsDto): Promise<ImportTravelRecordsResponse> {
-    input.records.forEach(record => this.assertAuthoritativeOverseasRecord(record))
+    input.records.forEach(record => {
+      this.assertAuthoritativeOverseasRecord(record)
+      this.assertValidDateRange(record)
+    })
     const result = await this.recordsRepository.importTravelRecords(userId, input.records)
 
     return {
@@ -95,6 +96,14 @@ export class RecordsService {
 
   async deleteTravel(userId: string, placeId: string): Promise<void> {
     await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
+  }
+
+  private assertValidDateRange(
+    input: Pick<CreateTravelRecordDto, 'startDate' | 'endDate'>,
+  ): void {
+    if (input.startDate && input.endDate && input.endDate < input.startDate) {
+      throw new BadRequestException('endDate must be >= startDate')
+    }
   }
 
   private assertAuthoritativeOverseasRecord(input: CreateTravelRecordDto): void {
