@@ -477,7 +477,18 @@ const activePointLatestTripLabel = computed<string | null>(() => {
   const realRecords = records.filter((record) => !record.id.startsWith('pending-'))
   if (realRecords.length === 0) return null
 
-  const latest = [...realRecords].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+  // 只从『有日期』的记录里选最近一次（D-08：日期未知记录不参与排序）。
+  // 排序键：优先 endDate（旅行结束），其次 startDate（单日旅行 / 未填结束日期）。
+  // YYYY-MM-DD 字典序 = 时间序，无需 Date 对象。
+  const datedRecords = realRecords.filter((record) => record.startDate !== null)
+  if (datedRecords.length === 0) return null
+
+  const getLatestTripSortKey = (record: typeof datedRecords[number]): string =>
+    record.endDate ?? record.startDate ?? ''
+
+  const latest = [...datedRecords].sort((a, b) =>
+    getLatestTripSortKey(b).localeCompare(getLatestTripSortKey(a)),
+  )[0]
   if (!latest || latest.startDate === null) return null
 
   return latest.endDate ? `${latest.startDate} - ${latest.endDate}` : latest.startDate
