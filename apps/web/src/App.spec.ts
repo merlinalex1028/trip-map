@@ -187,6 +187,8 @@ describe('App auth shell', () => {
       typeLabel: '直辖市' as const,
       parentLabel: '中国' as const,
       subtitle: '中国 · 直辖市',
+      startDate: null,
+      endDate: null,
       createdAt: '2026-04-12T00:00:00.000Z',
     }
 
@@ -364,6 +366,8 @@ describe('App auth shell', () => {
           typeLabel: 'State',
           parentLabel: 'United States',
           subtitle: 'United States · State',
+          startDate: null,
+          endDate: null,
           createdAt: '2026-04-12T00:00:00.000Z',
         },
       ])
@@ -431,6 +435,8 @@ describe('App auth shell', () => {
       typeLabel: '直辖市',
       parentLabel: '中国',
       subtitle: '中国 · 直辖市',
+      startDate: null,
+      endDate: null,
       createdAt: '2026-04-12T00:00:00.000Z',
     }
     const { wrapper } = mountApp((store) => {
@@ -466,6 +472,8 @@ describe('App auth shell', () => {
       typeLabel: authoritativeRecord.typeLabel,
       parentLabel: authoritativeRecord.parentLabel,
       subtitle: authoritativeRecord.subtitle,
+      startDate: null,
+      endDate: null,
     })
 
     resolveBootstrap({

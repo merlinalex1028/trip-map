@@ -152,6 +152,8 @@ function makeRecord(place: typeof PHASE12_RESOLVED_BEIJING) {
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
+    startDate: null,
+    endDate: null,
     createdAt: new Date().toISOString(),
   }
 }
@@ -953,7 +955,11 @@ describe('LeafletMapStage', () => {
       expect(mapPointsStore.selectedBoundaryId).toBeNull()
 
       // Re-select by illuminating again
-      mapPointsStore.illuminate(PHASE12_RESOLVED_BEIJING)
+      mapPointsStore.illuminate({
+        ...PHASE12_RESOLVED_BEIJING,
+        startDate: null,
+        endDate: null,
+      })
       await nextTick()
       expect(mapPointsStore.selectedBoundaryId).toBe(PHASE12_RESOLVED_BEIJING.boundaryId)
     })

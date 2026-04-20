@@ -77,6 +77,8 @@ function makeRecord(
   place = PHASE12_RESOLVED_BEIJING,
   overrides: Partial<TravelRecord> = {},
 ): TravelRecord {
+  const { startDate, endDate, ...rest } = overrides
+
   return {
     id: `record-${place.placeId}`,
     placeId: place.placeId,
@@ -89,8 +91,10 @@ function makeRecord(
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
+    startDate: startDate ?? null,
+    endDate: endDate ?? null,
     createdAt: '2026-04-12T00:00:00.000Z',
-    ...overrides,
+    ...rest,
   }
 }
 
@@ -98,6 +102,8 @@ function makeLegacyImportRecord(
   place = PHASE12_RESOLVED_BEIJING,
   overrides: Partial<CreateTravelRecordRequest> = {},
 ): CreateTravelRecordRequest {
+  const { startDate, endDate, ...rest } = overrides
+
   return {
     placeId: place.placeId,
     boundaryId: place.boundaryId,
@@ -109,7 +115,9 @@ function makeLegacyImportRecord(
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
-    ...overrides,
+    startDate: startDate ?? null,
+    endDate: endDate ?? null,
+    ...rest,
   }
 }
 

@@ -71,6 +71,8 @@ function makeResolvedPlace(
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
+    startDate: null,
+    endDate: null,
   }
 }
 
@@ -889,7 +891,13 @@ describe('map-points store', () => {
           startDate: '2025-01-01',
         }),
       ])
-      createMock.mockRejectedValueOnce(new ApiClientError('boom'))
+      createMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 500,
+          code: 'http-error',
+          message: 'boom',
+        }),
+      )
 
       await store.illuminate({
         ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),

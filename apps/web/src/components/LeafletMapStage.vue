@@ -516,6 +516,8 @@ async function handleIlluminate() {
     typeLabel: point.typeLabel,
     parentLabel: point.parentLabel,
     subtitle: point.subtitle ?? point.cityContextLabel ?? '',
+    startDate: null,
+    endDate: null,
   })
 
   const entry = getGeometryManifestEntry(point.boundaryId)
