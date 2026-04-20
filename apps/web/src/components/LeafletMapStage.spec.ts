@@ -2,6 +2,7 @@ import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
   PHASE12_RESOLVED_CALIFORNIA,
+  type TravelRecord,
 } from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -11,6 +12,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { buildUnsupportedOverseasNotice } from '../constants/overseas-support'
 import LeafletMapStage from './LeafletMapStage.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
+import TripDateForm from './map-popup/TripDateForm.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
@@ -139,7 +141,10 @@ vi.mock('../services/api/records', () => ({
 // ---------------------------------------------------------------------------
 
 /** Build a travel record from a ResolvedCanonicalPlace */
-function makeRecord(place: typeof PHASE12_RESOLVED_BEIJING) {
+function makeRecord(
+  place: typeof PHASE12_RESOLVED_BEIJING,
+  overrides: Partial<TravelRecord> = {},
+): TravelRecord {
   return {
     id: `server-rec-${place.placeId}`,
     placeId: place.placeId,
@@ -155,6 +160,7 @@ function makeRecord(place: typeof PHASE12_RESOLVED_BEIJING) {
     startDate: null,
     endDate: null,
     createdAt: new Date().toISOString(),
+    ...overrides,
   }
 }
 
@@ -766,6 +772,11 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+      await wrapper.vm.$nextTick()
+
+      const tripForm = wrapper.findComponent(TripDateForm)
+      expect(tripForm.exists()).toBe(true)
+      await tripForm.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
       expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
@@ -795,6 +806,7 @@ describe('LeafletMapStage', () => {
       recordsApiMock.createTravelRecord.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
 
       const mapPointsStore = useMapPointsStore()
+      const illuminateSpy = vi.spyOn(mapPointsStore, 'illuminate')
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
@@ -803,8 +815,18 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+      await wrapper.vm.$nextTick()
+      const tripForm = wrapper.findComponent(TripDateForm)
+      expect(tripForm.exists()).toBe(true)
+      await tripForm.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
+      expect(illuminateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startDate: '2025-10-01',
+          endDate: null,
+        }),
+      )
       expect(geometryManifestMock.getGeometryManifestEntry).toHaveBeenCalledWith(
         PHASE12_RESOLVED_BEIJING.boundaryId,
       )
@@ -817,6 +839,65 @@ describe('LeafletMapStage', () => {
         tone: 'info',
         message: '已同步到当前账号。',
       })
+    })
+
+    it('re-records a visit from the "再记一次" CTA on an illuminated point', async () => {
+      const authSessionStore = useAuthSessionStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+
+      const mapPointsStore = useMapPointsStore()
+      const illuminateSpy = vi.spyOn(mapPointsStore, 'illuminate')
+      recordsApiMock.createTravelRecord.mockResolvedValueOnce(
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-rec-beijing-repeat',
+          startDate: '2025-11-05',
+          endDate: '2025-11-10',
+          createdAt: '2025-11-10T00:00:00.000Z',
+        }),
+      )
+
+      mapPointsStore.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          startDate: '2025-10-01',
+          endDate: null,
+          createdAt: '2025-10-01T00:00:00.000Z',
+        }),
+      ])
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+      await nextTick()
+      await flushPromises()
+
+      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 1 次')
+
+      await wrapper.get('[data-record-again]').trigger('click')
+      await wrapper.vm.$nextTick()
+
+      const tripForm = wrapper.findComponent(TripDateForm)
+      expect(tripForm.exists()).toBe(true)
+      await tripForm.vm.$emit('submit', {
+        startDate: '2025-11-05',
+        endDate: '2025-11-10',
+      })
+      await flushPromises()
+
+      expect(illuminateSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startDate: '2025-11-05',
+          endDate: '2025-11-10',
+        }),
+      )
+      expect(mapPointsStore.tripsByPlaceId.get(PHASE12_RESOLVED_BEIJING.placeId)).toHaveLength(2)
+      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 2 次')
     })
 
     it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {
@@ -892,7 +973,10 @@ describe('LeafletMapStage', () => {
       expect(wrapper.text()).toContain(buildUnsupportedOverseasNotice('British Columbia'))
       expect(mapUiStore.interactionNotice).toBeNull()
 
-      wrapper.getComponent(MapContextPopup).vm.$emit('illuminate')
+      wrapper.getComponent(MapContextPopup).vm.$emit('illuminate', {
+        startDate: '2025-10-01',
+        endDate: null,
+      })
       await nextTick()
 
       expect(mapUiStore.interactionNotice).toBeNull()
