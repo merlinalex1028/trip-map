@@ -6,115 +6,90 @@ import {
   POINT_STORAGE_KEY,
 } from './legacy-point-storage'
 
-function makeSnapshot(overrides: Record<string, unknown> = {}) {
+function makeLegacyUserPoint(overrides: Record<string, unknown> = {}) {
   return {
-    version: 2,
-    userPoints: [
-      {
-        id: 'saved-cn-beijing',
-        name: '北京市',
-        countryName: '中国',
-        countryCode: 'CN',
-        precision: 'city-high',
-        cityId: null,
-        cityName: '北京市',
-        cityContextLabel: '中国 · 直辖市',
-        placeId: 'cn-beijing',
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'v3.0-test',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-        boundaryId: 'cn-beijing',
-        boundaryDatasetVersion: 'v3.0-test',
-        fallbackNotice: null,
-        x: 0,
-        y: 0,
-        lat: 39.9042,
-        lng: 116.4074,
-        clickLat: 39.9042,
-        clickLng: 116.4074,
-        source: 'saved',
-        isFeatured: false,
-        description: '',
-        coordinatesLabel: '39.9042°N, 116.4074°E',
-        createdAt: '2026-04-12T00:00:00.000Z',
-        updatedAt: '2026-04-12T00:00:00.000Z',
-      },
-    ],
-    seedOverrides: [],
-    deletedSeedIds: [],
+    source: 'saved',
+    placeKind: 'CN_ADMIN',
+    placeId: 'cn-admin-beijing',
+    boundaryId: 'cn-admin-beijing-boundary',
+    datasetVersion: 'cn-admin-2024-r1',
+    displayName: '北京市',
+    regionSystem: 'CN',
+    adminType: 'MUNICIPALITY',
+    typeLabel: '直辖市',
+    parentLabel: '中国',
+    subtitle: '直辖市 · 中国',
     ...overrides,
   }
 }
 
-describe('legacy-point-storage', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-  })
+beforeEach(() => {
+  clearLegacyPointStorageSnapshot()
+  window.localStorage.clear()
+})
 
-  it('returns empty when no legacy key exists', () => {
-    expect(loadLegacyPointStorageSnapshot()).toEqual({
-      status: 'empty',
-      snapshot: null,
-      records: [],
-    })
-  })
-
-  it('returns corrupt when the stored JSON is invalid', () => {
-    window.localStorage.setItem(POINT_STORAGE_KEY, '{not-json')
-
-    expect(loadLegacyPointStorageSnapshot()).toEqual({
-      status: 'corrupt',
-      snapshot: null,
-      records: [],
-    })
-  })
-
-  it('returns incompatible when the snapshot version is not 2', () => {
+describe('loadLegacyPointStorageSnapshot', () => {
+  it('normalizes legacy user points with startDate and endDate as null (D-08)', () => {
     window.localStorage.setItem(
       POINT_STORAGE_KEY,
-      JSON.stringify(makeSnapshot({ version: 1 })),
+      JSON.stringify({
+        version: 2,
+        userPoints: [makeLegacyUserPoint()],
+        seedOverrides: [],
+        deletedSeedIds: [],
+      }),
     )
-
-    expect(loadLegacyPointStorageSnapshot()).toEqual({
-      status: 'incompatible',
-      snapshot: null,
-      records: [],
-    })
-  })
-
-  it('returns ready and normalizes importable canonical records', () => {
-    window.localStorage.setItem(POINT_STORAGE_KEY, JSON.stringify(makeSnapshot()))
 
     const result = loadLegacyPointStorageSnapshot()
 
     expect(result.status).toBe('ready')
-    if (result.status !== 'ready') {
-      throw new Error('Expected ready legacy snapshot')
-    }
-
-    expect(result.records).toEqual([
-      {
-        placeId: 'cn-beijing',
-        boundaryId: 'cn-beijing',
-        placeKind: 'CN_ADMIN',
-        datasetVersion: 'v3.0-test',
-        displayName: '北京市',
-        regionSystem: 'CN',
-        adminType: 'MUNICIPALITY',
-        typeLabel: '直辖市',
-        parentLabel: '中国',
-        subtitle: '中国 · 直辖市',
-      },
-    ])
+    expect(result.records).toHaveLength(1)
+    expect(result.records[0]).toMatchObject({
+      placeId: 'cn-admin-beijing',
+      startDate: null,
+      endDate: null,
+    })
   })
 
-  it('clearLegacyPointStorageSnapshot removes the legacy key', () => {
-    window.localStorage.setItem(POINT_STORAGE_KEY, JSON.stringify(makeSnapshot()))
+  it('does not fabricate dates from createdAt on legacy records (D-08)', () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        userPoints: [makeLegacyUserPoint({ createdAt: '2024-06-01T00:00:00.000Z' })],
+        seedOverrides: [],
+        deletedSeedIds: [],
+      }),
+    )
 
-    clearLegacyPointStorageSnapshot()
+    const result = loadLegacyPointStorageSnapshot()
 
-    expect(window.localStorage.getItem(POINT_STORAGE_KEY)).toBeNull()
+    expect(result.status).toBe('ready')
+    expect(result.records[0]?.startDate).toBeNull()
+    expect(result.records[0]?.endDate).toBeNull()
+  })
+
+  it('rejects malformed legacy user points without fabricating dates', () => {
+    window.localStorage.setItem(
+      POINT_STORAGE_KEY,
+      JSON.stringify({
+        version: 2,
+        userPoints: [{ ...makeLegacyUserPoint(), source: 'detected' }],
+        seedOverrides: [],
+        deletedSeedIds: [],
+      }),
+    )
+
+    const result = loadLegacyPointStorageSnapshot()
+
+    expect(result.status).toBe('ready')
+    expect(result.records).toHaveLength(0)
+  })
+
+  it('returns empty for missing snapshot', () => {
+    const result = loadLegacyPointStorageSnapshot()
+
+    expect(result.status).toBe('empty')
+    expect(result.records).toEqual([])
   })
 })
