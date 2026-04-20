@@ -1,13 +1,12 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
 
 import type {
   ChinaAdminType,
-  CreateTravelRecordRequest,
   PlaceKind,
 } from '@trip-map/contracts'
 
-export class CreateTravelRecordDto implements CreateTravelRecordRequest {
+export class CreateTravelRecordDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -59,4 +58,14 @@ export class CreateTravelRecordDto implements CreateTravelRecordRequest {
   @IsString()
   @IsNotEmpty()
   subtitle!: string
+
+  @ApiProperty({ nullable: true, example: '2025-10-01', required: false })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'startDate must be YYYY-MM-DD' })
+  startDate?: string | null
+
+  @ApiProperty({ nullable: true, example: '2025-10-07', required: false })
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'endDate must be YYYY-MM-DD' })
+  endDate?: string | null
 }

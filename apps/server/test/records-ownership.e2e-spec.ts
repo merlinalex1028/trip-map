@@ -246,20 +246,16 @@ describe('Records ownership API', () => {
     expect(sharedRecords).toHaveLength(2)
     expect(sharedRecords.map((record) => record.userId)).toEqual([userA.id, userB.id].sort())
 
-    const userAPersistedRecord = await prisma.userTravelRecord.findUnique({
+    const userAPersistedRecord = await prisma.userTravelRecord.findFirst({
       where: {
-        userId_placeId: {
-          userId: userA.id,
-          placeId: SHARED_PLACE_ID,
-        },
+        userId: userA.id,
+        placeId: SHARED_PLACE_ID,
       },
     })
-    const userBPersistedRecord = await prisma.userTravelRecord.findUnique({
+    const userBPersistedRecord = await prisma.userTravelRecord.findFirst({
       where: {
-        userId_placeId: {
-          userId: userB.id,
-          placeId: SHARED_PLACE_ID,
-        },
+        userId: userB.id,
+        placeId: SHARED_PLACE_ID,
       },
     })
 

@@ -49,6 +49,8 @@ function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord 
     typeLabel: record.typeLabel as ContractTravelRecord['typeLabel'],
     parentLabel: record.parentLabel as ContractTravelRecord['parentLabel'],
     subtitle: record.subtitle,
+    startDate: record.startDate ?? null,
+    endDate: record.endDate ?? null,
     createdAt: record.createdAt.toISOString(),
   }
 }

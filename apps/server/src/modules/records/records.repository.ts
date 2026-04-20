@@ -67,7 +67,7 @@ export class RecordsRepository {
           userId,
           placeId: input.placeId,
         },
-      },
+      } as never,
       update: toTravelRecordData(userId, input),
       create: toTravelRecordData(userId, input),
     })

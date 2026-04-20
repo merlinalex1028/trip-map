@@ -45,6 +45,8 @@ function toContractTravelRecord(record: UserTravelRecord): TravelRecord {
     typeLabel: record.typeLabel ?? '',
     parentLabel: record.parentLabel ?? '',
     subtitle: record.subtitle,
+    startDate: record.startDate ?? null,
+    endDate: record.endDate ?? null,
     createdAt: record.createdAt.toISOString(),
   }
 }

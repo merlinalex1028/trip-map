@@ -311,12 +311,10 @@ describe('Current-user travel records API', () => {
       subtitle: '中国 · 直辖市',
     })
 
-    const storedRecord = await prisma.userTravelRecord.findUnique({
+    const storedRecord = await prisma.userTravelRecord.findFirst({
       where: {
-        userId_placeId: {
-          userId: currentUserId,
-          placeId: TEST_PLACE_ID,
-        },
+        userId: currentUserId,
+        placeId: TEST_PLACE_ID,
       },
     })
 

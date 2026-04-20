@@ -56,6 +56,8 @@ const baseRecord: Omit<CreateTravelRecordRequest, 'placeId'> = {
   typeLabel: '直辖市',
   parentLabel: '中国',
   subtitle: '中国 · 直辖市',
+  startDate: null,
+  endDate: null,
 }
 
 function createRegisterPayload(suffix: string) {
@@ -112,6 +114,8 @@ function createAuthoritativeOverseasImportRecord(
     typeLabel: canonicalSummary.typeLabel,
     parentLabel: canonicalSummary.parentLabel,
     subtitle: canonicalSummary.subtitle,
+    startDate: null,
+    endDate: null,
     ...overrides,
   }
 }
@@ -249,18 +253,8 @@ describe('POST /records/import', () => {
   })
 
   it('keeps the cloud record authoritative when the user already has the same placeId', async () => {
-    await prisma.userTravelRecord.upsert({
-      where: {
-        userId_placeId: {
-          userId: currentUserId,
-          placeId: AUTHORITATIVE_PLACE_ID,
-        },
-      },
-      update: {
-        displayName: '云端权威地点',
-        subtitle: '云端权威副标题',
-      },
-      create: {
+    await prisma.userTravelRecord.create({
+      data: {
         userId: currentUserId,
         placeId: AUTHORITATIVE_PLACE_ID,
         boundaryId: 'boundary-cloud-authoritative',
@@ -272,6 +266,8 @@ describe('POST /records/import', () => {
         typeLabel: '直辖市',
         parentLabel: '中国',
         subtitle: '云端权威副标题',
+        startDate: null,
+        endDate: null,
       },
     })
 
