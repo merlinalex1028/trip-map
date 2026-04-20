@@ -22,10 +22,15 @@ export interface TravelRecord {
   typeLabel: string
   parentLabel: string
   subtitle: string
+  startDate: string | null
+  endDate: string | null
   createdAt: string
 }
 
-export interface CreateTravelRecordRequest extends CanonicalPlaceSummary {}
+export interface CreateTravelRecordRequest extends CanonicalPlaceSummary {
+  startDate: string | null
+  endDate: string | null
+}
 
 export interface ImportTravelRecordsRequest {
   records: CreateTravelRecordRequest[]
