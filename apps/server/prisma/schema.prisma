@@ -84,6 +84,7 @@ model UserTravelRecord {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, placeId, startDate, endDate])
   @@index([userId, placeId])
   @@index([userId])
 }
