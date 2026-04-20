@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+import TripDateForm from './TripDateForm.vue'
 
 interface CandidateListItem {
   candidate: GeoCityCandidate
@@ -24,6 +25,8 @@ const props = withDefaults(
     isSaved?: boolean
     isPending?: boolean
     isIlluminatable?: boolean
+    tripCount?: number
+    latestTripLabel?: string | null
   }>(),
   {
     findSavedPointByCityId: undefined,
@@ -31,13 +34,15 @@ const props = withDefaults(
     isSaved: false,
     isPending: false,
     isIlluminatable: true,
+    tripCount: 0,
+    latestTripLabel: null,
   },
 )
 
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueWithFallback: []
-  illuminate: []
+  illuminate: [payload: { startDate: string | null; endDate: string | null }]
   unilluminate: []
 }>()
 
@@ -168,6 +173,17 @@ const illuminateButtonClass = computed(() => [
   primaryCtaBaseClass,
   props.isSaved ? primaryCtaOnClass : primaryCtaOffClass,
 ])
+const isFormExpanded = ref(false)
+const tripCountDisplay = computed(() => {
+  if (!props.isSaved) return null
+
+  return (props.tripCount ?? 0) > 0 ? `已去过 ${props.tripCount} 次` : '尚未记录过去访日期'
+})
+const latestTripDisplay = computed(() => {
+  if (!props.isSaved) return null
+
+  return `最近一次: ${props.latestTripLabel ?? '日期未知'}`
+})
 
 function getCandidateActionClass(item: CandidateListItem) {
   return [
@@ -180,12 +196,27 @@ function getCandidateActionClass(item: CandidateListItem) {
   ]
 }
 
+function openTripDateForm() {
+  if (props.isPending || !props.isIlluminatable) return
+
+  isFormExpanded.value = true
+}
+
+function handleTripFormSubmit(payload: { startDate: string | null; endDate: string | null }) {
+  isFormExpanded.value = false
+  emit('illuminate', payload)
+}
+
+function handleTripFormCancel() {
+  isFormExpanded.value = false
+}
+
 function handleIlluminateToggle() {
   if (props.isPending || !props.isIlluminatable) return
   if (props.isSaved) {
     emit('unilluminate')
   } else {
-    emit('illuminate')
+    openTripDateForm()
   }
 }
 
@@ -323,6 +354,48 @@ function handleContinueWithFallback() {
           <p v-if="!candidateItems.length" class="point-summary-card__empty">
             暂无可确认候选地点，请稍后重试。
           </p>
+        </div>
+
+        <div
+          v-if="!isCandidateMode && isSaved"
+          class="point-summary-card__trip-summary grid gap-2 rounded-2xl border border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.85),rgba(255,255,255,0.92))] p-4"
+          data-region="trip-summary"
+        >
+          <p
+            class="point-summary-card__trip-count text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)]"
+            data-trip-summary-count="true"
+          >
+            {{ tripCountDisplay }}
+          </p>
+          <p
+            class="point-summary-card__trip-latest text-[var(--font-label-size)] text-[var(--color-ink-muted)]"
+            data-trip-summary-latest="true"
+          >
+            {{ latestTripDisplay }}
+          </p>
+          <button
+            v-if="!isFormExpanded"
+            type="button"
+            class="point-summary-card__record-again min-h-11 rounded-full border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] px-4 py-2 text-[var(--font-label-size)] font-bold text-[var(--color-accent-strong)] shadow-[0_14px_28px_rgba(244,143,177,0.34)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
+            :disabled="isPending || !isIlluminatable"
+            data-record-again="true"
+            aria-label="再记一次这次旅行"
+            @click="openTripDateForm"
+          >
+            再记一次去访
+          </button>
+        </div>
+
+        <div
+          v-if="!isCandidateMode && isFormExpanded"
+          class="point-summary-card__trip-form"
+          data-region="trip-date-form-wrapper"
+        >
+          <TripDateForm
+            :is-submitting="isPending"
+            @submit="handleTripFormSubmit"
+            @cancel="handleTripFormCancel"
+          />
         </div>
       </div>
     </div>
