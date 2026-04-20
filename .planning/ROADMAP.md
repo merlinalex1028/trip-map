@@ -43,12 +43,19 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 **Goal:** 用户可以为同一地点保存多次带旅行日期的记录，同时保持现有账号同步、bootstrap 恢复和地图点亮主链路稳定。
 **Depends on:** Phase 26
 **Requirements:** TRIP-01, TRIP-02, TRIP-03
+**Plans:** 4 plans
 **Success Criteria** (what must be TRUE):
 1. 用户在点亮地点时可以输入或选择旅行日期，并成功保存到当前账号。
 2. 同一地点可以保存多次旅行记录，后一次保存不会覆盖前一次旅行历史。
 3. 刷新页面、重开应用和跨设备恢复后，旅行日期与同地点多次记录都会稳定恢复。
 4. 地图仍能基于“该地点至少存在一条旅行记录”保持已去过状态，不会因多次记录模型而失去点亮表达。
 **UI hint:** yes
+
+Plans:
+- [ ] 27-01-PLAN.md — Contracts + Prisma schema 多次记录模型 + 日期字段（Wave 0，含 [BLOCKING] db push）
+- [ ] 27-02-PLAN.md — 后端 RecordsRepository/Service + DTO 日期校验 + AuthService.bootstrap 同步（Wave 1）
+- [ ] 27-03-PLAN.md — map-points store 多条记录重构 + legacy-point-storage 迁移输出日期未知（Wave 2）
+- [ ] 27-04-PLAN.md — TripDateForm + PointSummaryCard 摘要 + LeafletMapStage 贯通 + 人工验证（Wave 3，含 checkpoint）
 
 ### Phase 28: Overseas Coverage Expansion
 **Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
