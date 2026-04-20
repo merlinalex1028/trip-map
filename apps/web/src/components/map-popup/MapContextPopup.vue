@@ -14,6 +14,8 @@ const props = withDefaults(
     isSaved?: boolean
     isPending?: boolean
     isIlluminatable?: boolean
+    tripCount?: number
+    latestTripLabel?: string | null
   }>(),
   {
     floatingStyles: null,
@@ -21,13 +23,15 @@ const props = withDefaults(
     isSaved: false,
     isPending: false,
     isIlluminatable: true,
+    tripCount: 0,
+    latestTripLabel: null,
   }
 )
 
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
-  illuminate: []
+  illuminate: [payload: { startDate: string | null; endDate: string | null }]
   unilluminate: []
 }>()
 
@@ -113,9 +117,11 @@ defineExpose({
         :is-saved="isSaved"
         :is-pending="isPending"
         :is-illuminatable="isIlluminatable"
+        :trip-count="tripCount"
+        :latest-trip-label="latestTripLabel"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
-        @illuminate="emit('illuminate')"
+        @illuminate="emit('illuminate', $event)"
         @unilluminate="emit('unilluminate')"
       />
     </div>

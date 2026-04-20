@@ -462,6 +462,27 @@ const isActivePointPending = computed(() => {
   return pendingPlaceIds.value.has(pid)
 })
 
+const activePointTripCount = computed(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return 0
+
+  return mapPointsStore.tripsByPlaceId.get(pid)?.length ?? 0
+})
+
+const activePointLatestTripLabel = computed<string | null>(() => {
+  const pid = activePointPlaceId.value
+  if (!pid) return null
+
+  const records = mapPointsStore.tripsByPlaceId.get(pid) ?? []
+  const realRecords = records.filter((record) => !record.id.startsWith('pending-'))
+  if (realRecords.length === 0) return null
+
+  const latest = [...realRecords].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+  if (!latest || latest.startDate === null) return null
+
+  return latest.endDate ? `${latest.startDate} - ${latest.endDate}` : latest.startDate
+})
+
 const isActivePointIlluminatable = computed(() => {
   const surface = summarySurfaceState.value
 
@@ -481,7 +502,7 @@ const isActivePointIlluminatable = computed(() => {
 
 // --- Illuminate handlers ---
 
-async function handleIlluminate() {
+async function handleIlluminate(payload: { startDate: string | null; endDate: string | null }) {
   const surface = summarySurfaceState.value
   if (!surface || surface.mode === 'candidate-select') return
   const point = surface.point
@@ -516,8 +537,8 @@ async function handleIlluminate() {
     typeLabel: point.typeLabel,
     parentLabel: point.parentLabel,
     subtitle: point.subtitle ?? point.cityContextLabel ?? '',
-    startDate: null,
-    endDate: null,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
   })
 
   const entry = getGeometryManifestEntry(point.boundaryId)
@@ -811,6 +832,8 @@ onMounted(() => {
       :is-saved="isActivePointSaved"
       :is-pending="isActivePointPending"
       :is-illuminatable="isActivePointIlluminatable"
+      :trip-count="activePointTripCount"
+      :latest-trip-label="activePointLatestTripLabel"
       @confirm-candidate="handleConfirmCandidate"
       @illuminate="handleIlluminate"
       @unilluminate="handleUnilluminate"
