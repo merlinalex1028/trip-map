@@ -900,6 +900,55 @@ describe('LeafletMapStage', () => {
       expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 2 次')
     })
 
+    it('selects the latest trip by travel date, not by createdAt (VERIFICATION gap close)', async () => {
+      // 回归保护：VERIFICATION.md truth #10 gap 1
+      // 用户先录入一次 2025-10-01 的旅行，然后补录一次旅行时间更早（2025-05-01 -- 2025-05-05）
+      // 但 createdAt 更晚的历史记录。
+      // popup 摘要必须显示真正最近的旅行日期 2025-10-01，而不是最后被录入的 2025-05-01。
+      const authSessionStore = useAuthSessionStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+
+      const mapPointsStore = useMapPointsStore()
+
+      // 记录 A：先录入（createdAt 较早），但旅行时间是真正最近的一次
+      const newerTripRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'server-rec-beijing-newer-trip',
+        startDate: '2025-10-01',
+        endDate: null,
+        createdAt: '2025-10-01T00:00:00.000Z',
+      })
+      // 记录 B：后录入（createdAt 较晚），但旅行时间是更早的一次
+      const olderTripRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'server-rec-beijing-older-trip',
+        startDate: '2025-05-01',
+        endDate: '2025-05-05',
+        createdAt: '2025-11-20T00:00:00.000Z',
+      })
+
+      mapPointsStore.replaceTravelRecords([newerTripRecord, olderTripRecord])
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+      await nextTick()
+      await flushPromises()
+
+      // 先验证聚合正确（tripsByPlaceId 里真的有两条）
+      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 2 次')
+
+      // 核心断言：摘要必须展示真正旅行时间最近的 2025-10-01，而不是最后录入的 2025-05-01
+      const latestText = wrapper.get('[data-trip-summary-latest]').text()
+      expect(latestText).toContain('2025-10-01')
+      expect(latestText).not.toContain('2025-05-01')
+    })
+
     it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {
       const authSessionStore = useAuthSessionStore()
       authSessionStore.status = 'authenticated'
