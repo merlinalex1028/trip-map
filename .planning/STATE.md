@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
 status: executing
-stopped_at: Phase 27 context gathered
-last_updated: "2026-04-20T02:35:26.334Z"
-last_activity: 2026-04-20 -- Phase 27 planning complete
+stopped_at: Phase 27 verification gaps found
+last_updated: "2026-04-20T08:39:54.185Z"
+last_activity: 2026-04-20 -- Phase 27 verification found gaps
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** v6.0 已初始化，下一步进入 Phase 27 规划与实现
+**Current focus:** Phase 27 — multi-visit-record-foundation（verification gaps found）
 
 ## Current Position
 
 Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: Not started (ready for Phase 27 discussion)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-04-20 -- Phase 27 planning complete
+Phase: 27 (multi-visit-record-foundation) — VERIFICATION GAPS
+Plan: 4 of 4 complete
+Status: Awaiting gap closure planning
+Last activity: 2026-04-20 -- Phase 27 verification found gaps
 
 Progress: [----------] 0%
 
@@ -81,13 +81,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- 当前无 phase 级 blocker；下一步进入 Phase 27 的 discuss / plan 流程。
+- `27-VERIFICATION.md` 标记 `gaps_found`，当前不能把 Phase 27 视为完成。
+- 需修复 `LeafletMapStage.vue` 中“最近一次”按 `createdAt` 选取的问题，并补回归测试。
+- 需为 `CreateTravelRecordRequest -> CreateTravelRecordDto` 增加直接类型绑定或显式 override 说明。
 
 ## Session Continuity
 
 Last session: 2026-04-20T01:21:16.178Z
-Stopped at: Phase 27 context gathered
-Resume file: .planning/phases/27-multi-visit-record-foundation/27-CONTEXT.md
+Stopped at: Phase 27 verification gaps found
+Resume file: .planning/phases/27-multi-visit-record-foundation/27-VERIFICATION.md
 
 ---
-*Last updated: 2026-04-17 — after v6.0 roadmap creation*
+*Last updated: 2026-04-20 — after Phase 27 verification gaps found*

@@ -23,7 +23,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 
 ## Phases
 
-- [ ] **Phase 27: Multi-Visit Record Foundation** - 把账号旅行记录从“每地点一条”升级为“每次旅行一条”，引入旅行日期并保住现有地图点亮主链路
+- [ ] **Phase 27: Multi-Visit Record Foundation** - 把账号旅行记录从“每地点一条”升级为“每次旅行一条”，引入旅行日期并保住现有地图点亮主链路（4/4 plans complete，verification gaps found 2026-04-20）
 - [ ] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致
 - [ ] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面
 - [ ] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度
@@ -32,7 +32,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 
 | # | Phase | Status | Requirements | Depends on |
 |---|-------|--------|--------------|------------|
-| 27 | Multi-Visit Record Foundation | Pending | TRIP-01, TRIP-02, TRIP-03 | Phase 26 |
+| 27 | Multi-Visit Record Foundation | Verification gaps | TRIP-01, TRIP-02, TRIP-03 | Phase 26 |
 | 28 | Overseas Coverage Expansion | Pending | GEOX-01, GEOX-02 | Phase 27 |
 | 29 | Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
@@ -43,7 +43,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 **Goal:** 用户可以为同一地点保存多次带旅行日期的记录，同时保持现有账号同步、bootstrap 恢复和地图点亮主链路稳定。
 **Depends on:** Phase 26
 **Requirements:** TRIP-01, TRIP-02, TRIP-03
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 **Success Criteria** (what must be TRUE):
 1. 用户在点亮地点时可以输入或选择旅行日期，并成功保存到当前账号。
 2. 同一地点可以保存多次旅行记录，后一次保存不会覆盖前一次旅行历史。
@@ -52,10 +52,10 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 **UI hint:** yes
 
 Plans:
-- [ ] 27-01-PLAN.md — Contracts + Prisma schema 多次记录模型 + 日期字段（Wave 0，含 [BLOCKING] db push）
-- [ ] 27-02-PLAN.md — 后端 RecordsRepository/Service + DTO 日期校验 + AuthService.bootstrap 同步（Wave 1）
-- [ ] 27-03-PLAN.md — map-points store 多条记录重构 + legacy-point-storage 迁移输出日期未知（Wave 2）
-- [ ] 27-04-PLAN.md — TripDateForm + PointSummaryCard 摘要 + LeafletMapStage 贯通 + 人工验证（Wave 3，含 checkpoint）
+- [x] 27-01-PLAN.md — Contracts + Prisma schema 多次记录模型 + 日期字段（Wave 0，含 [BLOCKING] db push）
+- [x] 27-02-PLAN.md — 后端 RecordsRepository/Service + DTO 日期校验 + AuthService.bootstrap 同步（Wave 1）
+- [x] 27-03-PLAN.md — map-points store 多条记录重构 + legacy-point-storage 迁移输出日期未知（Wave 2）
+- [x] 27-04-PLAN.md — TripDateForm + PointSummaryCard 摘要 + LeafletMapStage 贯通 + 人工验证（Wave 3，含 checkpoint）
 
 ### Phase 28: Overseas Coverage Expansion
 **Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
@@ -91,14 +91,14 @@ Plans:
 
 | Phase | Status | Requirements | Next Step |
 |-------|--------|--------------|-----------|
-| 27. Multi-Visit Record Foundation | Pending | TRIP-01, TRIP-02, TRIP-03 | `/gsd-discuss-phase 27` |
+| 27. Multi-Visit Record Foundation | Verification gaps | TRIP-01, TRIP-02, TRIP-03 | `/gsd-plan-phase 27 --gaps` |
 | 28. Overseas Coverage Expansion | Pending | GEOX-01, GEOX-02 | Wait for Phase 27 |
 | 29. Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Wait for Phase 27-28 |
 | 30. Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Wait for Phase 27-29 |
 
 ## Current Status
 
-当前 milestone 已完成 requirements 与 roadmap 规划，准备进入 `Phase 27: Multi-Visit Record Foundation`。
+当前 milestone 正在执行 `Phase 27: Multi-Visit Record Foundation`。4/4 个 plans 已完成，但 [27-VERIFICATION.md](phases/27-multi-visit-record-foundation/27-VERIFICATION.md) 发现 gaps，当前尚未完成归档。
 
 ---
-*Last updated: 2026-04-17 — after v6.0 roadmap creation*
+*Last updated: 2026-04-20 — Phase 27 verification gaps found*
