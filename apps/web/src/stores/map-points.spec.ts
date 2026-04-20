@@ -50,6 +50,8 @@ function makeRecord(
     typeLabel: place.typeLabel,
     parentLabel: place.parentLabel,
     subtitle: place.subtitle,
+    startDate: null,
+    endDate: null,
     createdAt: new Date().toISOString(),
     ...overrides,
   }
@@ -85,6 +87,8 @@ function makeOverseasRecord(overrides: Partial<TravelRecord> = {}): TravelRecord
     typeLabel: '一级行政区（持久化）',
     parentLabel: 'Japan',
     subtitle: 'Persisted subtitle from record',
+    startDate: null,
+    endDate: null,
     createdAt: new Date().toISOString(),
     ...overrides,
   }
@@ -417,23 +421,6 @@ describe('map-points store', () => {
       expect(store.pendingPlaceIds.size).toBe(0)
     })
 
-    it('reuses existing record without API call when already illuminated', async () => {
-      const store = useMapPointsStore()
-      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
-      createMock.mockClear()
-
-      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
-
-      expect(createMock).not.toHaveBeenCalled()
-      expect(store.selectedPointId).not.toBeNull()
-      expect(store.summarySurfaceState?.mode).toBe('view')
-      if (!store.summarySurfaceState || store.summarySurfaceState.mode !== 'view') {
-        throw new Error('Expected saved point summary surface in view mode')
-      }
-      expect(store.summarySurfaceState.point.typeLabel).toBe('直辖市')
-      expect(store.summarySurfaceState.point.parentLabel).toBe('中国')
-    })
-
     it('keeps canonical labels when reopening a saved Hong Kong point', () => {
       const store = useMapPointsStore()
       store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_HONG_KONG)])
@@ -744,6 +731,176 @@ describe('map-points store', () => {
       store.selectPointById(store.travelRecords[0].placeId)
 
       expect(store.summaryMode).toBe('view')
+    })
+  })
+
+  describe('multi-visit Phase 27', () => {
+    it('passes startDate and endDate through illuminate to createTravelRecord', async () => {
+      const store = useMapPointsStore()
+      createMock.mockResolvedValueOnce(
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-with-dates',
+          startDate: '2025-10-01',
+          endDate: '2025-10-07',
+        }),
+      )
+
+      await store.illuminate({
+        ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),
+        startDate: '2025-10-01',
+        endDate: '2025-10-07',
+      })
+
+      expect(createMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          startDate: '2025-10-01',
+          endDate: '2025-10-07',
+        }),
+      )
+    })
+
+    it('allows multiple illuminate calls for the same place and keeps all travel records', async () => {
+      const store = useMapPointsStore()
+      createMock
+        .mockResolvedValueOnce(
+          makeRecord(PHASE12_RESOLVED_BEIJING, {
+            id: 'server-record-beijing-1',
+            startDate: '2025-10-01',
+          }),
+        )
+        .mockResolvedValueOnce(
+          makeRecord(PHASE12_RESOLVED_BEIJING, {
+            id: 'server-record-beijing-2',
+            startDate: '2025-11-05',
+          }),
+        )
+
+      await store.illuminate({
+        ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),
+        startDate: '2025-10-01',
+        endDate: null,
+      })
+      await store.illuminate({
+        ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),
+        startDate: '2025-11-05',
+        endDate: null,
+      })
+
+      expect(
+        store.travelRecords.filter((record) => record.placeId === PHASE12_RESOLVED_BEIJING.placeId),
+      ).toHaveLength(2)
+      expect(createMock).toHaveBeenCalledTimes(2)
+    })
+
+    it('merges authoritative travel records by record id and keeps same-place pending records', () => {
+      const store = useMapPointsStore()
+      store.travelRecords = [
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'pending-cn-admin-beijing-1',
+          startDate: '2025-12-01',
+        }),
+      ]
+      store.pendingPlaceIds = new Set([PHASE12_RESOLVED_BEIJING.placeId])
+
+      store.applyAuthoritativeTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-1',
+          startDate: '2025-10-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-2',
+          startDate: '2025-11-05',
+        }),
+      ])
+
+      expect(
+        store.travelRecords.filter((record) => record.placeId === PHASE12_RESOLVED_BEIJING.placeId),
+      ).toHaveLength(3)
+    })
+
+    it('deduplicates displayPoints by placeId and uses the latest createdAt record', () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-early',
+          displayName: '北京市（早）',
+          createdAt: '2025-10-01T00:00:00.000Z',
+          startDate: '2025-10-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-late',
+          displayName: '北京市（晚）',
+          createdAt: '2025-11-05T00:00:00.000Z',
+          startDate: '2025-11-05',
+        }),
+      ])
+
+      const beijingPoints = store.displayPoints.filter(
+        (point) => point.placeId === PHASE12_RESOLVED_BEIJING.placeId,
+      )
+
+      expect(beijingPoints).toHaveLength(1)
+      expect(beijingPoints[0]?.name).toBe('北京市（晚）')
+      expect(beijingPoints[0]?.cityName).toBe('北京市（晚）')
+    })
+
+    it('groups all trips under tripsByPlaceId for the same place', () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-1',
+          startDate: '2025-10-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-2',
+          startDate: '2025-11-05',
+        }),
+      ])
+
+      expect(store.tripsByPlaceId.get(PHASE12_RESOLVED_BEIJING.placeId)).toHaveLength(2)
+    })
+
+    it('unilluminate removes all records for a place even when there are multiple visits', async () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-1',
+          startDate: '2025-10-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-2',
+          startDate: '2025-11-05',
+        }),
+      ])
+
+      await store.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
+
+      expect(
+        store.travelRecords.filter((record) => record.placeId === PHASE12_RESOLVED_BEIJING.placeId),
+      ).toHaveLength(0)
+      expect(deleteMock).toHaveBeenCalledTimes(1)
+    })
+
+    it('rolls back only the failed optimistic record and keeps existing records for the same place', async () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-existing',
+          startDate: '2025-01-01',
+        }),
+      ])
+      createMock.mockRejectedValueOnce(new ApiClientError('boom'))
+
+      await store.illuminate({
+        ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),
+        startDate: '2025-12-01',
+        endDate: null,
+      })
+
+      expect(
+        store.travelRecords.filter((record) => record.placeId === PHASE12_RESOLVED_BEIJING.placeId),
+      ).toHaveLength(1)
+      expect(store.travelRecords[0]?.id).toBe('server-record-existing')
     })
   })
 })
