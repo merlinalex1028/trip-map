@@ -9,7 +9,7 @@
 - ✅ **v5.0 账号体系与云同步基础版** — Phases 23-26，已于 2026-04-17 归档（[详情](milestones/v5.0-ROADMAP.md)）
 - ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-30，已完成规划，待执行
 
-## Current Milestone
+## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
 
 **Milestone:** v6.0  
 **Phases:** 27-30  
