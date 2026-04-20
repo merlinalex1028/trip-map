@@ -141,6 +141,8 @@ function normalizeLegacyTravelRecord(value: unknown): CreateTravelRecordRequest 
     typeLabel,
     parentLabel,
     subtitle,
+    startDate: null,
+    endDate: null,
   }
 }
 
