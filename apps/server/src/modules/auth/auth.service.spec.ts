@@ -1,6 +1,6 @@
 import argon2 from 'argon2'
 import { ConflictException } from '@nestjs/common'
-import type { AuthSession, User } from '@prisma/client'
+import type { AuthSession, User, UserTravelRecord } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -24,6 +24,28 @@ function createSession(overrides: Partial<AuthSession> = {}): AuthSession {
     userId: 'user-1',
     expiresAt: new Date('2026-05-12T00:00:00.000Z'),
     createdAt: new Date('2026-04-12T00:00:00.000Z'),
+    ...overrides,
+  }
+}
+
+function createTravelRecord(overrides: Partial<UserTravelRecord> = {}): UserTravelRecord {
+  return {
+    id: 'rec-1',
+    userId: 'user-1',
+    placeId: 'cn-admin-beijing',
+    boundaryId: 'cn-admin-beijing-boundary',
+    placeKind: 'CN_ADMIN',
+    datasetVersion: 'cn-admin-2024-r1',
+    displayName: '北京市',
+    regionSystem: 'CN',
+    adminType: 'MUNICIPALITY',
+    typeLabel: '直辖市',
+    parentLabel: '中国',
+    subtitle: '直辖市 · 中国',
+    startDate: null,
+    endDate: null,
+    createdAt: new Date('2026-04-20T00:00:00.000Z'),
+    updatedAt: new Date('2026-04-20T00:00:00.000Z'),
     ...overrides,
   }
 }
@@ -127,5 +149,59 @@ describe('AuthService.register', () => {
         password: 'Passw0rd!123',
       }),
     ).rejects.toBeInstanceOf(ConflictException)
+  })
+})
+
+describe('AuthService.bootstrap', () => {
+  it('returns records with startDate/endDate on the authenticated path', async () => {
+    const user = createUser()
+    const session = createSession()
+    const authRepository = createRepositoryMock()
+    const service = new AuthService(authRepository as never)
+
+    authRepository.findActiveSessionWithUserById.mockResolvedValueOnce({ ...session, user })
+    authRepository.findUserTravelRecordsByUserId.mockResolvedValueOnce([
+      createTravelRecord({
+        startDate: '2025-10-01',
+        endDate: '2025-10-07',
+      }),
+    ])
+
+    const response = await service.bootstrap('session-1')
+
+    expect(response.clearSessionCookie).toBe(false)
+    expect(response.response.authenticated).toBe(true)
+    if (response.response.authenticated) {
+      expect(response.response.records[0]).toMatchObject({
+        startDate: '2025-10-01',
+        endDate: '2025-10-07',
+      })
+    }
+  })
+
+  it('maps legacy records with null dates to explicit null fields', async () => {
+    const user = createUser()
+    const session = createSession()
+    const authRepository = createRepositoryMock()
+    const service = new AuthService(authRepository as never)
+
+    authRepository.findActiveSessionWithUserById.mockResolvedValueOnce({ ...session, user })
+    authRepository.findUserTravelRecordsByUserId.mockResolvedValueOnce([
+      createTravelRecord({
+        startDate: null,
+        endDate: null,
+      }),
+    ])
+
+    const response = await service.bootstrap('session-1')
+
+    expect(response.clearSessionCookie).toBe(false)
+    expect(response.response.authenticated).toBe(true)
+    if (response.response.authenticated) {
+      expect(response.response.records[0]).toMatchObject({
+        startDate: null,
+        endDate: null,
+      })
+    }
   })
 })
