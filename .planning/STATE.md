@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
 status: executing
-stopped_at: Phase 27 verification gaps found
-last_updated: "2026-04-20T08:39:54.185Z"
-last_activity: 2026-04-20 -- Phase 27 verification found gaps
+stopped_at: Phase 27 completed
+last_updated: "2026-04-20T11:12:30.803Z"
+last_activity: 2026-04-20 -- Phase 27 completed
 progress:
   total_phases: 4
-  completed_phases: 0
-  total_plans: 4
-  completed_plans: 4
-  percent: 0
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 6
+  percent: 25
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 27 — multi-visit-record-foundation（verification gaps found）
+**Current focus:** Phase 28 — overseas-coverage-expansion
 
 ## Current Position
 
 Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: 27 (multi-visit-record-foundation) — VERIFICATION GAPS
-Plan: 4 of 4 complete
-Status: Awaiting gap closure planning
-Last activity: 2026-04-20 -- Phase 27 verification found gaps
+Phase: 28
+Plan: Not started
+Status: Ready to execute
+Last activity: 2026-04-20 -- Phase 27 completed
 
-Progress: [----------] 0%
+Progress: [###-------] 25%
 
 ## Performance Metrics
 
@@ -46,7 +46,7 @@ Progress: [----------] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 27 | 0 | - | - |
+| 27 | 6 | - | - |
 | 28 | 0 | - | - |
 | 29 | 0 | - | - |
 | 30 | 0 | - | - |
@@ -81,15 +81,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- `27-VERIFICATION.md` 标记 `gaps_found`，当前不能把 Phase 27 视为完成。
-- 需修复 `LeafletMapStage.vue` 中“最近一次”按 `createdAt` 选取的问题，并补回归测试。
-- 需为 `CreateTravelRecordRequest -> CreateTravelRecordDto` 增加直接类型绑定或显式 override 说明。
+- 当前无 phase 级 blocker；下一步进入 Phase 28 的 discuss / plan 流程。
 
 ## Session Continuity
 
 Last session: 2026-04-20T01:21:16.178Z
-Stopped at: Phase 27 verification gaps found
-Resume file: .planning/phases/27-multi-visit-record-foundation/27-VERIFICATION.md
+Stopped at: Phase 27 completed
+Resume file: .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-04-20 — after Phase 27 verification gaps found*
+*Last updated: 2026-04-20 — after Phase 27 completion*
