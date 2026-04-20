@@ -1,6 +1,6 @@
 ---
 phase: 27-multi-visit-record-foundation
-reviewed: 2026-04-20T08:02:30Z
+reviewed: 2026-04-20T10:27:17Z
 depth: standard
 files_reviewed: 25
 files_reviewed_list:
@@ -30,150 +30,134 @@ files_reviewed_list:
   - apps/web/src/components/map-popup/PointSummaryCard.spec.ts
   - apps/web/src/components/map-popup/MapContextPopup.vue
 findings:
-  critical: 0
-  warning: 5
-  info: 1
-  total: 6
+  critical: 1
+  warning: 2
+  info: 0
+  total: 3
 status: issues_found
 ---
 
 # Phase 27: Code Review Report
 
-**Reviewed:** 2026-04-20T08:02:30Z
+**Reviewed:** 2026-04-20T10:27:17Z
 **Depth:** standard
 **Files Reviewed:** 25
 **Status:** issues_found
 
 ## Summary
 
-本次审查覆盖了 Phase 27 的 contracts、Prisma schema、NestJS records/auth 相关实现，以及前端多次去访记录的 store / popup / map stage 变更。
+已按 Phase 27 当前最终代码状态重新审查指定的 25 个文件，并额外交叉核对了 `apps/server/src/modules/records/records.controller.ts`、`apps/web/src/services/api/records.ts`、`apps/web/src/stores/auth-session.ts` 以确认实际运行语义。
 
-整体上，这一阶段已经把“多次去访”主链路打通，但我仍然看到了 5 个需要尽快处理的行为问题：后端日期校验在批量导入路径上不一致、日期字段仍可写入不可能存在的日历值、导入去重没有数据库级约束兜底、地图连续点击时旧识别结果会覆盖新点击结果，以及“最近一次”文案当前实际上按记录写入时间而不是出行时间计算。另有 1 个测试可靠性问题，会让相关回归更难被自动发现。
+27-05 / 27-06 这轮 gap closure 里最关键的几处修口目前没有看到明显回归：导入去重键已经扩展到 `placeId + startDate + endDate`，前端“最近一次”摘要已经按旅行日期而不是 `createdAt` 计算，同账号 foreground refresh 与 optimistic 写入/删除重叠时也没有再把临时状态错误地冲掉。
+
+但当前实现仍保留一个明确的数据丢失风险，以及两处会在旧数据或非 UI 调用场景下暴露出来的行为问题。相关单测已补跑：`@trip-map/server` 3 个文件 / 17 个测试通过，`@trip-map/web` 7 个文件 / 126 个测试通过；因此下面的问题属于“测试可过，但逻辑风险仍然存在”的类型。
+
+## Critical Issues
+
+### CR-01: 多次去访仍按 `placeId` 整体删除，单次取消会清空同地点全部历史
+
+**File:** `apps/web/src/stores/map-points.ts:462-481`
+
+**Issue:** Phase 27 已经允许同一 `placeId` 下存在多条旅行记录，不同去访由 `startDate/endDate` 区分；但取消点亮链路仍然只传 `placeId`。前端 `unilluminate()` 调 `DELETE /records/:placeId`，后端最终落到 `deleteMany({ where: { userId, placeId } })`。这意味着用户在 popup 里看到“已去过 N 次 / 再记一次去访”后，只要点一次“已点亮”，该地点的全部历史记录都会被一起删掉。当前行为与多次去访模型不一致，而且是直接的数据丢失风险。受影响实现贯穿：
+
+- `apps/web/src/stores/map-points.ts:462-481`
+- `apps/web/src/services/api/records.ts:19-28`
+- `apps/server/src/modules/records/records.controller.ts:98-107`
+- `apps/server/src/modules/records/records.service.ts:97-99`
+- `apps/server/src/modules/records/records.repository.ts:133-139`
+
+**Fix:**
+
+```ts
+// 前端删除具体 trip record，而不是 placeId
+export async function deleteTravelRecord(recordId: string): Promise<void> {
+  return apiFetchJson<void>(
+    `/records/by-id/${encodeURIComponent(recordId)}`,
+    { method: 'DELETE' },
+    { responseType: 'none' },
+  )
+}
+
+// 后端按 recordId + userId 删除单条记录
+await this.prisma.userTravelRecord.deleteMany({
+  where: {
+    id: recordId,
+    userId,
+  },
+})
+```
+
+如果当前产品暂时只支持“整地点取消点亮”，也应该把它拆成一个显式的 bulk-delete 接口和确认文案，例如“删除该地点全部去访记录”，而不是复用现在这条看起来像单次 toggle 的路径。
 
 ## Warnings
 
-### WR-01: 批量导入路径绕过了日期先后校验
+### WR-01: `TravelRecord` 契约仍把可空数据库字段直接 cast 成必填字段，旧数据会穿透到前端
 
-**文件:** `apps/server/src/modules/records/records.service.ts:84-86`
+**File:** `apps/server/src/modules/records/records.service.ts:39-55`
 
-**问题:** `createTravel()` 在 `apps/server/src/modules/records/records.service.ts:75-80` 中会拒绝 `endDate < startDate`，但 `importTravel()` 只做了 authoritative overseas 校验，随后直接把记录交给 repository。结果是同一组日期，单条创建会报错，批量导入却会成功落库，后端行为不一致，也会把非法区间带到前端“最近一次”与列表展示逻辑里。
+**Issue:** 共享契约把 `regionSystem`、`adminType`、`typeLabel`、`parentLabel` 都定义成必填，但 `UserTravelRecord` schema 仍允许这些列为 `NULL`（`apps/server/prisma/schema.prisma:75-80`）。`RecordsService.toContractTravelRecord()` 直接把可空字段断言成契约类型；`AuthService.toContractTravelRecord()` 只兜底了 `typeLabel/parentLabel`，`regionSystem/adminType` 仍然是裸 cast（`apps/server/src/modules/auth/auth.service.ts:35-49`）。一旦数据库里还有旧阶段留下的空元数据记录，`GET /records`、`POST /records/import` 返回的 `records` 数组就可能不满足契约。前端 `recordToDisplayPoint()` 又会直接执行 `record.parentLabel.split(' · ')`（`apps/web/src/stores/map-points.ts:50-67`），收到 `null` 时会直接抛运行时异常。
 
-**修复建议:**
+**Fix:**
 
 ```ts
-private assertValidTripDates(input: Pick<CreateTravelRecordDto, 'startDate' | 'endDate'>) {
-  if (input.startDate && input.endDate && input.endDate < input.startDate) {
-    throw new BadRequestException('endDate must be >= startDate')
+function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord {
+  if (!record.regionSystem || !record.adminType || !record.typeLabel || !record.parentLabel) {
+    throw new InternalServerErrorException(
+      `Travel record ${record.id} has incomplete canonical metadata`,
+    )
+  }
+
+  return {
+    id: record.id,
+    placeId: record.placeId,
+    boundaryId: record.boundaryId,
+    placeKind: record.placeKind as PlaceKind,
+    datasetVersion: record.datasetVersion,
+    displayName: record.displayName,
+    regionSystem: record.regionSystem,
+    adminType: record.adminType as ContractTravelRecord['adminType'],
+    typeLabel: record.typeLabel,
+    parentLabel: record.parentLabel,
+    subtitle: record.subtitle,
+    startDate: record.startDate ?? null,
+    endDate: record.endDate ?? null,
+    createdAt: record.createdAt.toISOString(),
   }
 }
-
-async createTravel(userId: string, input: CreateTravelRecordDto) {
-  this.assertAuthoritativeOverseasRecord(input)
-  this.assertValidTripDates(input)
-  ...
-}
-
-async importTravel(userId: string, input: ImportTravelRecordsDto) {
-  input.records.forEach((record) => {
-    this.assertAuthoritativeOverseasRecord(record)
-    this.assertValidTripDates(record)
-  })
-  ...
-}
 ```
 
-### WR-02: 日期字段只校验格式，没有校验真实日历日期
+更完整的修法是先做数据回填，再把 schema 改成非空列；否则后续任何新的返回路径都可能再次把 `NULL` 漏出来。
 
-**文件:** `apps/server/src/modules/records/dto/create-travel-record.dto.ts:62-69`
+### WR-02: 日期只校验了格式，没有校验“是否是真实存在的日历日期”
 
-**问题:** 现在的 `@Matches(/^\d{4}-\d{2}-\d{2}$/)` 只保证形状像 `YYYY-MM-DD`，但 `2025-02-31`、`2025-13-40` 这类不可能存在的日期仍然会通过。由于 Phase 27 把日期当成持久化业务字段使用，这些无效值一旦入库，会继续参与字符串比较、排序与前端展示。
+**File:** `apps/server/src/modules/records/dto/create-travel-record.dto.ts:63-70`
 
-**修复建议:**
+**Issue:** 当前后端只用正则校验 `YYYY-MM-DD` 形状，然后在 service 里用字符串比较 `endDate >= startDate`（`apps/server/src/modules/records/records.service.ts:101-106`）。这会放过 `2025-02-31`、`2025-13-01` 之类根本不存在的日期，并把它们持久化到数据库。浏览器 `<input type="date">` 不会生成这种值，但 API、旧客户端和导入 payload 仍可以。
+
+**Fix:**
 
 ```ts
-function isValidDateOnly(value: string) {
-  const [year, month, day] = value.split('-').map(Number)
-  const date = new Date(Date.UTC(year, month - 1, day))
-  return date.getUTCFullYear() === year
-    && date.getUTCMonth() === month - 1
-    && date.getUTCDate() === day
-}
+import { IsISO8601, IsOptional } from 'class-validator'
 
-// DTO 中保留 YYYY-MM-DD 形状校验，再叠加一个真实日期校验约束
+@IsOptional()
+@IsISO8601(
+  { strict: true, strictSeparator: true },
+  { message: 'startDate must be a real YYYY-MM-DD date' },
+)
+startDate!: string | null
+
+@IsOptional()
+@IsISO8601(
+  { strict: true, strictSeparator: true },
+  { message: 'endDate must be a real YYYY-MM-DD date' },
+)
+endDate!: string | null
 ```
 
-也可以改成自定义 `class-validator` constraint，统一校验 `startDate` / `endDate`。
-
-### WR-03: 导入去重逻辑缺少数据库唯一约束，`skipDuplicates` 当前并不能兜底
-
-**文件:** `apps/server/prisma/schema.prisma:67-89`
-
-**问题:** 这里是一个基于代码意图的推断问题：`apps/server/src/modules/records/records.repository.ts:97-118` 已经把 `(userId, placeId, startDate, endDate)` 当作重复键处理，并调用了 `createMany({ skipDuplicates: true })`。但 Prisma schema 只建了普通索引，没有对应的 `@@unique(...)`。这意味着并发导入、重复重试或两次几乎同时的同内容请求，仍然可能各自通过预查询并写入两条完全相同的去访记录，`skipDuplicates` 也不会发挥预期作用。
-
-**修复建议:**
-
-```prisma
-model UserTravelRecord {
-  ...
-  @@unique([userId, placeId, startDate, endDate])
-  @@index([userId])
-}
-```
-
-随后让 `createTravelRecord()` / `importTravelRecords()` 显式处理该唯一键冲突，保证单条创建与批量导入的重复语义一致。
-
-### WR-04: 连续点击地图时，旧请求返回会覆盖新点击结果
-
-**文件:** `apps/web/src/components/LeafletMapStage.vue:708-786`
-
-**问题:** `recognizeMapLocation()` 只在发起网络请求前检查过一次 `activeSequence !== recognitionSequence`。一旦 `resolveCanonicalPlace()` 或后续 `lookupCountryRegionByCoordinates()` 比较慢，先点的请求就可能在后点的请求之后才返回，并直接覆盖当前 popup、selection 与 notice。这个问题在真实网络下非常容易出现，属于明确的行为回归风险。
-
-**修复建议:**
-
-```ts
-const response = await resolveCanonicalPlace({ lat, lng })
-if (activeSequence !== recognitionSequence) {
-  return
-}
-
-...
-
-const geoResult = await lookupCountryRegionByCoordinates({ lat, lng })
-if (activeSequence !== recognitionSequence) {
-  return
-}
-```
-
-建议把所有会回写 UI / store 的异步分支都放在 sequence guard 后面，避免旧请求污染当前状态。
-
-### WR-05: “最近一次”按记录创建时间排序，会把补录的旧旅行显示成最近一次
-
-**文件:** `apps/web/src/components/LeafletMapStage.vue:472-483`
-
-**问题:** 这里根据 `createdAt` 选“最新”记录，再显示 `startDate` / `endDate`。基于文案“最近一次”的语义，这会把“今天补录的一次去年旅行”错误地展示成最近一次去访。用户看到的时间线会被录入时间而不是出行时间主导。
-
-**修复建议:**
-
-```ts
-const latest = [...realRecords].sort((a, b) =>
-  (b.endDate ?? b.startDate ?? '').localeCompare(a.endDate ?? a.startDate ?? '')
-)[0]
-```
-
-如果要兼容无日期旧记录，建议先按 `endDate ?? startDate` 选最近一次已知旅行，再对全空日期记录回退成“日期未知”。
-
-## Info
-
-### IN-01: 两个新增测试用例没有断言目标行为，回归时也会继续通过
-
-**文件:** `apps/web/src/components/LeafletMapStage.spec.ts:317-343`
-
-**问题:** `calls addFeatures with CN layer when a CN boundary shard is loaded` 这个测试目前只完成了 mount / flush，没有对 `loadGeometryShard()`、`addFeatures()` 或识别链路做任何断言；`apps/web/src/components/LeafletMapStage.spec.ts:719-726` 的 `does not fetch /records again during anonymous map startup` 也同样没有断言。它们会在目标行为回归后继续通过，降低测试对这次 Phase 的保护价值。
-
-**修复建议:** 给第一个用例补上 `geometryLoaderMock.loadGeometryShard` / `addFeaturesMock` 的断言，给第二个用例明确 spy 并断言“没有调用”的对象，否则建议删除这些空断言用例。
+如果项目更倾向显式控制，也可以在 service 层补一个 `isValidDateOnly()` helper，先做真实日期校验，再继续现在的区间比较逻辑。
 
 ---
 
-_Reviewed: 2026-04-20T08:02:30Z_
-_Reviewer: Claude (gsd-code-reviewer)_
+_Reviewed: 2026-04-20T10:27:17Z_  
+_Reviewer: Claude (gsd-code-reviewer)_  
 _Depth: standard_
