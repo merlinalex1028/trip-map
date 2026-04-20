@@ -8,6 +8,7 @@ import { mount } from '@vue/test-utils'
 
 import { buildUnsupportedOverseasNotice } from '../../constants/overseas-support'
 import PointSummaryCard from './PointSummaryCard.vue'
+import TripDateForm from './TripDateForm.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 const ambiguousResolve = (() => {
@@ -179,13 +180,18 @@ describe('PointSummaryCard — illuminate button', () => {
     expect(wrapper.emitted('illuminate')).toBeFalsy()
   })
 
-  it('click on "点亮" emits illuminate event', async () => {
+  it('click on "点亮" opens TripDateForm instead of emitting illuminate directly', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
     })
+
     await wrapper.find('[data-illuminate-state]').trigger('click')
-    expect(wrapper.emitted('illuminate')).toBeTruthy()
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
     expect(wrapper.emitted('unilluminate')).toBeFalsy()
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
   })
 
   it('click on "已点亮" emits unilluminate event', async () => {
@@ -211,6 +217,118 @@ describe('PointSummaryCard — illuminate button', () => {
     const btn = wrapper.find('[data-illuminate-state]')
     expect(btn.exists()).toBe(true)
     expect(btn.text()).toBe('点亮')
+  })
+})
+
+describe('PointSummaryCard — multi-visit Phase 27', () => {
+  it('expands TripDateForm for unsaved points before emitting illuminate', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false },
+    })
+
+    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
+  })
+
+  it('emits illuminate with date payload after the TripDateForm submits', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: { surface: makeViewSurface(), isSaved: false },
+    })
+
+    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.findComponent(TripDateForm).vm.$emit('submit', {
+      startDate: '2025-10-01',
+      endDate: null,
+    })
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('illuminate')?.[0]?.[0]).toEqual({
+      startDate: '2025-10-01',
+      endDate: null,
+    })
+  })
+
+  it('shows the saved trip summary with visit count and latest label', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: true,
+        tripCount: 3,
+        latestTripLabel: '2025-10-01',
+      },
+    })
+
+    expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 3 次')
+    expect(wrapper.get('[data-trip-summary-latest]').text()).toContain('2025-10-01')
+  })
+
+  it('falls back to unknown-date copy when saved summary has no dated trips', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: true,
+        tripCount: 0,
+        latestTripLabel: null,
+      },
+    })
+
+    expect(wrapper.text()).toContain('尚未记录过去访日期')
+    expect(wrapper.text()).toContain('日期未知')
+  })
+
+  it('expands TripDateForm from the re-record CTA on saved points', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: true,
+        tripCount: 1,
+      },
+    })
+
+    await wrapper.get('[data-record-again]').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
+  })
+
+  it('collapses the form on cancel without emitting illuminate', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: true,
+        tripCount: 1,
+      },
+    })
+
+    await wrapper.get('[data-record-again]').trigger('click')
+    await wrapper.vm.$nextTick()
+    await wrapper.findComponent(TripDateForm).vm.$emit('cancel')
+
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
+  })
+
+  it('does not expand the form when the point is not illuminatable', async () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: false,
+        isIlluminatable: false,
+      },
+    })
+
+    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.emitted('illuminate')).toBeFalsy()
   })
 })
 
