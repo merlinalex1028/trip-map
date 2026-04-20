@@ -99,13 +99,30 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const displayPoints = computed<MapPointDisplay[]>(() => {
-    const points: MapPointDisplay[] = travelRecords.value.map(recordToDisplayPoint)
+    const latestByPlaceId = new Map<string, TravelRecord>()
+    for (const record of travelRecords.value) {
+      const existing = latestByPlaceId.get(record.placeId)
+      if (!existing || record.createdAt > existing.createdAt) {
+        latestByPlaceId.set(record.placeId, record)
+      }
+    }
+
+    const points: MapPointDisplay[] = Array.from(latestByPlaceId.values()).map(recordToDisplayPoint)
 
     if (draftPoint.value) {
       points.push(draftPoint.value)
     }
 
     return points
+  })
+
+  const tripsByPlaceId = computed(() => {
+    const map = new Map<string, TravelRecord[]>()
+    for (const record of travelRecords.value) {
+      const existing = map.get(record.placeId) ?? []
+      map.set(record.placeId, [...existing, record])
+    }
+    return map
   })
 
   const activePoint = computed<MapPointDisplay | null>(() => {
@@ -182,21 +199,17 @@ export const useMapPointsStore = defineStore('map-points', () => {
       return
     }
 
-    const snapshotByPlaceId = new Map(records.map((record) => [record.placeId, record]))
-    const currentByPlaceId = new Map(travelRecords.value.map((record) => [record.placeId, record]))
+    const pendingRecords = travelRecords.value.filter(
+      (r) => r.id.startsWith('pending-') && pendingPlaceIds.value.has(r.placeId),
+    )
+    const pendingOptimisticPlaceIds = new Set(pendingRecords.map((record) => record.placeId))
+    const snapshotById = new Map(records.map((r) => [r.id, r]))
+    const stableRecords = Array.from(snapshotById.values()).filter(
+      (record) =>
+        !pendingPlaceIds.value.has(record.placeId) || pendingOptimisticPlaceIds.has(record.placeId),
+    )
 
-    for (const placeId of pendingPlaceIds.value) {
-      const currentRecord = currentByPlaceId.get(placeId)
-
-      if (currentRecord) {
-        snapshotByPlaceId.set(placeId, currentRecord)
-        continue
-      }
-
-      snapshotByPlaceId.delete(placeId)
-    }
-
-    travelRecords.value = Array.from(snapshotByPlaceId.values())
+    travelRecords.value = [...stableRecords, ...pendingRecords]
     hasBootstrapped.value = true
   }
 
@@ -283,7 +296,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function findSavedPointByPlaceId(placeId: string) {
-    return travelRecords.value.find((record) => record.placeId === placeId) ?? null
+    const trips = tripsByPlaceId.value.get(placeId)
+    return trips?.[0] ?? null
   }
 
   function findSavedPointByCityId(identifier: string) {
@@ -339,6 +353,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     typeLabel: TravelRecord['typeLabel']
     parentLabel: TravelRecord['parentLabel']
     subtitle: string | null
+    startDate: string | null
+    endDate: string | null
   }) {
     const authSessionStore = useAuthSessionStore()
     const boundaryVersionAtStart = authSessionStore.boundaryVersion
@@ -353,17 +369,13 @@ export const useMapPointsStore = defineStore('map-points', () => {
       typeLabel,
       parentLabel,
       subtitle,
+      startDate,
+      endDate,
     } = summary
-
-    // Skip if already illuminated
-    if (travelRecords.value.some((r) => r.placeId === placeId)) {
-      selectedPointId.value = placeId
-      summaryMode.value = 'view'
-      return
-    }
+    const optimisticId = `pending-${placeId}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
     const optimisticRecord: TravelRecord = {
-      id: `pending-${placeId}`,
+      id: optimisticId,
       placeId,
       boundaryId: boundaryId ?? '',
       placeKind,
@@ -374,6 +386,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
       typeLabel,
       parentLabel,
       subtitle: subtitle ?? '',
+      startDate,
+      endDate,
       createdAt: new Date().toISOString(),
     }
 
@@ -394,16 +408,15 @@ export const useMapPointsStore = defineStore('map-points', () => {
         typeLabel,
         parentLabel,
         subtitle: subtitle ?? '',
+        startDate,
+        endDate,
       })
 
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
         return
       }
 
-      const hasExistingRecord = travelRecords.value.some((r) => r.placeId === placeId)
-      travelRecords.value = hasExistingRecord
-        ? travelRecords.value.map((r) => (r.placeId === placeId ? record : r))
-        : [...travelRecords.value, record]
+      travelRecords.value = travelRecords.value.map((r) => (r.id === optimisticId ? record : r))
       useMapUiStore().setInteractionNotice({
         tone: 'info',
         message: RECORD_WRITE_SUCCESS_NOTICE,
@@ -413,9 +426,12 @@ export const useMapPointsStore = defineStore('map-points', () => {
         return
       }
 
-      travelRecords.value = travelRecords.value.filter((r) => r.placeId !== placeId)
-      selectedPointId.value = null
-      summaryMode.value = null
+      travelRecords.value = travelRecords.value.filter((r) => !(r.id === optimisticId))
+      const stillIlluminated = travelRecords.value.some((record) => record.placeId === placeId)
+      if (!stillIlluminated) {
+        selectedPointId.value = null
+        summaryMode.value = null
+      }
 
       if (isUnauthorizedApiClientError(error)) {
         if (authSessionStore.currentUser) {
@@ -432,9 +448,14 @@ export const useMapPointsStore = defineStore('map-points', () => {
         return
       }
 
-      const next = new Set(pendingPlaceIds.value)
-      next.delete(placeId)
-      pendingPlaceIds.value = next
+      const hasOtherPending = travelRecords.value.some(
+        (record) => record.id.startsWith('pending-') && record.placeId === placeId,
+      )
+      if (!hasOtherPending) {
+        const next = new Set(pendingPlaceIds.value)
+        next.delete(placeId)
+        pendingPlaceIds.value = next
+      }
     }
   }
 
@@ -491,7 +512,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
   }
 
   function isPlaceIlluminated(placeId: string): boolean {
-    return travelRecords.value.some((r) => r.placeId === placeId)
+    return travelRecords.value.some((record) => record.placeId === placeId)
   }
 
   function isPlacePending(placeId: string): boolean {
@@ -507,6 +528,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     summaryMode,
     hasBootstrapped,
     savedBoundaryIds,
+    tripsByPlaceId,
     displayPoints,
     activePoint,
     activeBoundaryCoverageState,
