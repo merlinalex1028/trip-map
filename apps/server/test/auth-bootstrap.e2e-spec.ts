@@ -226,6 +226,8 @@ describe('Auth bootstrap API', () => {
         {
           id: expect.any(String),
           ...currentUserRecord,
+          startDate: null,
+          endDate: null,
           createdAt: expect.any(String),
         },
       ],

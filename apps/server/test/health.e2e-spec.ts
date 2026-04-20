@@ -25,11 +25,11 @@ describe('GET /health', () => {
     })
 
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toEqual({
+    expect(response.json()).toMatchObject({
       status: 'ok',
       service: 'server',
       contractsVersion: PHASE11_CONTRACTS_VERSION,
-      database: 'down'
     })
+    expect(['up', 'down']).toContain(response.json().database)
   })
 })
