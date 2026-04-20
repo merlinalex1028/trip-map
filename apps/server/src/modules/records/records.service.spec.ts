@@ -147,4 +147,83 @@ describe('RecordsService', () => {
     }))
     expect(repository.createTravelRecord).toHaveBeenCalledTimes(1)
   })
+
+  it('importTravel rejects records with endDate before startDate', async () => {
+    const repository = createRepositoryMock()
+    const service = new RecordsService(repository as never)
+
+    const validRecord = baseInput({ startDate: '2025-10-01', endDate: '2025-10-07' })
+    const invalidRecord = baseInput({
+      placeId: 'cn-admin-shanghai',
+      boundaryId: 'cn-admin-shanghai-boundary',
+      displayName: '上海市',
+      startDate: '2025-11-01',
+      endDate: '2025-10-05',
+    })
+
+    await expect(
+      service.importTravel('user-1', { records: [validRecord, invalidRecord] }),
+    ).rejects.toBeInstanceOf(BadRequestException)
+    await expect(
+      service.importTravel('user-1', { records: [validRecord, invalidRecord] }),
+    ).rejects.toThrow('endDate must be >= startDate')
+
+    expect(repository.importTravelRecords).not.toHaveBeenCalled()
+  })
+
+  it('importTravel accepts records with valid date ranges and null dates', async () => {
+    const repository = createRepositoryMock()
+    const service = new RecordsService(repository as never)
+
+    const records = [
+      baseInput({ startDate: '2025-10-01', endDate: '2025-10-07' }),
+      baseInput({
+        placeId: 'cn-admin-shanghai',
+        boundaryId: 'cn-admin-shanghai-boundary',
+        displayName: '上海市',
+        startDate: null,
+        endDate: null,
+      }),
+    ]
+
+    repository.importTravelRecords.mockResolvedValueOnce({
+      importedCount: 2,
+      mergedDuplicateCount: 0,
+      finalCount: 2,
+      records: [
+        baseRecord({ startDate: '2025-10-01', endDate: '2025-10-07' }),
+        baseRecord({
+          placeId: 'cn-admin-shanghai',
+          displayName: '上海市',
+          startDate: null,
+          endDate: null,
+        }),
+      ],
+    })
+
+    const result = await service.importTravel('user-1', { records })
+
+    expect(repository.importTravelRecords).toHaveBeenCalledTimes(1)
+    expect(result.importedCount).toBe(2)
+  })
+
+  it('CreateTravelRecordDto implements the shared CreateTravelRecordRequest contract', () => {
+    const sampleDto: import('./dto/create-travel-record.dto.js').CreateTravelRecordDto = {
+      placeId: 'cn-admin-beijing',
+      boundaryId: 'cn-admin-beijing-boundary',
+      placeKind: 'CN_ADMIN',
+      datasetVersion: 'cn-admin-2024-r1',
+      displayName: '北京市',
+      regionSystem: 'CN',
+      adminType: 'MUNICIPALITY',
+      typeLabel: '直辖市',
+      parentLabel: '中国',
+      subtitle: '直辖市 · 中国',
+      startDate: null,
+      endDate: null,
+    } as const satisfies import('@trip-map/contracts').CreateTravelRecordRequest
+
+    expect(sampleDto.startDate).toBeNull()
+    expect(sampleDto.endDate).toBeNull()
+  })
 })
