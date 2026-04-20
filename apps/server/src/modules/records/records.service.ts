@@ -74,6 +74,9 @@ export class RecordsService {
 
   async createTravel(userId: string, input: CreateTravelRecordDto): Promise<ContractTravelRecord> {
     this.assertAuthoritativeOverseasRecord(input)
+    if (input.startDate && input.endDate && input.endDate < input.startDate) {
+      throw new BadRequestException('endDate must be >= startDate')
+    }
     const record = await this.recordsRepository.createTravelRecord(userId, input)
     return toContractTravelRecord(record)
   }

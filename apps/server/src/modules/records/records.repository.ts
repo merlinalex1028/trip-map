@@ -12,6 +12,10 @@ interface ImportTravelRecordsResult {
   records: UserTravelRecord[]
 }
 
+function keyOf(input: Pick<CreateTravelRecordDto, 'placeId' | 'startDate' | 'endDate'>) {
+  return `${input.placeId}\u0000${input.startDate ?? ''}\u0000${input.endDate ?? ''}`
+}
+
 function toTravelRecordData(userId: string, input: CreateTravelRecordDto) {
   return {
     userId,
@@ -25,6 +29,8 @@ function toTravelRecordData(userId: string, input: CreateTravelRecordDto) {
     typeLabel: input.typeLabel,
     parentLabel: input.parentLabel,
     subtitle: input.subtitle,
+    startDate: input.startDate ?? null,
+    endDate: input.endDate ?? null,
   }
 }
 
@@ -61,28 +67,22 @@ export class RecordsRepository {
   }
 
   async createTravelRecord(userId: string, input: CreateTravelRecordDto): Promise<UserTravelRecord> {
-    return this.prisma.userTravelRecord.upsert({
-      where: {
-        userId_placeId: {
-          userId,
-          placeId: input.placeId,
-        },
-      } as never,
-      update: toTravelRecordData(userId, input),
-      create: toTravelRecordData(userId, input),
+    return this.prisma.userTravelRecord.create({
+      data: toTravelRecordData(userId, input),
     })
   }
 
   async importTravelRecords(userId: string, inputs: CreateTravelRecordDto[]): Promise<ImportTravelRecordsResult> {
-    const uniqueByPlaceId = new Map<string, CreateTravelRecordDto>()
+    const uniqueByKey = new Map<string, CreateTravelRecordDto>()
 
     for (const input of inputs) {
-      if (!uniqueByPlaceId.has(input.placeId)) {
-        uniqueByPlaceId.set(input.placeId, input)
+      const key = keyOf(input)
+      if (!uniqueByKey.has(key)) {
+        uniqueByKey.set(key, input)
       }
     }
 
-    const uniqueInputs = [...uniqueByPlaceId.values()]
+    const uniqueInputs = [...uniqueByKey.values()]
 
     if (uniqueInputs.length === 0) {
       const records = await this.findAllTravelRecords(userId)
@@ -101,12 +101,14 @@ export class RecordsRepository {
           in: uniqueInputs.map((input) => input.placeId),
         },
       },
-      select: {
-        placeId: true,
-      },
+      select: { placeId: true, startDate: true, endDate: true },
     })
-    const existingPlaceIds = new Set(existingRecords.map((record) => record.placeId))
-    const recordsToCreate = uniqueInputs.filter((input) => !existingPlaceIds.has(input.placeId))
+    const existingKeys = new Set(existingRecords.map(record => keyOf({
+      placeId: record.placeId,
+      startDate: record.startDate,
+      endDate: record.endDate,
+    })))
+    const recordsToCreate = uniqueInputs.filter(input => !existingKeys.has(keyOf(input)))
 
     let importedCount = 0
 
