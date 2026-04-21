@@ -28,14 +28,16 @@ import {
   normalizeOverseasSource,
 } from './normalize-natural-earth.mjs'
 import {
+  getOverseasAdmin1CountryDefinition,
   getOverseasAdmin1SourceFeatureId,
   isSupportedOverseasAdmin1Feature,
+  supportedCountrySummaries,
 } from './overseas-admin1-support.mjs'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const GEOMETRY_DATASET_VERSION = '2026-04-02-geo-v2'
+const GEOMETRY_DATASET_VERSION = '2026-04-21-geo-v3'
 
 const CATALOG_PATH = resolve(__dirname, '..', '..', 'src', 'data', 'geo', 'geometry-source-catalog.json')
 
@@ -51,7 +53,7 @@ const CONTRACTS_GENERATED_DIR = resolve(
 
 const CN_LAYER_ASSET_KEY = 'cn/layer.json'
 const OVERSEAS_LAYER_ASSET_KEY = 'overseas/layer.json'
-const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-02'
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
 const CN_DIRECT_CONTROLLED_CODES = new Set([110000, 120000, 310000, 500000])
 const CN_SAR_CODES = new Set([810000, 820000])
@@ -209,12 +211,6 @@ function buildCnIdentity(adcode) {
   }
 }
 
-function normalizeCountryLabel(name) {
-  return String(name)
-    .replace(/^United States of America$/, 'United States')
-    .replace(/^Russian Federation$/, 'Russia')
-}
-
 function buildOverseasIdentity(featureProperties) {
   const iso2 = String(featureProperties.iso_a2 ?? featureProperties.adm0_a3 ?? 'xx').toLowerCase()
   const admin1Name = featureProperties.name_en ?? featureProperties.name
@@ -257,11 +253,15 @@ function createCnFeatureMetadata(featureProperties, provinceNameMap) {
 }
 
 function createOverseasFeatureMetadata(featureProperties) {
+  const countryDefinition = getOverseasAdmin1CountryDefinition(featureProperties)
+  if (!countryDefinition) {
+    throw new Error(`Missing overseas country definition for ${featureProperties.adm0_a3 ?? 'unknown'}`)
+  }
+
   const identity = buildOverseasIdentity(featureProperties)
   const displayName = featureProperties.name_en ?? featureProperties.name
-  const parentLabel = normalizeCountryLabel(
-    featureProperties.admin ?? featureProperties.geonunit ?? featureProperties.adm0_a3,
-  )
+  const parentLabel = countryDefinition.labelEn
+  const typeLabel = countryDefinition.defaultTypeLabel
 
   return {
     ...identity,
@@ -270,9 +270,9 @@ function createOverseasFeatureMetadata(featureProperties) {
     datasetVersion: CANONICAL_DATASET_VERSION,
     regionSystem: 'OVERSEAS',
     adminType: 'ADMIN1',
-    typeLabel: '一级行政区',
+    typeLabel,
     parentLabel,
-    subtitle: `${parentLabel} · 一级行政区`,
+    subtitle: `${parentLabel} · ${typeLabel}`,
     cityId: identity.placeId,
     cityName: displayName,
   }
@@ -404,6 +404,12 @@ function generateTypescriptManifest(entries) {
   const entriesJson = JSON.stringify(entries, null, 2)
     .replace(/^/gm, '  ')
     .trimStart()
+  const supportedCountrySummariesJson = JSON.stringify(supportedCountrySummaries, null, 2)
+    .replace(/^/gm, '  ')
+    .trimStart()
+  const supportedCountryLabelZh = JSON.stringify(
+    supportedCountrySummaries.map(country => country.labelZh).join('、'),
+  )
 
   return `/**
  * geometry-manifest.generated.ts
@@ -420,6 +426,10 @@ import type { GeometryManifestEntry } from '../geometry'
 export const GEOMETRY_DATASET_VERSION = '${GEOMETRY_DATASET_VERSION}' as const
 
 export const GEOMETRY_MANIFEST: readonly GeometryManifestEntry[] = ${entriesJson} as const
+
+export const SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES = ${supportedCountrySummariesJson} as const
+
+export const SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH = ${supportedCountryLabelZh} as const
 `
 }
 
