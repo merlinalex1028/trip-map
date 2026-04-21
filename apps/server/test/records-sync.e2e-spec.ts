@@ -3,9 +3,13 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
+import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
-import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
+import {
+  PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS,
+  PHASE28_NEW_COUNTRY_CASES,
+} from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -107,6 +111,7 @@ describe('Records sync semantics', () => {
   const prisma = new PrismaClient()
   let sessionACookie: string
   let sessionBCookie: string
+  let userId: string
 
   beforeAll(async () => {
     app = await createApp()
@@ -167,6 +172,14 @@ describe('Records sync semantics', () => {
     expect(loginResponse.statusCode).toBe(200)
     sessionBCookie = extractSidCookie(readSetCookie(loginResponse))!
     expect(sessionBCookie).toBeTruthy()
+
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+      select: { id: true },
+    })
+
+    expect(user).toBeTruthy()
+    userId = user!.id
   })
 
   beforeEach(async () => {
@@ -286,6 +299,81 @@ describe('Records sync semantics', () => {
         ]),
       )
     }
+  })
+
+  it('replays backfilled Phase 28 metadata to session B for legacy overseas userTravelRecord rows', async () => {
+    await prisma.userTravelRecord.createMany({
+      data: PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS.map(record => ({
+        userId,
+        ...record,
+      })),
+    })
+
+    const legacyRowsBeforeBackfill = await prisma.userTravelRecord.findMany({
+      where: { userId },
+      select: {
+        placeId: true,
+        datasetVersion: true,
+        subtitle: true,
+      },
+      orderBy: { placeId: 'asc' },
+    })
+
+    expect(legacyRowsBeforeBackfill).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          datasetVersion: '2026-04-02-geo-v2',
+          subtitle: 'Japan · 一级行政区',
+        }),
+        expect.objectContaining({
+          placeId: 'us-california',
+          datasetVersion: '2026-04-02-geo-v2',
+          subtitle: 'United States · 一级行政区',
+        }),
+      ]),
+    )
+
+    await backfillRecordMetadata(prisma)
+
+    const bootstrapResponse = await app.inject({
+      method: 'GET',
+      url: '/auth/bootstrap',
+      headers: {
+        cookie: sessionBCookie,
+      },
+    })
+
+    expect(bootstrapResponse.statusCode).toBe(200)
+
+    const responseBody = bootstrapResponse.json()
+
+    expect(responseBody.authenticated).toBe(true)
+    expect(responseBody.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          boundaryId: 'ne-admin1-jp-tokyo',
+          datasetVersion: 'canonical-authoritative-2026-04-21',
+          typeLabel: 'Prefecture',
+          parentLabel: 'Japan',
+          subtitle: 'Japan · Prefecture',
+        }),
+        expect.objectContaining({
+          placeId: 'us-california',
+          boundaryId: 'ne-admin1-us-california',
+          datasetVersion: 'canonical-authoritative-2026-04-21',
+          typeLabel: 'State',
+          parentLabel: 'United States',
+          subtitle: 'United States · State',
+        }),
+      ]),
+    )
+    expect(
+      responseBody.records.some((record: { subtitle: string, typeLabel: string }) =>
+        record.subtitle.includes('一级行政区') || record.typeLabel.includes('一级行政区')
+      ),
+    ).toBe(false)
   })
 
   it('lets session B observe that a record was removed by session A after /auth/bootstrap', async () => {

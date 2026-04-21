@@ -14,6 +14,19 @@ export type Phase28OverseasCase = Phase28OverseasCaseSeed & {
   expectedBoundaryId: string
 }
 
+export type LegacyOverseasUserTravelRecordSeed = {
+  placeId: string
+  boundaryId: string
+  placeKind: 'OVERSEAS_ADMIN1'
+  datasetVersion: '2026-04-02-geo-v2'
+  displayName: string
+  regionSystem: 'OVERSEAS'
+  adminType: 'ADMIN1'
+  typeLabel: '一级行政区'
+  parentLabel: string
+  subtitle: string
+}
+
 const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
 const PHASE28_REQUIRED_ISO2S = [
@@ -190,3 +203,30 @@ function resolveCase(seed: Phase28OverseasCaseSeed): Phase28OverseasCase {
 assertPhase28CaseSeeds()
 
 export const PHASE28_NEW_COUNTRY_CASES = PHASE28_CASE_SEEDS.map(resolveCase)
+
+export const PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS = [
+  {
+    placeId: 'jp-tokyo',
+    boundaryId: 'ne-admin1-jp-tokyo',
+    placeKind: 'OVERSEAS_ADMIN1',
+    datasetVersion: '2026-04-02-geo-v2',
+    displayName: 'Tokyo',
+    regionSystem: 'OVERSEAS',
+    adminType: 'ADMIN1',
+    typeLabel: '一级行政区',
+    parentLabel: 'Japan',
+    subtitle: 'Japan · 一级行政区',
+  },
+  {
+    placeId: 'us-california',
+    boundaryId: 'ne-admin1-us-california',
+    placeKind: 'OVERSEAS_ADMIN1',
+    datasetVersion: '2026-04-02-geo-v2',
+    displayName: 'California',
+    regionSystem: 'OVERSEAS',
+    adminType: 'ADMIN1',
+    typeLabel: '一级行政区',
+    parentLabel: 'United States',
+    subtitle: 'United States · 一级行政区',
+  },
+] as const satisfies ReadonlyArray<LegacyOverseasUserTravelRecordSeed>

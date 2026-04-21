@@ -3,9 +3,13 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
+import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
-import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
+import {
+  PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS,
+  PHASE28_NEW_COUNTRY_CASES,
+} from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -299,6 +303,98 @@ describe('Auth bootstrap API', () => {
         ]),
       )
     }
+  })
+
+  it('GET /auth/bootstrap replays upgraded Phase 28 metadata after backfilling legacy overseas userTravelRecord rows', async () => {
+    const payload = createRegisterPayload('legacy-migrate')
+    const registerResponse = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload,
+    })
+
+    expect(registerResponse.statusCode).toBe(201)
+    const sidCookie = extractSidCookie(readSetCookie(registerResponse))
+    expect(sidCookie).toBeTruthy()
+
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+    })
+
+    expect(user).toBeTruthy()
+
+    await prisma.userTravelRecord.createMany({
+      data: PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS.map(record => ({
+        userId: user!.id,
+        ...record,
+      })),
+    })
+
+    const legacyRowsBeforeBackfill = await prisma.userTravelRecord.findMany({
+      where: { userId: user!.id },
+      select: {
+        placeId: true,
+        datasetVersion: true,
+        subtitle: true,
+      },
+      orderBy: { placeId: 'asc' },
+    })
+
+    expect(legacyRowsBeforeBackfill).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          datasetVersion: '2026-04-02-geo-v2',
+          subtitle: 'Japan · 一级行政区',
+        }),
+        expect.objectContaining({
+          placeId: 'us-california',
+          datasetVersion: '2026-04-02-geo-v2',
+          subtitle: 'United States · 一级行政区',
+        }),
+      ]),
+    )
+
+    await backfillRecordMetadata(prisma)
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/auth/bootstrap',
+      headers: {
+        cookie: sidCookie!,
+      },
+    })
+
+    expect(response.statusCode).toBe(200)
+
+    const responseBody = response.json()
+
+    expect(responseBody.authenticated).toBe(true)
+    expect(responseBody.records).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          placeId: 'jp-tokyo',
+          boundaryId: 'ne-admin1-jp-tokyo',
+          datasetVersion: 'canonical-authoritative-2026-04-21',
+          typeLabel: 'Prefecture',
+          parentLabel: 'Japan',
+          subtitle: 'Japan · Prefecture',
+        }),
+        expect.objectContaining({
+          placeId: 'us-california',
+          boundaryId: 'ne-admin1-us-california',
+          datasetVersion: 'canonical-authoritative-2026-04-21',
+          typeLabel: 'State',
+          parentLabel: 'United States',
+          subtitle: 'United States · State',
+        }),
+      ]),
+    )
+    expect(
+      responseBody.records.some((record: { subtitle: string, typeLabel: string }) =>
+        record.subtitle.includes('一级行政区') || record.typeLabel.includes('一级行政区')
+      ),
+    ).toBe(false)
   })
 
   it('GET /auth/bootstrap clear invalid sid cookie and returns authenticated: false for expired or missing session', async () => {
