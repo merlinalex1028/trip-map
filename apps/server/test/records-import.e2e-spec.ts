@@ -47,6 +47,7 @@ const AUTHORITATIVE_PLACE_ID = `test-import-authoritative-${Date.now()}`
 const IDEMPOTENT_PLACE_ID = `test-import-idempotent-${Date.now()}`
 const AUTHORITATIVE_OVERSEAS_PLACE_ID = PHASE28_NEW_COUNTRY_CASES[0]!.expectedPlaceId
 const LEGACY_OVERSEAS_TYPE_LABEL = ['一级', '行政区'].join('')
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
 const baseRecord: Omit<CreateTravelRecordRequest, 'placeId'> = {
   boundaryId: 'boundary-test-001',
@@ -436,6 +437,7 @@ describe('POST /records/import', () => {
     const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
 
     expect(canonicalSummary).toBeTruthy()
+    expect(canonicalSummary?.datasetVersion).toBe(CANONICAL_DATASET_VERSION)
 
     const response = await app.inject({
       method: 'POST',

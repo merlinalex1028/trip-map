@@ -48,6 +48,7 @@ const LEGACY_OVERSEAS_PLACE_ID = 'jp-tokyo'
 const AUTHORITATIVE_OVERSEAS_PLACE_ID = PHASE28_NEW_COUNTRY_CASES[0]!.expectedPlaceId
 const TEST_PASSWORD = 'Passw0rd!123'
 const LEGACY_OVERSEAS_TYPE_LABEL = ['一级', '行政区'].join('')
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
 const validRecord = {
   placeId: TEST_PLACE_ID,
@@ -66,7 +67,7 @@ const unsupportedOverseasRecord = {
   placeId: UNSUPPORTED_OVERSEAS_PLACE_ID,
   boundaryId: 'ne-admin1-mx-jalisco',
   placeKind: 'OVERSEAS_ADMIN1',
-  datasetVersion: '2026-04-21-geo-v3',
+  datasetVersion: CANONICAL_DATASET_VERSION,
   displayName: 'Jalisco',
   regionSystem: 'OVERSEAS',
   adminType: 'ADMIN1',
@@ -478,7 +479,7 @@ describe('Current-user travel records API', () => {
 
     expect(canonicalSummary).toMatchObject({
       placeId: LEGACY_OVERSEAS_PLACE_ID,
-      datasetVersion: '2026-04-21-geo-v3',
+      datasetVersion: CANONICAL_DATASET_VERSION,
       displayName: 'Tokyo',
       typeLabel: 'Prefecture',
       parentLabel: 'Japan',
@@ -515,7 +516,7 @@ describe('Current-user travel records API', () => {
 
     expect(dbRecord).toMatchObject({
       placeId: LEGACY_OVERSEAS_PLACE_ID,
-      datasetVersion: '2026-04-21-geo-v3',
+      datasetVersion: CANONICAL_DATASET_VERSION,
       displayName: 'Tokyo',
       regionSystem: 'OVERSEAS',
       adminType: 'ADMIN1',

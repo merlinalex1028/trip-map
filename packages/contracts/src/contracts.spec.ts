@@ -40,9 +40,9 @@ describe('@trip-map/contracts', () => {
       displayName: 'Phase 11 Demo Place',
       regionSystem: 'OVERSEAS',
       adminType: 'ADMIN1',
-      typeLabel: 'State',
+      typeLabel: '一级行政区',
       parentLabel: 'Phase 11 Demo Country',
-      subtitle: 'Phase 11 Demo Country · State',
+      subtitle: 'Phase 11 Demo Country · 一级行政区',
     })
 
     expectTypeOf<PlaceKind>().toEqualTypeOf<'CN_ADMIN' | 'OVERSEAS_ADMIN1'>()
@@ -166,10 +166,10 @@ describe('@trip-map/contracts', () => {
     expect(keys).toHaveLength(10)
   })
 
-  it('ships historical Phase 12 fixtures with explicit admin semantics', () => {
+  it('keeps historical Phase 12 fixtures on their original admin semantics', () => {
     expect(PHASE12_RESOLVED_BEIJING.typeLabel).toBe('直辖市')
     expect(PHASE12_RESOLVED_HONG_KONG.typeLabel).toBe('特别行政区')
-    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('State')
+    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
 
     expectTypeOf<(typeof PHASE12_AMBIGUOUS_RESOLVE)['recommendedPlaceId']>().toEqualTypeOf<
       string | null
@@ -199,7 +199,9 @@ describe('@trip-map/contracts', () => {
     expect(PHASE12_RESOLVED_HONG_KONG.datasetVersion).toBe('phase12-canonical-fixture-v1')
     expect(PHASE12_RESOLVED_ABA.datasetVersion).toBe('phase12-canonical-fixture-v1')
     expect(PHASE12_RESOLVED_CALIFORNIA.datasetVersion).toBe('phase12-canonical-fixture-v1')
-    expect(PHASE12_RESOLVED_CALIFORNIA.subtitle).toBe('United States · State')
+    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.subtitle).toBe('United States · 一级行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.geometryRef.assetKey).toBe('overseas/us.json')
 
     expect(PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId).toBe('cn-beijing')
     expect(PHASE12_AMBIGUOUS_RESOLVE.candidates.map(candidate => candidate.placeId)).toEqual([

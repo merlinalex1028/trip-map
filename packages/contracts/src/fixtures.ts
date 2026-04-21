@@ -13,9 +13,9 @@ export const PHASE11_SMOKE_RECORD_REQUEST: SmokeRecordCreateRequest = {
   displayName: 'Phase 11 Demo Place',
   regionSystem: 'OVERSEAS',
   adminType: 'ADMIN1',
-  typeLabel: 'State',
+  typeLabel: '一级行政区',
   parentLabel: 'Phase 11 Demo Country',
-  subtitle: 'Phase 11 Demo Country · State',
+  subtitle: 'Phase 11 Demo Country · 一级行政区',
 }
 
 export const PHASE12_RESOLVED_BEIJING: ResolvedCanonicalPlace = {
@@ -66,9 +66,9 @@ export const PHASE12_RESOLVED_CALIFORNIA: ResolvedCanonicalPlace = {
   displayName: 'California',
   regionSystem: 'OVERSEAS',
   adminType: 'ADMIN1',
-  typeLabel: 'State',
+  typeLabel: '一级行政区',
   parentLabel: 'United States',
-  subtitle: 'United States · State',
+  subtitle: 'United States · 一级行政区',
   geometryRef: {
     boundaryId: 'ne-admin1-us-california',
     layer: 'OVERSEAS',

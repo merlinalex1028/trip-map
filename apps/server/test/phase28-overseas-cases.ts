@@ -14,6 +14,8 @@ export type Phase28OverseasCase = Phase28OverseasCaseSeed & {
   expectedBoundaryId: string
 }
 
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
+
 const PHASE28_REQUIRED_ISO2S = [
   'IN',
   'ID',
@@ -172,9 +174,9 @@ function resolveCase(seed: Phase28OverseasCaseSeed): Phase28OverseasCase {
 
   const [summary] = matches
 
-  if (summary.datasetVersion !== '2026-04-21-geo-v3') {
+  if (summary.datasetVersion !== CANONICAL_DATASET_VERSION) {
     throw new Error(
-      `Phase 28 case ${seed.iso2}/${seed.displayName} expected datasetVersion 2026-04-21-geo-v3, received ${summary.datasetVersion}.`,
+      `Phase 28 case ${seed.iso2}/${seed.displayName} expected datasetVersion ${CANONICAL_DATASET_VERSION}, received ${summary.datasetVersion}.`,
     )
   }
 

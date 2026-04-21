@@ -4,6 +4,8 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { createApp } from '../src/main.js'
 import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
+const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
+
 describe('POST /places canonical resolve', () => {
   let app: NestFastifyApplication
 
@@ -160,7 +162,7 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: '2026-04-21-geo-v3',
+        datasetVersion: CANONICAL_DATASET_VERSION,
         typeLabel: 'State',
       },
     })
@@ -181,7 +183,7 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: '2026-04-21-geo-v3',
+        datasetVersion: CANONICAL_DATASET_VERSION,
         typeLabel: 'State',
       },
     })
@@ -295,7 +297,7 @@ describe('POST /places canonical resolve', () => {
         status: 'resolved',
         place: {
           placeKind: 'OVERSEAS_ADMIN1',
-          datasetVersion: '2026-04-21-geo-v3',
+          datasetVersion: CANONICAL_DATASET_VERSION,
           displayName: phase28Case.displayName,
           typeLabel: phase28Case.expectedTypeLabel,
           parentLabel: phase28Case.countryLabel,
