@@ -63,11 +63,17 @@ Plans:
 **Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
 **Depends on:** Phase 27
 **Requirements:** GEOX-01, GEOX-02
+**Plans:** 3 plans
 **Success Criteria** (what must be TRUE):
 1. 一组新增的优先海外国家/地区可以稳定 resolve 到可保存的 authoritative admin1 记录。
 2. 扩展后的海外记录在地图、bootstrap 恢复和跨设备读取时都保持一致的标题、类型标签和归类信息。
 3. 时间轴与统计消费这些海外记录时，不需要临时兜底推导文案或归类。
 **UI hint:** yes
+
+Plans:
+- [ ] 28-01-PLAN.md — 拆分 overseas build-time authoring、锁定 21 国支持矩阵并生成 v3 geometry manifest / supported-country summary
+- [ ] 28-02-PLAN.md — server authoritative guard、metadata backfill 与新增国家/旧标签拒绝回归
+- [ ] 28-03-PLAN.md — unsupported-country copy 切到 generated summary，并更新 contracts/web consumer compatibility tests
 
 ### Phase 29: Timeline Page & Account Entry
 **Goal:** 用户可以从用户名面板进入一个独立的旅行时间轴页面，按时间顺序浏览自己的旅行历史。
