@@ -8,7 +8,7 @@ import {
 
 describe('geometry-manifest service', () => {
   it('exports GEOMETRY_DATASET_VERSION from the generated contracts manifest', () => {
-    expect(GEOMETRY_DATASET_VERSION).toBe('2026-04-02-geo-v2')
+    expect(GEOMETRY_DATASET_VERSION).toBe('2026-04-21-geo-v3')
   })
 
   it('can look up datav-cn-beijing entry', () => {
@@ -17,7 +17,7 @@ describe('geometry-manifest service', () => {
     expect(entry?.boundaryId).toBe('datav-cn-beijing')
     expect(entry?.layer).toBe('CN')
     expect(entry?.assetKey).toBe('cn/layer.json')
-    expect(entry?.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
+    expect(entry?.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
     expect(entry?.renderableId).toBe('datav-cn-beijing')
   })
 
@@ -34,7 +34,29 @@ describe('geometry-manifest service', () => {
     expect(entry?.boundaryId).toBe('ne-admin1-us-california')
     expect(entry?.layer).toBe('OVERSEAS')
     expect(entry?.assetKey).toBe('overseas/layer.json')
+    expect(entry?.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
     expect(entry?.renderableId).toBe('ne-admin1-us-california')
+  })
+
+  it('can look up representative newly supported overseas admin1 entries', () => {
+    const representativeBoundaryIds = [
+      'ne-admin1-ca-british-columbia',
+      'ne-admin1-de-bavaria',
+      'ne-admin1-br-rio-grande-do-sul',
+      'ne-admin1-eg-aswan',
+      'ne-admin1-sa-eastern',
+      'ne-admin1-pg-morobe',
+    ]
+
+    for (const boundaryId of representativeBoundaryIds) {
+      const entry = getGeometryManifestEntry(boundaryId)
+      expect(entry).not.toBeNull()
+      expect(entry?.boundaryId).toBe(boundaryId)
+      expect(entry?.layer).toBe('OVERSEAS')
+      expect(entry?.assetKey).toBe('overseas/layer.json')
+      expect(entry?.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
+      expect(entry?.renderableId).toBe(boundaryId)
+    }
   })
 
   it('returns null for unknown boundaryId', () => {
@@ -66,6 +88,11 @@ describe('geometry-manifest service', () => {
     for (const entry of overseasEntries) {
       expect(entry.layer).toBe('OVERSEAS')
     }
+  })
+
+  it('OVERSEAS entries exceed the Phase 26 baseline of 228 entries', () => {
+    const overseasEntries = listGeometryManifestEntriesByLayer('OVERSEAS')
+    expect(overseasEntries.length).toBeGreaterThan(228)
   })
 
   it('entries with renderableId all have non-null renderableId', () => {
