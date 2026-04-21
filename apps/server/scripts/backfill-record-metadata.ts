@@ -22,6 +22,8 @@ type BackfillSummary = {
   unmatchedTravelRows: string[]
   matchedSmokeRows: number
   unmatchedSmokeRows: string[]
+  matchedUserTravelRows: number
+  unmatchedUserTravelRows: string[]
 }
 
 function normalizeDatabaseUrl(value: string | undefined): string | undefined {
@@ -91,6 +93,13 @@ export function buildSmokeMetadataUpdate(
   return lookup.get(placeId) ?? null
 }
 
+export function buildUserTravelMetadataUpdate(
+  placeId: string,
+  lookup: CanonicalMetadataLookup,
+): CanonicalMetadata | null {
+  return lookup.get(placeId) ?? null
+}
+
 function createPrismaClient() {
   loadServerEnvFile()
   return new PrismaClient()
@@ -110,12 +119,20 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
       placeId: true,
     },
   })
+  const userTravelRows = await prisma.userTravelRecord.findMany({
+    select: {
+      id: true,
+      placeId: true,
+    },
+  })
 
   const summary: BackfillSummary = {
     matchedTravelRows: 0,
     unmatchedTravelRows: [],
     matchedSmokeRows: 0,
     unmatchedSmokeRows: [],
+    matchedUserTravelRows: 0,
+    unmatchedUserTravelRows: [],
   }
 
   for (const row of travelRows) {
@@ -164,6 +181,29 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
     summary.matchedSmokeRows += 1
   }
 
+  for (const row of userTravelRows) {
+    const metadata = buildUserTravelMetadataUpdate(row.placeId, lookup)
+
+    if (!metadata) {
+      summary.unmatchedUserTravelRows.push(row.placeId)
+      continue
+    }
+
+    await prisma.userTravelRecord.update({
+      where: { id: row.id },
+      data: {
+        datasetVersion: metadata.datasetVersion,
+        displayName: metadata.displayName,
+        regionSystem: metadata.regionSystem,
+        adminType: metadata.adminType,
+        typeLabel: metadata.typeLabel,
+        parentLabel: metadata.parentLabel,
+        subtitle: metadata.subtitle,
+      },
+    })
+    summary.matchedUserTravelRows += 1
+  }
+
   return summary
 }
 
@@ -180,6 +220,8 @@ async function main() {
           unmatchedTravelRows: summary.unmatchedTravelRows,
           matchedSmokeRows: summary.matchedSmokeRows,
           unmatchedSmokeRows: summary.unmatchedSmokeRows,
+          matchedUserTravelRows: summary.matchedUserTravelRows,
+          unmatchedUserTravelRows: summary.unmatchedUserTravelRows,
         },
         null,
         2,

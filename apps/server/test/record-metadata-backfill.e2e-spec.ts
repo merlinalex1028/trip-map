@@ -4,12 +4,13 @@ import {
   buildCanonicalMetadataLookup,
   buildSmokeMetadataUpdate,
   buildTravelMetadataUpdate,
+  buildUserTravelMetadataUpdate,
 } from '../scripts/backfill-record-metadata.ts'
 
 const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
 describe('record metadata backfill helpers', () => {
-  it('maps authoritative canonical metadata by placeId for travel and smoke records', () => {
+  it('maps authoritative canonical metadata by placeId for travel, smoke, and userTravel records', () => {
     const lookup = buildCanonicalMetadataLookup()
 
     expect(buildTravelMetadataUpdate('cn-beijing', lookup)).toEqual({
@@ -41,6 +42,11 @@ describe('record metadata backfill helpers', () => {
       parentLabel: 'Japan',
       subtitle: 'Japan · Prefecture',
     })
+
+    expect(buildUserTravelMetadataUpdate('us-california', lookup)?.datasetVersion).toBe(
+      'canonical-authoritative-2026-04-21',
+    )
+    expect(buildUserTravelMetadataUpdate('jp-tokyo', lookup)?.subtitle).toBe('Japan · Prefecture')
   })
 
   it('keeps unknown placeIds unmatched instead of guessing labels', () => {
@@ -48,5 +54,6 @@ describe('record metadata backfill helpers', () => {
 
     expect(buildTravelMetadataUpdate('legacy-unknown-place', lookup)).toBeNull()
     expect(buildSmokeMetadataUpdate('legacy-unknown-place', lookup)).toBeNull()
+    expect(buildUserTravelMetadataUpdate('legacy-unknown-place', lookup)).toBeNull()
   })
 })
