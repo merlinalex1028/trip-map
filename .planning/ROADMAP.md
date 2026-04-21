@@ -33,7 +33,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 | # | Phase | Status | Requirements | Depends on |
 |---|-------|--------|--------------|------------|
 | 27 | Multi-Visit Record Foundation | 6/6 | Complete    | 2026-04-20 |
-| 28 | Overseas Coverage Expansion | 3/3 | Verification gaps | 2026-04-21 |
+| 28 | Overseas Coverage Expansion | 3/5 | Verification gaps | 2026-04-21 |
 | 29 | Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
 
@@ -63,7 +63,7 @@ Plans:
 **Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
 **Depends on:** Phase 27
 **Requirements:** GEOX-01, GEOX-02
-**Plans:** 3/3 plans complete
+**Plans:** 5 plans total (3 complete, 2 gap closure pending)
 **Verification:** gaps_found (`.planning/phases/28-overseas-coverage-expansion/28-VERIFICATION.md`)
 **Success Criteria** (what must be TRUE):
 1. 一组新增的优先海外国家/地区可以稳定 resolve 到可保存的 authoritative admin1 记录。
@@ -75,6 +75,8 @@ Plans:
 - [x] 28-01-PLAN.md — 拆分 overseas build-time authoring、锁定 21 国支持矩阵并生成 v3 geometry manifest / supported-country summary
 - [x] 28-02-PLAN.md — server authoritative guard、metadata backfill 与新增国家/旧标签拒绝回归
 - [x] 28-03-PLAN.md — unsupported-country copy 切到 generated summary，并更新 contracts/web consumer compatibility tests
+- [ ] 28-04-PLAN.md — [gap-closure] 修复 canonical `datasetVersion` / geometry version split-brain，并恢复历史 fixtures baseline
+- [ ] 28-05-PLAN.md — [gap-closure] 扩展 `userTravelRecord` backfill，并补旧记录经 bootstrap / sync 回放的迁移 e2e
 
 ### Phase 29: Timeline Page & Account Entry
 **Goal:** 用户可以从用户名面板进入一个独立的旅行时间轴页面，按时间顺序浏览自己的旅行历史。
@@ -107,7 +109,7 @@ Plans:
 
 ## Current Status
 
-当前 milestone 仍在执行 `Phase 28: Overseas Coverage Expansion`。本 phase 的 3 个计划都已执行完成，但 `28-VERIFICATION.md` 仍报告 2 个 blocker：`datasetVersion` 语义 split-brain，以及 `userTravelRecord` 尚未纳入 backfill。下一步应先做 gap closure，再重新验证后续是否进入 Phase 29。
+当前 milestone 仍在执行 `Phase 28: Overseas Coverage Expansion`。本 phase 现有 5 个计划：`28-01~03` 已执行完成，`28-04~05` 作为 gap closure plans 已规划完成并待执行。当前 blocker 仍是 `datasetVersion` 语义 split-brain，以及 `userTravelRecord` 尚未纳入 backfill；下一步应执行这两份 gap plans，再重新验证后续是否进入 Phase 29。
 
 ---
-*Last updated: 2026-04-21 — after Phase 28 execution and verification gaps*
+*Last updated: 2026-04-21 — after Phase 28 gap planning*
