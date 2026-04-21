@@ -11,6 +11,8 @@ describe('record metadata backfill helpers', () => {
     const lookup = buildCanonicalMetadataLookup()
 
     expect(buildTravelMetadataUpdate('cn-beijing', lookup)).toEqual({
+      datasetVersion: '2026-04-21-geo-v3',
+      displayName: '北京',
       regionSystem: 'CN',
       adminType: 'MUNICIPALITY',
       typeLabel: '直辖市',
@@ -19,11 +21,23 @@ describe('record metadata backfill helpers', () => {
     })
 
     expect(buildSmokeMetadataUpdate('us-california', lookup)).toEqual({
+      datasetVersion: '2026-04-21-geo-v3',
+      displayName: 'California',
       regionSystem: 'OVERSEAS',
       adminType: 'ADMIN1',
-      typeLabel: '一级行政区',
+      typeLabel: 'State',
       parentLabel: 'United States',
-      subtitle: 'United States · 一级行政区',
+      subtitle: 'United States · State',
+    })
+
+    expect(buildTravelMetadataUpdate('jp-tokyo', lookup)).toEqual({
+      datasetVersion: '2026-04-21-geo-v3',
+      displayName: 'Tokyo',
+      regionSystem: 'OVERSEAS',
+      adminType: 'ADMIN1',
+      typeLabel: 'Prefecture',
+      parentLabel: 'Japan',
+      subtitle: 'Japan · Prefecture',
     })
   })
 

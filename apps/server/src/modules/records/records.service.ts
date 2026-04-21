@@ -124,7 +124,7 @@ export class RecordsService {
 
     if (!placeSummary || !boundarySummary || placeSummary.placeId !== boundarySummary.placeId) {
       throw new BadRequestException(
-        'Overseas travel record is outside the Phase 26 authoritative support catalog.',
+        'Overseas travel record is outside the current authoritative overseas support catalog.',
       )
     }
 

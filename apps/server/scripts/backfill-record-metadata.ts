@@ -6,7 +6,13 @@ import { buildCanonicalMetadataLookup as buildManifestCanonicalMetadataLookup } 
 
 type CanonicalMetadata = Pick<
   CanonicalPlaceSummary,
-  'regionSystem' | 'adminType' | 'typeLabel' | 'parentLabel' | 'subtitle'
+  | 'datasetVersion'
+  | 'displayName'
+  | 'regionSystem'
+  | 'adminType'
+  | 'typeLabel'
+  | 'parentLabel'
+  | 'subtitle'
 >
 
 type CanonicalMetadataLookup = ReadonlyMap<string, CanonicalMetadata>
@@ -59,6 +65,8 @@ export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
     [...byPlaceId.entries()].map(([placeId, place]) => [
       placeId,
       {
+        datasetVersion: place.datasetVersion,
+        displayName: place.displayName,
         regionSystem: place.regionSystem,
         adminType: place.adminType,
         typeLabel: place.typeLabel,
@@ -94,7 +102,6 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
     select: {
       id: true,
       placeId: true,
-      subtitle: true,
     },
   })
   const smokeRows = await prisma.smokeRecord.findMany({
@@ -122,11 +129,13 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
     await prisma.travelRecord.update({
       where: { id: row.id },
       data: {
+        datasetVersion: metadata.datasetVersion,
+        displayName: metadata.displayName,
         regionSystem: metadata.regionSystem,
         adminType: metadata.adminType,
         typeLabel: metadata.typeLabel,
         parentLabel: metadata.parentLabel,
-        subtitle: row.subtitle.trim().length > 0 ? row.subtitle : metadata.subtitle,
+        subtitle: metadata.subtitle,
       },
     })
     summary.matchedTravelRows += 1
@@ -143,6 +152,8 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
     await prisma.smokeRecord.update({
       where: { id: row.id },
       data: {
+        datasetVersion: metadata.datasetVersion,
+        displayName: metadata.displayName,
         regionSystem: metadata.regionSystem,
         adminType: metadata.adminType,
         typeLabel: metadata.typeLabel,
