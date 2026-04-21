@@ -337,22 +337,22 @@ function recordToDisplayPoint(record: TravelRecord): MapPointDisplay {
 |---|-------|---------|---------------|
 | — | None. 当前实现、数据范围、命令可用性和测试状态都已在本次会话中通过代码读取或实际执行验证。 [VERIFIED: codebase reads] [VERIFIED: repo command suite in this research] | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Phase 28 的“更广优先国家/地区”具体名单是什么？**
-   - What we know: 当前 authoritative 覆盖只有 8 国，且 D-03 要求对目标范围一次性完成。 [VERIFIED: repo command node manifest-country-count script] [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-CONTEXT.md]
-   - What's unclear: 目标国家清单没有写进 `28-CONTEXT.md`、`ROADMAP.md` 或 `REQUIREMENTS.md`。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-CONTEXT.md] [VERIFIED: .planning/ROADMAP.md] [VERIFIED: .planning/REQUIREMENTS.md]
-   - Recommendation: 在 planning 前先锁定国家名单和区域分组，否则无法合理拆分 catalog files、验证样本和 wave 边界。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-CONTEXT.md]
+   - Resolution: planning 已锁定为 21 国的区域均衡矩阵，并在 `28-01-PLAN.md` 中按 authoring layer 直接落成固定范围，不留“后续再补国家”的口子。现有 8 国保留：`JP KR TH SG MY AE AU US`；新增 13 国：`IN ID SA PG CA BR AR DE PL CZ EG MA ZA`。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
+   - Region split: Asia `JP KR TH SG MY IN ID`；Middle East `AE SA`；Oceania `AU PG`；Americas `US CA BR AR`；Europe `DE PL CZ`；Africa `EG MA ZA`。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
+   - Planning consequence: 后续执行必须按该 21 国矩阵完成 build、server、consumer 和验证，不允许在 phase 内临时缩放范围。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
 
 2. **D-06 的标准标签应该如何归一化？**
-   - What we know: Natural Earth 有 `type_en`，但 `SG` 缺失，`JP`/`KR`/`AU`/`MY` 存在多种值。 [VERIFIED: apps/web/src/data/geo/sources/ne_10m_admin_1_states_provinces.json] [VERIFIED: repo command node natural-earth-type-en summary script]
-   - What's unclear: 是保留原始 `type_en`，还是映射到更少量的标准标签集合，或是保留中文 generic fallback。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-CONTEXT.md] [VERIFIED: apps/web/scripts/geo/build-geometry-manifest.mjs]
-   - Recommendation: 先定义 normalized label policy，再决定是否需要对现有 8 国做 backfill。 [VERIFIED: apps/server/scripts/backfill-record-metadata.ts]
+   - Resolution: planning 采用 country-level canonical label policy，而不是直接透传 Natural Earth 原始 `type_en`，也不是继续使用通用中文 `一级行政区`。示例映射包括：`JP -> Prefecture`、`US/IN/AU/DE/BR -> State`、`KR/TH/CA/ID/PG/PL -> Province`、`AE -> Emirate`、`EG -> Governorate`、`CZ/SA/SG -> Region`。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
+   - Data consequence: `28-02-PLAN.md` 已把既有 8 国 persisted records 的 metadata backfill 作为显式任务，要求把旧 `一级行政区` 数据升级为新的标准标签与 subtitle。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-02-PLAN.md]
+   - Consumer consequence: web/contracts fixtures 与 regression 也必须同步到这套标签策略，避免 Phase 29/30 继续继承旧文案基线。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-03-PLAN.md]
 
 3. **D-07 的“catalog 拆成多个文件”应该落在哪一层？**
-   - What we know: 当前真正的 authoring 单点是 `apps/web/scripts/geo/overseas-admin1-support.mjs`，而 runtime 读取的是 generated manifest / layer，不是手写 catalog JSON。 [VERIFIED: apps/web/scripts/geo/overseas-admin1-support.mjs] [VERIFIED: apps/web/scripts/geo/build-geometry-manifest.mjs] [VERIFIED: apps/server/src/modules/canonical-places/place-metadata-catalog.ts]
-   - What's unclear: 是否需要再引入一份新的 runtime catalog artifact。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-CONTEXT.md]
-   - Recommendation: 把多文件拆分限定在 authoring rule 层，避免引入新的 runtime truth source。 [VERIFIED: apps/web/scripts/geo/build-geometry-manifest.mjs]
+   - Resolution: 多文件拆分只落在 build-time authoring 层，即 `apps/web/scripts/geo/overseas-support/` 下的区域模块和聚合入口；`apps/web/scripts/geo/overseas-admin1-support.mjs` 只保留 thin wrapper / re-export 职责。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
+   - Non-goal: 不引入新的 runtime catalog JSON / store / server module；runtime 继续只消费 generated `GEOMETRY_MANIFEST` 与 geometry shard metadata。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md] [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-RESEARCH.md]
+   - Planning consequence: D-07 的实现边界已经锁死为 authoring 拆分，不再需要额外的 runtime truth source 决策。 [VERIFIED: .planning/phases/28-overseas-coverage-expansion/28-01-PLAN.md]
 
 ## Environment Availability
 
