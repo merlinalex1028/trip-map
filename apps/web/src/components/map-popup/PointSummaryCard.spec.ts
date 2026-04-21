@@ -1,8 +1,9 @@
 import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
-  PHASE12_RESOLVED_CALIFORNIA,
   PHASE12_RESOLVED_HONG_KONG,
+  PHASE28_RESOLVED_CALIFORNIA,
+  type ResolvedCanonicalPlace,
 } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
 
@@ -20,13 +21,10 @@ const ambiguousResolve = (() => {
 })()
 
 function createDraftPoint(
-  place:
-    | typeof PHASE12_RESOLVED_BEIJING
-    | typeof PHASE12_RESOLVED_HONG_KONG
-    | typeof PHASE12_RESOLVED_CALIFORNIA = PHASE12_RESOLVED_BEIJING,
+  place: ResolvedCanonicalPlace = PHASE12_RESOLVED_BEIJING,
   overrides: Partial<DraftMapPoint> = {},
 ): DraftMapPoint {
-  const isCalifornia = place.placeId === PHASE12_RESOLVED_CALIFORNIA.placeId
+  const isCalifornia = place.placeId === PHASE28_RESOLVED_CALIFORNIA.placeId
 
   return {
     id: `detected-${place.placeId}`,
@@ -439,20 +437,20 @@ describe('PointSummaryCard', () => {
         surface: {
           mode: 'view',
           point: createViewPoint({
-            id: `saved-${PHASE12_RESOLVED_CALIFORNIA.placeId}`,
-            name: PHASE12_RESOLVED_CALIFORNIA.displayName,
-            countryName: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
+            id: `saved-${PHASE28_RESOLVED_CALIFORNIA.placeId}`,
+            name: PHASE28_RESOLVED_CALIFORNIA.displayName,
+            countryName: PHASE28_RESOLVED_CALIFORNIA.parentLabel,
             countryCode: '__canonical__',
-            cityName: PHASE12_RESOLVED_CALIFORNIA.displayName,
-            cityContextLabel: PHASE12_RESOLVED_CALIFORNIA.subtitle,
-            placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-            placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
-            datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
-            typeLabel: PHASE12_RESOLVED_CALIFORNIA.typeLabel,
-            parentLabel: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
-            subtitle: PHASE12_RESOLVED_CALIFORNIA.subtitle,
-            boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-            boundaryDatasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+            cityName: PHASE28_RESOLVED_CALIFORNIA.displayName,
+            cityContextLabel: PHASE28_RESOLVED_CALIFORNIA.subtitle,
+            placeId: PHASE28_RESOLVED_CALIFORNIA.placeId,
+            placeKind: PHASE28_RESOLVED_CALIFORNIA.placeKind,
+            datasetVersion: PHASE28_RESOLVED_CALIFORNIA.datasetVersion,
+            typeLabel: PHASE28_RESOLVED_CALIFORNIA.typeLabel,
+            parentLabel: PHASE28_RESOLVED_CALIFORNIA.parentLabel,
+            subtitle: PHASE28_RESOLVED_CALIFORNIA.subtitle,
+            boundaryId: PHASE28_RESOLVED_CALIFORNIA.boundaryId,
+            boundaryDatasetVersion: PHASE28_RESOLVED_CALIFORNIA.datasetVersion,
             lat: 36.7783,
             lng: -119.4179,
             x: 0.15,
@@ -479,7 +477,7 @@ describe('PointSummaryCard', () => {
           canonicalCandidates: [
             { ...PHASE12_RESOLVED_BEIJING, candidateHint: '点击点位接近北京市中心' },
             { ...PHASE12_RESOLVED_HONG_KONG, candidateHint: '港岛与九龙附近候选' },
-            { ...PHASE12_RESOLVED_CALIFORNIA, candidateHint: '跨洋 admin1 候选' },
+            { ...PHASE28_RESOLVED_CALIFORNIA, candidateHint: '跨洋 admin1 候选' },
             { ...PHASE12_RESOLVED_BEIJING, placeId: 'cn-admin-extra', candidateHint: 'extra candidate should be hidden' },
           ],
           recommendedPlaceId: ambiguousResolve.recommendedPlaceId,
@@ -494,8 +492,8 @@ describe('PointSummaryCard', () => {
     expect(hongKongWrapper.text()).toContain('特别行政区')
     expect(hongKongWrapper.text()).toContain('中国 · 特别行政区')
     expect(californiaWrapper.text()).toContain('California')
-    expect(californiaWrapper.text()).toContain('一级行政区')
-    expect(californiaWrapper.text()).toContain('United States · 一级行政区')
+    expect(californiaWrapper.text()).toContain('State')
+    expect(californiaWrapper.text()).toContain('United States · State')
     expect(candidateWrapper.findAll('.point-summary-card__candidate-action')).toHaveLength(3)
     expect(candidateWrapper.find('[data-candidate-recommended="true"]').exists()).toBe(true)
   })

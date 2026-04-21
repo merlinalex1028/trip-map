@@ -24,6 +24,9 @@ import {
   PHASE12_RESOLVED_BEIJING,
   PHASE12_RESOLVED_CALIFORNIA,
   PHASE12_RESOLVED_HONG_KONG,
+  PHASE28_NEW_OVERSEAS_RECORD_FIXTURES,
+  PHASE28_RESOLVED_CALIFORNIA,
+  PHASE28_RESOLVED_TOKYO,
 } from './index'
 
 describe('@trip-map/contracts', () => {
@@ -37,9 +40,9 @@ describe('@trip-map/contracts', () => {
       displayName: 'Phase 11 Demo Place',
       regionSystem: 'OVERSEAS',
       adminType: 'ADMIN1',
-      typeLabel: '一级行政区',
+      typeLabel: 'State',
       parentLabel: 'Phase 11 Demo Country',
-      subtitle: 'Phase 11 Demo Country · 一级行政区',
+      subtitle: 'Phase 11 Demo Country · State',
     })
 
     expectTypeOf<PlaceKind>().toEqualTypeOf<'CN_ADMIN' | 'OVERSEAS_ADMIN1'>()
@@ -163,10 +166,10 @@ describe('@trip-map/contracts', () => {
     expect(keys).toHaveLength(10)
   })
 
-  it('ships Phase 12 canonical fixtures with explicit admin semantics', () => {
+  it('ships historical Phase 12 fixtures with explicit admin semantics', () => {
     expect(PHASE12_RESOLVED_BEIJING.typeLabel).toBe('直辖市')
     expect(PHASE12_RESOLVED_HONG_KONG.typeLabel).toBe('特别行政区')
-    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('State')
 
     expectTypeOf<(typeof PHASE12_AMBIGUOUS_RESOLVE)['recommendedPlaceId']>().toEqualTypeOf<
       string | null
@@ -185,7 +188,7 @@ describe('@trip-map/contracts', () => {
     expect(Object.keys(PHASE12_FAILED_RESOLVE)).not.toContain('candidates')
   })
 
-  it('mirrors server-authoritative canonical fixture ids and dataset versions', () => {
+  it('keeps historical fixture ids stable for legacy regressions', () => {
     expect(PHASE12_RESOLVED_BEIJING.placeId).toBe('cn-beijing')
     expect(PHASE12_RESOLVED_HONG_KONG.placeId).toBe('cn-hong-kong')
     expect(PHASE12_RESOLVED_ABA.placeId).toBe('cn-aba')
@@ -196,9 +199,7 @@ describe('@trip-map/contracts', () => {
     expect(PHASE12_RESOLVED_HONG_KONG.datasetVersion).toBe('phase12-canonical-fixture-v1')
     expect(PHASE12_RESOLVED_ABA.datasetVersion).toBe('phase12-canonical-fixture-v1')
     expect(PHASE12_RESOLVED_CALIFORNIA.datasetVersion).toBe('phase12-canonical-fixture-v1')
-
-    expect(PHASE12_RESOLVED_CALIFORNIA.typeLabel).toBe('一级行政区')
-    expect(PHASE12_RESOLVED_CALIFORNIA.subtitle).toBe('United States · 一级行政区')
+    expect(PHASE12_RESOLVED_CALIFORNIA.subtitle).toBe('United States · State')
 
     expect(PHASE12_AMBIGUOUS_RESOLVE.recommendedPlaceId).toBe('cn-beijing')
     expect(PHASE12_AMBIGUOUS_RESOLVE.candidates.map(candidate => candidate.placeId)).toEqual([
@@ -211,6 +212,67 @@ describe('@trip-map/contracts', () => {
         candidate => candidate.datasetVersion === 'phase12-canonical-fixture-v1',
       ),
     ).toBe(true)
+  })
+
+  it('ships Phase 28 California and Tokyo fixtures with authoritative v3 geometry refs', () => {
+    expect(PHASE28_RESOLVED_CALIFORNIA).toMatchObject({
+      placeId: 'us-california',
+      boundaryId: 'ne-admin1-us-california',
+      datasetVersion: 'canonical-authoritative-2026-04-21',
+      typeLabel: 'State',
+      subtitle: 'United States · State',
+      geometryRef: {
+        layer: 'OVERSEAS',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
+        assetKey: 'overseas/layer.json',
+        renderableId: 'ne-admin1-us-california',
+      },
+    })
+
+    expect(PHASE28_RESOLVED_TOKYO).toMatchObject({
+      placeId: 'jp-tokyo',
+      datasetVersion: 'canonical-authoritative-2026-04-21',
+      typeLabel: 'Prefecture',
+      subtitle: 'Japan · Prefecture',
+      geometryRef: {
+        layer: 'OVERSEAS',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
+        assetKey: 'overseas/layer.json',
+        renderableId: 'ne-admin1-jp-tokyo',
+      },
+    })
+  })
+
+  it('ships Phase 28 new overseas record fixtures for all 13 expansion countries', () => {
+    expect(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES).toHaveLength(13)
+    expect(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES.map((fixture) => fixture.placeId)).toEqual([
+      'in-ladakh',
+      'id-east-kalimantan',
+      'sa-eastern',
+      'pg-sandaun',
+      'ca-british-columbia',
+      'br-rio-grande-do-sul',
+      'ar-entre-rios',
+      'de-saxony',
+      'pl-silesian-voivodeship',
+      'cz-usti-nad-labem',
+      'eg-north-sinai',
+      'ma-guelmim-es-semara',
+      'za-northern-cape',
+    ])
+    expect(
+      PHASE28_NEW_OVERSEAS_RECORD_FIXTURES.every(
+        (fixture) =>
+          fixture.datasetVersion === 'canonical-authoritative-2026-04-21' &&
+          fixture.geometryRef.layer === 'OVERSEAS' &&
+          fixture.geometryRef.geometryDatasetVersion === '2026-04-21-geo-v3' &&
+          fixture.geometryRef.assetKey === 'overseas/layer.json' &&
+          fixture.geometryRef.renderableId === fixture.boundaryId,
+      ),
+    ).toBe(true)
+    expect(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES.at(0)?.subtitle).toBe('India · State')
+    expect(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES.at(1)?.subtitle).toBe('Indonesia · Province')
+    expect(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES.at(10)?.subtitle).toBe('Egypt · Governorate')
   })
 
   it('keeps CanonicalResolveResponse aligned with the three resolve branches', () => {
@@ -304,9 +366,19 @@ describe('@trip-map/contracts', () => {
     expect(PHASE12_RESOLVED_HONG_KONG.geometryRef.assetKey).toBe('cn/hong-kong.json')
   })
 
-  it('PHASE12_RESOLVED_CALIFORNIA fixture has correct geometryRef', () => {
+  it('keeps PHASE12_RESOLVED_CALIFORNIA geometryRef stable for legacy regressions', () => {
     expect(PHASE12_RESOLVED_CALIFORNIA.geometryRef.assetKey).toBe('overseas/us.json')
     expect(PHASE12_RESOLVED_CALIFORNIA.geometryRef.renderableId).toBe('ne-admin1-us-california')
+  })
+
+  it('uses Phase 28 overseas fixtures for current authoritative consumer compatibility', () => {
+    expect(PHASE28_RESOLVED_CALIFORNIA.geometryRef.assetKey).toBe('overseas/layer.json')
+    expect(PHASE28_RESOLVED_CALIFORNIA.geometryRef.geometryDatasetVersion).toBe(
+      '2026-04-21-geo-v3',
+    )
+    expect(PHASE28_RESOLVED_CALIFORNIA.datasetVersion).toBe(
+      'canonical-authoritative-2026-04-21',
+    )
   })
 
   it('ambiguous candidates all carry geometryRef', () => {

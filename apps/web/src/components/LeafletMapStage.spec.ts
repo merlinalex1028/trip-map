@@ -1,8 +1,8 @@
 import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
-  PHASE12_RESOLVED_CALIFORNIA,
   type TravelRecord,
+  PHASE28_RESOLVED_CALIFORNIA,
 } from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
@@ -31,7 +31,7 @@ const geometryLoaderMock = vi.hoisted(() => ({
 }))
 
 const geometryManifestMock = vi.hoisted(() => ({
-  GEOMETRY_DATASET_VERSION: '2026-03-31-geo-v1',
+  GEOMETRY_DATASET_VERSION: '2026-04-21-geo-v3',
   listGeometryManifestEntriesByLayer: vi.fn(() => []),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getGeometryManifestEntry: vi.fn<(...args: any[]) => any>(() => null),
@@ -121,7 +121,7 @@ vi.mock('../services/geometry-loader', () => ({
 }))
 
 vi.mock('../services/geometry-manifest', () => ({
-  GEOMETRY_DATASET_VERSION: '2026-03-31-geo-v1',
+  GEOMETRY_DATASET_VERSION: '2026-04-21-geo-v3',
   listGeometryManifestEntriesByLayer: geometryManifestMock.listGeometryManifestEntriesByLayer,
   getGeometryManifestEntry: geometryManifestMock.getGeometryManifestEntry,
 }))
@@ -319,7 +319,7 @@ describe('LeafletMapStage', () => {
       geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
         boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
         layer: 'CN',
-        geometryDatasetVersion: '2026-03-31-geo-v1',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
         assetKey: 'cn/beijing.json',
         renderableId: PHASE12_RESOLVED_BEIJING.boundaryId,
       })
@@ -351,17 +351,17 @@ describe('LeafletMapStage', () => {
           return {
             boundaryId,
             layer: 'CN',
-            geometryDatasetVersion: '2026-03-31-geo-v1',
+            geometryDatasetVersion: '2026-04-21-geo-v3',
             assetKey: 'cn/beijing.json',
             renderableId: boundaryId,
           }
         }
-        if (boundaryId === PHASE12_RESOLVED_CALIFORNIA.boundaryId) {
+        if (boundaryId === PHASE28_RESOLVED_CALIFORNIA.boundaryId) {
           return {
             boundaryId,
             layer: 'OVERSEAS',
-            geometryDatasetVersion: '2026-03-31-geo-v1',
-            assetKey: 'overseas/us.json',
+            geometryDatasetVersion: '2026-04-21-geo-v3',
+            assetKey: 'overseas/layer.json',
             renderableId: boundaryId,
           }
         }
@@ -373,7 +373,7 @@ describe('LeafletMapStage', () => {
       const mapPointsStore = useMapPointsStore()
       mapPointsStore.replaceTravelRecords([
         makeRecord(PHASE12_RESOLVED_BEIJING),
-        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA),
       ])
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
@@ -389,6 +389,10 @@ describe('LeafletMapStage', () => {
       const overseasCalls = addFeaturesMock.mock.calls.filter((c) => c[0] === 'OVERSEAS')
       expect(cnCalls.length).toBeGreaterThanOrEqual(1)
       expect(overseasCalls.length).toBeGreaterThanOrEqual(1)
+      expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
+        '2026-04-21-geo-v3',
+        'overseas/layer.json',
+      )
     })
 
     it('keeps startup silent when records bootstrap is owned by auth-session restore', async () => {
@@ -573,7 +577,7 @@ describe('LeafletMapStage', () => {
 
     it('keeps a single resolved overseas hit in normal detail mode instead of candidate-select', async () => {
       canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue(
-        makeResolvedResponse(PHASE12_RESOLVED_CALIFORNIA),
+        makeResolvedResponse(PHASE28_RESOLVED_CALIFORNIA),
       )
 
       const mapOnMock = vi.fn((event: string, handler: unknown) => {
@@ -605,8 +609,8 @@ describe('LeafletMapStage', () => {
       expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
       expect(mapPointsStore.draftPoint).toEqual(
         expect.objectContaining({
-          placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-          boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
+          placeId: PHASE28_RESOLVED_CALIFORNIA.placeId,
+          boundaryId: PHASE28_RESOLVED_CALIFORNIA.boundaryId,
           name: 'California',
         }),
       )
@@ -732,7 +736,7 @@ describe('LeafletMapStage', () => {
       geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
         boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
         layer: 'CN',
-        geometryDatasetVersion: '2026-03-31-geo-v1',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
         assetKey: 'cn/beijing.json',
         renderableId: PHASE12_RESOLVED_BEIJING.boundaryId,
       })
@@ -745,7 +749,7 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
-        '2026-03-31-geo-v1',
+        '2026-04-21-geo-v3',
         'cn/beijing.json',
       )
       expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
@@ -798,7 +802,7 @@ describe('LeafletMapStage', () => {
       geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
         boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
         layer: 'CN',
-        geometryDatasetVersion: '2026-03-31-geo-v1',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
         assetKey: 'cn/beijing.json',
         renderableId: PHASE12_RESOLVED_BEIJING.boundaryId,
       })
@@ -831,7 +835,7 @@ describe('LeafletMapStage', () => {
         PHASE12_RESOLVED_BEIJING.boundaryId,
       )
       expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
-        '2026-03-31-geo-v1',
+        '2026-04-21-geo-v3',
         'cn/beijing.json',
       )
       expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
@@ -1103,7 +1107,7 @@ describe('LeafletMapStage', () => {
       // Pre-save two points with different boundaryIds
       mapPointsStore.replaceTravelRecords([
         makeRecord(PHASE12_RESOLVED_BEIJING),
-        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA),
       ])
 
       mount(LeafletMapStage, { global: { plugins: [pinia] } })
@@ -1111,13 +1115,13 @@ describe('LeafletMapStage', () => {
 
       // savedBoundaryIds should have both
       expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
-      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
+      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE28_RESOLVED_CALIFORNIA.boundaryId)
 
       // Un-illuminate Beijing — California should remain highlighted
       mapPointsStore.unilluminate(PHASE12_RESOLVED_BEIJING.placeId)
       await nextTick()
       expect(mapPointsStore.savedBoundaryIds).not.toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
-      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
+      expect(mapPointsStore.savedBoundaryIds).toContain(PHASE28_RESOLVED_CALIFORNIA.boundaryId)
     })
   })
 })

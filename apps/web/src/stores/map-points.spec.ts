@@ -1,9 +1,11 @@
-import type { TravelRecord } from '@trip-map/contracts'
+import type { ResolvedCanonicalPlace, TravelRecord } from '@trip-map/contracts'
 import {
   PHASE12_AMBIGUOUS_RESOLVE,
   PHASE12_RESOLVED_BEIJING,
-  PHASE12_RESOLVED_CALIFORNIA,
   PHASE12_RESOLVED_HONG_KONG,
+  PHASE28_NEW_OVERSEAS_RECORD_FIXTURES,
+  PHASE28_RESOLVED_CALIFORNIA,
+  PHASE28_RESOLVED_TOKYO,
 } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
@@ -35,7 +37,7 @@ vi.mock('../services/api/records', () => {
 // ---------------------------------------------------------------------------
 
 function makeRecord(
-  place = PHASE12_RESOLVED_BEIJING,
+  place: ResolvedCanonicalPlace = PHASE12_RESOLVED_BEIJING,
   overrides: Partial<TravelRecord> = {},
 ): TravelRecord {
   return {
@@ -58,8 +60,8 @@ function makeRecord(
 }
 
 function makeResolvedPlace(
-  place = PHASE12_RESOLVED_BEIJING,
-){
+  place: ResolvedCanonicalPlace = PHASE12_RESOLVED_BEIJING,
+) {
   return {
     placeId: place.placeId,
     boundaryId: place.boundaryId,
@@ -76,19 +78,28 @@ function makeResolvedPlace(
   }
 }
 
-function makeOverseasRecord(overrides: Partial<TravelRecord> = {}): TravelRecord {
+const PHASE28_PERSISTED_TYPE_LABEL_SAMPLES = [
+  'State（持久化）',
+  'Prefecture（持久化）',
+  'Province（持久化）',
+] as const
+
+function makeOverseasRecord(
+  place: ResolvedCanonicalPlace = PHASE28_RESOLVED_TOKYO,
+  overrides: Partial<TravelRecord> = {},
+): TravelRecord {
   return {
-    id: 'server-rec-jp-tokyo',
-    placeId: 'jp-tokyo',
-    boundaryId: 'ne-admin1-jp-tokyo',
-    placeKind: 'OVERSEAS_ADMIN1',
-    datasetVersion: '2026-04-02-geo-v2',
-    displayName: 'Tokyo (Persisted)',
-    regionSystem: 'OVERSEAS',
-    adminType: 'ADMIN1',
-    typeLabel: '一级行政区（持久化）',
-    parentLabel: 'Japan',
-    subtitle: 'Persisted subtitle from record',
+    id: `server-rec-${place.placeId}`,
+    placeId: place.placeId,
+    boundaryId: place.boundaryId,
+    placeKind: place.placeKind,
+    datasetVersion: place.datasetVersion,
+    displayName: `${place.displayName}（持久化）`,
+    regionSystem: place.regionSystem,
+    adminType: place.adminType,
+    typeLabel: `${place.typeLabel}（持久化）`,
+    parentLabel: `${place.parentLabel}（持久化）`,
+    subtitle: `${place.parentLabel}（持久化） · ${place.typeLabel}（持久化）`,
     startDate: null,
     endDate: null,
     createdAt: new Date().toISOString(),
@@ -117,7 +128,7 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       const records = [
         makeRecord(PHASE12_RESOLVED_BEIJING),
-        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA),
       ]
 
       store.replaceTravelRecords(records)
@@ -169,17 +180,17 @@ describe('map-points store', () => {
           precision: 'city-high',
           cityId: null,
           cityName: 'California',
-          cityContextLabel: 'United States · 一级行政区',
-          placeId: PHASE12_RESOLVED_CALIFORNIA.placeId,
-          placeKind: PHASE12_RESOLVED_CALIFORNIA.placeKind,
-          datasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
-          regionSystem: PHASE12_RESOLVED_CALIFORNIA.regionSystem,
-          adminType: PHASE12_RESOLVED_CALIFORNIA.adminType,
-          typeLabel: PHASE12_RESOLVED_CALIFORNIA.typeLabel,
-          parentLabel: PHASE12_RESOLVED_CALIFORNIA.parentLabel,
-          subtitle: PHASE12_RESOLVED_CALIFORNIA.subtitle,
-          boundaryId: PHASE12_RESOLVED_CALIFORNIA.boundaryId,
-          boundaryDatasetVersion: PHASE12_RESOLVED_CALIFORNIA.datasetVersion,
+          cityContextLabel: 'United States · State',
+          placeId: PHASE28_RESOLVED_CALIFORNIA.placeId,
+          placeKind: PHASE28_RESOLVED_CALIFORNIA.placeKind,
+          datasetVersion: PHASE28_RESOLVED_CALIFORNIA.datasetVersion,
+          regionSystem: PHASE28_RESOLVED_CALIFORNIA.regionSystem,
+          adminType: PHASE28_RESOLVED_CALIFORNIA.adminType,
+          typeLabel: PHASE28_RESOLVED_CALIFORNIA.typeLabel,
+          parentLabel: PHASE28_RESOLVED_CALIFORNIA.parentLabel,
+          subtitle: PHASE28_RESOLVED_CALIFORNIA.subtitle,
+          boundaryId: PHASE28_RESOLVED_CALIFORNIA.boundaryId,
+          boundaryDatasetVersion: PHASE28_RESOLVED_CALIFORNIA.datasetVersion,
           fallbackNotice: null,
           x: 0,
           y: 0,
@@ -193,7 +204,7 @@ describe('map-points store', () => {
           coordinatesLabel: '36.7783°N, 119.4179°W',
         },
         prompt: '请选择一个 canonical 地点',
-        recommendedPlaceId: PHASE12_RESOLVED_CALIFORNIA.placeId,
+        recommendedPlaceId: PHASE28_RESOLVED_CALIFORNIA.placeId,
         candidates: [],
         click: {
           lat: 36.7783,
@@ -222,21 +233,40 @@ describe('map-points store', () => {
       expect(store.hasBootstrapped).toBe(true)
     })
 
-    it('maps overseas saved records from persisted text fields without recomputing labels from placeId', () => {
-      const store = useMapPointsStore()
-      const overseasRecord = makeOverseasRecord()
-
-      store.replaceTravelRecords([overseasRecord])
-
-      expect(store.displayPoints).toHaveLength(1)
-      expect(store.displayPoints[0]).toMatchObject({
-        name: overseasRecord.displayName,
-        cityContextLabel: overseasRecord.subtitle,
-        typeLabel: overseasRecord.typeLabel,
-      })
-      expect(store.displayPoints[0]?.cityContextLabel).toBe('Persisted subtitle from record')
-      expect(store.displayPoints[0]?.typeLabel).toBe('一级行政区（持久化）')
+    it('documents the persisted english labels used by Phase 28 overseas fixtures', () => {
+      expect(PHASE28_PERSISTED_TYPE_LABEL_SAMPLES).toEqual([
+        'State（持久化）',
+        'Prefecture（持久化）',
+        'Province（持久化）',
+      ])
     })
+
+    it.each(PHASE28_NEW_OVERSEAS_RECORD_FIXTURES)(
+      'replays persisted overseas metadata for $placeId without recomputing labels',
+      (fixture) => {
+        const store = useMapPointsStore()
+        const overseasRecord = makeOverseasRecord(fixture)
+
+        store.replaceTravelRecords([overseasRecord])
+        store.selectPointById(overseasRecord.placeId)
+
+        expect(store.displayPoints).toHaveLength(1)
+        expect(store.displayPoints[0]).toMatchObject({
+          name: overseasRecord.displayName,
+          countryName: overseasRecord.parentLabel,
+          cityContextLabel: overseasRecord.subtitle,
+          typeLabel: overseasRecord.typeLabel,
+        })
+        expect(store.summarySurfaceState?.mode).toBe('view')
+        if (!store.summarySurfaceState || store.summarySurfaceState.mode !== 'view') {
+          throw new Error('Expected reopened summary surface in view mode')
+        }
+        expect(store.summarySurfaceState.point.name).toBe(overseasRecord.displayName)
+        expect(store.summarySurfaceState.point.typeLabel).toBe(overseasRecord.typeLabel)
+        expect(store.summarySurfaceState.point.parentLabel).toBe(overseasRecord.parentLabel)
+        expect(store.summarySurfaceState.point.cityContextLabel).toBe(overseasRecord.subtitle)
+      },
+    )
   })
 
   // -------------------------------------------------------------------------
@@ -571,11 +601,11 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       store.replaceTravelRecords([
         makeRecord(PHASE12_RESOLVED_BEIJING),
-        makeRecord(PHASE12_RESOLVED_CALIFORNIA),
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA),
       ])
 
       expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_BEIJING.boundaryId)
-      expect(store.savedBoundaryIds).toContain(PHASE12_RESOLVED_CALIFORNIA.boundaryId)
+      expect(store.savedBoundaryIds).toContain(PHASE28_RESOLVED_CALIFORNIA.boundaryId)
     })
 
     it('deduplicates boundaryIds', () => {
