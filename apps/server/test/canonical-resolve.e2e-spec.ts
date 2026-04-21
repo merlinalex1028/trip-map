@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 
 import { createApp } from '../src/main.js'
+import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
 describe('POST /places canonical resolve', () => {
   let app: NestFastifyApplication
@@ -49,7 +50,7 @@ describe('POST /places canonical resolve', () => {
     expect(response.statusCode).toBe(201)
     expect(response.json().place.geometryRef.assetKey).toBe('cn/layer.json')
     expect(response.json().place.geometryRef.layer).toBe('CN')
-    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
   })
 
   it('resolves a non-representative click inside Beijing via geometry instead of exact fixture hit', async () => {
@@ -123,7 +124,7 @@ describe('POST /places canonical resolve', () => {
       place: {
         placeId: 'us-california',
         placeKind: 'OVERSEAS_ADMIN1',
-        typeLabel: '一级行政区',
+        typeLabel: 'State',
       },
     })
   })
@@ -141,7 +142,7 @@ describe('POST /places canonical resolve', () => {
     expect(response.statusCode).toBe(201)
     expect(response.json().place.geometryRef.assetKey).toBe('overseas/layer.json')
     expect(response.json().place.geometryRef.layer).toBe('OVERSEAS')
-    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-02-geo-v2')
+    expect(response.json().place.geometryRef.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
   })
 
   it('resolves Los Angeles to the authoritative California admin1 fixture', async () => {
@@ -159,8 +160,8 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: '2026-04-02-geo-v2',
-        typeLabel: '一级行政区',
+        datasetVersion: '2026-04-21-geo-v3',
+        typeLabel: 'State',
       },
     })
   })
@@ -180,8 +181,8 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-california',
-        datasetVersion: '2026-04-02-geo-v2',
-        typeLabel: '一级行政区',
+        datasetVersion: '2026-04-21-geo-v3',
+        typeLabel: 'State',
       },
     })
   })
@@ -201,7 +202,7 @@ describe('POST /places canonical resolve', () => {
       status: 'resolved',
       place: {
         placeId: 'us-utah',
-        typeLabel: '一级行政区',
+        typeLabel: 'State',
       },
     })
   })
@@ -222,8 +223,8 @@ describe('POST /places canonical resolve', () => {
       place: {
         placeId: 'jp-tokyo',
         displayName: 'Tokyo',
-        typeLabel: '一级行政区',
-        subtitle: 'Japan · 一级行政区',
+        typeLabel: 'Prefecture',
+        subtitle: 'Japan · Prefecture',
       },
     })
   })
@@ -244,8 +245,8 @@ describe('POST /places canonical resolve', () => {
       place: {
         placeId: 'kr-gangwon',
         displayName: 'Gangwon',
-        typeLabel: '一级行政区',
-        subtitle: 'South Korea · 一级行政区',
+        typeLabel: 'Province',
+        subtitle: 'South Korea · Province',
       },
     })
     expect(response.json().place.placeId).toMatch(/^kr-/)
@@ -268,12 +269,50 @@ describe('POST /places canonical resolve', () => {
         placeId: 'ae-emirate-of-dubai',
         boundaryId: 'ne-admin1-ae-emirate-of-dubai',
         displayName: 'Emirate of Dubai',
-        typeLabel: '一级行政区',
+        typeLabel: 'Emirate',
       },
     })
     expect(response.json().place.placeId).not.toMatch(/ae-x|au-x/i)
     expect(response.json().place.boundaryId).not.toMatch(/ae-x|au-x/i)
     expect(response.json().place.geometryRef.boundaryId).toBe('ne-admin1-ae-emirate-of-dubai')
+  })
+
+  it('resolves every Phase 28 new-country probe with authoritative metadata from the shared matrix', async () => {
+    expect(PHASE28_NEW_COUNTRY_CASES).toHaveLength(13)
+
+    for (const phase28Case of PHASE28_NEW_COUNTRY_CASES) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/places/resolve',
+        payload: {
+          lat: phase28Case.lat,
+          lng: phase28Case.lng,
+        },
+      })
+
+      expect(response.statusCode).toBe(201)
+      expect(response.json()).toMatchObject({
+        status: 'resolved',
+        place: {
+          placeKind: 'OVERSEAS_ADMIN1',
+          datasetVersion: '2026-04-21-geo-v3',
+          displayName: phase28Case.displayName,
+          typeLabel: phase28Case.expectedTypeLabel,
+          parentLabel: phase28Case.countryLabel,
+          subtitle: `${phase28Case.countryLabel} · ${phase28Case.expectedTypeLabel}`,
+          placeId: phase28Case.expectedPlaceId,
+          boundaryId: phase28Case.expectedBoundaryId,
+          geometryRef: {
+            assetKey: 'overseas/layer.json',
+            geometryDatasetVersion: '2026-04-21-geo-v3',
+          },
+        },
+      })
+
+      if (phase28Case.iso2 === 'EG') {
+        expect(response.json().place.typeLabel).toBe('Governorate')
+      }
+    }
   })
 
   it('rejects filtered AU noise clicks outside the supported admin1 catalog', async () => {
@@ -447,13 +486,13 @@ describe('POST /places canonical resolve', () => {
     expect(response.json()).not.toHaveProperty('place')
   })
 
-  it('returns OUTSIDE_SUPPORTED_DATA for non-priority overseas clicks without a place payload', async () => {
+  it('returns OUTSIDE_SUPPORTED_DATA for unsupported overseas clicks without a place payload', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/places/resolve',
       payload: {
-        lat: 49.2827,
-        lng: -123.1207,
+        lat: 19.4326,
+        lng: -99.1332,
       },
     })
 

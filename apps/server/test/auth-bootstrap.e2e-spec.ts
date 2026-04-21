@@ -3,7 +3,9 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
+import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
+import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -77,18 +79,26 @@ const currentUserRecord = {
   subtitle: '中国 · 直辖市',
 } as const
 
-const overseasCurrentUserRecord = {
-  placeId: 'jp-tokyo',
-  boundaryId: 'ne-admin1-jp-tokyo',
-  placeKind: 'OVERSEAS_ADMIN1',
-  datasetVersion: '2026-04-02-geo-v2',
-  displayName: 'Tokyo',
-  regionSystem: 'OVERSEAS',
-  adminType: 'ADMIN1',
-  typeLabel: '一级行政区',
-  parentLabel: 'Japan',
-  subtitle: 'Japan · 一级行政区',
-} as const
+function createAuthoritativeOverseasRecord(placeId: string) {
+  const canonicalSummary = getCanonicalPlaceSummaryById(placeId)
+
+  if (!canonicalSummary) {
+    throw new Error(`Missing canonical summary for ${placeId}.`)
+  }
+
+  return {
+    placeId: canonicalSummary.placeId,
+    boundaryId: canonicalSummary.boundaryId,
+    placeKind: canonicalSummary.placeKind,
+    datasetVersion: canonicalSummary.datasetVersion,
+    displayName: canonicalSummary.displayName,
+    regionSystem: canonicalSummary.regionSystem,
+    adminType: canonicalSummary.adminType,
+    typeLabel: canonicalSummary.typeLabel,
+    parentLabel: canonicalSummary.parentLabel,
+    subtitle: canonicalSummary.subtitle,
+  }
+}
 
 describe('Auth bootstrap API', () => {
   let app: NestFastifyApplication
@@ -234,7 +244,7 @@ describe('Auth bootstrap API', () => {
     })
   })
 
-  it('GET /auth/bootstrap replays persisted overseas text fields without recomputing them', async () => {
+  it('GET /auth/bootstrap replays all Phase 28 overseas text fields without recomputing them', async () => {
     const payload = createRegisterPayload('overseas-record')
     const registerResponse = await app.inject({
       method: 'POST',
@@ -252,11 +262,11 @@ describe('Auth bootstrap API', () => {
 
     expect(user).toBeTruthy()
 
-    await prisma.userTravelRecord.create({
-      data: {
+    await prisma.userTravelRecord.createMany({
+      data: PHASE28_NEW_COUNTRY_CASES.map(({ expectedPlaceId }) => ({
         userId: user!.id,
-        ...overseasCurrentUserRecord,
-      },
+        ...createAuthoritativeOverseasRecord(expectedPlaceId),
+      })),
     })
 
     const response = await app.inject({
@@ -268,17 +278,27 @@ describe('Auth bootstrap API', () => {
     })
 
     expect(response.statusCode).toBe(200)
-    expect(response.json()).toMatchObject({
-      authenticated: true,
-      records: [
-        expect.objectContaining({
-          placeId: 'jp-tokyo',
-          displayName: 'Tokyo',
-          typeLabel: '一级行政区',
-          subtitle: 'Japan · 一级行政区',
-        }),
-      ],
-    })
+    expect(response.json().authenticated).toBe(true)
+    expect(response.json().records).toHaveLength(13)
+
+    for (const phase28Case of PHASE28_NEW_COUNTRY_CASES) {
+      const canonicalSummary = getCanonicalPlaceSummaryById(phase28Case.expectedPlaceId)
+
+      expect(canonicalSummary).toBeTruthy()
+      expect(response.json().records).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            placeId: phase28Case.expectedPlaceId,
+            boundaryId: phase28Case.expectedBoundaryId,
+            datasetVersion: canonicalSummary!.datasetVersion,
+            displayName: canonicalSummary!.displayName,
+            typeLabel: canonicalSummary!.typeLabel,
+            parentLabel: canonicalSummary!.parentLabel,
+            subtitle: canonicalSummary!.subtitle,
+          }),
+        ]),
+      )
+    }
   })
 
   it('GET /auth/bootstrap clear invalid sid cookie and returns authenticated: false for expired or missing session', async () => {

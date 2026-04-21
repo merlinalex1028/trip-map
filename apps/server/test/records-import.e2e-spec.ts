@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
+import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -44,7 +45,8 @@ const TEST_PASSWORD = 'Passw0rd!123'
 const DUPLICATE_PLACE_ID = `test-import-duplicate-${Date.now()}`
 const AUTHORITATIVE_PLACE_ID = `test-import-authoritative-${Date.now()}`
 const IDEMPOTENT_PLACE_ID = `test-import-idempotent-${Date.now()}`
-const AUTHORITATIVE_OVERSEAS_PLACE_ID = 'jp-tokyo'
+const AUTHORITATIVE_OVERSEAS_PLACE_ID = PHASE28_NEW_COUNTRY_CASES[0]!.expectedPlaceId
+const LEGACY_OVERSEAS_TYPE_LABEL = ['一级', '行政区'].join('')
 
 const baseRecord: Omit<CreateTravelRecordRequest, 'placeId'> = {
   boundaryId: 'boundary-test-001',
@@ -94,13 +96,18 @@ function createImportRecord(
   }
 }
 
+function buildLegacyOverseasSubtitle(parentLabel: string) {
+  return `${parentLabel} · ${LEGACY_OVERSEAS_TYPE_LABEL}`
+}
+
 function createAuthoritativeOverseasImportRecord(
+  placeId: string = AUTHORITATIVE_OVERSEAS_PLACE_ID,
   overrides: Partial<CreateTravelRecordRequest> = {},
 ): CreateTravelRecordRequest {
-  const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
+  const canonicalSummary = getCanonicalPlaceSummaryById(placeId)
 
   if (!canonicalSummary) {
-    throw new Error(`Missing canonical summary for ${AUTHORITATIVE_OVERSEAS_PLACE_ID}.`)
+    throw new Error(`Missing canonical summary for ${placeId}.`)
   }
 
   return {
@@ -355,7 +362,81 @@ describe('POST /records/import', () => {
     expect(importedRecords).toHaveLength(1)
   })
 
-  it('rejects /records/import payloads when overseas authoritative metadata is forged', async () => {
+  it('imports every Phase 28 new-country authoritative overseas record in a single batch', async () => {
+    await prisma.userTravelRecord.deleteMany({
+      where: { userId: currentUserId },
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records/import',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: {
+        records: PHASE28_NEW_COUNTRY_CASES.map(({ expectedPlaceId }) =>
+          createAuthoritativeOverseasImportRecord(expectedPlaceId),
+        ),
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toMatchObject({
+      importedCount: 13,
+      mergedDuplicateCount: 0,
+      finalCount: 13,
+    })
+    expect(response.json().records).toHaveLength(13)
+
+    const persistedRecords = await prisma.userTravelRecord.findMany({
+      where: {
+        userId: currentUserId,
+        placeId: {
+          in: PHASE28_NEW_COUNTRY_CASES.map(({ expectedPlaceId }) => expectedPlaceId),
+        },
+      },
+    })
+
+    expect(persistedRecords).toHaveLength(13)
+
+    for (const phase28Case of PHASE28_NEW_COUNTRY_CASES) {
+      const canonicalSummary = getCanonicalPlaceSummaryById(phase28Case.expectedPlaceId)
+
+      expect(canonicalSummary).toBeTruthy()
+      expect(response.json().records).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            placeId: phase28Case.expectedPlaceId,
+            boundaryId: phase28Case.expectedBoundaryId,
+            datasetVersion: canonicalSummary!.datasetVersion,
+            displayName: canonicalSummary!.displayName,
+            typeLabel: canonicalSummary!.typeLabel,
+            parentLabel: canonicalSummary!.parentLabel,
+            subtitle: canonicalSummary!.subtitle,
+          }),
+        ]),
+      )
+      expect(persistedRecords).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            placeId: phase28Case.expectedPlaceId,
+            boundaryId: phase28Case.expectedBoundaryId,
+            datasetVersion: canonicalSummary!.datasetVersion,
+            displayName: canonicalSummary!.displayName,
+            typeLabel: canonicalSummary!.typeLabel,
+            parentLabel: canonicalSummary!.parentLabel,
+            subtitle: canonicalSummary!.subtitle,
+          }),
+        ]),
+      )
+    }
+  })
+
+  it('rejects /records/import payloads when overseas legacy labels are replayed', async () => {
+    const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
+
+    expect(canonicalSummary).toBeTruthy()
+
     const response = await app.inject({
       method: 'POST',
       url: '/records/import',
@@ -364,8 +445,9 @@ describe('POST /records/import', () => {
       },
       payload: {
         records: [
-          createAuthoritativeOverseasImportRecord({
-            subtitle: 'Forged subtitle',
+          createAuthoritativeOverseasImportRecord(AUTHORITATIVE_OVERSEAS_PLACE_ID, {
+            typeLabel: LEGACY_OVERSEAS_TYPE_LABEL,
+            subtitle: buildLegacyOverseasSubtitle(canonicalSummary!.parentLabel),
           }),
         ],
       },
@@ -373,7 +455,7 @@ describe('POST /records/import', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.json()).toMatchObject({
-      message: 'Overseas travel record metadata must match authoritative catalog: subtitle.',
+      message: 'Overseas travel record metadata must match authoritative catalog: typeLabel, subtitle.',
     })
   })
 })

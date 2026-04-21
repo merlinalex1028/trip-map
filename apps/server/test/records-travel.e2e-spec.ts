@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
+import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -42,10 +43,11 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 const TEST_EMAIL_PREFIX = `records-travel-${Date.now()}`
 const TEST_PLACE_ID = `test-travel-place-${Date.now()}`
 const TEST_PLACE_ID_2 = `test-travel-place-2-${Date.now()}`
-const UNSUPPORTED_OVERSEAS_PLACE_ID = 'ca-british-columbia'
+const UNSUPPORTED_OVERSEAS_PLACE_ID = 'mx-jalisco'
 const LEGACY_OVERSEAS_PLACE_ID = 'jp-tokyo'
-const AUTHORITATIVE_OVERSEAS_PLACE_ID = 'jp-tokyo'
+const AUTHORITATIVE_OVERSEAS_PLACE_ID = PHASE28_NEW_COUNTRY_CASES[0]!.expectedPlaceId
 const TEST_PASSWORD = 'Passw0rd!123'
+const LEGACY_OVERSEAS_TYPE_LABEL = ['一级', '行政区'].join('')
 
 const validRecord = {
   placeId: TEST_PLACE_ID,
@@ -62,15 +64,19 @@ const validRecord = {
 
 const unsupportedOverseasRecord = {
   placeId: UNSUPPORTED_OVERSEAS_PLACE_ID,
-  boundaryId: 'ne-admin1-ca-british-columbia',
+  boundaryId: 'ne-admin1-mx-jalisco',
   placeKind: 'OVERSEAS_ADMIN1',
-  datasetVersion: '2026-04-02-geo-v2',
-  displayName: 'British Columbia',
+  datasetVersion: '2026-04-21-geo-v3',
+  displayName: 'Jalisco',
   regionSystem: 'OVERSEAS',
   adminType: 'ADMIN1',
-  typeLabel: '一级行政区',
-  parentLabel: 'Canada',
-  subtitle: 'Canada · 一级行政区',
+  typeLabel: 'State',
+  parentLabel: 'Mexico',
+  subtitle: 'Mexico · State',
+}
+
+function buildLegacyOverseasSubtitle(parentLabel: string) {
+  return `${parentLabel} · ${LEGACY_OVERSEAS_TYPE_LABEL}`
 }
 
 function createAuthoritativeOverseasRecord(
@@ -329,7 +335,7 @@ describe('Current-user travel records API', () => {
     })
   })
 
-  it('POST /records rejects overseas payloads outside the Phase 26 authoritative catalog', async () => {
+  it('POST /records rejects overseas payloads outside the current authoritative overseas catalog', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/records',
@@ -341,7 +347,7 @@ describe('Current-user travel records API', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.json()).toMatchObject({
-      message: 'Overseas travel record is outside the Phase 26 authoritative support catalog.',
+      message: 'Overseas travel record is outside the current authoritative overseas support catalog.',
     })
   })
 
@@ -362,6 +368,26 @@ describe('Current-user travel records API', () => {
     expect(response.json()).toMatchObject({
       message:
         'Overseas travel record metadata must match authoritative catalog: datasetVersion, displayName.',
+    })
+  })
+
+  it('POST /records rejects legacy overseas labels even when the placeId is authoritative', async () => {
+    const canonicalRecord = createAuthoritativeOverseasRecord()
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: createAuthoritativeOverseasRecord({
+        typeLabel: LEGACY_OVERSEAS_TYPE_LABEL,
+        subtitle: buildLegacyOverseasSubtitle(canonicalRecord.parentLabel),
+      }),
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json()).toMatchObject({
+      message: 'Overseas travel record metadata must match authoritative catalog: typeLabel, subtitle.',
     })
   })
 
@@ -452,9 +478,11 @@ describe('Current-user travel records API', () => {
 
     expect(canonicalSummary).toMatchObject({
       placeId: LEGACY_OVERSEAS_PLACE_ID,
+      datasetVersion: '2026-04-21-geo-v3',
       displayName: 'Tokyo',
+      typeLabel: 'Prefecture',
       parentLabel: 'Japan',
-      subtitle: 'Japan · 一级行政区',
+      subtitle: 'Japan · Prefecture',
     })
 
     await prisma.travelRecord.deleteMany({
@@ -487,11 +515,13 @@ describe('Current-user travel records API', () => {
 
     expect(dbRecord).toMatchObject({
       placeId: LEGACY_OVERSEAS_PLACE_ID,
+      datasetVersion: '2026-04-21-geo-v3',
+      displayName: 'Tokyo',
       regionSystem: 'OVERSEAS',
       adminType: 'ADMIN1',
-      typeLabel: '一级行政区',
+      typeLabel: 'Prefecture',
       parentLabel: 'Japan',
-      subtitle: 'Japan · 一级行政区',
+      subtitle: 'Japan · Prefecture',
     })
   })
 })

@@ -3,7 +3,9 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
 
+import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
+import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -40,7 +42,6 @@ process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABA
 const TEST_EMAIL_PREFIX = `records-sync-${Date.now()}`
 const TEST_PASSWORD = 'Passw0rd!123'
 const TEST_PLACE_ID = `records-sync-place-${Date.now()}`
-const OVERSEAS_PLACE_ID = 'jp-tokyo'
 
 function createRegisterPayload(suffix: string) {
   return {
@@ -65,18 +66,24 @@ function createTravelPayload(placeId = TEST_PLACE_ID) {
   }
 }
 
-function createOverseasTravelPayload(placeId = OVERSEAS_PLACE_ID) {
+function createOverseasTravelPayload(placeId: string) {
+  const canonicalSummary = getCanonicalPlaceSummaryById(placeId)
+
+  if (!canonicalSummary) {
+    throw new Error(`Missing canonical summary for ${placeId}.`)
+  }
+
   return {
-    placeId,
-    boundaryId: 'ne-admin1-jp-tokyo',
-    placeKind: 'OVERSEAS_ADMIN1',
-    datasetVersion: '2026-04-02-geo-v2',
-    displayName: 'Tokyo',
-    regionSystem: 'OVERSEAS',
-    adminType: 'ADMIN1',
-    typeLabel: '一级行政区',
-    parentLabel: 'Japan',
-    subtitle: 'Japan · 一级行政区',
+    placeId: canonicalSummary.placeId,
+    boundaryId: canonicalSummary.boundaryId,
+    placeKind: canonicalSummary.placeKind,
+    datasetVersion: canonicalSummary.datasetVersion,
+    displayName: canonicalSummary.displayName,
+    regionSystem: canonicalSummary.regionSystem,
+    adminType: canonicalSummary.adminType,
+    typeLabel: canonicalSummary.typeLabel,
+    parentLabel: canonicalSummary.parentLabel,
+    subtitle: canonicalSummary.subtitle,
   }
 }
 
@@ -236,16 +243,18 @@ describe('Records sync semantics', () => {
   })
 
   it('keeps overseas text fields identical across same-user multi-session bootstrap replay', async () => {
-    const createResponse = await app.inject({
-      method: 'POST',
-      url: '/records',
-      headers: {
-        cookie: sessionACookie,
-      },
-      payload: createOverseasTravelPayload(),
-    })
+    for (const phase28Case of PHASE28_NEW_COUNTRY_CASES) {
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/records',
+        headers: {
+          cookie: sessionACookie,
+        },
+        payload: createOverseasTravelPayload(phase28Case.expectedPlaceId),
+      })
 
-    expect(createResponse.statusCode).toBe(201)
+      expect(createResponse.statusCode).toBe(201)
+    }
 
     const bootstrapResponse = await app.inject({
       method: 'GET',
@@ -256,17 +265,27 @@ describe('Records sync semantics', () => {
     })
 
     expect(bootstrapResponse.statusCode).toBe(200)
-    expect(bootstrapResponse.json()).toMatchObject({
-      authenticated: true,
-      records: [
-        expect.objectContaining({
-          placeId: 'jp-tokyo',
-          displayName: 'Tokyo',
-          typeLabel: '一级行政区',
-          subtitle: 'Japan · 一级行政区',
-        }),
-      ],
-    })
+    expect(bootstrapResponse.json().authenticated).toBe(true)
+    expect(bootstrapResponse.json().records).toHaveLength(13)
+
+    for (const phase28Case of PHASE28_NEW_COUNTRY_CASES) {
+      const canonicalSummary = getCanonicalPlaceSummaryById(phase28Case.expectedPlaceId)
+
+      expect(canonicalSummary).toBeTruthy()
+      expect(bootstrapResponse.json().records).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            placeId: phase28Case.expectedPlaceId,
+            boundaryId: phase28Case.expectedBoundaryId,
+            datasetVersion: canonicalSummary!.datasetVersion,
+            displayName: canonicalSummary!.displayName,
+            typeLabel: canonicalSummary!.typeLabel,
+            parentLabel: canonicalSummary!.parentLabel,
+            subtitle: canonicalSummary!.subtitle,
+          }),
+        ]),
+      )
+    }
   })
 
   it('lets session B observe that a record was removed by session A after /auth/bootstrap', async () => {
