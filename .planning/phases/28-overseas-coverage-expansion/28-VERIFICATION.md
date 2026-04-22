@@ -1,49 +1,25 @@
 ---
 phase: 28-overseas-coverage-expansion
-verified: 2026-04-21T08:01:29Z
-status: gaps_found
-score: 7/10 must-haves verified
+verified: 2026-04-22T03:30:59Z
+status: passed
+score: 10/10 must-haves verified
 overrides_applied: 0
-gaps:
-  - truth: "canonical datasetVersion 在 build、server 与 contracts 之间保持一致，并与 geometry dataset version 明确分离"
-    status: failed
-    reason: "build script 先生成 `canonical-authoritative-2026-04-21`，随后又在 shard feature 上覆盖为 `2026-04-21-geo-v3`；server canonical lookup 与多条回归测试都把 geometry version 当成 authoritative datasetVersion，而 contracts Phase 28 fixtures 仍断言 canonical 版本。"
-    artifacts:
-      - path: "apps/web/scripts/geo/build-geometry-manifest.mjs"
-        issue: "`createOverseasFeatureMetadata()` 生成 canonical datasetVersion，但 `enrichFeature()` 又覆盖成 geometry version。"
-      - path: "apps/server/src/modules/canonical-places/place-metadata-catalog.ts"
-        issue: "canonical summary 直接读取 geometry shard 的 `feature.properties.datasetVersion`，把错误版本继续传播到 resolve/save/backfill。"
-      - path: "apps/server/test/phase28-overseas-cases.ts"
-        issue: "共享 13 国矩阵把 `2026-04-21-geo-v3` 当成 authoritative datasetVersion。"
-      - path: "packages/contracts/src/fixtures.ts"
-        issue: "Phase 28 fixtures 仍使用 `canonical-authoritative-2026-04-21`，与 server 当前行为不一致。"
-    missing:
-      - "停止在 geometry shard feature 上覆盖 canonical `datasetVersion`。"
-      - "重新生成 geo shards 与 generated contracts。"
-      - "把 server resolve/backfill 回归统一改为断言 `canonical-authoritative-2026-04-21`，geometry 版本仅通过 `geometryRef.geometryDatasetVersion` 暴露。"
-  - truth: "既有 overseas 记录会被回填到 Phase 28 metadata，并在 bootstrap / same-user sync / 后续 timeline 和统计消费者中一致复用"
-    status: failed
-    reason: "backfill 脚本只更新 `travelRecord` 与 `smokeRecord`，没有更新登录态主链路实际读取的 `userTravelRecord`；现有 bootstrap/sync 测试也只种入已经正确的记录，没有验证旧 metadata 升级路径。"
-    artifacts:
-      - path: "apps/server/scripts/backfill-record-metadata.ts"
-        issue: "未扫描或更新 `userTravelRecord`。"
-      - path: "apps/server/src/modules/auth/auth.service.ts"
-        issue: "`/auth/bootstrap` 直接返回 `userTravelRecord`，因此老用户记录不会被当前 backfill 修正。"
-      - path: "apps/server/src/modules/records/records.repository.ts"
-        issue: "`/records` create/import 全部写入 `userTravelRecord`，与 backfill 目标表不一致。"
-      - path: "apps/server/test/auth-bootstrap.e2e-spec.ts"
-        issue: "测试直接插入已正确的 `userTravelRecord`，没有覆盖旧标签升级后再 bootstrap 的真实迁移场景。"
-    missing:
-      - "为 `userTravelRecord` 增加与 `travelRecord`/`smokeRecord` 同步的 metadata backfill。"
-      - "补一条 e2e：先写入带旧 overseas metadata 的 `userTravelRecord`，执行 backfill，再验证 `/auth/bootstrap` 和 same-user sync 返回升级后的 Phase 28 metadata。"
+re_verification:
+  previous_status: gaps_found
+  previous_score: 7/10
+  gaps_closed:
+    - "扩容后的 overseas admin1 identity 在 generated artifacts 与 canonical lookup 中保持全局唯一，新增国家可以稳定 resolve 并保存旅行记录"
+    - "既有 overseas 记录会被稳定回填，并在 bootstrap / same-user sync / 后续时间轴统计消费者中一致复用升级后的 metadata"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 28: Overseas Coverage Expansion Verification Report
 
-**Phase Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
-**Verified:** 2026-04-21T08:01:29Z
-**Status:** gaps_found
-**Re-verification:** No — initial verification
+**Phase Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。  
+**Verified:** 2026-04-22T03:30:59Z  
+**Status:** passed  
+**Re-verification:** Yes — after gap closure
 
 ## Goal Achievement
 
@@ -51,98 +27,102 @@ gaps:
 
 | # | Truth | Status | Evidence |
 | --- | --- | --- | --- |
-| 1 | Phase 28 的海外支持真源已经锁定为 21 国，并以区域化 build-time authoring 暴露稳定入口。 | ✓ VERIFIED | `apps/web/scripts/geo/overseas-support/index.mjs` 聚合 6 个区域模块并导出 `priorityCountries` / `supportedCountrySummaries`；实际执行导入检查得到 21 个 ISO2。 |
-| 2 | 新增国家全部按 admin1-only 落地，且 SG / AE / AU 特殊 allow/deny guard 仍保留。 | ✓ VERIFIED | 六个区域文件都以 `Number(featureProperties.gadm_level) === 1` 为 guard；`SG`、`AE`、`AU` 的 allow-list / deny-list 仍在。 |
-| 3 | overseas metadata 不再使用统一 `一级行政区`，而是生成英文 `typeLabel` 与 `${parentLabel} · ${typeLabel}` subtitle。 | ✓ VERIFIED | `apps/web/scripts/geo/build-geometry-manifest.mjs` 中 `createOverseasFeatureMetadata()` 直接使用 country definition 的 `defaultTypeLabel`；`geo:build:check` 通过并生成 487 条 overseas entries。 |
-| 4 | 一组新增优先海外国家/地区可以稳定 resolve 并保存为 authoritative admin1 记录。 | ✓ VERIFIED | `apps/server/test/canonical-resolve.e2e-spec.ts` 通过 24 条回归，其中包含 13 国共享矩阵；`apps/server/test/records-travel.e2e-spec.ts` 通过 12 条回归，证明 `/records` 写入路径可用。 |
-| 5 | canonical datasetVersion 与 geometry dataset version 在 build、server、contracts 间保持一致且职责分离。 | ✗ FAILED | build script 把 canonical `datasetVersion` 覆盖成 geometry version，server catalog 和 Phase 28 server 测试随之固化为 `2026-04-21-geo-v3`，而 contracts Phase 28 fixtures 仍断言 `canonical-authoritative-2026-04-21`。 |
-| 6 | generated supported-country summary 已成为 web unsupported-country copy 的唯一真源。 | ✓ VERIFIED | `packages/contracts/src/generated/geometry-manifest.generated.ts` 导出 `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH`；`apps/web/src/constants/overseas-support.ts` 直接 re-export 并生成提示文案。 |
-| 7 | server create/import 仍会拒绝 forged 或 stale overseas metadata。 | ✓ VERIFIED | `apps/server/src/modules/records/records.service.ts` 对 `datasetVersion` / `displayName` / `typeLabel` / `subtitle` 等字段做 exact-match；`records-travel.e2e-spec.ts` 实际通过。 |
-| 8 | 既有 overseas 记录会被回填到新的 datasetVersion / title / type / subtitle，并在 bootstrap/sync 中回放升级后的值。 | ✗ FAILED | `backfill-record-metadata.ts` 只更新 `travelRecord` 和 `smokeRecord`；`/auth/bootstrap` 与 `/records` 主链路读写的是 `userTravelRecord`，当前迁移不会触达它。 |
-| 9 | 新增 13 国的 bootstrap / same-user sync / map consumer 继续复用持久化 metadata，而不是客户端重新推导。 | ✓ VERIFIED | `auth-bootstrap.e2e-spec.ts`、`records-sync.e2e-spec.ts` 都基于共享 13 国矩阵回放 canonical fields；`apps/web/src/stores/map-points.ts` 直接读取 `record.displayName` / `typeLabel` / `subtitle`。 |
-| 10 | 扩展后的 metadata 已经能被时间轴和统计视图稳定复用，而不需要临时兜底推导。 | ✗ FAILED | 复用路径本身已准备好，但由于 `datasetVersion` split-brain 和 `userTravelRecord` 未回填，现有老 overseas 记录仍可能携带旧 metadata，无法作为 Phase 29/30 的稳定输入。 |
+| 1 | Phase 28 的 authoritative overseas support matrix 已锁定为 21 国，并通过区域化 build-time authoring 暴露稳定入口。 | ✓ VERIFIED | `apps/web/scripts/geo/overseas-admin1-support.mjs:1` 仍是 thin re-export；`apps/web/scripts/geo/overseas-support/index.mjs:8-45` 聚合六个区域模块并导出 `priorityCountries` / `supportedCountrySummaries`；spot-check `node --input-type=module` 返回 21 个 ISO2，顺序为 `JP, KR, TH, SG, MY, IN, ID, AE, SA, AU, PG, US, CA, BR, AR, DE, PL, CZ, EG, MA, ZA`。 |
+| 2 | 新增国家全部按 admin1-only 落地，且 SG / AE / AU 的特殊 allow/deny guard 仍保留。 | ✓ VERIFIED | `apps/web/scripts/geo/overseas-support/asia.mjs:7-13`、`apps/web/scripts/geo/overseas-support/middle-east.mjs:7-25`、`apps/web/scripts/geo/overseas-support/oceania.mjs:7-24` 继续以 `Number(featureProperties.gadm_level) === 1` 约束 admin1；`asia.mjs:47-56` 保留 SG allow-list，`middle-east.mjs:18-24` 保留 AE allow/deny，`oceania.mjs:18-24` 保留 AU 8 州/领地 allow-list。 |
+| 3 | build-time overseas metadata 继续直接生成标准英文 `typeLabel` 与 `${parentLabel} · ${typeLabel}` subtitle，不再回退到统一 `一级行政区`。 | ✓ VERIFIED | `apps/web/scripts/geo/build-geometry-manifest.mjs:281-304` 从 country definition 写入 `defaultTypeLabel` 与标准 subtitle；`rg -n "一级行政区" apps/web/scripts/geo/build-geometry-manifest.mjs` 无命中；server/web/contract 回归分别通过 `59 passed`、`91 passed`、`17 passed`，未再出现旧标签混入 authoritative payload。 |
+| 4 | geometry dataset 与 canonical dataset 版本已经明确分离，并以 `2026-04-21-geo-v3` / `canonical-authoritative-2026-04-21` 落盘。 | ✓ VERIFIED | `apps/web/scripts/geo/build-geometry-manifest.mjs:56` 定义 canonical dataset version，`build-geometry-manifest.mjs:296` 把它写入 overseas feature metadata；`packages/contracts/src/generated/geometry-manifest.generated.ts:1-10` 同时记录 `canonicalDatasetVersion` 和 `geometryDatasetVersion`；`pnpm --filter @trip-map/web geo:build:check` 通过并输出 `856 entries`、`487 overseas entries`。 |
+| 5 | generated contracts 已同时产出 manifest 与 supported-country summary，且 web unsupported copy 直接复用这一真源。 | ✓ VERIFIED | `packages/contracts/src/generated/geometry-manifest.generated.ts:8579-8729` 导出 `SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES` 与 `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH`；`apps/web/src/constants/overseas-support.ts:1-10` 直接 re-export 并构建 unsupported notice；spot-check 校验 generated summary 的 ISO2 顺序与 `priorityCountries` 完全一致。 |
+| 6 | 一组新增优先海外国家/地区可以稳定 resolve 并保存 authoritative admin1 记录，且 Washington/DC、Buenos Aires Province/City 不再冲突。 | ✓ VERIFIED | `apps/web/scripts/geo/build-geometry-manifest.mjs:74-81` 为 `US-WA`、`US-DC`、`AR-B`、`AR-C` 定义 special identities，`build-geometry-manifest.mjs:235-254` 与 `build-geometry-manifest.mjs:405-421` 增加 fail-fast 唯一性校验；`apps/server/test/phase28-overseas-cases.ts:305-307` 导出 `PHASE28_IDENTITY_COLLISION_CASES`；`apps/server/test/canonical-resolve.e2e-spec.ts:324-326` 与 `apps/server/test/records-travel.e2e-spec.ts:408-448` 锁定 collision probes；duplicate scan 对 `manifest.json` / `overseas/layer.json` 返回 `duplicate* = []`。 |
+| 7 | canonical metadata lookup 已从“静默覆盖”改为 duplicate fail-fast，resolve/create/import exact-match 防线仍然存在。 | ✓ VERIFIED | `apps/server/src/modules/canonical-places/place-metadata-catalog.ts:67-86` 在 shard lookupId 冲突时报错，`place-metadata-catalog.ts:105-123` 对重复 `placeId` / `boundaryId` 直接抛错；`apps/server/src/modules/records/records.service.ts:122-146` 继续要求 `datasetVersion/displayName/typeLabel/subtitle` 等字段 exact-match authoritative catalog；server 六个测试文件共 `59 passed`。 |
+| 8 | 既有 overseas 记录会被稳定回填到新 metadata，且 `travelRecord` / `smokeRecord` / `userTravelRecord` 全部采用不会抛 `P2025` 的更新策略。 | ✓ VERIFIED | `apps/server/scripts/backfill-record-metadata.ts:154-177` 用 `updateMany()` 替代逐条 `update()`；`backfill-record-metadata.ts:208-265` 为三张表分别统计 `matched/unmatched/skipped`；`apps/server/test/record-metadata-backfill.e2e-spec.ts:116-144` 锁定 zero-count skipped 行为；组合执行 `record-metadata-backfill + auth-bootstrap + records-sync` 已包含在本次 server `59 passed` 中，旧 `P2025` 未复发。 |
+| 9 | bootstrap / same-user sync / map consumer 继续直接复用持久化 metadata，而不是客户端重新推导 labels。 | ✓ VERIFIED | `apps/server/src/modules/auth/auth.service.ts:189-198` 直接返回 `records.map(toContractTravelRecord)`；`apps/web/src/stores/map-points.ts:50-69` 将 `TravelRecord.displayName/typeLabel/parentLabel/subtitle` 直接投影到 UI；`apps/server/test/auth-bootstrap.e2e-spec.ts:428-472` 与 `apps/server/test/records-sync.e2e-spec.ts:407-451` 明确断言旧 `一级行政区` 不再回放；web 三个 consumer 测试文件共 `91 passed`。 |
+| 10 | 扩展后的 metadata 已具备供时间轴和统计视图复用的共享契约，不需要再额外创建 fallback 文案真源。 | ✓ VERIFIED | `packages/contracts/src/generated/geometry-manifest.generated.ts:8579-8729` 提供 authoritative summary 常量，`apps/web/src/constants/overseas-support.ts:1-10` 已不再维护静态国家名单，`rg -n "overseas-catalog|modules/overseas|PHASE26_SUPPORTED_OVERSEAS_COUNTRIES" apps/web/src apps/server/src apps/web/scripts/geo packages/contracts/src` 无命中。推断：后续时间轴/统计可直接消费与 map/bootstrap 相同的 persisted metadata 与 generated summary，而无需再派生新的标签策略。 |
 
-**Score:** 7/10 truths verified
+**Score:** 10/10 truths verified
 
 ### Required Artifacts
 
 | Artifact | Expected | Status | Details |
 | --- | --- | --- | --- |
-| `apps/web/scripts/geo/overseas-support/index.mjs` | 21 国区域化 support matrix 聚合入口 | ✓ VERIFIED | 导出 `priorityCountries`、`supportedCountrySummaries`、`getOverseasAdmin1CountryDefinition` 等 build-time 真源接口。 |
-| `apps/web/scripts/geo/overseas-support/*.mjs` | admin1-only 国家定义与特殊 guard | ✓ VERIFIED | 六个区域文件均存在，且包含计划要求的新增国家与 SG/AE/AU 规则。 |
-| `apps/web/scripts/geo/build-geometry-manifest.mjs` | 生成 v3 geometry manifest 与 canonical overseas labels | ✗ HOLLOW | 逻辑存在且 `geo:build:check` 可跑，但 `datasetVersion` 被错误覆盖成 geometry version。 |
-| `packages/contracts/src/generated/geometry-manifest.generated.ts` | generated manifest + supported-country summaries | ⚠️ DRIFTED | 覆盖摘要常量正确，但和 server 当前读取到的 `datasetVersion` 语义分裂。 |
-| `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | manifest-backed canonical summary lookup | ⚠️ HOLLOW | wiring 完整，但直接把 shard 里的错误 `datasetVersion` 继续当作 canonical metadata。 |
-| `apps/server/scripts/backfill-record-metadata.ts` | authoritative metadata backfill | ✗ NOT COMPLETE | 只回填 `travelRecord` / `smokeRecord`，未覆盖真实登录态消费的 `userTravelRecord`。 |
-| `apps/server/src/modules/records/records.service.ts` | create/import exact-match authoritative guard | ✓ VERIFIED | 对 overseas payload 做完整字段比对，并给出稳定错误文案。 |
-| `apps/web/src/constants/overseas-support.ts` | generated-summary-backed unsupported helper | ✓ VERIFIED | 已移除静态名单，直接使用 generated summary 常量。 |
-| `apps/web/src/stores/map-points.ts` | persisted metadata consumer compatibility | ✓ VERIFIED | `recordToDisplayPoint()` 直接映射持久化 metadata，无 `placeId` 级 fallback derivation。 |
+| `apps/web/scripts/geo/overseas-admin1-support.mjs` | 保持旧 import path 稳定可用的 thin wrapper | ✓ VERIFIED | 第 1 行仅做 `export *`，未分叉出新的真源。 |
+| `apps/web/scripts/geo/overseas-support/index.mjs` | 21 国聚合入口与 summary 导出 | ✓ VERIFIED | 导出 `priorityCountries`、`priorityCountryByIso3`、`supportedCountrySummaries`、`getOverseasAdmin1CountryDefinition`。 |
+| `apps/web/scripts/geo/overseas-support/*.mjs` | 分区域 admin1-only 国家定义与特殊 guard | ✓ VERIFIED | 六个区域文件都存在，国家集合与 Phase 28 plan 一致。 |
+| `apps/web/scripts/geo/build-geometry-manifest.mjs` | v3 build、canonical label policy、identity guard | ✓ VERIFIED | 已包含 special identity overrides、`assertUniqueOverseasIdentity()`、canonical dataset metadata 生成与 generated summary 导出。 |
+| `apps/web/public/geo/2026-04-21-geo-v3/manifest.json` | authoritative geometry manifest | ✓ VERIFIED | duplicate scan 显示 856 个 manifest entries、487 个 overseas entries，`placeId` / `boundaryId` 无重复。 |
+| `apps/web/public/geo/2026-04-21-geo-v3/overseas/layer.json` | overseas canonical feature metadata | ✓ VERIFIED | `us-washington-state`、`us-district-of-columbia`、`ar-buenos-aires-province`、`ar-buenos-aires-city` 已分别落盘，且 duplicate scan 为 0。 |
+| `packages/contracts/src/generated/geometry-manifest.generated.ts` | generated manifest + summary constants | ✓ VERIFIED | 既暴露 `GEOMETRY_MANIFEST`，也暴露 `SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES` / `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH`。 |
+| `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | fail-fast canonical lookup | ✓ VERIFIED | duplicate `lookupId`、`placeId`、`boundaryId` 都会直接抛错，不再静默覆盖。 |
+| `apps/server/scripts/backfill-record-metadata.ts` | race-safe metadata backfill | ✓ VERIFIED | 三张表统一走 `updateMany()`，并把 zero-count 行记录到 per-table skipped summary。 |
+| `apps/server/test/phase28-overseas-cases.ts` | shared 13-country + collision regression matrix | ✓ VERIFIED | 同时导出 `PHASE28_NEW_COUNTRY_CASES`、`PHASE28_IDENTITY_COLLISION_CASES`、`PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS`。 |
+| `apps/web/src/constants/overseas-support.ts` | generated-summary-backed unsupported notice | ✓ VERIFIED | 直接依赖 contracts summary，而非 web 侧静态名单。 |
+| `apps/web/src/stores/map-points.ts` | persisted-metadata consumer | ✓ VERIFIED | `recordToDisplayPoint()` 直接读取 `TravelRecord` 的 authoritative metadata 字段。 |
 
 ### Key Link Verification
 
 | From | To | Via | Status | Details |
 | --- | --- | --- | --- | --- |
-| `apps/web/scripts/geo/overseas-support/*.mjs` | `apps/web/scripts/geo/build-geometry-manifest.mjs` | aggregated support matrix + label policy imports | ✓ WIRED | build script 从 `overseas-admin1-support.mjs` 导入 `getOverseasAdmin1CountryDefinition` / `supportedCountrySummaries`。 |
-| `apps/web/scripts/geo/build-geometry-manifest.mjs` | `packages/contracts/src/generated/geometry-manifest.generated.ts` | `geo:build` generated output | ✓ WIRED | `geo:build:check` 成功生成 generated manifest 和 supported-country summaries。 |
-| geometry shards (`apps/web/public/geo/2026-04-21-geo-v3/*`) | `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | feature metadata lookup | ⚠️ WIRED WITH DRIFT | wiring 完整，但 server 读取到的是被覆盖后的 geometry version，而非 canonical version。 |
-| `apps/server/scripts/backfill-record-metadata.ts` | `apps/server/src/modules/auth/auth.service.ts` | bootstrap replay consumes backfilled persisted metadata | ✗ NOT_WIRED | backfill 不更新 `userTravelRecord`，而 `/auth/bootstrap` 只返回 `userTravelRecord`。 |
-| `packages/contracts/src/generated/geometry-manifest.generated.ts` | `apps/web/src/constants/overseas-support.ts` | supported-country summary import | ✓ WIRED | web helper 直接 re-export/import generated summary constants。 |
-| `apps/web/src/stores/map-points.ts` | map / popup consumers | persisted metadata replay | ✓ WIRED | `displayPoints`、`openSavedPointForPlaceOrStartDraft()` 均通过 `recordToDisplayPoint()` 复用持久化 metadata。 |
+| `apps/web/scripts/geo/overseas-support/*.mjs` | `apps/web/scripts/geo/build-geometry-manifest.mjs` | country definitions + label policy imports | ✓ WIRED | build script 导入 `getOverseasAdmin1CountryDefinition`、`getOverseasAdmin1SourceFeatureId`、`isSupportedOverseasAdmin1Feature`、`supportedCountrySummaries`。 |
+| `apps/web/scripts/geo/build-geometry-manifest.mjs` | `apps/web/public/geo/2026-04-21-geo-v3/manifest.json` / `overseas/layer.json` | `geo:build` generated output | ✓ WIRED | `pnpm --filter @trip-map/web geo:build:check` 通过，dry-run 实际产出 856 条 manifest / 487 条 overseas features。 |
+| `apps/web/scripts/geo/build-geometry-manifest.mjs` | `packages/contracts/src/generated/geometry-manifest.generated.ts` | generated summary constants | ✓ WIRED | `build-geometry-manifest.mjs:443-467` 序列化 `supportedCountrySummaries` 并写入 generated TS。 |
+| `packages/contracts/src/generated/geometry-manifest.generated.ts` | `apps/web/src/constants/overseas-support.ts` | supported-country summary reuse | ✓ WIRED | `overseas-support.ts:1-10` 直接从 `@trip-map/contracts` 引入 `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH`。 |
+| `packages/contracts/src/generated/geometry-manifest.generated.ts` | `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | manifest-backed canonical summary lookup | ✓ WIRED | `place-metadata-catalog.ts:167-194` 遍历 `GEOMETRY_MANIFEST` 并按 shard feature 生成 canonical summary 索引。 |
+| `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | `apps/server/src/modules/records/records.service.ts` | authoritative exact-match validation | ✓ WIRED | `records.service.ts:122-146` 同时对 `placeId` 与 `boundaryId` 解析后的 canonical summary 做一致性校验。 |
+| `apps/server/scripts/backfill-record-metadata.ts` | `apps/server/src/modules/auth/auth.service.ts` | backfilled `userTravelRecord` -> bootstrap replay | ✓ WIRED | `backfill-record-metadata.ts` 更新 `userTravelRecord` 后，`auth.service.ts:189-198` 直接回放同一份 persisted records。 |
+| `apps/server/scripts/backfill-record-metadata.ts` | `apps/server/test/auth-bootstrap.e2e-spec.ts` / `apps/server/test/records-sync.e2e-spec.ts` | combo migration regressions | ✓ WIRED | 两个测试文件都调用 `backfillRecordMetadata(prisma)` 并断言升级后的 `datasetVersion/typeLabel/subtitle`。 |
+| `apps/server/src/modules/auth/auth.service.ts` | `apps/web/src/stores/map-points.ts` | persisted metadata replay | ✓ WIRED | bootstrap 返回的 `TravelRecord` 直接进入 `recordToDisplayPoint()`，未经过客户端 label 重推导。 |
 
 ### Data-Flow Trace (Level 4)
 
 | Artifact | Data Variable | Source | Produces Real Data | Status |
 | --- | --- | --- | --- | --- |
-| `apps/web/scripts/geo/build-geometry-manifest.mjs` | `metadata.datasetVersion` | `CANONICAL_DATASET_VERSION` -> `enrichFeature()` | No — line 289 又覆盖为 `GEOMETRY_DATASET_VERSION` | ⚠️ STATIC / DRIFT |
-| `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | `summary.datasetVersion` | `feature.properties.datasetVersion` | No — 直接继承了 shard 中被覆盖后的 geometry version | ⚠️ HOLLOW |
-| `apps/server/scripts/backfill-record-metadata.ts` | backfill update payload | `buildCanonicalMetadataLookup()` | Partial — 仅写 `travelRecord` / `smokeRecord` | ✗ DISCONNECTED |
-| `apps/web/src/constants/overseas-support.ts` | `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH` | generated contracts constant | Yes | ✓ FLOWING |
+| `apps/web/scripts/geo/overseas-support/index.mjs` | `supportedCountrySummaries` | 六个区域模块的 country definitions | Yes | ✓ FLOWING |
+| `apps/web/scripts/geo/build-geometry-manifest.mjs` | overseas `placeId` / `boundaryId` / `renderableId` | `OVERSEAS_SPECIAL_IDENTITIES` + `slugify(admin1Name)` + uniqueness guard | Yes | ✓ FLOWING |
+| `apps/web/public/geo/2026-04-21-geo-v3/overseas/layer.json` | canonical feature metadata | `createOverseasFeatureMetadata()` build-time 生成 | Yes | ✓ FLOWING |
+| `packages/contracts/src/generated/geometry-manifest.generated.ts` | `SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES` / `SUPPORTED_OVERSEAS_COUNTRY_LABEL_ZH` | `supportedCountrySummaries` 的序列化输出 | Yes | ✓ FLOWING |
+| `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | `byPlaceId` / `byBoundaryId` | `GEOMETRY_MANIFEST` + shard feature lookup | Yes | ✓ FLOWING |
+| `apps/server/scripts/backfill-record-metadata.ts` | matched / skipped / unmatched backfill summary | `findMany()` + `updateMany()` + canonical lookup | Yes | ✓ FLOWING |
+| `apps/server/src/modules/auth/auth.service.ts` | bootstrap `records` | persisted `userTravelRecord` rows | Yes | ✓ FLOWING |
 | `apps/web/src/stores/map-points.ts` | `displayName` / `typeLabel` / `subtitle` | persisted `TravelRecord` fields | Yes | ✓ FLOWING |
 
 ### Behavioral Spot-Checks
 
 | Behavior | Command | Result | Status |
 | --- | --- | --- | --- |
-| Build pipeline can regenerate Phase 28 geometry outputs | `pnpm --filter @trip-map/web geo:build:check` | 成功生成 856 entries，其中 overseas 487 条 | ✓ PASS |
-| Contracts package remains buildable | `pnpm --filter @trip-map/contracts build` | `tsc -p tsconfig.json` 退出码 0 | ✓ PASS |
-| Backfill helper regression still runs | `pnpm --filter @trip-map/server test test/record-metadata-backfill.e2e-spec.ts` | 2 tests passed | ✓ PASS |
-| New-country resolve matrix still runs | `pnpm --filter @trip-map/server test test/canonical-resolve.e2e-spec.ts` | 24 tests passed | ✓ PASS |
-| Web consumer compatibility on persisted metadata still runs | `pnpm --filter @trip-map/web test src/stores/map-points.spec.ts` | 48 tests passed | ✓ PASS |
+| 21 国 build-time support matrix 存在且顺序稳定 | `node --input-type=module` 导入 `priorityCountries` / `supportedCountrySummaries` | 返回 21 个 ISO2，`count = 21`，`summaryCount = 21` | ✓ PASS |
+| generated summary 顺序与 authoring matrix 一致 | `node --input-type=module` 对比 `priorityCountries` 与 `SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES.map(iso2)` | `sameOrder: true` | ✓ PASS |
+| `geo:build` 仍可在当前数据源下完整通过 | `pnpm --filter @trip-map/web geo:build:check` | dry-run 成功，输出 `856 entries` / `487 overseas entries` | ✓ PASS |
+| 当前 manifest / overseas layer 不存在 duplicate identities | Node 脚本扫描 `manifest.json` 与 `overseas/layer.json` | `duplicateManifestBoundaryIds = []`、`duplicateManifestPlaceIds = []`、`duplicateLayerBoundaryIds = []`、`duplicateLayerPlaceIds = []` | ✓ PASS |
+| server authoritative resolve/save/import/backfill/bootstrap/sync 全链路稳定 | `pnpm --filter @trip-map/server test --run test/canonical-resolve.e2e-spec.ts test/records-travel.e2e-spec.ts test/records-import.e2e-spec.ts test/record-metadata-backfill.e2e-spec.ts test/auth-bootstrap.e2e-spec.ts test/records-sync.e2e-spec.ts` | `6 passed`, `59 passed (59)` | ✓ PASS |
+| web consumer 继续直吃 persisted metadata | `pnpm --filter @trip-map/web test --run src/stores/map-points.spec.ts src/components/LeafletMapStage.spec.ts src/components/map-popup/PointSummaryCard.spec.ts` | `3 passed`, `91 passed (91)` | ✓ PASS |
+| contracts 层继续导出 Phase 28 authoritative fixtures / contract | `pnpm --filter @trip-map/contracts test --run src/contracts.spec.ts` | `1 passed`, `17 passed (17)` | ✓ PASS |
 
 ### Requirements Coverage
 
 | Requirement | Source Plan | Description | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| `GEOX-01` | `28-01`, `28-02` | 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行 | ✓ SATISFIED | 21 国 authoring matrix 已落地；`canonical-resolve.e2e-spec.ts` 与 `records-travel.e2e-spec.ts` 实际通过。 |
-| `GEOX-02` | `28-01`, `28-02`, `28-03` | 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题、类型与归类 | ✗ BLOCKED | `datasetVersion` split-brain 与 `userTravelRecord` 未回填会让旧 overseas 记录在 bootstrap/sync/未来 timeline/statistics 中继续带旧 metadata。 |
+| `GEOX-01` | `28-01`, `28-02`, `28-04`, `28-06` | 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行 | ✓ SATISFIED | 21 国 matrix、admin1-only policy、collision-specific identities、duplicate fail-fast、resolve/save/import 测试已同时成立；server 全链路 spot-check `59 passed`。 |
+| `GEOX-02` | `28-01`, `28-02`, `28-03`, `28-05`, `28-07` | 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题、类型与归类 | ✓ SATISFIED | canonical metadata 由 persisted `TravelRecord` 与 generated summary 统一供给；backfill/bootstrap/sync/map consumer 测试均通过，且未发现新的 runtime fallback truth source。 |
 
-Orphaned requirements: none found. `.planning/REQUIREMENTS.md` 仅将 `GEOX-01` 和 `GEOX-02` 映射到 Phase 28。
+Orphaned requirements: none. 所有 PLAN frontmatter 中声明的 requirement IDs 都能在 `.planning/REQUIREMENTS.md` 中找到，且仅 `GEOX-01`、`GEOX-02` 映射到 Phase 28。
 
 ### Anti-Patterns Found
 
 | File | Line | Pattern | Severity | Impact |
 | --- | --- | --- | --- | --- |
-| `apps/web/scripts/geo/build-geometry-manifest.mjs` | 289 | canonical datasetVersion 被 geometry version 覆盖 | 🛑 Blocker | 造成 server 与 contracts 对 authoritative `datasetVersion` 的语义分裂。 |
-| `apps/server/scripts/backfill-record-metadata.ts` | 99 | backfill 只覆盖 `travelRecord` / `smokeRecord` | 🛑 Blocker | 已登录用户真实读写的 `userTravelRecord` 不会升级到 Phase 28 metadata。 |
-| `apps/server/test/phase28-overseas-cases.ts` | 175 | regression 将 geometry version 当作 authoritative datasetVersion | ⚠️ Warning | 测试会固化错误语义，掩盖 `datasetVersion` split-brain。 |
+| `apps/server/test/auth-bootstrap.e2e-spec.ts` | 376 | 慢迁移回归本身没有显式超时，`30000` 只出现在文件更后面的另一条测试 | ⚠️ Warning | 当前组合 server 回归已通过，但在更慢 CI 机器上仍可能存在超时抖动风险。 |
+| `apps/server/test/record-metadata-backfill.e2e-spec.ts` | 116 | zero-count skipped 只直接断言了 `userTravelRecord`，未参数化覆盖 `travelRecord` / `smokeRecord` | ℹ️ Info | 当前实现三张表共用同一 helper，功能未受阻，但 skipped summary 的对称性保护还不完整。 |
+| `apps/web/scripts/geo/build-geometry-manifest.mjs` / `apps/server/src/modules/canonical-places/place-metadata-catalog.ts` | 235 / 79 | duplicate fail-fast 分支通过 clean-data build 和运行时装载间接验证，但没有专门的负向测试故意注入冲突 | ℹ️ Info | 当前 guard 真正存在且当前数据集通过，但失败路径未来若被改坏，回归面仍偏薄。 |
 
 ### Gaps Summary
 
-Phase 28 已经完成了覆盖范围扩展本身：21 国 build-time support matrix、13 国 resolve/save 回归、generated supported-country summaries、以及 map consumer 直吃持久化 metadata 这几部分都真实存在且能跑通。
+没有发现新的 blocking gap。上一次 verification 的两个核心 blocker 已被真实关闭：
 
-但 phase goal 仍未达成，原因是两条根因级 blocker 仍在代码里：
+1. overseas identity collision 已消失。Washington/DC 与 Buenos Aires Province/City 现在拥有不同的 `placeId` / `boundaryId`，build 产物与 generated contracts 中无重复 identity，canonical lookup 也改为 duplicate fail-fast。
+2. backfill race 已消失。三张记录表统一切到 `updateMany()` + per-table skipped summary，组合执行 backfill/bootstrap/sync 回归通过，旧 `P2025` 不再出现。
 
-1. `datasetVersion` 语义已经 split-brain。build script 明明创建了 `canonical-authoritative-2026-04-21`，却在写入 shard 时覆盖成 `2026-04-21-geo-v3`；server lookup 和回归测试继续把这个 geometry version 当 authoritative metadata，而 contracts Phase 28 fixtures 又坚持 canonical version。这会让 exact-match、防伪、回填和未来 consumer 的“同一字段”不再指向同一语义。
-
-2. backfill 没有覆盖真正被 bootstrap/sync/time-based consumers 读取的 `userTravelRecord`。当前测试只是验证“新写入的正确记录可以被正确回放”，没有验证“老记录会被升级后再回放”。因此既有 overseas 用户数据仍可能保留旧 `typeLabel` / `subtitle` / `datasetVersion`，直接破坏 GEOX-02 和 Phase 29/30 的复用前提。
-
-建议后续动作：
-
-1. 修正 `build-geometry-manifest.mjs`，让 canonical `datasetVersion` 保留在 canonical metadata 中，仅把 geometry 版本保留在 `geometryRef.geometryDatasetVersion` / manifest entry。
-2. 重新生成 `apps/web/public/geo/2026-04-21-geo-v3/*` 与 `packages/contracts/src/generated/geometry-manifest.generated.ts`，并统一 server/contracts/tests 的 authoritative datasetVersion 断言。
-3. 扩展 `backfill-record-metadata.ts` 到 `userTravelRecord`，再补一条迁移 e2e：旧 overseas `userTravelRecord` -> 执行 backfill -> `/auth/bootstrap` / same-user sync 返回升级后的 Phase 28 metadata。
+当前剩余的只是测试可靠性与覆盖完整度层面的 warning/info，不再阻断 Phase 28 目标达成。
 
 ---
 
-_Verified: 2026-04-21T08:01:29Z_  
-_Verifier: Claude (gsd-verifier)_
+_Verified: 2026-04-22T03:30:59Z_  
+_Verifier: Codex (gsd-verifier)_

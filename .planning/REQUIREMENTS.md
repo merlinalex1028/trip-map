@@ -22,8 +22,8 @@
 
 ### Overseas Expansion（海外覆盖扩展）
 
-- [ ] **GEOX-01**: 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行
-- [ ] **GEOX-02**: 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题、类型与归类
+- [x] **GEOX-01**: 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行
+- [x] **GEOX-02**: 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题、类型与归类
 
 ## Future Requirements
 
@@ -64,8 +64,8 @@
 | STAT-01 | Phase 30 | Pending |
 | STAT-02 | Phase 30 | Pending |
 | STAT-03 | Phase 30 | Pending |
-| GEOX-01 | Phase 28 | Pending |
-| GEOX-02 | Phase 28 | Pending |
+| GEOX-01 | Phase 28 | Complete |
+| GEOX-02 | Phase 28 | Complete |
 
 **Coverage:**
 - v6.0 requirements: 10 total
@@ -74,4 +74,4 @@
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-20 — after Phase 27 completion*
+*Last updated: 2026-04-22 — after Phase 28 completion*

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: executing
-stopped_at: Phase 27 completed
-last_updated: "2026-04-21T09:36:56Z"
-last_activity: 2026-04-21 -- Phase 28 gap closure plans ready
+status: planning
+stopped_at: Phase 28 completed
+last_updated: "2026-04-22T03:35:07.525Z"
+last_activity: 2026-04-22 -- Phase 28 completed
 progress:
   total_phases: 4
-  completed_phases: 1
-  total_plans: 11
-  completed_plans: 9
-  percent: 82
+  completed_phases: 2
+  total_plans: 13
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-17)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 28 gap execution — overseas-coverage-expansion
+**Current focus:** Phase 29 — timeline-page-&-account-entry
 
 ## Current Position
 
 Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: 28 (overseas-coverage-expansion) — VERIFICATION GAPS
-Plan: 2 gap plans ready (5 total / 3 executed)
-Status: Ready to execute gap closure plans
-Last activity: 2026-04-21 -- Phase 28 gap closure plans ready
+Phase: 29 (timeline-page-&-account-entry) — READY FOR PLANNING
+Plan: Not started
+Status: Ready to plan Phase 29
+Last activity: 2026-04-22 -- Phase 28 completed
 
-Progress: [########--] 82% (3/5 Phase 28 plans executed; gap closure pending)
+Progress: [#####-----] 50% (2/4 phases complete in v6.0)
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Progress: [########--] 82% (3/5 Phase 28 plans executed; gap closure pending)
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 27 | 6 | - | - |
-| 28 | 5 | - | - |
+| 28 | 7 | - | - |
 | 29 | 0 | - | - |
 | 30 | 0 | - | - |
 
@@ -56,9 +56,9 @@ Progress: [########--] 82% (3/5 Phase 28 plans executed; gap closure pending)
 - Last 5 milestones/actions: v5.0 archive, v6.0 init, requirements definition, roadmap created, Phase 27 next
 - Trend: Scope reset for next delivery loop
 
-| Phase 27 | pending | - | - |
-| Phase 28 | ready to execute gaps | 28-04 / 28-05 planned | 3 plans executed |
-| Phase 29 | pending | - | - |
+| Phase 27 | complete | 6/6 plans | shipped 2026-04-20 |
+| Phase 28 | complete | 7/7 plans | shipped 2026-04-22 |
+| Phase 29 | ready to plan | 0 plans | next up |
 | Phase 30 | pending | - | - |
 | Init | complete | docs | 4 files |
 
@@ -81,13 +81,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 28 仍有两个 blocker：`datasetVersion` 在 canonical / geometry 间语义分裂，以及 `userTravelRecord` 尚未纳入 authoritative metadata backfill；对应 gap plans 28-04 / 28-05 已完成规划。
+- 当前没有新的 blocker；Phase 29 尚未开始规划，接下来应进入时间轴页面与账号入口实现。
 
 ## Session Continuity
 
 Last session: 2026-04-20T01:21:16.178Z
-Stopped at: Phase 27 completed
+Stopped at: Phase 28 completed
 Resume file: .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-04-21 — after Phase 28 gap planning*
+*Last updated: 2026-04-22 — after Phase 28 completion*

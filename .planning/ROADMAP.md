@@ -7,7 +7,7 @@
 - ✅ **v3.0 全栈化与行政区地图重构** — Phases 11-18，已于 2026-04-03 归档（[详情](milestones/v3.0-ROADMAP.md)）
 - ✅ **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，已于 2026-04-10 归档（[详情](milestones/v4.0-ROADMAP.md)）
 - ✅ **v5.0 账号体系与云同步基础版** — Phases 23-26，已于 2026-04-17 归档（[详情](milestones/v5.0-ROADMAP.md)）
-- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-30，执行中（Phase 27 已完成）
+- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-30，执行中（Phase 27-28 已完成）
 
 ## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
 
@@ -24,7 +24,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 ## Phases
 
 - [x] **Phase 27: Multi-Visit Record Foundation** - 把账号旅行记录从“每地点一条”升级为“每次旅行一条”，引入旅行日期并保住现有地图点亮主链路 (completed 2026-04-20)
-- [ ] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致
+- [x] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致 (completed 2026-04-22)
 - [ ] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面
 - [ ] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度
 
@@ -32,8 +32,8 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 
 | # | Phase | Status | Requirements | Depends on |
 |---|-------|--------|--------------|------------|
-| 27 | Multi-Visit Record Foundation | 6/6 | Complete    | 2026-04-20 |
-| 28 | Overseas Coverage Expansion | 3/5 | Verification gaps | 2026-04-21 |
+| 27 | Multi-Visit Record Foundation | Complete | TRIP-01, TRIP-02, TRIP-03 | Phase 26 |
+| 28 | Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 27 |
 | 29 | Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
 
@@ -63,8 +63,8 @@ Plans:
 **Goal:** 用户可以在更广的优先海外国家/地区上稳定识别并保存旅行记录，且扩展后的 metadata 能被时间轴和统计视图复用。
 **Depends on:** Phase 27
 **Requirements:** GEOX-01, GEOX-02
-**Plans:** 5 plans total (3 complete, 2 gap closure pending)
-**Verification:** gaps_found (`.planning/phases/28-overseas-coverage-expansion/28-VERIFICATION.md`)
+**Plans:** 7/7 plans complete
+**Verification:** passed (`.planning/phases/28-overseas-coverage-expansion/28-VERIFICATION.md`)
 **Success Criteria** (what must be TRUE):
 1. 一组新增的优先海外国家/地区可以稳定 resolve 到可保存的 authoritative admin1 记录。
 2. 扩展后的海外记录在地图、bootstrap 恢复和跨设备读取时都保持一致的标题、类型标签和归类信息。
@@ -75,8 +75,10 @@ Plans:
 - [x] 28-01-PLAN.md — 拆分 overseas build-time authoring、锁定 21 国支持矩阵并生成 v3 geometry manifest / supported-country summary
 - [x] 28-02-PLAN.md — server authoritative guard、metadata backfill 与新增国家/旧标签拒绝回归
 - [x] 28-03-PLAN.md — unsupported-country copy 切到 generated summary，并更新 contracts/web consumer compatibility tests
-- [ ] 28-04-PLAN.md — [gap-closure] 修复 canonical `datasetVersion` / geometry version split-brain，并恢复历史 fixtures baseline
-- [ ] 28-05-PLAN.md — [gap-closure] 扩展 `userTravelRecord` backfill，并补旧记录经 bootstrap / sync 回放的迁移 e2e
+- [x] 28-04-PLAN.md — [gap-closure] 修复 canonical `datasetVersion` / geometry version split-brain，并恢复历史 fixtures baseline
+- [x] 28-05-PLAN.md — [gap-closure] 扩展 `userTravelRecord` backfill，并补旧记录经 bootstrap / sync 回放的迁移 e2e
+- [x] 28-06-PLAN.md — [gap-closure] 修复 overseas identity collision，给 build 产物与 canonical lookup 增加 fail-fast 唯一性守卫，并补 Washington/DC 与 Buenos Aires resolve/save regression
+- [x] 28-07-PLAN.md — [gap-closure] 将 metadata backfill 改为 `updateMany()` + skipped summary，并锁定 backfill/bootstrap/sync 组合回归
 
 ### Phase 29: Timeline Page & Account Entry
 **Goal:** 用户可以从用户名面板进入一个独立的旅行时间轴页面，按时间顺序浏览自己的旅行历史。
@@ -103,13 +105,13 @@ Plans:
 | Phase | Status | Requirements | Next Step |
 |-------|--------|--------------|-----------|
 | 27. Multi-Visit Record Foundation | Complete | TRIP-01, TRIP-02, TRIP-03 | Phase 28 |
-| 28. Overseas Coverage Expansion | Verification gaps | GEOX-01, GEOX-02 | Fix blockers from 28-VERIFICATION.md |
+| 28. Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 29 |
 | 29. Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Wait for Phase 27-28 |
 | 30. Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Wait for Phase 27-29 |
 
 ## Current Status
 
-当前 milestone 仍在执行 `Phase 28: Overseas Coverage Expansion`。本 phase 现有 5 个计划：`28-01~03` 已执行完成，`28-04~05` 作为 gap closure plans 已规划完成并待执行。当前 blocker 仍是 `datasetVersion` 语义 split-brain，以及 `userTravelRecord` 尚未纳入 backfill；下一步应执行这两份 gap plans，再重新验证后续是否进入 Phase 29。
+`Phase 28: Overseas Coverage Expansion` 已于 2026-04-22 完成，`GEOX-01` 与 `GEOX-02` 均已闭环。当前 milestone 的下一步是进入 `Phase 29: Timeline Page & Account Entry`，开始规划独立时间轴页面与用户名面板入口。
 
 ---
-*Last updated: 2026-04-21 — after Phase 28 gap planning*
+*Last updated: 2026-04-22 — after Phase 28 completion*
