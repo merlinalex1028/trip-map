@@ -12,7 +12,7 @@
 
 ## Current State
 
-- **v6.0 已启动（待进入 Phase 27）**：本轮聚焦旅行时间、时间轴、统计与 overseas 覆盖增强，准备把单次点亮模型升级为可承载多次旅行记录的历史模型
+- **v6.0 进行中（Phase 27-28 已完成，待进入 Phase 29）**：多次旅行记录数据基座与海外覆盖扩展已经落地，当前下一步是独立时间轴页面与账号入口
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
@@ -41,15 +41,11 @@
 
 ### Active
 
-- `TRIP-01`: 用户点亮地点时可以选择旅行日期
-- `TRIP-02`: 用户可以为同一地点保存多次旅行记录
-- `TRIP-03`: 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复
 - `TRIP-04`: 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面
 - `TRIP-05`: 用户可以在时间轴页面按时间顺序查看自己的旅行记录
 - `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数
 - `STAT-02`: 用户可以查看国家/地区完成度
-- `GEOX-01`: 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行
-- `GEOX-02`: 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类
+- `STAT-03`: 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”
 
 ### Validated
 
@@ -57,6 +53,11 @@
 - ✓ 旅行记录与账号绑定，刷新或更换设备后仍能恢复到同一份账号记录 — v5.0 / Phase 23-25
 - ✓ 首次登录本地导入、本地/云端二选一与切账号边界清理已经闭环 — v5.0 / Phase 24
 - ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — v5.0 / Phase 26
+- ✓ 用户点亮地点时可以选择旅行日期 — v6.0 / Phase 27
+- ✓ 用户可以为同一地点保存多次旅行记录 — v6.0 / Phase 27
+- ✓ 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复 — v6.0 / Phase 27
+- ✓ 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行 — v6.0 / Phase 28
+- ✓ 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类 — v6.0 / Phase 28
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -156,4 +157,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-17 — after v6.0 roadmap creation*
+*Last updated: 2026-04-22 — after Phase 28 completion*
