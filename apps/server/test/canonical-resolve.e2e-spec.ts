@@ -2,7 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 
 import { createApp } from '../src/main.js'
-import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
+import {
+  PHASE28_IDENTITY_COLLISION_CASES,
+  PHASE28_NEW_COUNTRY_CASES,
+} from './phase28-overseas-cases.ts'
 
 const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
@@ -314,6 +317,38 @@ describe('POST /places canonical resolve', () => {
       if (phase28Case.iso2 === 'EG') {
         expect(response.json().place.typeLabel).toBe('Governorate')
       }
+    }
+  })
+
+  it('resolves every Phase 28 identity collision probe with distinct authoritative ids', async () => {
+    expect(PHASE28_IDENTITY_COLLISION_CASES).toHaveLength(4)
+
+    for (const phase28Case of PHASE28_IDENTITY_COLLISION_CASES) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/places/resolve',
+        payload: {
+          lat: phase28Case.lat,
+          lng: phase28Case.lng,
+        },
+      })
+
+      expect(response.statusCode).toBe(201)
+      expect(response.json()).toMatchObject({
+        status: 'resolved',
+        place: {
+          placeId: phase28Case.expectedPlaceId,
+          boundaryId: phase28Case.expectedBoundaryId,
+          displayName: phase28Case.displayName,
+          typeLabel: phase28Case.expectedTypeLabel,
+          parentLabel: phase28Case.countryLabel,
+          datasetVersion: 'canonical-authoritative-2026-04-21',
+          geometryRef: {
+            assetKey: 'overseas/layer.json',
+            geometryDatasetVersion: '2026-04-21-geo-v3',
+          },
+        },
+      })
     }
   })
 

@@ -14,6 +14,10 @@ export type Phase28OverseasCase = Phase28OverseasCaseSeed & {
   expectedBoundaryId: string
 }
 
+export type Phase28IdentityCollisionCase = Phase28OverseasCase & {
+  sourceFeatureId: 'US-WA' | 'US-DC' | 'AR-B' | 'AR-C'
+}
+
 export type LegacyOverseasUserTravelRecordSeed = {
   placeId: string
   boundaryId: string
@@ -152,6 +156,53 @@ const PHASE28_CASE_SEEDS = [
   },
 ] as const satisfies ReadonlyArray<Phase28OverseasCaseSeed>
 
+const PHASE28_IDENTITY_COLLISION_CASE_SEEDS = [
+  {
+    sourceFeatureId: 'US-WA',
+    iso2: 'US',
+    countryLabel: 'United States',
+    displayName: 'Washington',
+    lat: 47.4865,
+    lng: -120.361,
+    expectedTypeLabel: 'State',
+    expectedPlaceId: 'us-washington-state',
+    expectedBoundaryId: 'ne-admin1-us-washington-state',
+  },
+  {
+    sourceFeatureId: 'US-DC',
+    iso2: 'US',
+    countryLabel: 'United States',
+    displayName: 'Washington',
+    lat: 38.8922,
+    lng: -77.0113,
+    expectedTypeLabel: 'State',
+    expectedPlaceId: 'us-district-of-columbia',
+    expectedBoundaryId: 'ne-admin1-us-district-of-columbia',
+  },
+  {
+    sourceFeatureId: 'AR-B',
+    iso2: 'AR',
+    countryLabel: 'Argentina',
+    displayName: 'Buenos Aires',
+    lat: -36.6734,
+    lng: -60.1133,
+    expectedTypeLabel: 'Province',
+    expectedPlaceId: 'ar-buenos-aires-province',
+    expectedBoundaryId: 'ne-admin1-ar-buenos-aires-province',
+  },
+  {
+    sourceFeatureId: 'AR-C',
+    iso2: 'AR',
+    countryLabel: 'Argentina',
+    displayName: 'Buenos Aires',
+    lat: -34.6202,
+    lng: -58.4527,
+    expectedTypeLabel: 'Province',
+    expectedPlaceId: 'ar-buenos-aires-city',
+    expectedBoundaryId: 'ne-admin1-ar-buenos-aires-city',
+  },
+] as const satisfies ReadonlyArray<Phase28IdentityCollisionCase>
+
 function assertPhase28CaseSeeds() {
   if (PHASE28_CASE_SEEDS.length !== PHASE28_REQUIRED_ISO2S.length) {
     throw new Error(
@@ -200,9 +251,60 @@ function resolveCase(seed: Phase28OverseasCaseSeed): Phase28OverseasCase {
   }
 }
 
+function assertPhase28IdentityCollisionCases(): void {
+  const seenSourceFeatureIds = new Set<string>()
+  const seenPlaceIds = new Set<string>()
+  const seenBoundaryIds = new Set<string>()
+
+  for (const phase28Case of PHASE28_IDENTITY_COLLISION_CASE_SEEDS) {
+    if (seenSourceFeatureIds.has(phase28Case.sourceFeatureId)) {
+      throw new Error(`Duplicate Phase 28 collision sourceFeatureId "${phase28Case.sourceFeatureId}".`)
+    }
+    seenSourceFeatureIds.add(phase28Case.sourceFeatureId)
+
+    if (seenPlaceIds.has(phase28Case.expectedPlaceId)) {
+      throw new Error(`Duplicate Phase 28 collision placeId "${phase28Case.expectedPlaceId}".`)
+    }
+    seenPlaceIds.add(phase28Case.expectedPlaceId)
+
+    if (seenBoundaryIds.has(phase28Case.expectedBoundaryId)) {
+      throw new Error(`Duplicate Phase 28 collision boundaryId "${phase28Case.expectedBoundaryId}".`)
+    }
+    seenBoundaryIds.add(phase28Case.expectedBoundaryId)
+
+    const placeSummary = canonicalLookup.byPlaceId.get(phase28Case.expectedPlaceId)
+    const boundarySummary = canonicalLookup.byBoundaryId.get(phase28Case.expectedBoundaryId)
+
+    if (!placeSummary || !boundarySummary) {
+      throw new Error(
+        `Missing canonical summary for collision case ${phase28Case.sourceFeatureId}/${phase28Case.expectedPlaceId}.`,
+      )
+    }
+
+    if (placeSummary.placeId !== boundarySummary.placeId || placeSummary.boundaryId !== boundarySummary.boundaryId) {
+      throw new Error(
+        `Collision case ${phase28Case.sourceFeatureId} resolved inconsistent place/boundary summaries.`,
+      )
+    }
+
+    if (
+      placeSummary.displayName !== phase28Case.displayName
+      || placeSummary.parentLabel !== phase28Case.countryLabel
+      || placeSummary.typeLabel !== phase28Case.expectedTypeLabel
+      || placeSummary.datasetVersion !== CANONICAL_DATASET_VERSION
+    ) {
+      throw new Error(
+        `Collision case ${phase28Case.sourceFeatureId} no longer matches canonical-authoritative-2026-04-21 metadata.`,
+      )
+    }
+  }
+}
+
 assertPhase28CaseSeeds()
+assertPhase28IdentityCollisionCases()
 
 export const PHASE28_NEW_COUNTRY_CASES = PHASE28_CASE_SEEDS.map(resolveCase)
+export const PHASE28_IDENTITY_COLLISION_CASES = [...PHASE28_IDENTITY_COLLISION_CASE_SEEDS]
 
 export const PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS = [
   {

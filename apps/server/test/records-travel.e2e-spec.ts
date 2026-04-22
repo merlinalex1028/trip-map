@@ -6,7 +6,10 @@ import { fileURLToPath } from 'node:url'
 import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
 import { createApp } from '../src/main.js'
-import { PHASE28_NEW_COUNTRY_CASES } from './phase28-overseas-cases.ts'
+import {
+  PHASE28_IDENTITY_COLLISION_CASES,
+  PHASE28_NEW_COUNTRY_CASES,
+} from './phase28-overseas-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -81,12 +84,19 @@ function buildLegacyOverseasSubtitle(parentLabel: string) {
 }
 
 function createAuthoritativeOverseasRecord(
-  overrides: Partial<typeof unsupportedOverseasRecord> = {},
+  placeIdOrOverrides: string | Partial<typeof unsupportedOverseasRecord> = AUTHORITATIVE_OVERSEAS_PLACE_ID,
+  maybeOverrides: Partial<typeof unsupportedOverseasRecord> = {},
 ) {
-  const canonicalSummary = getCanonicalPlaceSummaryById(AUTHORITATIVE_OVERSEAS_PLACE_ID)
+  const placeId = typeof placeIdOrOverrides === 'string'
+    ? placeIdOrOverrides
+    : AUTHORITATIVE_OVERSEAS_PLACE_ID
+  const overrides = typeof placeIdOrOverrides === 'string'
+    ? maybeOverrides
+    : placeIdOrOverrides
+  const canonicalSummary = getCanonicalPlaceSummaryById(placeId)
 
   if (!canonicalSummary) {
-    throw new Error(`Missing canonical summary for ${AUTHORITATIVE_OVERSEAS_PLACE_ID}.`)
+    throw new Error(`Missing canonical summary for ${placeId}.`)
   }
 
   return {
@@ -389,6 +399,71 @@ describe('Current-user travel records API', () => {
     expect(response.statusCode).toBe(400)
     expect(response.json()).toMatchObject({
       message: 'Overseas travel record metadata must match authoritative catalog: typeLabel, subtitle.',
+    })
+  })
+
+  it('POST /records persists distinct authoritative records for every Phase 28 identity collision case', async () => {
+    const createdRecords: Array<{ placeId: string, boundaryId: string }> = []
+
+    for (const phase28Case of PHASE28_IDENTITY_COLLISION_CASES) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/records',
+        headers: {
+          cookie: sidCookie,
+        },
+        payload: createAuthoritativeOverseasRecord(phase28Case.expectedPlaceId),
+      })
+
+      expect(response.statusCode).toBe(201)
+      expect(response.json()).toMatchObject({
+        placeId: phase28Case.expectedPlaceId,
+        boundaryId: phase28Case.expectedBoundaryId,
+        displayName: phase28Case.displayName,
+        typeLabel: phase28Case.expectedTypeLabel,
+        parentLabel: phase28Case.countryLabel,
+        datasetVersion: 'canonical-authoritative-2026-04-21',
+      })
+
+      createdRecords.push({
+        placeId: response.json().placeId,
+        boundaryId: response.json().boundaryId,
+      })
+    }
+
+    expect(new Set(createdRecords.map(record => record.placeId)).size).toBe(PHASE28_IDENTITY_COLLISION_CASES.length)
+    expect(new Set(createdRecords.map(record => record.boundaryId)).size).toBe(PHASE28_IDENTITY_COLLISION_CASES.length)
+
+    const storedRecords = await prisma.userTravelRecord.findMany({
+      where: {
+        userId: currentUserId,
+        placeId: {
+          in: PHASE28_IDENTITY_COLLISION_CASES.map(phase28Case => phase28Case.expectedPlaceId),
+        },
+      },
+    })
+
+    expect(storedRecords).toHaveLength(PHASE28_IDENTITY_COLLISION_CASES.length)
+    expect(new Set(storedRecords.map(record => record.placeId)).size).toBe(PHASE28_IDENTITY_COLLISION_CASES.length)
+    expect(new Set(storedRecords.map(record => record.boundaryId)).size).toBe(PHASE28_IDENTITY_COLLISION_CASES.length)
+  })
+
+  it('POST /records rejects stale legacy Washington ids after the authoritative split', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: createAuthoritativeOverseasRecord('us-district-of-columbia', {
+        placeId: 'us-washington',
+        boundaryId: 'ne-admin1-us-washington',
+      }),
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json()).toMatchObject({
+      message: 'Overseas travel record is outside the current authoritative overseas support catalog.',
     })
   })
 

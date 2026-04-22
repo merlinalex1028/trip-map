@@ -42,6 +42,10 @@ interface GeometryFeatureCollection {
   features: GeometryFeature[]
 }
 
+interface CachedGeometryShard {
+  lookupById: ReadonlyMap<string, GeometryFeature>
+}
+
 export interface CanonicalMetadataLookup {
   byPlaceId: ReadonlyMap<string, CanonicalPlaceSummary>
   byBoundaryId: ReadonlyMap<string, CanonicalPlaceSummary>
@@ -54,6 +58,69 @@ const GEOMETRY_ROOT = resolve(REPO_ROOT, 'apps', 'web', 'public', 'geo')
 
 function loadGeometryShardFile(shardPath: string): GeometryFeatureCollection {
   return JSON.parse(readFileSync(shardPath, 'utf-8')) as GeometryFeatureCollection
+}
+
+function buildGeometryShardLookup(
+  shardPath: string,
+  featureCollection: GeometryFeatureCollection,
+): ReadonlyMap<string, GeometryFeature> {
+  const lookupById = new Map<string, GeometryFeature>()
+
+  for (const feature of featureCollection.features) {
+    const lookupIds = new Set(
+      [feature.properties.renderableId, feature.properties.boundaryId]
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    for (const lookupId of lookupIds) {
+      const existingFeature = lookupById.get(lookupId)
+
+      if (existingFeature && existingFeature !== feature) {
+        throw new Error(`Duplicate canonical lookupId "${lookupId}" in shard "${shardPath}".`)
+      }
+
+      lookupById.set(lookupId, feature)
+    }
+  }
+
+  return lookupById
+}
+
+function isSameCanonicalPlaceSummary(
+  left: CanonicalPlaceSummary,
+  right: CanonicalPlaceSummary,
+): boolean {
+  return left.placeId === right.placeId
+    && left.boundaryId === right.boundaryId
+    && left.placeKind === right.placeKind
+    && left.datasetVersion === right.datasetVersion
+    && left.displayName === right.displayName
+    && left.regionSystem === right.regionSystem
+    && left.adminType === right.adminType
+    && left.typeLabel === right.typeLabel
+    && left.parentLabel === right.parentLabel
+    && left.subtitle === right.subtitle
+}
+
+function setCanonicalSummary(
+  targetMap: Map<string, CanonicalPlaceSummary>,
+  identityType: 'placeId' | 'boundaryId',
+  identityValue: string,
+  summary: CanonicalPlaceSummary,
+): void {
+  const existingSummary = targetMap.get(identityValue)
+
+  if (existingSummary && !isSameCanonicalPlaceSummary(existingSummary, summary)) {
+    if (identityType === 'placeId') {
+      throw new Error(`Duplicate canonical placeId "${identityValue}".`)
+    }
+
+    throw new Error(`Duplicate canonical boundaryId "${identityValue}".`)
+  }
+
+  if (!existingSummary) {
+    targetMap.set(identityValue, summary)
+  }
 }
 
 function createCanonicalPlaceSummary(
@@ -95,7 +162,7 @@ function createCanonicalPlaceSummary(
 export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
   const byPlaceId = new Map<string, CanonicalPlaceSummary>()
   const byBoundaryId = new Map<string, CanonicalPlaceSummary>()
-  const shardCache = new Map<string, GeometryFeatureCollection>()
+  const shardCache = new Map<string, CachedGeometryShard>()
 
   for (const entry of GEOMETRY_MANIFEST) {
     const shardPath = resolve(
@@ -103,15 +170,18 @@ export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
       entry.geometryDatasetVersion,
       entry.assetKey,
     )
-    const shard = shardCache.get(shardPath) ?? loadGeometryShardFile(shardPath)
-    shardCache.set(shardPath, shard)
+    let cachedShard = shardCache.get(shardPath)
+
+    if (!cachedShard) {
+      const featureCollection = loadGeometryShardFile(shardPath)
+      cachedShard = {
+        lookupById: buildGeometryShardLookup(shardPath, featureCollection),
+      }
+      shardCache.set(shardPath, cachedShard)
+    }
 
     const lookupId = entry.renderableId ?? entry.boundaryId
-    const feature = shard.features.find(
-      candidate =>
-        candidate.properties.renderableId === lookupId
-        || candidate.properties.boundaryId === lookupId,
-    )
+    const feature = cachedShard.lookupById.get(lookupId)
 
     if (!feature) {
       throw new Error(
@@ -120,8 +190,8 @@ export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
     }
 
     const summary = createCanonicalPlaceSummary(entry, feature)
-    byPlaceId.set(summary.placeId, summary)
-    byBoundaryId.set(summary.boundaryId, summary)
+    setCanonicalSummary(byPlaceId, 'placeId', summary.placeId, summary)
+    setCanonicalSummary(byBoundaryId, 'boundaryId', summary.boundaryId, summary)
   }
 
   return {
