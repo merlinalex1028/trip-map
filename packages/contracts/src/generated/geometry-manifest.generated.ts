@@ -6,7 +6,7 @@
  *
  * canonicalDatasetVersion: canonical-authoritative-2026-04-21
  * geometryDatasetVersion: 2026-04-21-geo-v3
- * Generated: 2026-04-21T10:11:19.412Z
+ * Generated: 2026-04-22T02:57:46.564Z
  */
 
 import type { GeometryManifestEntry } from '../geometry'
@@ -4865,11 +4865,11 @@ export const GEOMETRY_MANIFEST: readonly GeometryManifestEntry[] = [
       "sourceFeatureId": "IN-ML"
     },
     {
-      "boundaryId": "ne-admin1-us-washington",
+      "boundaryId": "ne-admin1-us-washington-state",
       "layer": "OVERSEAS",
       "geometryDatasetVersion": "2026-04-21-geo-v3",
       "assetKey": "overseas/layer.json",
-      "renderableId": "ne-admin1-us-washington",
+      "renderableId": "ne-admin1-us-washington-state",
       "sourceDataset": "NATURAL_EARTH_ADMIN1",
       "sourceVersion": "natural-earth-10m-admin1-no-china-2026-04-02",
       "sourceFeatureId": "US-WA"
@@ -5475,11 +5475,11 @@ export const GEOMETRY_MANIFEST: readonly GeometryManifestEntry[] = [
       "sourceFeatureId": "IN-UP"
     },
     {
-      "boundaryId": "ne-admin1-ar-buenos-aires",
+      "boundaryId": "ne-admin1-ar-buenos-aires-province",
       "layer": "OVERSEAS",
       "geometryDatasetVersion": "2026-04-21-geo-v3",
       "assetKey": "overseas/layer.json",
-      "renderableId": "ne-admin1-ar-buenos-aires",
+      "renderableId": "ne-admin1-ar-buenos-aires-province",
       "sourceDataset": "NATURAL_EARTH_ADMIN1",
       "sourceVersion": "natural-earth-10m-admin1-no-china-2026-04-02",
       "sourceFeatureId": "AR-B"
@@ -5605,11 +5605,11 @@ export const GEOMETRY_MANIFEST: readonly GeometryManifestEntry[] = [
       "sourceFeatureId": "BR-SP"
     },
     {
-      "boundaryId": "ne-admin1-ar-buenos-aires",
+      "boundaryId": "ne-admin1-ar-buenos-aires-city",
       "layer": "OVERSEAS",
       "geometryDatasetVersion": "2026-04-21-geo-v3",
       "assetKey": "overseas/layer.json",
-      "renderableId": "ne-admin1-ar-buenos-aires",
+      "renderableId": "ne-admin1-ar-buenos-aires-city",
       "sourceDataset": "NATURAL_EARTH_ADMIN1",
       "sourceVersion": "natural-earth-10m-admin1-no-china-2026-04-02",
       "sourceFeatureId": "AR-C"
@@ -6265,11 +6265,11 @@ export const GEOMETRY_MANIFEST: readonly GeometryManifestEntry[] = [
       "sourceFeatureId": "US-VA"
     },
     {
-      "boundaryId": "ne-admin1-us-washington",
+      "boundaryId": "ne-admin1-us-district-of-columbia",
       "layer": "OVERSEAS",
       "geometryDatasetVersion": "2026-04-21-geo-v3",
       "assetKey": "overseas/layer.json",
-      "renderableId": "ne-admin1-us-washington",
+      "renderableId": "ne-admin1-us-district-of-columbia",
       "sourceDataset": "NATURAL_EARTH_ADMIN1",
       "sourceVersion": "natural-earth-10m-admin1-no-china-2026-04-02",
       "sourceFeatureId": "US-DC"

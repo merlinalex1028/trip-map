@@ -72,7 +72,11 @@ const CN_SPECIAL_IDENTITIES = new Map([
 ])
 
 const OVERSEAS_SPECIAL_IDENTITIES = new Map([
-  ['US:California', { placeId: 'us-california', boundaryId: 'ne-admin1-us-california' }],
+  ['US-CA', { placeId: 'us-california', boundaryId: 'ne-admin1-us-california' }],
+  ['US-WA', { placeId: 'us-washington-state', boundaryId: 'ne-admin1-us-washington-state' }],
+  ['US-DC', { placeId: 'us-district-of-columbia', boundaryId: 'ne-admin1-us-district-of-columbia' }],
+  ['AR-B', { placeId: 'ar-buenos-aires-province', boundaryId: 'ne-admin1-ar-buenos-aires-province' }],
+  ['AR-C', { placeId: 'ar-buenos-aires-city', boundaryId: 'ne-admin1-ar-buenos-aires-city' }],
 ])
 
 function parseArgs(argv) {
@@ -214,7 +218,7 @@ function buildCnIdentity(adcode) {
 function buildOverseasIdentity(featureProperties) {
   const iso2 = String(featureProperties.iso_a2 ?? featureProperties.adm0_a3 ?? 'xx').toLowerCase()
   const admin1Name = featureProperties.name_en ?? featureProperties.name
-  const specialKey = `${featureProperties.iso_a2 ?? featureProperties.adm0_a3}:${admin1Name}`
+  const specialKey = getOverseasAdmin1SourceFeatureId(featureProperties)
   const special = OVERSEAS_SPECIAL_IDENTITIES.get(specialKey)
 
   if (special) {
@@ -225,6 +229,28 @@ function buildOverseasIdentity(featureProperties) {
   return {
     placeId: `${iso2}-${slug}`,
     boundaryId: `ne-admin1-${iso2}-${slug}`,
+  }
+}
+
+function assertUniqueOverseasIdentity(seenIdentityKeys, sourceFeatureId, {
+  placeId,
+  boundaryId,
+  renderableId,
+}) {
+  for (const [identityType, identityValue] of [
+    ['placeId', placeId],
+    ['boundaryId', boundaryId],
+    ['renderableId', renderableId],
+  ]) {
+    const seenSourceFeatureId = seenIdentityKeys[identityType].get(identityValue)
+
+    if (seenSourceFeatureId) {
+      throw new Error(
+        `Duplicate overseas ${identityType} "${identityValue}" from ${seenSourceFeatureId} and ${sourceFeatureId}`,
+      )
+    }
+
+    seenIdentityKeys[identityType].set(identityValue, sourceFeatureId)
   }
 }
 
@@ -368,6 +394,11 @@ function buildCnLayer(cityFeatureCollection, provinceFeatureCollection, outputRo
 function buildOverseasLayer(featureCollection, outputRoot, catalog) {
   const layerFeatures = []
   const manifestEntries = []
+  const seenIdentityKeys = {
+    placeId: new Map(),
+    boundaryId: new Map(),
+    renderableId: new Map(),
+  }
 
   for (const feature of featureCollection.features) {
     const props = feature.properties ?? {}
@@ -377,7 +408,13 @@ function buildOverseasLayer(featureCollection, outputRoot, catalog) {
       continue
     }
 
+    const sourceFeatureId = getOverseasAdmin1SourceFeatureId(props)
     const metadata = createOverseasFeatureMetadata(props)
+    assertUniqueOverseasIdentity(seenIdentityKeys, sourceFeatureId, {
+      placeId: metadata.placeId,
+      boundaryId: metadata.boundaryId,
+      renderableId: metadata.boundaryId,
+    })
     layerFeatures.push(enrichFeature(feature, metadata))
     manifestEntries.push(createManifestEntry({
       boundaryId: metadata.boundaryId,
@@ -385,7 +422,7 @@ function buildOverseasLayer(featureCollection, outputRoot, catalog) {
       assetKey: OVERSEAS_LAYER_ASSET_KEY,
       sourceDataset: 'NATURAL_EARTH_ADMIN1',
       sourceVersion: catalog.sources.NATURAL_EARTH_ADMIN1.sourceVersion,
-      sourceFeatureId: getOverseasAdmin1SourceFeatureId(props),
+      sourceFeatureId,
     }))
   }
 
