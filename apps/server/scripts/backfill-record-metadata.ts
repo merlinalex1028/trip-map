@@ -17,13 +17,53 @@ type CanonicalMetadata = Pick<
 
 type CanonicalMetadataLookup = ReadonlyMap<string, CanonicalMetadata>
 
-type BackfillSummary = {
+type BackfillRow = {
+  id: string
+  placeId: string
+}
+
+type SkippedBackfillRow = {
+  id: string
+  placeId: string
+}
+
+type BackfillUpdateManyDelegate = {
+  updateMany(args: {
+    where: { id: string }
+    data: CanonicalMetadata
+  }): Promise<{ count: number }>
+}
+
+type BackfillTableDelegate = BackfillUpdateManyDelegate & {
+  findMany(args: {
+    select: {
+      id: true
+      placeId: true
+    }
+  }): Promise<BackfillRow[]>
+}
+
+type BackfillPrismaClient = {
+  travelRecord: BackfillTableDelegate
+  smokeRecord: BackfillTableDelegate
+  userTravelRecord: BackfillTableDelegate
+}
+
+type BackfillUpdateResult =
+  | { outcome: 'matched'; metadata: CanonicalMetadata }
+  | { outcome: 'skipped'; metadata: CanonicalMetadata }
+  | { outcome: 'unmatched' }
+
+export type BackfillSummary = {
   matchedTravelRows: number
   unmatchedTravelRows: string[]
+  skippedTravelRows: SkippedBackfillRow[]
   matchedSmokeRows: number
   unmatchedSmokeRows: string[]
+  skippedSmokeRows: SkippedBackfillRow[]
   matchedUserTravelRows: number
   unmatchedUserTravelRows: string[]
+  skippedUserTravelRows: SkippedBackfillRow[]
 }
 
 function normalizeDatabaseUrl(value: string | undefined): string | undefined {
@@ -100,13 +140,52 @@ export function buildUserTravelMetadataUpdate(
   return lookup.get(placeId) ?? null
 }
 
+export async function applyBackfillUpdate(
+  row: BackfillRow,
+  lookup: CanonicalMetadataLookup,
+  delegate: BackfillUpdateManyDelegate,
+): Promise<BackfillUpdateResult> {
+  const metadata = lookup.get(row.placeId)
+
+  if (!metadata) {
+    return { outcome: 'unmatched' }
+  }
+
+  const result = await delegate.updateMany({
+    where: { id: row.id },
+    data: {
+      datasetVersion: metadata.datasetVersion,
+      displayName: metadata.displayName,
+      regionSystem: metadata.regionSystem,
+      adminType: metadata.adminType,
+      typeLabel: metadata.typeLabel,
+      parentLabel: metadata.parentLabel,
+      subtitle: metadata.subtitle,
+    },
+  })
+
+  if (result.count === 1) {
+    return { outcome: 'matched', metadata }
+  }
+
+  if (result.count === 0) {
+    return { outcome: 'skipped', metadata }
+  }
+
+  throw new Error(
+    `Expected updateMany() for row "${row.id}" (${row.placeId}) to affect at most one row, received count ${result.count}.`,
+  )
+}
+
 function createPrismaClient() {
   loadServerEnvFile()
   return new PrismaClient()
 }
 
-export async function backfillRecordMetadata(prisma: PrismaClient): Promise<BackfillSummary> {
-  const lookup = buildCanonicalMetadataLookup()
+export async function backfillRecordMetadata(
+  prisma: BackfillPrismaClient,
+  lookup: CanonicalMetadataLookup = buildCanonicalMetadataLookup(),
+): Promise<BackfillSummary> {
   const travelRows = await prisma.travelRecord.findMany({
     select: {
       id: true,
@@ -129,78 +208,60 @@ export async function backfillRecordMetadata(prisma: PrismaClient): Promise<Back
   const summary: BackfillSummary = {
     matchedTravelRows: 0,
     unmatchedTravelRows: [],
+    skippedTravelRows: [],
     matchedSmokeRows: 0,
     unmatchedSmokeRows: [],
+    skippedSmokeRows: [],
     matchedUserTravelRows: 0,
     unmatchedUserTravelRows: [],
+    skippedUserTravelRows: [],
   }
 
   for (const row of travelRows) {
-    const metadata = buildTravelMetadataUpdate(row.placeId, lookup)
+    const result = await applyBackfillUpdate(row, lookup, prisma.travelRecord)
 
-    if (!metadata) {
+    if (result.outcome === 'unmatched') {
       summary.unmatchedTravelRows.push(row.placeId)
       continue
     }
 
-    await prisma.travelRecord.update({
-      where: { id: row.id },
-      data: {
-        datasetVersion: metadata.datasetVersion,
-        displayName: metadata.displayName,
-        regionSystem: metadata.regionSystem,
-        adminType: metadata.adminType,
-        typeLabel: metadata.typeLabel,
-        parentLabel: metadata.parentLabel,
-        subtitle: metadata.subtitle,
-      },
-    })
+    if (result.outcome === 'skipped') {
+      summary.skippedTravelRows.push({ id: row.id, placeId: row.placeId })
+      continue
+    }
+
     summary.matchedTravelRows += 1
   }
 
   for (const row of smokeRows) {
-    const metadata = buildSmokeMetadataUpdate(row.placeId, lookup)
+    const result = await applyBackfillUpdate(row, lookup, prisma.smokeRecord)
 
-    if (!metadata) {
+    if (result.outcome === 'unmatched') {
       summary.unmatchedSmokeRows.push(row.placeId)
       continue
     }
 
-    await prisma.smokeRecord.update({
-      where: { id: row.id },
-      data: {
-        datasetVersion: metadata.datasetVersion,
-        displayName: metadata.displayName,
-        regionSystem: metadata.regionSystem,
-        adminType: metadata.adminType,
-        typeLabel: metadata.typeLabel,
-        parentLabel: metadata.parentLabel,
-        subtitle: metadata.subtitle,
-      },
-    })
+    if (result.outcome === 'skipped') {
+      summary.skippedSmokeRows.push({ id: row.id, placeId: row.placeId })
+      continue
+    }
+
     summary.matchedSmokeRows += 1
   }
 
   for (const row of userTravelRows) {
-    const metadata = buildUserTravelMetadataUpdate(row.placeId, lookup)
+    const result = await applyBackfillUpdate(row, lookup, prisma.userTravelRecord)
 
-    if (!metadata) {
+    if (result.outcome === 'unmatched') {
       summary.unmatchedUserTravelRows.push(row.placeId)
       continue
     }
 
-    await prisma.userTravelRecord.update({
-      where: { id: row.id },
-      data: {
-        datasetVersion: metadata.datasetVersion,
-        displayName: metadata.displayName,
-        regionSystem: metadata.regionSystem,
-        adminType: metadata.adminType,
-        typeLabel: metadata.typeLabel,
-        parentLabel: metadata.parentLabel,
-        subtitle: metadata.subtitle,
-      },
-    })
+    if (result.outcome === 'skipped') {
+      summary.skippedUserTravelRows.push({ id: row.id, placeId: row.placeId })
+      continue
+    }
+
     summary.matchedUserTravelRows += 1
   }
 
@@ -218,10 +279,13 @@ async function main() {
         {
           matchedTravelRows: summary.matchedTravelRows,
           unmatchedTravelRows: summary.unmatchedTravelRows,
+          skippedTravelRows: summary.skippedTravelRows,
           matchedSmokeRows: summary.matchedSmokeRows,
           unmatchedSmokeRows: summary.unmatchedSmokeRows,
+          skippedSmokeRows: summary.skippedSmokeRows,
           matchedUserTravelRows: summary.matchedUserTravelRows,
           unmatchedUserTravelRows: summary.unmatchedUserTravelRows,
+          skippedUserTravelRows: summary.skippedUserTravelRows,
         },
         null,
         2,
