@@ -1,154 +1,82 @@
 ---
 phase: 28-overseas-coverage-expansion
-reviewed: 2026-04-21T07:32:40Z
+reviewed: 2026-04-22T03:21:32Z
 depth: standard
-files_reviewed: 26
+files_reviewed: 12
 files_reviewed_list:
-  - apps/server/scripts/backfill-record-metadata.ts
-  - apps/server/src/modules/records/records.service.ts
-  - apps/server/test/auth-bootstrap.e2e-spec.ts
-  - apps/server/test/canonical-resolve.e2e-spec.ts
-  - apps/server/test/phase28-overseas-cases.ts
-  - apps/server/test/record-metadata-backfill.e2e-spec.ts
-  - apps/server/test/records-import.e2e-spec.ts
-  - apps/server/test/records-sync.e2e-spec.ts
-  - apps/server/test/records-travel.e2e-spec.ts
   - apps/web/scripts/geo/build-geometry-manifest.mjs
-  - apps/web/scripts/geo/overseas-admin1-support.mjs
-  - apps/web/scripts/geo/overseas-support/africa.mjs
-  - apps/web/scripts/geo/overseas-support/americas.mjs
-  - apps/web/scripts/geo/overseas-support/asia.mjs
-  - apps/web/scripts/geo/overseas-support/europe.mjs
-  - apps/web/scripts/geo/overseas-support/index.mjs
-  - apps/web/scripts/geo/overseas-support/middle-east.mjs
-  - apps/web/scripts/geo/overseas-support/oceania.mjs
-  - apps/web/src/constants/overseas-support.ts
-  - apps/web/src/components/LeafletMapStage.spec.ts
-  - apps/web/src/components/map-popup/PointSummaryCard.spec.ts
-  - apps/web/src/stores/map-points.spec.ts
-  - apps/web/src/services/geometry-manifest.spec.ts
-  - packages/contracts/src/contracts.spec.ts
-  - packages/contracts/src/fixtures.ts
+  - apps/web/public/geo/2026-04-21-geo-v3/manifest.json
+  - apps/web/public/geo/2026-04-21-geo-v3/overseas/layer.json
   - packages/contracts/src/generated/geometry-manifest.generated.ts
+  - apps/server/src/modules/canonical-places/place-metadata-catalog.ts
+  - apps/server/scripts/backfill-record-metadata.ts
+  - apps/server/test/phase28-overseas-cases.ts
+  - apps/server/test/canonical-resolve.e2e-spec.ts
+  - apps/server/test/records-travel.e2e-spec.ts
+  - apps/server/test/record-metadata-backfill.e2e-spec.ts
+  - apps/server/test/auth-bootstrap.e2e-spec.ts
+  - apps/server/test/records-sync.e2e-spec.ts
 findings:
   critical: 0
-  warning: 3
-  info: 0
-  total: 3
+  warning: 1
+  info: 1
+  total: 2
 status: issues_found
 ---
 
 # Phase 28: Code Review Report
 
-**Reviewed:** 2026-04-21T07:32:40Z
+**Reviewed:** 2026-04-22T03:21:32Z
 **Depth:** standard
-**Files Reviewed:** 26
+**Files Reviewed:** 12
 **Status:** issues_found
 
 ## Summary
 
-本次审查覆盖了 Phase 28 的 geo build、server authoritative 校验/backfill、web consumer regression，以及 contracts fixtures/generated manifest。
+本次按指定范围复审了 Phase 28 最终变更，并额外做了两类验证：
 
-发现 3 条 Warning，主要集中在三类问题：
+- 运行 server 侧 5 个相关测试文件：`record-metadata-backfill`、`auth-bootstrap`、`records-sync`、`records-travel`、`canonical-resolve`，结果为 `53 passed (53)`。
+- 对 `manifest.json` 与 `overseas/layer.json` 做全量一致性检查，确认当前产物不存在重复 `placeId` / `boundaryId` / `renderableId`，且每条 manifest entry 都能在 shard 中找到带完整 canonical metadata 的 feature。
 
-- authoritative `datasetVersion` 与 geometry dataset version 被混用，导致 server/web/contracts 三端 contract 已经分裂
-- backfill 只更新旧 `travelRecord` / `smokeRecord`，没有触达 `/auth/bootstrap` 真正回放的 `userTravelRecord`
-- 本应保留为历史快照的 `PHASE11_*` / `PHASE12_*` fixtures 被直接改写为 Phase 28 语义
-
-未重新执行测试命令；结论基于静态审查、phase 计划/总结交叉核对，以及变更链路追踪。
+结论：当前没有发现新的功能性 crash 或数据错误，但仍有 1 条测试可靠性 Warning 和 1 条覆盖缺口 Info，需要在 Phase 28 收尾前补齐，否则后续 CI/回归保护仍然偏弱。
 
 ## Warnings
 
-### WR-01: Canonical `datasetVersion` 被 geometry version 覆盖，authoritative contract 已经 split-brain
+### WR-01: `auth-bootstrap` 的慢迁移回归仍使用默认超时，组合执行时仍有 flaky 风险
 
-**File:** `apps/web/scripts/geo/build-geometry-manifest.mjs:244-290`
-
-**Issue:** `createCnFeatureMetadata()` / `createOverseasFeatureMetadata()` 明确把 `datasetVersion` 设成 `CANONICAL_DATASET_VERSION`，但 `enrichFeature()` 又无条件把写入 shard 的 `properties.datasetVersion` 覆盖成 `GEOMETRY_DATASET_VERSION`。Phase 28 后 server authoritative lookup、回填和写入路径都会读取这个字段，因此最终持久化/回放的是 `2026-04-21-geo-v3`，而不是计划里要求的 `canonical-authoritative-2026-04-21`。这已经被 Phase 28 server 测试进一步固化为“正确行为”，例如 `apps/server/test/phase28-overseas-cases.ts:157-178`、`apps/server/test/canonical-resolve.e2e-spec.ts:280-315`、`apps/server/test/record-metadata-backfill.e2e-spec.ts:10-41` 都在断言 geo version；但 contracts Phase 28 fixtures 仍然把 authoritative `datasetVersion` 写成 canonical version（`packages/contracts/src/fixtures.ts:101-153`、`packages/contracts/src/contracts.spec.ts:217-275`）。结果是同一个 authoritative 概念在 server 与 contracts 里出现两套版本号，后续 exact-match、防伪校验、回填和下游 consumer 很容易继续漂移。
-
+**File:** `apps/server/test/auth-bootstrap.e2e-spec.ts:376`
+**Issue:** 这次 Phase 28 新增的 legacy overseas backfill 回归是本文件里最慢的用例。我用 `--reporter=verbose` 单独复跑时，这条测试本地耗时约 `9.1s`，已经明显高于普通接口级 e2e；但它没有像 `apps/server/test/records-sync.e2e-spec.ts:372` 那样附带显式 `30000` 超时。当前文件里唯一带 `30000` 的是另一条多 session 登出用例（结尾处的 `it(..., 30000)`），并没有覆盖这条真正的慢路径。默认 `testTimeout` 只有 15 秒时，这条用例在更慢的 CI 机器或组合执行下仍然有超时抖动空间。
 **Fix:**
-
-```js
-function enrichFeature(feature, metadata) {
-  return {
-    ...feature,
-    properties: {
-      ...feature.properties,
-      ...metadata,
-      boundaryId: metadata.boundaryId,
-      renderableId: metadata.boundaryId,
-      // 不要在这里覆盖 canonical datasetVersion
-    },
-  }
-}
+```ts
+it('GET /auth/bootstrap replays upgraded Phase 28 metadata after backfilling legacy overseas userTravelRecord rows', async () => {
+  // existing assertions
+}, 30000)
 ```
 
-然后重新生成 geo shard / generated contracts，并把 Phase 28 server 回归统一改成断言 `canonical-authoritative-2026-04-21`；geometry 版本只应通过 `geometryRef.geometryDatasetVersion` 或 manifest entry 暴露。
+把显式超时挂到真正的 legacy migration 用例上，或者直接给这一组 backfill replay 用例设置统一超时，避免只把超时放在无关测试上。
 
-### WR-02: Backfill 没有更新 `UserTravelRecord`，老用户 bootstrap/sync 仍会回放旧海外 metadata
+## Info
 
-**File:** `apps/server/scripts/backfill-record-metadata.ts:99-165`
+### IN-01: `updateMany(count=0)` 的 skipped 分支只验证了 `userTravelRecord`，另外两张表仍缺直接回归
 
-**Issue:** 这个脚本只扫描并更新 `travelRecord` 与 `smokeRecord`，完全没有处理 `userTravelRecord`。但当前 authenticated 读写链路走的是 `UserTravelRecord`：`/records` create/import 写 `userTravelRecord`，`/auth/bootstrap` 也直接回放 `userTravelRecord`。这意味着已有登录用户的旧海外记录即使运行了 Phase 28 backfill，也不会被升级成新的 `typeLabel` / `parentLabel` / `subtitle` / `datasetVersion`，仍然会在 bootstrap 和跨 session sync 中继续带着旧值返回。Phase 28 的相关测试也没有覆盖这条真实风险：`apps/server/test/auth-bootstrap.e2e-spec.ts:265-301` 和 `apps/server/test/records-sync.e2e-spec.ts:245-283` 都是直接插入已经“正确”的 authoritative `userTravelRecord`，并未先种入旧标签再跑 backfill。
-
+**File:** `apps/server/test/record-metadata-backfill.e2e-spec.ts:116`
+**Issue:** `apps/server/scripts/backfill-record-metadata.ts` 这次把 `travelRecord`、`smokeRecord`、`userTravelRecord` 三张表都切到了 `updateMany()` + `count` 分支，并分别维护 `matched*` / `unmatched*` / `skipped*` 汇总。但当前新增测试只覆盖了 `userTravelRecord` 的 zero-count skipped 路径，没有直接断言 `skippedTravelRows` 和 `skippedSmokeRows`。当前实现看起来是对称的，但如果后续有人在复制这三段循环时改坏某一张表的 summary 归类，现有测试不会拦住。
 **Fix:**
-
 ```ts
-const userTravelRows = await prisma.userTravelRecord.findMany({
-  select: { id: true, placeId: true },
+it.each([
+  ['travelRecord', 'matchedTravelRows', 'unmatchedTravelRows', 'skippedTravelRows'],
+  ['smokeRecord', 'matchedSmokeRows', 'unmatchedSmokeRows', 'skippedSmokeRows'],
+  ['userTravelRecord', 'matchedUserTravelRows', 'unmatchedUserTravelRows', 'skippedUserTravelRows'],
+])('records zero-count rows as skipped for %s', async (table, matchedKey, unmatchedKey, skippedKey) => {
+  // build prisma stub for the target table
+  // assert summary[matchedKey] / summary[unmatchedKey] / summary[skippedKey]
 })
-
-for (const row of userTravelRows) {
-  const metadata = lookup.get(row.placeId)
-  if (!metadata) continue
-
-  await prisma.userTravelRecord.update({
-    where: { id: row.id },
-    data: {
-      datasetVersion: metadata.datasetVersion,
-      displayName: metadata.displayName,
-      regionSystem: metadata.regionSystem,
-      adminType: metadata.adminType,
-      typeLabel: metadata.typeLabel,
-      parentLabel: metadata.parentLabel,
-      subtitle: metadata.subtitle,
-    },
-  })
-}
 ```
 
-同时补一条 e2e：先插入带旧 `一级行政区` 文案的 `userTravelRecord`，运行 backfill，再断言 `/auth/bootstrap` 返回已经升级后的 Phase 28 metadata。
-
-### WR-03: 历史 `PHASE11_*` / `PHASE12_*` fixtures 被直接改写，破坏了版本化基线
-
-**File:** `packages/contracts/src/fixtures.ts:8-18,61-78`
-
-**Issue:** Phase 28 计划明确要求保留 `PHASE11_*` / `PHASE12_*` 历史 fixtures，仅新增 `PHASE28_*` authoritative fixtures 供新回归使用。但当前实现直接把 `PHASE11_SMOKE_RECORD_REQUEST` 和 `PHASE12_RESOLVED_CALIFORNIA` 的 admin label/subtitle 从旧历史值改成了 Phase 28 的英文标签，并且 `packages/contracts/src/contracts.spec.ts:172-202` 也跟着把这些历史 fixtures 重新定义成新语义。这样会让“历史 fixture”失去历史意义，并把 Phase 28 语义泄漏给仍然复用这些老 fixture 的其它测试/调用方，例如 `apps/server/test/records-smoke.e2e-spec.ts:6-45`、`apps/web/src/stores/auth-session.spec.ts:101-117`。即使这些测试今天未必立刻失败，也会让后续排查 phase regression 时失去可靠基线。
-
-**Fix:**
-
-```ts
-export const PHASE11_SMOKE_RECORD_REQUEST = {
-  // 还原为 Phase 11 原始历史快照
-  typeLabel: '一级行政区',
-  subtitle: 'Phase 11 Demo Country · 一级行政区',
-}
-
-export const PHASE12_RESOLVED_CALIFORNIA = {
-  // 保持 Phase 12 历史语义不变
-  typeLabel: '一级行政区',
-  subtitle: 'United States · 一级行政区',
-}
-```
-
-把当前 authoritative 英文标签全部留在 `PHASE28_*` fixtures 里，并让 Phase 28 的 web/contracts tests 只消费这些新 fixtures。
-
-## Residual Risks / Testing Gaps
-
-- 当前没有一条自动化测试显式校验 canonical `datasetVersion` 与 geometry dataset version 必须是两个不同概念。
-- 当前没有覆盖“旧 `UserTravelRecord` 先回填，再经 `/auth/bootstrap` / same-user sync 回放”的真实迁移路径。
+把 zero-count 回归参数化到三张表，可以把这次 race hardening 的核心承诺一次性锁住。
 
 ---
 
-_Reviewed: 2026-04-21T07:32:40Z_  
-_Reviewer: Codex (gsd-code-reviewer)_  
+_Reviewed: 2026-04-22T03:21:32Z_
+_Reviewer: Codex (gsd-code-reviewer)_
 _Depth: standard_
