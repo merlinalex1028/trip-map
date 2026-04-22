@@ -1,7 +1,75 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 import { PrismaClient } from '@prisma/client'
 import { fileURLToPath } from 'node:url'
+
+const { canonicalSummaries } = vi.hoisted(() => {
+  const buildOverseasSummary = (
+    placeId: string,
+    boundaryId: string,
+    displayName: string,
+    parentLabel: string,
+    typeLabel: string,
+  ) => ({
+    placeId,
+    boundaryId,
+    placeKind: 'OVERSEAS_ADMIN1' as const,
+    datasetVersion: 'canonical-authoritative-2026-04-21',
+    displayName,
+    regionSystem: 'OVERSEAS' as const,
+    adminType: 'ADMIN1' as const,
+    typeLabel,
+    parentLabel,
+    subtitle: `${parentLabel} · ${typeLabel}`,
+  })
+
+  return {
+    canonicalSummaries: [
+      buildOverseasSummary('jp-tokyo', 'ne-admin1-jp-tokyo', 'Tokyo', 'Japan', 'Prefecture'),
+      buildOverseasSummary('us-california', 'ne-admin1-us-california', 'California', 'United States', 'State'),
+      buildOverseasSummary('us-washington-state', 'ne-admin1-us-washington-state', 'Washington', 'United States', 'State'),
+      buildOverseasSummary('us-district-of-columbia', 'ne-admin1-us-district-of-columbia', 'Washington', 'United States', 'State'),
+      buildOverseasSummary('in-west-bengal', 'ne-admin1-in-west-bengal', 'West Bengal', 'India', 'State'),
+      buildOverseasSummary('id-east-java', 'ne-admin1-id-east-java', 'East Java', 'Indonesia', 'Province'),
+      buildOverseasSummary('sa-eastern', 'ne-admin1-sa-eastern', 'Eastern', 'Saudi Arabia', 'Region'),
+      buildOverseasSummary('pg-morobe', 'ne-admin1-pg-morobe', 'Morobe', 'Papua New Guinea', 'Province'),
+      buildOverseasSummary('ca-british-columbia', 'ne-admin1-ca-british-columbia', 'British Columbia', 'Canada', 'Province'),
+      buildOverseasSummary('br-rio-grande-do-sul', 'ne-admin1-br-rio-grande-do-sul', 'Rio Grande do Sul', 'Brazil', 'State'),
+      buildOverseasSummary('ar-buenos-aires-province', 'ne-admin1-ar-buenos-aires-province', 'Buenos Aires', 'Argentina', 'Province'),
+      buildOverseasSummary('ar-buenos-aires-city', 'ne-admin1-ar-buenos-aires-city', 'Buenos Aires', 'Argentina', 'Province'),
+      buildOverseasSummary('ar-entre-rios', 'ne-admin1-ar-entre-rios', 'Entre Ríos', 'Argentina', 'Province'),
+      buildOverseasSummary('de-bavaria', 'ne-admin1-de-bavaria', 'Bavaria', 'Germany', 'State'),
+      buildOverseasSummary('pl-silesian-voivodeship', 'ne-admin1-pl-silesian-voivodeship', 'Silesian Voivodeship', 'Poland', 'Province'),
+      buildOverseasSummary('cz-usti-nad-labem', 'ne-admin1-cz-usti-nad-labem', 'Ústí nad Labem', 'Czech Republic', 'Region'),
+      buildOverseasSummary('eg-aswan', 'ne-admin1-eg-aswan', 'Aswan', 'Egypt', 'Governorate'),
+      buildOverseasSummary('ma-tangier-tetouan', 'ne-admin1-ma-tangier-tetouan', 'Tangier-Tetouan', 'Morocco', 'Region'),
+      buildOverseasSummary('za-western-cape', 'ne-admin1-za-western-cape', 'Western Cape', 'South Africa', 'Province'),
+    ],
+  }
+})
+
+vi.mock('../src/modules/canonical-places/place-metadata-catalog.js', () => {
+  const byPlaceId = new Map(canonicalSummaries.map(summary => [summary.placeId, summary]))
+  const byBoundaryId = new Map(canonicalSummaries.map(summary => [summary.boundaryId, summary]))
+
+  return {
+    buildCanonicalMetadataLookup: () => ({
+      byPlaceId: new Map(byPlaceId),
+      byBoundaryId: new Map(byBoundaryId),
+    }),
+    getCanonicalPlaceSummaryById: (placeId: string) => byPlaceId.get(placeId) ?? null,
+    getCanonicalPlaceSummaryByBoundaryId: (boundaryId: string) => byBoundaryId.get(boundaryId) ?? null,
+  }
+})
+
+vi.mock('../src/modules/canonical-places/canonical-places.module.js', async () => {
+  const { Module } = await import('@nestjs/common')
+
+  @Module({})
+  class CanonicalPlacesModule {}
+
+  return { CanonicalPlacesModule }
+})
 
 import { backfillRecordMetadata } from '../scripts/backfill-record-metadata.ts'
 import { getCanonicalPlaceSummaryById } from '../src/modules/canonical-places/place-metadata-catalog.js'
@@ -334,7 +402,16 @@ describe('Records sync semantics', () => {
       ]),
     )
 
-    await backfillRecordMetadata(prisma)
+    const summary = await backfillRecordMetadata(prisma)
+
+    expect(summary.matchedUserTravelRows).toBeGreaterThanOrEqual(2)
+    expect(summary.unmatchedUserTravelRows).not.toContain('jp-tokyo')
+    expect(summary.unmatchedUserTravelRows).not.toContain('us-california')
+    expect(
+      summary.skippedUserTravelRows.filter(
+        row => row.placeId === 'jp-tokyo' || row.placeId === 'us-california',
+      ),
+    ).toEqual([])
 
     const bootstrapResponse = await app.inject({
       method: 'GET',
@@ -374,7 +451,7 @@ describe('Records sync semantics', () => {
         record.subtitle.includes('一级行政区') || record.typeLabel.includes('一级行政区')
       ),
     ).toBe(false)
-  })
+  }, 30000)
 
   it('lets session B observe that a record was removed by session A after /auth/bootstrap', async () => {
     await app.inject({
