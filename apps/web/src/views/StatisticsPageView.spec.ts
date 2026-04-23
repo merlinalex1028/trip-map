@@ -148,13 +148,13 @@ describe('StatisticsPageView', () => {
     await nextTick()
     expect(fetchStatsMock).toHaveBeenCalledTimes(1)
 
-    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 22 })
+    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 21 })
     await flushPromises()
     await nextTick()
 
     expect(fetchStatsMock).toHaveBeenCalledTimes(2)
 
-    resolveSecond({ totalTrips: 2, uniquePlaces: 2, visitedCountries: 2, totalSupportedCountries: 22 })
+    resolveSecond({ totalTrips: 2, uniquePlaces: 2, visitedCountries: 2, totalSupportedCountries: 21 })
     await flushPromises()
     await nextTick()
 
@@ -203,7 +203,7 @@ describe('StatisticsPageView', () => {
       totalTrips: 3,
       uniquePlaces: 1,
       visitedCountries: 1,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     })
     await flushPromises()
     await nextTick()
@@ -251,13 +251,13 @@ describe('StatisticsPageView', () => {
       totalTrips: 3,
       uniquePlaces: 2,
       visitedCountries: 2,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     })
     await flushPromises()
     await nextTick()
 
     const populated = wrapper.get('[data-state="populated"]')
     expect(populated.text()).toContain('3 次旅行 · 2 个地点 · 2 个国家/地区')
-    expect(populated.text()).toContain('当前支持覆盖 22 个国家/地区。')
+    expect(populated.text()).toContain('当前支持覆盖 21 个国家/地区。')
   })
 })

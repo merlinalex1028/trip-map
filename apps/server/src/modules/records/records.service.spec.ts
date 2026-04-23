@@ -1,8 +1,13 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import { BadRequestException } from '@nestjs/common'
 import type { UserTravelRecord } from '@prisma/client'
 import { describe, expect, it, vi } from 'vitest'
-import { SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES } from '@trip-map/contracts'
+import { GEOMETRY_DATASET_VERSION } from '@trip-map/contracts'
 
+import { TOTAL_SUPPORTED_TRAVEL_COUNTRIES } from '../canonical-places/place-metadata-catalog.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
 import { RecordsRepository } from './records.repository.js'
 import { RecordsService } from './records.service.js'
@@ -71,6 +76,28 @@ function baseRecord(overrides: Partial<UserTravelRecord> = {}): UserTravelRecord
     updatedAt: new Date('2026-04-20T00:00:00.000Z'),
     ...overrides,
   } as UserTravelRecord
+}
+
+const REPO_ROOT = fileURLToPath(new URL('../../../../..', import.meta.url))
+
+function readAuthoritativeOverseasCountries() {
+  const rawLayer = readFileSync(
+    resolve(REPO_ROOT, 'apps/web/public/geo', GEOMETRY_DATASET_VERSION, 'overseas/layer.json'),
+    'utf8',
+  )
+  const layer = JSON.parse(rawLayer) as {
+    features: Array<{ properties?: { parentLabel?: string } }>
+  }
+
+  return new Set(
+    layer.features
+      .map((feature) => {
+        const parentLabel = feature.properties?.parentLabel ?? ''
+        const separatorIndex = parentLabel.indexOf(' · ')
+        return separatorIndex === -1 ? parentLabel : parentLabel.slice(0, separatorIndex)
+      })
+      .filter(Boolean),
+  )
 }
 
 describe('RecordsService', () => {
@@ -254,7 +281,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 2,
         visitedCountries: 2,
-        totalSupportedCountries: 22,
+        totalSupportedCountries: 21,
       })
 
       const result = await service.getStats('user-1')
@@ -264,7 +291,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 2,
         visitedCountries: 2,
-        totalSupportedCountries: 22,
+        totalSupportedCountries: 21,
       })
     })
 
@@ -276,7 +303,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 1,
         visitedCountries: 1,
-        totalSupportedCountries: 22,
+        totalSupportedCountries: 21,
       })
 
       const result = await service.getStats('user-1')
@@ -284,11 +311,18 @@ describe('RecordsService', () => {
       expect(result.totalTrips).toBe(3)
       expect(result.uniquePlaces).toBe(1)
       expect(result.visitedCountries).toBe(1)
-      expect(result.totalSupportedCountries).toBe(22)
+      expect(result.totalSupportedCountries).toBe(21)
     })
   })
 
   describe('RecordsRepository.getTravelStats', () => {
+    it('keeps totalSupportedCountries aligned with authoritative overseas geometry coverage', () => {
+      const authoritativeOverseasCountries = readAuthoritativeOverseasCountries()
+
+      expect(authoritativeOverseasCountries.size).toBe(20)
+      expect(TOTAL_SUPPORTED_TRAVEL_COUNTRIES).toBe(authoritativeOverseasCountries.size + 1)
+    })
+
     it('returns visitedCountries based on distinct parentLabel country extraction', async () => {
       const prisma = createPrismaMock()
       const repository = new RecordsRepository(prisma as never)
@@ -312,7 +346,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 3,
         visitedCountries: 3,
-        totalSupportedCountries: SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES.length + 1,
+        totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
       })
       expect(prisma.userTravelRecord.findMany).toHaveBeenNthCalledWith(1, {
         where: { userId: 'user-1' },

@@ -201,6 +201,17 @@ export function buildCanonicalMetadataLookup(): CanonicalMetadataLookup {
 }
 
 const canonicalMetadataLookup = buildCanonicalMetadataLookup()
+const supportedOverseasCountries = new Set(
+  [...canonicalMetadataLookup.byPlaceId.values()]
+    .filter(summary => summary.regionSystem === 'OVERSEAS')
+    .map((summary) => {
+      const separatorIndex = summary.parentLabel.indexOf(' · ')
+      return separatorIndex === -1 ? summary.parentLabel : summary.parentLabel.slice(0, separatorIndex)
+    }),
+)
+
+// Overseas coverage is tracked per country/region, plus one domestic China bucket.
+export const TOTAL_SUPPORTED_TRAVEL_COUNTRIES = supportedOverseasCountries.size + 1
 
 export function getCanonicalPlaceSummaryById(placeId: string): CanonicalPlaceSummary | null {
   return canonicalMetadataLookup.byPlaceId.get(placeId) ?? null

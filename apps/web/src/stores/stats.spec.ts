@@ -37,7 +37,7 @@ describe('stats store', () => {
       totalTrips: 4,
       uniquePlaces: 3,
       visitedCountries: 2,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     })
 
     await statsStore.fetchStatsData()
@@ -46,7 +46,7 @@ describe('stats store', () => {
       totalTrips: 4,
       uniquePlaces: 3,
       visitedCountries: 2,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     })
     expect(statsStore.error).toBeNull()
     expect(statsStore.isLoading).toBe(false)
@@ -82,7 +82,7 @@ describe('stats store', () => {
 
     fetchStatsMock.mockImplementationOnce(async () => {
       authSessionStore.boundaryVersion += 1
-      return { totalTrips: 8, uniquePlaces: 5, visitedCountries: 3, totalSupportedCountries: 22 }
+      return { totalTrips: 8, uniquePlaces: 5, visitedCountries: 3, totalSupportedCountries: 21 }
     })
 
     await statsStore.fetchStatsData()
@@ -99,7 +99,7 @@ describe('stats store', () => {
       totalTrips: 2,
       uniquePlaces: 1,
       visitedCountries: 1,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     }
     statsStore.error = 'fetch-failed'
     statsStore.isLoading = true
@@ -149,20 +149,20 @@ describe('stats store', () => {
     statsStore.reset()
     const secondRequest = statsStore.fetchStatsData()
 
-    resolveFirst({ totalTrips: 3, uniquePlaces: 2, visitedCountries: 1, totalSupportedCountries: 22 })
+    resolveFirst({ totalTrips: 3, uniquePlaces: 2, visitedCountries: 1, totalSupportedCountries: 21 })
     await firstRequest
 
     expect(statsStore.isLoading).toBe(true)
     expect(statsStore.stats).toBeNull()
 
-    resolveSecond({ totalTrips: 5, uniquePlaces: 4, visitedCountries: 2, totalSupportedCountries: 22 })
+    resolveSecond({ totalTrips: 5, uniquePlaces: 4, visitedCountries: 2, totalSupportedCountries: 21 })
     await secondRequest
 
     expect(statsStore.stats).toEqual({
       totalTrips: 5,
       uniquePlaces: 4,
       visitedCountries: 2,
-      totalSupportedCountries: 22,
+      totalSupportedCountries: 21,
     })
     expect(statsStore.isLoading).toBe(false)
   })

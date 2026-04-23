@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES, type SmokeRecordCreateRequest } from '@trip-map/contracts'
+import type { SmokeRecordCreateRequest } from '@trip-map/contracts'
 import type { TravelStatsResponse } from '@trip-map/contracts'
 import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
 import { PrismaService } from '../../prisma/prisma.service.js'
+import { TOTAL_SUPPORTED_TRAVEL_COUNTRIES } from '../canonical-places/place-metadata-catalog.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
 
 interface ImportTravelRecordsResult {
@@ -147,8 +148,6 @@ export class RecordsRepository {
   }
 
   async getTravelStats(userId: string): Promise<TravelStatsResponse> {
-    const totalSupportedCountries = SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES.length + 1
-
     const [totalTrips, uniquePlaceRecords, parentLabelRecords] = await Promise.all([
       this.prisma.userTravelRecord.count({ where: { userId } }),
       this.prisma.userTravelRecord.findMany({
@@ -169,7 +168,7 @@ export class RecordsRepository {
       totalTrips,
       uniquePlaces: uniquePlaceRecords.length,
       visitedCountries,
-      totalSupportedCountries,
+      totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
     }
   }
 }
