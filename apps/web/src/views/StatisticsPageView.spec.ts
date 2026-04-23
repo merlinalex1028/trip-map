@@ -158,6 +158,106 @@ describe('StatisticsPageView', () => {
     await flushPromises()
     await nextTick()
 
-    expect(wrapper.get('[data-state="populated"]').text()).toContain('2 次旅行 · 2 个地点')
+    expect(wrapper.get('[data-state="populated"]').text()).toContain(
+      '2 次旅行 · 2 个地点 · 2 个国家/地区',
+    )
+  })
+
+  it('shows visitedCountries in populated state without inflating for multi-visit same place', async () => {
+    let resolveStats!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+
+    fetchStatsMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveStats = resolve
+        }),
+    )
+
+    const beijingVisits = [
+      makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'beijing-1',
+        createdAt: '2025-01-01T00:00:00.000Z',
+      }),
+      makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'beijing-2',
+        createdAt: '2025-02-01T00:00:00.000Z',
+      }),
+      makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'beijing-3',
+        createdAt: '2025-03-01T00:00:00.000Z',
+      }),
+    ]
+
+    const { wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords(beijingVisits)
+    })
+
+    resolveStats({
+      totalTrips: 3,
+      uniquePlaces: 1,
+      visitedCountries: 1,
+      totalSupportedCountries: 22,
+    })
+    await flushPromises()
+    await nextTick()
+
+    const populated = wrapper.get('[data-state="populated"]')
+    expect(populated.text()).toContain('3 次旅行 · 1 个地点 · 1 个国家/地区')
+    expect(populated.text()).toContain('已去过国家/地区数')
+  })
+
+  it('shows visitedCountries correctly for multi-country statistics', async () => {
+    let resolveStats!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+
+    fetchStatsMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveStats = resolve
+        }),
+    )
+
+    const { wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'beijing-1',
+          createdAt: '2025-01-01T00:00:00.000Z',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'beijing-2',
+          createdAt: '2025-02-01T00:00:00.000Z',
+        }),
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+          id: 'california-1',
+          createdAt: '2025-03-01T00:00:00.000Z',
+        }),
+      ])
+    })
+
+    resolveStats({
+      totalTrips: 3,
+      uniquePlaces: 2,
+      visitedCountries: 2,
+      totalSupportedCountries: 22,
+    })
+    await flushPromises()
+    await nextTick()
+
+    const populated = wrapper.get('[data-state="populated"]')
+    expect(populated.text()).toContain('3 次旅行 · 2 个地点 · 2 个国家/地区')
+    expect(populated.text()).toContain('当前支持覆盖 22 个国家/地区。')
   })
 })

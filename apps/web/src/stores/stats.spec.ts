@@ -42,7 +42,12 @@ describe('stats store', () => {
 
     await statsStore.fetchStatsData()
 
-    expect(statsStore.stats).toEqual({ totalTrips: 4, uniquePlaces: 3 })
+    expect(statsStore.stats).toEqual({
+      totalTrips: 4,
+      uniquePlaces: 3,
+      visitedCountries: 2,
+      totalSupportedCountries: 22,
+    })
     expect(statsStore.error).toBeNull()
     expect(statsStore.isLoading).toBe(false)
   })
@@ -153,7 +158,12 @@ describe('stats store', () => {
     resolveSecond({ totalTrips: 5, uniquePlaces: 4, visitedCountries: 2, totalSupportedCountries: 22 })
     await secondRequest
 
-    expect(statsStore.stats).toEqual({ totalTrips: 5, uniquePlaces: 4 })
+    expect(statsStore.stats).toEqual({
+      totalTrips: 5,
+      uniquePlaces: 4,
+      visitedCountries: 2,
+      totalSupportedCountries: 22,
+    })
     expect(statsStore.isLoading).toBe(false)
   })
 })
