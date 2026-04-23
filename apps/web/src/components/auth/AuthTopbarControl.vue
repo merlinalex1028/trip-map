@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, onUnmounted, shallowRef, useTemplateRef } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { useAuthSessionStore } from '../../stores/auth-session'
 
 const authSessionStore = useAuthSessionStore()
 const { currentUser, isSubmitting, status } = storeToRefs(authSessionStore)
 const { logout, openAuthModal } = authSessionStore
+const router = useRouter()
 
 const root = useTemplateRef<HTMLElement>('root')
 const isMenuOpen = shallowRef(false)
@@ -29,6 +31,11 @@ function toggleMenu() {
 
 function closeMenu() {
   isMenuOpen.value = false
+}
+
+function handleNavigateToTimeline() {
+  closeMenu()
+  void router.push('/timeline')
 }
 
 async function handleLogout() {
@@ -124,7 +131,26 @@ onUnmounted(() => {
         ></div>
         <button
           type="button"
-          class="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--color-destructive)_22%,white_78%)] bg-white/86 px-4 py-2 text-sm font-semibold text-[var(--color-destructive)] transition duration-[var(--motion-quick)] hover:bg-white"
+          class="inline-flex min-h-11 w-full items-center gap-3 rounded-full border border-[color:color-mix(in_srgb,var(--color-accent)_24%,white_76%)] bg-white/86 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:bg-white"
+          data-auth-menu-item="timeline"
+          role="menuitem"
+          @click="handleNavigateToTimeline"
+        >
+          <span
+            class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+            aria-hidden="true"
+          >
+            <span class="relative h-3.5 w-3.5">
+              <span class="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-current"></span>
+              <span class="absolute left-1/2 top-[0.4rem] h-[0.45rem] w-px -translate-x-1/2 bg-current"></span>
+              <span class="absolute left-1/2 bottom-0 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-current"></span>
+            </span>
+          </span>
+          <span>时间轴</span>
+        </button>
+        <button
+          type="button"
+          class="mt-2 inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--color-destructive)_22%,white_78%)] bg-white/86 px-4 py-2 text-sm font-semibold text-[var(--color-destructive)] transition duration-[var(--motion-quick)] hover:bg-white"
           data-auth-menu-item="logout"
           role="menuitem"
           :disabled="isSubmitting"
