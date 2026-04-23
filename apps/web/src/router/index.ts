@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import MapHomeView from '../views/MapHomeView.vue'
+import StatisticsPageView from '../views/StatisticsPageView.vue'
 import TimelinePageView from '../views/TimelinePageView.vue'
 
 export const router = createRouter({
@@ -15,6 +16,11 @@ export const router = createRouter({
       path: '/timeline',
       name: 'timeline',
       component: TimelinePageView,
+    },
+    {
+      path: '/statistics',
+      name: 'statistics',
+      component: StatisticsPageView,
     },
     {
       path: '/:pathMatch(.*)*',
