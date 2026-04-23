@@ -4,9 +4,13 @@ import { resolve } from 'node:path'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { computed, nextTick, shallowRef } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
+import { useAuthSessionStore } from './stores/auth-session'
 import { useMapUiStore } from './stores/map-ui'
+import MapHomeView from './views/MapHomeView.vue'
+import TimelinePageView from './views/TimelinePageView.vue'
 
 vi.mock('./composables/usePopupAnchoring', () => ({
   usePopupAnchoring: () => ({
@@ -91,15 +95,44 @@ function installFetchMock() {
   })
 }
 
-function mountApp() {
+async function mountApp() {
   const pinia = createPinia()
   setActivePinia(pinia)
+  const authSessionStore = useAuthSessionStore()
+  authSessionStore.status = 'anonymous'
+  authSessionStore.currentUser = null
+  vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
 
-  return mount(App, {
+  const router = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/',
+        name: 'map-home',
+        component: MapHomeView,
+      },
+      {
+        path: '/timeline',
+        name: 'timeline',
+        component: TimelinePageView,
+      },
+      {
+        path: '/:pathMatch(.*)*',
+        redirect: '/',
+      },
+    ],
+  })
+
+  const wrapper = mount(App, {
     global: {
-      plugins: [pinia],
+      plugins: [pinia, router],
     },
   })
+
+  await router.push('/')
+  await router.isReady()
+
+  return wrapper
 }
 
 describe('App kawaii shell contracts', () => {
@@ -111,8 +144,8 @@ describe('App kawaii shell contracts', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps the topbar as a thin shell with roomy app spacing', () => {
-    const wrapper = mountApp()
+  it('keeps the topbar as a thin shell with roomy app spacing', async () => {
+    const wrapper = await mountApp()
     const topbar = wrapper.get('[data-region="topbar"]')
     const mainShell = wrapper.get('main')
 
@@ -125,7 +158,7 @@ describe('App kawaii shell contracts', () => {
   })
 
   it('renders the interaction notice as a pill capsule with text interpolation only', async () => {
-    const wrapper = mountApp()
+    const wrapper = await mountApp()
     const mapUiStore = useMapUiStore()
 
     mapUiStore.setInteractionNotice({
@@ -148,16 +181,20 @@ describe('App kawaii shell contracts', () => {
     expect(source).not.toContain('v-html')
   })
 
-  it('keeps the map shell roomy without leaking transform utilities onto the map host', () => {
-    const wrapper = mountApp()
+  it('keeps the map shell roomy without leaking transform utilities onto the map host', async () => {
+    const wrapper = await mountApp()
     const mapShell = wrapper.get('[data-region="map-shell"]')
     const mapStage = wrapper.get('[data-region="map-stage"]')
     const mapStageClasses = mapStage.attributes('class')
 
-    expect(mapShell.attributes('class')).toContain(
-      'rounded-[32px] border border-white/80 bg-white/65 p-4 md:p-6',
-    )
-    expect(mapShell.attributes('class')).toContain('gap-4')
+    const mapShellClasses = mapShell.attributes('class')
+
+    expect(mapShellClasses).toContain('rounded-[32px]')
+    expect(mapShellClasses).toContain('border-white/80')
+    expect(mapShellClasses).toContain('bg-white/65')
+    expect(mapShellClasses).toContain('p-4')
+    expect(mapShellClasses).toContain('md:p-6')
+    expect(mapShellClasses).toContain('gap-4')
     expect(mapStageClasses).not.toMatch(/scale|translate|rotate|skew|perspective|filter/)
   })
 })
