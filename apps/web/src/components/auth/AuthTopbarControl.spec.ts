@@ -56,6 +56,7 @@ describe('AuthTopbarControl', () => {
     const anonymous = mountControl()
 
     expect(anonymous.wrapper.find('[data-auth-menu-item="timeline"]').exists()).toBe(false)
+    expect(anonymous.wrapper.find('[data-auth-menu-item="statistics"]').exists()).toBe(false)
 
     anonymous.wrapper.unmount()
 
@@ -65,7 +66,9 @@ describe('AuthTopbarControl', () => {
     await nextTick()
 
     expect(authenticated.wrapper.find('[data-auth-menu-item="timeline"]').exists()).toBe(true)
+    expect(authenticated.wrapper.find('[data-auth-menu-item="statistics"]').exists()).toBe(true)
     expect(authenticated.wrapper.get('[data-auth-menu-item="timeline"]').text()).toContain('时间轴')
+    expect(authenticated.wrapper.get('[data-auth-menu-item="statistics"]').text()).toContain('查看统计')
   })
 
   it('navigates to timeline from the authenticated menu', async () => {
@@ -94,7 +97,23 @@ describe('AuthTopbarControl', () => {
     )
 
     expect(menuItems).toContain('timeline')
+    expect(menuItems).toContain('statistics')
     expect(menuItems).toContain('logout')
     expect(menuItems.indexOf('timeline')).toBeLessThan(menuItems.indexOf('logout'))
+    expect(menuItems.indexOf('timeline')).toBeLessThan(menuItems.indexOf('statistics'))
+    expect(menuItems.indexOf('statistics')).toBeLessThan(menuItems.indexOf('logout'))
+  })
+
+  it('navigates to statistics from the authenticated menu', async () => {
+    const { wrapper } = mountControl({ authenticated: true })
+
+    await wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
+    await nextTick()
+
+    await wrapper.get('[data-auth-menu-item="statistics"]').trigger('click')
+    await nextTick()
+
+    expect(routerPushMock).toHaveBeenCalledWith('/statistics')
+    expect(wrapper.find('[data-auth-menu]').exists()).toBe(false)
   })
 })

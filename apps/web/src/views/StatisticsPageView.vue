@@ -5,12 +5,15 @@ import { RouterLink } from 'vue-router'
 
 import StatCard from '../components/statistics/StatCard.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
+import { useMapPointsStore } from '../stores/map-points'
 import { useStatsStore } from '../stores/stats'
 
 const authSessionStore = useAuthSessionStore()
+const mapPointsStore = useMapPointsStore()
 const statsStore = useStatsStore()
 
-const { currentUser, status } = storeToRefs(authSessionStore)
+const { boundaryVersion, currentUser, status } = storeToRefs(authSessionStore)
+const { travelRecords } = storeToRefs(mapPointsStore)
 const { stats, isLoading, error } = storeToRefs(statsStore)
 
 const isRestoring = computed(() => status.value === 'restoring')
@@ -32,9 +35,14 @@ const shouldShowStats = computed(
     && error.value === null
     && (stats.value?.totalTrips ?? 0) > 0,
 )
+const travelRecordRevision = computed(() =>
+  travelRecords.value
+    .map((record) => `${record.id}:${record.placeId}:${record.createdAt}`)
+    .join('|'),
+)
 
 function fetchStatsIfAuthenticated() {
-  if (status.value === 'authenticated') {
+  if (status.value === 'authenticated' && currentUser.value !== null) {
     void statsStore.fetchStatsData()
   }
 }
@@ -44,9 +52,23 @@ onMounted(() => {
 })
 
 watch(
-  () => status.value,
-  (nextStatus) => {
-    if (nextStatus === 'authenticated' && stats.value === null && !isLoading.value) {
+  () => boundaryVersion.value,
+  () => {
+    statsStore.reset()
+    fetchStatsIfAuthenticated()
+  },
+)
+
+watch(
+  () => travelRecordRevision.value,
+  (nextRevision, previousRevision) => {
+    if (
+      previousRevision !== undefined
+      && nextRevision !== previousRevision
+      && status.value === 'authenticated'
+      && currentUser.value !== null
+      && !isLoading.value
+    ) {
       void statsStore.fetchStatsData()
     }
   },
