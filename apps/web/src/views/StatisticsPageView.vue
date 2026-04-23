@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, shallowRef, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import StatCard from '../components/statistics/StatCard.vue'
@@ -15,6 +15,7 @@ const statsStore = useStatsStore()
 const { boundaryVersion, currentUser, status } = storeToRefs(authSessionStore)
 const { travelRecords } = storeToRefs(mapPointsStore)
 const { stats, isLoading, error } = storeToRefs(statsStore)
+const pendingRefreshAfterLoad = shallowRef(false)
 
 const isRestoring = computed(() => status.value === 'restoring')
 const shouldShowRestoringState = computed(() => isRestoring.value || isLoading.value)
@@ -54,6 +55,7 @@ onMounted(() => {
 watch(
   () => boundaryVersion.value,
   () => {
+    pendingRefreshAfterLoad.value = false
     statsStore.reset()
     fetchStatsIfAuthenticated()
   },
@@ -67,8 +69,27 @@ watch(
       && nextRevision !== previousRevision
       && status.value === 'authenticated'
       && currentUser.value !== null
-      && !isLoading.value
     ) {
+      if (isLoading.value) {
+        pendingRefreshAfterLoad.value = true
+        return
+      }
+
+      void statsStore.fetchStatsData()
+    }
+  },
+)
+
+watch(
+  () => isLoading.value,
+  (nextLoading) => {
+    if (
+      !nextLoading
+      && pendingRefreshAfterLoad.value
+      && status.value === 'authenticated'
+      && currentUser.value !== null
+    ) {
+      pendingRefreshAfterLoad.value = false
       void statsStore.fetchStatsData()
     }
   },
