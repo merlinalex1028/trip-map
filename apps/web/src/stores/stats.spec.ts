@@ -33,7 +33,12 @@ describe('stats store', () => {
 
     authSessionStore.status = 'authenticated'
     authSessionStore.currentUser = makeUser()
-    fetchStatsMock.mockResolvedValueOnce({ totalTrips: 4, uniquePlaces: 3 })
+    fetchStatsMock.mockResolvedValueOnce({
+      totalTrips: 4,
+      uniquePlaces: 3,
+      visitedCountries: 2,
+      totalSupportedCountries: 22,
+    })
 
     await statsStore.fetchStatsData()
 
@@ -72,7 +77,7 @@ describe('stats store', () => {
 
     fetchStatsMock.mockImplementationOnce(async () => {
       authSessionStore.boundaryVersion += 1
-      return { totalTrips: 8, uniquePlaces: 5 }
+      return { totalTrips: 8, uniquePlaces: 5, visitedCountries: 3, totalSupportedCountries: 22 }
     })
 
     await statsStore.fetchStatsData()
@@ -85,7 +90,12 @@ describe('stats store', () => {
   it('reset clears any cached statistics state', () => {
     const statsStore = useStatsStore()
 
-    statsStore.stats = { totalTrips: 2, uniquePlaces: 1 }
+    statsStore.stats = {
+      totalTrips: 2,
+      uniquePlaces: 1,
+      visitedCountries: 1,
+      totalSupportedCountries: 22,
+    }
     statsStore.error = 'fetch-failed'
     statsStore.isLoading = true
 
@@ -103,8 +113,18 @@ describe('stats store', () => {
     authSessionStore.status = 'authenticated'
     authSessionStore.currentUser = makeUser()
 
-    let resolveFirst!: (value: { totalTrips: number; uniquePlaces: number }) => void
-    let resolveSecond!: (value: { totalTrips: number; uniquePlaces: number }) => void
+    let resolveFirst!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+    let resolveSecond!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
 
     fetchStatsMock
       .mockImplementationOnce(
@@ -124,13 +144,13 @@ describe('stats store', () => {
     statsStore.reset()
     const secondRequest = statsStore.fetchStatsData()
 
-    resolveFirst({ totalTrips: 3, uniquePlaces: 2 })
+    resolveFirst({ totalTrips: 3, uniquePlaces: 2, visitedCountries: 1, totalSupportedCountries: 22 })
     await firstRequest
 
     expect(statsStore.isLoading).toBe(true)
     expect(statsStore.stats).toBeNull()
 
-    resolveSecond({ totalTrips: 5, uniquePlaces: 4 })
+    resolveSecond({ totalTrips: 5, uniquePlaces: 4, visitedCountries: 2, totalSupportedCountries: 22 })
     await secondRequest
 
     expect(statsStore.stats).toEqual({ totalTrips: 5, uniquePlaces: 4 })

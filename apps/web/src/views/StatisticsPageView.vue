@@ -116,7 +116,7 @@ watch(
             旅行统计
           </h2>
           <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
-            这里汇总了你的旅行数据——总旅行次数统计每一次独立去访，已去过地点数则对同一地点只计一次。
+            这里汇总了你的旅行数据——总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。
           </p>
         </div>
       </div>
@@ -154,7 +154,7 @@ watch(
 
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
         <div
-          v-for="index in 2"
+          v-for="index in 3"
           :key="index"
           class="grid gap-3 rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"
         >
@@ -250,17 +250,19 @@ watch(
         <div class="space-y-1">
           <p class="text-sm font-semibold text-[var(--color-ink-strong)]">旅行统计概览</p>
           <p class="text-xs leading-5 text-[var(--color-ink-muted)]">
-            总旅行次数会统计每一次独立去访，已去过地点数则按地点去重。
+            总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。当前支持覆盖
+            {{ stats!.totalSupportedCountries }} 个国家/地区。
           </p>
         </div>
         <p
           class="inline-flex items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.72rem] font-semibold text-[var(--color-ink-soft)]"
         >
-          {{ stats!.totalTrips }} 次旅行 · {{ stats!.uniquePlaces }} 个地点
+          {{ stats!.totalTrips }} 次旅行 · {{ stats!.uniquePlaces }} 个地点 ·
+          {{ stats!.visitedCountries }} 个国家/地区
         </p>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
         <StatCard
           label="总旅行次数"
           :value="stats!.totalTrips"
@@ -272,6 +274,12 @@ watch(
           :value="stats!.uniquePlaces"
           unit="个地点"
           gradient="linear-gradient(180deg,rgba(255,255,255,0.92),rgba(239,250,252,0.94))"
+        />
+        <StatCard
+          label="已去过国家/地区数"
+          :value="stats!.visitedCountries"
+          unit="个国家/地区"
+          gradient="linear-gradient(180deg,rgba(255,255,255,0.93),rgba(241,248,255,0.94))"
         />
       </div>
     </div>

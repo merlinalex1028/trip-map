@@ -99,8 +99,18 @@ describe('StatisticsPageView', () => {
   })
 
   it('re-fetches statistics after travel records change during an in-flight request', async () => {
-    let resolveFirst!: (value: { totalTrips: number; uniquePlaces: number }) => void
-    let resolveSecond!: (value: { totalTrips: number; uniquePlaces: number }) => void
+    let resolveFirst!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+    let resolveSecond!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
 
     fetchStatsMock
       .mockImplementationOnce(
@@ -138,13 +148,13 @@ describe('StatisticsPageView', () => {
     await nextTick()
     expect(fetchStatsMock).toHaveBeenCalledTimes(1)
 
-    resolveFirst({ totalTrips: 1, uniquePlaces: 1 })
+    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 22 })
     await flushPromises()
     await nextTick()
 
     expect(fetchStatsMock).toHaveBeenCalledTimes(2)
 
-    resolveSecond({ totalTrips: 2, uniquePlaces: 2 })
+    resolveSecond({ totalTrips: 2, uniquePlaces: 2, visitedCountries: 2, totalSupportedCountries: 22 })
     await flushPromises()
     await nextTick()
 
