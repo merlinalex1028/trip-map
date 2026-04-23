@@ -2,8 +2,11 @@ import type { TravelRecord } from '@trip-map/contracts'
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia, storeToRefs } from 'pinia'
 import { computed, defineComponent, nextTick } from 'vue'
+import { createMemoryHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
+import MapHomeView from './views/MapHomeView.vue'
+import TimelinePageView from './views/TimelinePageView.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapPointsStore } from './stores/map-points'
 import { useMapUiStore } from './stores/map-ui'
@@ -52,23 +55,49 @@ vi.mock('./components/LeafletMapStage.vue', () => ({
 
 const mountedWrappers: Array<{ unmount: () => void }> = []
 
-function mountApp(
+async function mountApp(
   setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
+  route = '/',
 ) {
   const pinia = createPinia()
+  const appRouter = createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      {
+        path: '/',
+        name: 'map-home',
+        component: MapHomeView,
+      },
+      {
+        path: '/timeline',
+        name: 'timeline',
+        component: TimelinePageView,
+      },
+      {
+        path: '/:pathMatch(.*)*',
+        redirect: '/',
+      },
+    ],
+  })
   setActivePinia(pinia)
 
   const authSessionStore = useAuthSessionStore()
   setup?.(authSessionStore)
+
   const wrapper = mount(App, {
     global: {
-      plugins: [pinia],
+      plugins: [pinia, appRouter],
     },
   })
   mountedWrappers.push(wrapper)
 
+  await appRouter.push(route)
+  await appRouter.isReady()
+  await flushPromises()
+
   return {
     authSessionStore,
+    router: appRouter,
     wrapper,
   }
 }
@@ -90,29 +119,19 @@ describe('App auth shell', () => {
   })
 
   it('calls restoreSession exactly once on the first app mount', async () => {
-    const pinia = createPinia()
-    setActivePinia(pinia)
-    const authSessionStore = useAuthSessionStore()
-    authSessionStore.status = 'anonymous'
-
-    const restoreSessionSpy = vi
-      .spyOn(authSessionStore, 'restoreSession')
-      .mockResolvedValue(undefined)
-
-    const wrapper = mount(App, {
-      global: {
-        plugins: [pinia],
-      },
+    let restoreSessionSpy: ReturnType<typeof vi.spyOn>
+    await mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      restoreSessionSpy = vi
+        .spyOn(authSessionStore, 'restoreSession')
+        .mockResolvedValue(undefined)
     })
-    mountedWrappers.push(wrapper)
 
-    await nextTick()
-
-    expect(restoreSessionSpy).toHaveBeenCalledTimes(1)
+    expect(restoreSessionSpy!).toHaveBeenCalledTimes(1)
   })
 
   it('shows a single 登录 / 注册 chip in the topbar when anonymous', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'anonymous'
       authSessionStore.currentUser = null
       vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
@@ -132,7 +151,7 @@ describe('App auth shell', () => {
   })
 
   it('shows only username, email, and 退出登录 in the authenticated dropdown', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
         id: 'user-1',
@@ -157,7 +176,7 @@ describe('App auth shell', () => {
   })
 
   it('keeps LeafletMapStage mounted and renders the restoring overlay inside data-region="map-shell"', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'restoring'
       authSessionStore.currentUser = null
       vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
@@ -192,7 +211,7 @@ describe('App auth shell', () => {
       createdAt: '2026-04-12T00:00:00.000Z',
     }
 
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'restoring'
       authSessionStore.currentUser = null
       vi.spyOn(authSessionStore, 'restoreSession').mockImplementation(async () => {
@@ -214,7 +233,7 @@ describe('App auth shell', () => {
   })
 
   it('mounts the local import decision dialog when pendingLocalImportDecision exists', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
         id: 'user-1',
@@ -236,7 +255,7 @@ describe('App auth shell', () => {
   })
 
   it('closes the import decision dialog after choosing cloud records while keeping the app shell mounted', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
         id: 'user-1',
@@ -261,7 +280,7 @@ describe('App auth shell', () => {
   })
 
   it('shows the authoritative import summary after local records are imported', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
         id: 'user-1',
@@ -284,8 +303,63 @@ describe('App auth shell', () => {
     expect(wrapper.get('[data-local-import-dialog]').text()).toContain('finalCount')
   })
 
+  it('renders timeline route without LeafletMapStage', async () => {
+    const { wrapper } = await mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    }, '/timeline')
+
+    expect(wrapper.find('[data-route-view="timeline"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="timeline-shell"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(false)
+  })
+
+  it('keeps the shared topbar when switching between map and timeline routes', async () => {
+    const { router, wrapper } = await mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-auth-trigger="anonymous"]').exists()).toBe(true)
+
+    await router.push('/timeline')
+    await flushPromises()
+
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-auth-trigger="anonymous"]').exists()).toBe(true)
+    expect(wrapper.find('[data-route-view="timeline"]').exists()).toBe(true)
+
+    await router.push('/')
+    await flushPromises()
+
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(true)
+    expect(wrapper.find('[data-auth-trigger="anonymous"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
+  })
+
+  it('renders map stage only on the map route', async () => {
+    const { router, wrapper } = await mountApp((authSessionStore) => {
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+      vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+    })
+
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(true)
+
+    await router.push('/timeline')
+    await flushPromises()
+
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(false)
+    expect(wrapper.find('[data-route-view="timeline"]').exists()).toBe(true)
+  })
+
   it('renders the logout boundary notice in the app shell', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'anonymous'
       authSessionStore.currentUser = null
       useMapUiStore().setInteractionNotice({
@@ -304,7 +378,7 @@ describe('App auth shell', () => {
     vi.useFakeTimers()
 
     try {
-      const { wrapper } = mountApp((authSessionStore) => {
+      const { wrapper } = await mountApp((authSessionStore) => {
         authSessionStore.status = 'anonymous'
         authSessionStore.currentUser = null
         vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
@@ -342,7 +416,7 @@ describe('App auth shell', () => {
   })
 
   it('keeps topbar identity and map-stage record count in sync after an account switch notice', async () => {
-    const { wrapper } = mountApp((authSessionStore) => {
+    const { wrapper } = await mountApp((authSessionStore) => {
       const mapPointsStore = useMapPointsStore()
       const mapUiStore = useMapUiStore()
 
@@ -387,7 +461,7 @@ describe('App auth shell', () => {
 
   it('triggers a same-user foreground refresh on window focus while keeping the map shell mounted', async () => {
     let refreshSpy: ReturnType<typeof vi.spyOn>
-    const { wrapper } = mountApp((store) => {
+    const { wrapper } = await mountApp((store) => {
       store.status = 'authenticated'
       store.currentUser = {
         id: 'user-1',
@@ -439,7 +513,7 @@ describe('App auth shell', () => {
       endDate: null,
       createdAt: '2026-04-12T00:00:00.000Z',
     }
-    const { wrapper } = mountApp((store) => {
+    const { wrapper } = await mountApp((store) => {
       store.status = 'authenticated'
       store.currentUser = sameUser
       vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
@@ -495,7 +569,7 @@ describe('App auth shell', () => {
 
   it('triggers a same-user foreground refresh when the page becomes visible again', async () => {
     let refreshSpy: ReturnType<typeof vi.spyOn>
-    mountApp((store) => {
+    await mountApp((store) => {
       store.status = 'authenticated'
       store.currentUser = {
         id: 'user-1',
@@ -525,7 +599,7 @@ describe('App auth shell', () => {
     'does not trigger foreground refresh while status is %s',
     async (sessionStatus) => {
       let refreshSpy: ReturnType<typeof vi.spyOn>
-      mountApp((store) => {
+      await mountApp((store) => {
         store.status = sessionStatus
         store.currentUser = null
         vi.spyOn(store, 'restoreSession').mockResolvedValue(undefined)
