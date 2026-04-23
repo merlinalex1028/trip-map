@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, watch } from 'vue'
+import { RouterView } from 'vue-router'
 
 import AuthDialog from './components/auth/AuthDialog.vue'
 import LocalImportDecisionDialog from './components/auth/LocalImportDecisionDialog.vue'
-import AuthRestoreOverlay from './components/auth/AuthRestoreOverlay.vue'
 import AuthTopbarControl from './components/auth/AuthTopbarControl.vue'
-import LeafletMapStage from './components/LeafletMapStage.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapUiStore } from './stores/map-ui'
 
@@ -141,13 +140,7 @@ function handleVisibilityChange() {
       >
         {{ interactionNotice.message }}
       </div>
-      <section
-        class="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-[32px] border border-white/80 bg-white/65 p-4 md:p-6 shadow-[var(--shadow-stage)]"
-        data-region="map-shell"
-      >
-        <LeafletMapStage class="min-h-0 flex-1" />
-        <AuthRestoreOverlay :visible="status === 'restoring'" />
-      </section>
+      <RouterView />
     </main>
     <LocalImportDecisionDialog
       :decision="pendingLocalImportDecision"

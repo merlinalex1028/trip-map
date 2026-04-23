@@ -20,7 +20,8 @@
     "leaflet": "^1.9.4",
     "nanoid": "^5.1.9",
     "pinia": "^3.0.4",
-    "vue": "^3.5.32"
+    "vue": "^3.5.32",
+    "vue-router": "^4"
   },
   "devDependencies": {
     "@fontsource-variable/nunito": "^5.2.7",
