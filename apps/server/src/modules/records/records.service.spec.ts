@@ -12,6 +12,7 @@ function createRepositoryMock() {
     createTravelRecord: vi.fn(),
     importTravelRecords: vi.fn(),
     deleteTravelRecordByPlaceId: vi.fn(),
+    getTravelStats: vi.fn(),
   }
 }
 
@@ -225,5 +226,31 @@ describe('RecordsService', () => {
 
     expect(sampleDto.startDate).toBeNull()
     expect(sampleDto.endDate).toBeNull()
+  })
+
+  describe('RecordsService.getStats', () => {
+    it('delegates to repository and returns stats as-is', async () => {
+      const repository = createRepositoryMock()
+      const service = new RecordsService(repository as never)
+
+      repository.getTravelStats.mockResolvedValueOnce({ totalTrips: 3, uniquePlaces: 2 })
+
+      const result = await service.getStats('user-1')
+
+      expect(repository.getTravelStats).toHaveBeenCalledWith('user-1')
+      expect(result).toEqual({ totalTrips: 3, uniquePlaces: 2 })
+    })
+
+    it('correctly distinguishes totalTrips from uniquePlaces for multi-visit same place', async () => {
+      const repository = createRepositoryMock()
+      const service = new RecordsService(repository as never)
+
+      repository.getTravelStats.mockResolvedValueOnce({ totalTrips: 3, uniquePlaces: 1 })
+
+      const result = await service.getStats('user-1')
+
+      expect(result.totalTrips).toBe(3)
+      expect(result.uniquePlaces).toBe(1)
+    })
   })
 })

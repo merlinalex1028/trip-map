@@ -17,6 +17,7 @@ import type {
   ImportTravelRecordsResponse,
   SmokeRecordResponse,
   TravelRecord as ContractTravelRecord,
+  TravelStatsResponse,
 } from '@trip-map/contracts'
 
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js'
@@ -47,6 +48,16 @@ export class RecordsController {
     @Body() body: CreateSmokeRecordDto,
   ): Promise<SmokeRecordResponse> {
     return this.recordsService.createSmoke(body)
+  }
+
+  @Get('stats')
+  @ApiOperation({ summary: '获取旅行统计' })
+  @ApiOkResponse()
+  @UseGuards(SessionAuthGuard)
+  async getStats(
+    @CurrentUser() user: AuthUser,
+  ): Promise<TravelStatsResponse> {
+    return this.recordsService.getStats(user.id)
   }
 
   @Get()

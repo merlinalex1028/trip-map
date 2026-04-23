@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { SmokeRecordCreateRequest } from '@trip-map/contracts'
+import type { TravelStatsResponse } from '@trip-map/contracts'
 import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
 import { PrismaService } from '../../prisma/prisma.service.js'
@@ -137,5 +138,18 @@ export class RecordsRepository {
         placeId,
       },
     })
+  }
+
+  async getTravelStats(userId: string): Promise<TravelStatsResponse> {
+    const [totalTrips, uniquePlaceRecords] = await Promise.all([
+      this.prisma.userTravelRecord.count({ where: { userId } }),
+      this.prisma.userTravelRecord.findMany({
+        where: { userId },
+        select: { placeId: true },
+        distinct: ['placeId'],
+      }),
+    ])
+
+    return { totalTrips, uniquePlaces: uniquePlaceRecords.length }
   }
 }

@@ -6,6 +6,7 @@ import type {
   SmokeRecordCreateRequest,
   SmokeRecordResponse,
   TravelRecord as ContractTravelRecord,
+  TravelStatsResponse,
 } from '@trip-map/contracts'
 import type { PlaceKind } from '@trip-map/contracts'
 
@@ -96,6 +97,10 @@ export class RecordsService {
 
   async deleteTravel(userId: string, placeId: string): Promise<void> {
     await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
+  }
+
+  async getStats(userId: string): Promise<TravelStatsResponse> {
+    return this.recordsRepository.getTravelStats(userId)
   }
 
   private assertValidDateRange(
