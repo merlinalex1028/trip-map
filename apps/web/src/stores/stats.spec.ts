@@ -95,4 +95,45 @@ describe('stats store', () => {
     expect(statsStore.error).toBeNull()
     expect(statsStore.isLoading).toBe(false)
   })
+
+  it('keeps loading active for a newer request when an older request resolves late', async () => {
+    const authSessionStore = useAuthSessionStore()
+    const statsStore = useStatsStore()
+
+    authSessionStore.status = 'authenticated'
+    authSessionStore.currentUser = makeUser()
+
+    let resolveFirst!: (value: { totalTrips: number; uniquePlaces: number }) => void
+    let resolveSecond!: (value: { totalTrips: number; uniquePlaces: number }) => void
+
+    fetchStatsMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve
+          }),
+      )
+
+    const firstRequest = statsStore.fetchStatsData()
+    statsStore.reset()
+    const secondRequest = statsStore.fetchStatsData()
+
+    resolveFirst({ totalTrips: 3, uniquePlaces: 2 })
+    await firstRequest
+
+    expect(statsStore.isLoading).toBe(true)
+    expect(statsStore.stats).toBeNull()
+
+    resolveSecond({ totalTrips: 5, uniquePlaces: 4 })
+    await secondRequest
+
+    expect(statsStore.stats).toEqual({ totalTrips: 5, uniquePlaces: 4 })
+    expect(statsStore.isLoading).toBe(false)
+  })
 })

@@ -10,14 +10,17 @@ export const useStatsStore = defineStore('stats', () => {
   const stats = shallowRef<TravelStatsResponse | null>(null)
   const isLoading = shallowRef(false)
   const error = shallowRef<string | null>(null)
+  let activeRequestId = 0
 
   function reset() {
+    activeRequestId += 1
     stats.value = null
     isLoading.value = false
     error.value = null
   }
 
   async function fetchStatsData() {
+    const requestId = ++activeRequestId
     const authSessionStore = useAuthSessionStore()
     const boundaryVersionAtStart = authSessionStore.boundaryVersion
 
@@ -26,13 +29,19 @@ export const useStatsStore = defineStore('stats', () => {
 
     try {
       const response = await fetchStats()
-      if (authSessionStore.boundaryVersion !== boundaryVersionAtStart) {
+      if (
+        authSessionStore.boundaryVersion !== boundaryVersionAtStart
+        || requestId !== activeRequestId
+      ) {
         return
       }
 
       stats.value = response
     } catch (cause) {
-      if (authSessionStore.boundaryVersion !== boundaryVersionAtStart) {
+      if (
+        authSessionStore.boundaryVersion !== boundaryVersionAtStart
+        || requestId !== activeRequestId
+      ) {
         return
       }
 
@@ -43,7 +52,9 @@ export const useStatsStore = defineStore('stats', () => {
 
       error.value = 'fetch-failed'
     } finally {
-      isLoading.value = false
+      if (requestId === activeRequestId) {
+        isLoading.value = false
+      }
     }
   }
 
