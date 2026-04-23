@@ -119,6 +119,35 @@ describe('buildTimelineEntries', () => {
     expect(entries.slice(1).map((entry) => entry.sortDate)).toEqual([null, null])
   })
 
+  it('keeps equal-date entries stable by createdAt and id', () => {
+    const entries = buildTimelineEntries([
+      makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+        id: 'record-c',
+        startDate: '2025-04-01',
+        endDate: null,
+        createdAt: '2025-04-01T12:00:00.000Z',
+      }),
+      makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'record-b',
+        startDate: '2025-04-01',
+        endDate: null,
+        createdAt: '2025-04-01T10:00:00.000Z',
+      }),
+      makeRecord(PHASE28_RESOLVED_TOKYO, {
+        id: 'record-a',
+        startDate: '2025-04-01',
+        endDate: null,
+        createdAt: '2025-04-01T10:00:00.000Z',
+      }),
+    ])
+
+    expect(entries.map((entry) => entry.recordId)).toEqual([
+      'record-a',
+      'record-b',
+      'record-c',
+    ])
+  })
+
   it('assigns visitOrdinal and visitCount per place', () => {
     const entries = buildTimelineEntries([
       makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
