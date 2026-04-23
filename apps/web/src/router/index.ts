@@ -1,11 +1,11 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 
 import MapHomeView from '../views/MapHomeView.vue'
 import StatisticsPageView from '../views/StatisticsPageView.vue'
 import TimelinePageView from '../views/TimelinePageView.vue'
 
 export const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: '/',
