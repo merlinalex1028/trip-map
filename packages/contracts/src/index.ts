@@ -8,3 +8,4 @@ export type { ImportTravelRecordsRequest, ImportTravelRecordsResponse } from './
 export * from './resolve'
 export * from './auth'
 export * from './bootstrap'
+export * from './stats'
