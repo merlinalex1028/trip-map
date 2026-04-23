@@ -38,6 +38,11 @@ function handleNavigateToTimeline() {
   void router.push('/timeline')
 }
 
+function handleNavigateToStatistics() {
+  closeMenu()
+  void router.push('/statistics')
+}
+
 async function handleLogout() {
   closeMenu()
   await logout()
@@ -147,6 +152,25 @@ onUnmounted(() => {
             </span>
           </span>
           <span>时间轴</span>
+        </button>
+        <button
+          type="button"
+          class="mt-2 inline-flex min-h-11 w-full items-center gap-3 rounded-full border border-[color:color-mix(in_srgb,var(--color-accent)_24%,white_76%)] bg-white/86 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:bg-white"
+          data-auth-menu-item="statistics"
+          role="menuitem"
+          @click="handleNavigateToStatistics"
+        >
+          <span
+            class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--color-accent-soft)] text-[var(--color-accent)]"
+            aria-hidden="true"
+          >
+            <span class="relative flex h-3.5 w-3.5 items-end justify-between gap-px">
+              <span class="w-px rounded-sm bg-current" style="height: 40%"></span>
+              <span class="w-px rounded-sm bg-current" style="height: 65%"></span>
+              <span class="w-px rounded-sm bg-current" style="height: 100%"></span>
+            </span>
+          </span>
+          <span>查看统计</span>
         </button>
         <button
           type="button"
