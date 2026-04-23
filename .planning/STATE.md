@@ -2,37 +2,37 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: executing
-stopped_at: Phase 28 completed
-last_updated: "2026-04-23T03:18:59.095Z"
-last_activity: 2026-04-23 -- Phase 29 execution started
+status: planning
+stopped_at: Phase 29 completed
+last_updated: "2026-04-23T04:51:20Z"
+last_activity: 2026-04-23 -- Phase 29 completed
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 17
-  completed_plans: 13
-  percent: 76
+  completed_plans: 17
+  percent: 75
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-17)
+See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 29 — timeline-page-and-account-entry
+**Current focus:** Phase 30 — travel-statistics-&-completion-overview
 
 ## Current Position
 
 Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: 29 (timeline-page-and-account-entry) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 29
-Last activity: 2026-04-23 -- Phase 29 execution started
+Phase: 30 (travel-statistics-&-completion-overview) — READY FOR PLANNING
+Plan: Not started
+Status: Ready to plan Phase 30
+Last activity: 2026-04-23 -- Phase 29 completed
 
-Progress: [#####-----] 50% (2/4 phases complete in v6.0)
+Progress: [########--] 75% (3/4 phases complete in v6.0)
 
 ## Performance Metrics
 
@@ -53,12 +53,12 @@ Progress: [#####-----] 50% (2/4 phases complete in v6.0)
 
 **Recent Trend:**
 
-- Last 5 milestones/actions: v6.0 init, requirements definition, roadmap created, Phase 27 complete, Phase 29 planned
-- Trend: Multi-visit foundation + overseas expansion shipped; timeline page is queued for execution
+- Last 5 milestones/actions: v6.0 init, requirements definition, roadmap created, Phase 28 complete, Phase 29 complete
+- Trend: Multi-visit foundation、overseas expansion 与 timeline page 已交付；统计阶段是下一步
 
 | Phase 27 | complete | 6/6 plans | shipped 2026-04-20 |
 | Phase 28 | complete | 7/7 plans | shipped 2026-04-22 |
-| Phase 29 | ready to execute | 4 plans | planned 2026-04-23 |
+| Phase 29 | complete | 4/4 plans | shipped 2026-04-23 |
 | Phase 30 | pending | - | - |
 | Init | complete | docs | 4 files |
 
@@ -81,13 +81,13 @@ None yet.
 
 ### Blockers/Concerns
 
-- 当前没有新的 blocker；Phase 29 规划已完成，接下来应进入时间轴页面与账号入口实现。
+- 当前没有新的 blocker；Phase 30 已准备好进入讨论或规划阶段。
 
 ## Session Continuity
 
 Last session: 2026-04-20T01:21:16.178Z
-Stopped at: Phase 28 completed
+Stopped at: Phase 29 completed
 Resume file: .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-04-23 — after Phase 29 planning complete*
+*Last updated: 2026-04-23 — after Phase 29 completion*

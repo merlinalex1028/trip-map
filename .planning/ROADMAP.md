@@ -7,7 +7,7 @@
 - ✅ **v3.0 全栈化与行政区地图重构** — Phases 11-18，已于 2026-04-03 归档（[详情](milestones/v3.0-ROADMAP.md)）
 - ✅ **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，已于 2026-04-10 归档（[详情](milestones/v4.0-ROADMAP.md)）
 - ✅ **v5.0 账号体系与云同步基础版** — Phases 23-26，已于 2026-04-17 归档（[详情](milestones/v5.0-ROADMAP.md)）
-- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-30，执行中（Phase 27-28 已完成）
+- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-30，执行中（Phase 27-29 已完成）
 
 ## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
 
@@ -25,7 +25,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 
 - [x] **Phase 27: Multi-Visit Record Foundation** - 把账号旅行记录从“每地点一条”升级为“每次旅行一条”，引入旅行日期并保住现有地图点亮主链路 (completed 2026-04-20)
 - [x] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致 (completed 2026-04-22)
-- [ ] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面
+- [x] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面 (completed 2026-04-23)
 - [ ] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度
 
 ## Phase Overview
@@ -34,7 +34,7 @@ v6.0 让产品从“一个地点是否去过”的单次点亮模型，升级为
 |---|-------|--------|--------------|------------|
 | 27 | Multi-Visit Record Foundation | Complete | TRIP-01, TRIP-02, TRIP-03 | Phase 26 |
 | 28 | Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 27 |
-| 29 | Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
+| 29 | Timeline Page & Account Entry | Complete | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
 
 ## Phase Details
@@ -84,6 +84,8 @@ Plans:
 **Goal:** 用户可以从用户名面板进入一个独立的旅行时间轴页面，按时间顺序浏览自己的旅行历史。
 **Depends on:** Phase 27, Phase 28
 **Requirements:** TRIP-04, TRIP-05
+**Plans:** 4/4 plans complete
+**Verification:** 自动化验证通过，人工验收于 2026-04-23 批准
 **Success Criteria** (what must be TRUE):
 1. 点击用户名后展开的面板中存在清晰的“时间轴”入口按钮。
 2. 用户可以从该入口进入独立页面，而不是在地图主舞台中以内联模块打开时间轴。
@@ -106,12 +108,12 @@ Plans:
 |-------|--------|--------------|-----------|
 | 27. Multi-Visit Record Foundation | Complete | TRIP-01, TRIP-02, TRIP-03 | Phase 28 |
 | 28. Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 29 |
-| 29. Timeline Page & Account Entry | Pending | TRIP-04, TRIP-05 | Wait for Phase 27-28 |
-| 30. Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Wait for Phase 27-29 |
+| 29. Timeline Page & Account Entry | Complete | TRIP-04, TRIP-05 | Phase 30 |
+| 30. Travel Statistics & Completion Overview | Pending | STAT-01, STAT-02, STAT-03 | Discuss / plan Phase 30 |
 
 ## Current Status
 
-`Phase 28: Overseas Coverage Expansion` 已于 2026-04-22 完成，`GEOX-01` 与 `GEOX-02` 均已闭环。当前 milestone 的下一步是进入 `Phase 29: Timeline Page & Account Entry`，开始规划独立时间轴页面与用户名面板入口。
+`Phase 29: Timeline Page & Account Entry` 已于 2026-04-23 完成，用户名菜单时间轴入口、独立 `#/timeline` 页面、基于 `travelRecords` 的时间轴排序与多次去访拆分均已闭环。当前 milestone 的下一步是进入 `Phase 30: Travel Statistics & Completion Overview`，规划并实现基础旅行统计与完成度视图。
 
 ---
-*Last updated: 2026-04-22 — after Phase 28 completion*
+*Last updated: 2026-04-23 — after Phase 29 completion*

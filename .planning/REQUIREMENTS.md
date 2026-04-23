@@ -11,8 +11,8 @@
 - [x] **TRIP-01**: 用户点亮地点时可以选择这次旅行发生的日期
 - [x] **TRIP-02**: 用户可以为同一地点保存多次旅行记录，而不是被覆盖成单次去访
 - [x] **TRIP-03**: 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复
-- [ ] **TRIP-04**: 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面
-- [ ] **TRIP-05**: 用户可以在时间轴页面按时间顺序查看自己的旅行记录
+- [x] **TRIP-04**: 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面
+- [x] **TRIP-05**: 用户可以在时间轴页面按时间顺序查看自己的旅行记录
 
 ### Statistics & Progress（统计与完成度）
 
@@ -59,8 +59,8 @@
 | TRIP-01 | Phase 27 | Complete |
 | TRIP-02 | Phase 27 | Complete |
 | TRIP-03 | Phase 27 | Complete |
-| TRIP-04 | Phase 29 | Pending |
-| TRIP-05 | Phase 29 | Pending |
+| TRIP-04 | Phase 29 | Complete |
+| TRIP-05 | Phase 29 | Complete |
 | STAT-01 | Phase 30 | Pending |
 | STAT-02 | Phase 30 | Pending |
 | STAT-03 | Phase 30 | Pending |
@@ -74,4 +74,4 @@
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-22 — after Phase 28 completion*
+*Last updated: 2026-04-23 — after Phase 29 completion*
