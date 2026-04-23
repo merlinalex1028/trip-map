@@ -149,32 +149,6 @@ watch(
     </div>
 
     <div
-      v-else-if="shouldShowEmptyState"
-      class="grid gap-4 rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(246,252,255,0.95))] p-5 shadow-[var(--shadow-float)]"
-      data-state="empty"
-    >
-      <div class="space-y-2">
-        <p
-          class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
-        >
-          还没有旅行数据
-        </p>
-        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">还没有旅行数据</h3>
-        <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          先回到地图点亮一个去过的地点吧。保存后，这里会出现你的第一条统计数据。
-        </p>
-      </div>
-      <div class="flex flex-wrap gap-3">
-        <RouterLink
-          class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/"
-        >
-          去地图添加旅行
-        </RouterLink>
-      </div>
-    </div>
-
-    <div
       v-else-if="error !== null && !isLoading"
       class="grid gap-4 rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,242,247,0.95))] p-5 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
       data-state="error"
@@ -198,6 +172,32 @@ watch(
       >
         重新加载统计
       </button>
+    </div>
+
+    <div
+      v-else-if="shouldShowEmptyState"
+      class="grid gap-4 rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(246,252,255,0.95))] p-5 shadow-[var(--shadow-float)]"
+      data-state="empty"
+    >
+      <div class="space-y-2">
+        <p
+          class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
+        >
+          还没有旅行数据
+        </p>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">还没有旅行数据</h3>
+        <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
+          先回到地图点亮一个去过的地点吧。保存后，这里会出现你的第一条统计数据。
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <RouterLink
+          class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
+          to="/"
+        >
+          去地图添加旅行
+        </RouterLink>
+      </div>
     </div>
 
     <div v-else-if="shouldShowStats" class="grid gap-4" data-state="populated">
