@@ -52,17 +52,16 @@ Source: `apps/web/src/styles/tokens.css` — pre-populated, no changes needed.
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 16px (var(--font-body-size)) | 400 (var(--font-weight-body)) | 1.5 (var(--font-body-line-height)) |
+| Small label (badge/eyebrow/sub-label) | 0.72rem | 600 | 1.2 — tracking 0.10em, uppercase |
 | Label | 14px (var(--font-label-size)) | 600 (var(--font-weight-label)) | 1.4 (var(--font-label-line-height)) |
-| Heading | 24px (var(--font-heading-size)) | 700 (var(--font-weight-heading)) | 1.2 (var(--font-heading-line-height)) |
-| Display | clamp(1.7rem, 2.8vw, 2.4rem) | 600 | 1.2 |
+| Body | 16px (var(--font-body-size)) | 600 | 1.5 (var(--font-body-line-height)) |
+| Stat number / Heading | clamp(2rem, 3.5vw, 3rem) | 700 | 1.2 |
 
-Additional in-use sizes from timeline reference:
-- Stat number (large): `text-[clamp(2rem,3.5vw,3rem)]` weight 700 — for the primary metric values (total trips, unique places)
-- Badge/eyebrow: `text-[0.68rem]` weight 600, tracking `0.12em`, uppercase — for section labels
-- Sub-label: `text-[0.72rem]` weight 600, tracking `0.08em`, uppercase — for stat card labels
+Notes:
+- Weight 400 removed. 600 is the base weight for body, labels, and badges. 700 reserved for headings and stat numbers only.
+- 0.68rem (badge) and 0.72rem (sub-label) unified to 0.72rem. Display clamp(1.7rem,2.8vw,2.4rem) dropped — stat number clamp already serves as the largest display value.
 
-Source: `apps/web/src/styles/tokens.css` + `TimelinePageView.vue` patterns — pre-populated.
+Source: `apps/web/src/styles/tokens.css` + `TimelinePageView.vue` patterns — pre-populated, revised by checker.
 
 ---
 
@@ -178,7 +177,7 @@ Source: D-01, D-02 from CONTEXT.md.
 | Empty state CTA | `去地图添加旅行` |
 | Error state heading | `统计数据加载失败` |
 | Error state body | `无法获取旅行统计，请稍后重试。` |
-| Error state CTA | `重试` |
+| Error state CTA | `重新加载统计` |
 | Destructive confirmation | 无 — 本阶段无破坏性操作 |
 
 Source: D-05 (completion rate removed), D-06, D-07 from CONTEXT.md. STAT-01, STAT-03 from REQUIREMENTS.md.
