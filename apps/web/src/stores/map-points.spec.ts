@@ -941,4 +941,49 @@ describe('map-points store', () => {
       expect(store.travelRecords[0]?.id).toBe('server-record-existing')
     })
   })
+
+  describe('timeline entries Phase 29', () => {
+    it('keeps timelineEntries aligned with raw travelRecords and places unknown dates last', () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'beijing-visit-2',
+          startDate: '2025-04-12',
+          endDate: null,
+          createdAt: '2025-04-13T00:00:00.000Z',
+        }),
+        makeRecord(PHASE28_RESOLVED_TOKYO, {
+          id: 'tokyo-unknown',
+          startDate: null,
+          endDate: null,
+          createdAt: '2025-01-01T00:00:00.000Z',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'beijing-visit-1',
+          startDate: '2025-02-01',
+          endDate: null,
+          createdAt: '2025-02-02T00:00:00.000Z',
+        }),
+      ])
+
+      expect(store.travelRecords).toHaveLength(3)
+      expect(store.timelineEntries).toHaveLength(3)
+      expect(store.timelineEntries.map((entry) => entry.recordId)).toEqual([
+        'beijing-visit-1',
+        'beijing-visit-2',
+        'tokyo-unknown',
+      ])
+      expect(store.timelineEntries.map((entry) => entry.hasKnownDate)).toEqual([true, true, false])
+      expect(store.timelineEntries[0]).toMatchObject({
+        recordId: 'beijing-visit-1',
+        visitOrdinal: 1,
+        visitCount: 2,
+      })
+      expect(store.timelineEntries[1]).toMatchObject({
+        recordId: 'beijing-visit-2',
+        visitOrdinal: 2,
+        visitCount: 2,
+      })
+    })
+  })
 })

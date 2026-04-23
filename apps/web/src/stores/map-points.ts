@@ -11,6 +11,7 @@ import {
   hasBoundaryCoverageForBoundaryId,
   hasBoundaryCoverageForCityId,
 } from '../services/city-boundaries'
+import { buildTimelineEntries } from '../services/timeline'
 import type { GeoCityCandidate } from '../types/geo'
 import type { DraftMapPoint, MapPointDisplay, SummaryMode, SummarySurfaceState } from '../types/map-point'
 import { useAuthSessionStore } from './auth-session'
@@ -124,6 +125,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
     return map
   })
+
+  const timelineEntries = computed(() => buildTimelineEntries(travelRecords.value))
 
   const activePoint = computed<MapPointDisplay | null>(() => {
     if (!selectedPointId.value) {
@@ -529,6 +532,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     hasBootstrapped,
     savedBoundaryIds,
     tripsByPlaceId,
+    timelineEntries,
     displayPoints,
     activePoint,
     activeBoundaryCoverageState,
