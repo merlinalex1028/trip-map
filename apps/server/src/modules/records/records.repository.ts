@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { SmokeRecordCreateRequest } from '@trip-map/contracts'
+import { SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES, type SmokeRecordCreateRequest } from '@trip-map/contracts'
 import type { TravelStatsResponse } from '@trip-map/contracts'
 import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
 
@@ -33,6 +33,12 @@ function toTravelRecordData(userId: string, input: CreateTravelRecordDto) {
     startDate: input.startDate ?? null,
     endDate: input.endDate ?? null,
   }
+}
+
+function toCountryLabel(parentLabel: string | null) {
+  const label = parentLabel ?? '未知'
+  const separatorIndex = label.indexOf(' · ')
+  return separatorIndex === -1 ? label : label.slice(0, separatorIndex)
 }
 
 @Injectable()
@@ -141,15 +147,29 @@ export class RecordsRepository {
   }
 
   async getTravelStats(userId: string): Promise<TravelStatsResponse> {
-    const [totalTrips, uniquePlaceRecords] = await Promise.all([
+    const totalSupportedCountries = SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES.length + 1
+
+    const [totalTrips, uniquePlaceRecords, parentLabelRecords] = await Promise.all([
       this.prisma.userTravelRecord.count({ where: { userId } }),
       this.prisma.userTravelRecord.findMany({
         where: { userId },
         select: { placeId: true },
         distinct: ['placeId'],
       }),
+      this.prisma.userTravelRecord.findMany({
+        where: { userId },
+        select: { parentLabel: true },
+        distinct: ['parentLabel'],
+      }),
     ])
 
-    return { totalTrips, uniquePlaces: uniquePlaceRecords.length }
+    const visitedCountries = new Set(parentLabelRecords.map(record => toCountryLabel(record.parentLabel))).size
+
+    return {
+      totalTrips,
+      uniquePlaces: uniquePlaceRecords.length,
+      visitedCountries,
+      totalSupportedCountries,
+    }
   }
 }

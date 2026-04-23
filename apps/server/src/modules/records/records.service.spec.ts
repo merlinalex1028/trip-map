@@ -1,8 +1,10 @@
 import { BadRequestException } from '@nestjs/common'
 import type { UserTravelRecord } from '@prisma/client'
 import { describe, expect, it, vi } from 'vitest'
+import { SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES } from '@trip-map/contracts'
 
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
+import { RecordsRepository } from './records.repository.js'
 import { RecordsService } from './records.service.js'
 
 function createRepositoryMock() {
@@ -13,6 +15,21 @@ function createRepositoryMock() {
     importTravelRecords: vi.fn(),
     deleteTravelRecordByPlaceId: vi.fn(),
     getTravelStats: vi.fn(),
+  }
+}
+
+function createPrismaMock() {
+  return {
+    smokeRecord: {
+      create: vi.fn(),
+    },
+    userTravelRecord: {
+      count: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+      createMany: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   }
 }
 
@@ -233,24 +250,120 @@ describe('RecordsService', () => {
       const repository = createRepositoryMock()
       const service = new RecordsService(repository as never)
 
-      repository.getTravelStats.mockResolvedValueOnce({ totalTrips: 3, uniquePlaces: 2 })
+      repository.getTravelStats.mockResolvedValueOnce({
+        totalTrips: 3,
+        uniquePlaces: 2,
+        visitedCountries: 2,
+        totalSupportedCountries: 22,
+      })
 
       const result = await service.getStats('user-1')
 
       expect(repository.getTravelStats).toHaveBeenCalledWith('user-1')
-      expect(result).toEqual({ totalTrips: 3, uniquePlaces: 2 })
+      expect(result).toEqual({
+        totalTrips: 3,
+        uniquePlaces: 2,
+        visitedCountries: 2,
+        totalSupportedCountries: 22,
+      })
     })
 
     it('correctly distinguishes totalTrips from uniquePlaces for multi-visit same place', async () => {
       const repository = createRepositoryMock()
       const service = new RecordsService(repository as never)
 
-      repository.getTravelStats.mockResolvedValueOnce({ totalTrips: 3, uniquePlaces: 1 })
+      repository.getTravelStats.mockResolvedValueOnce({
+        totalTrips: 3,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 22,
+      })
 
       const result = await service.getStats('user-1')
 
       expect(result.totalTrips).toBe(3)
       expect(result.uniquePlaces).toBe(1)
+      expect(result.visitedCountries).toBe(1)
+      expect(result.totalSupportedCountries).toBe(22)
+    })
+  })
+
+  describe('RecordsRepository.getTravelStats', () => {
+    it('returns visitedCountries based on distinct parentLabel country extraction', async () => {
+      const prisma = createPrismaMock()
+      const repository = new RecordsRepository(prisma as never)
+
+      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
+      prisma.userTravelRecord.findMany
+        .mockResolvedValueOnce([
+          { placeId: 'cn-admin-beijing' },
+          { placeId: 'jp-pref-tokyo' },
+          { placeId: 'us-state-california' },
+        ])
+        .mockResolvedValueOnce([
+          { parentLabel: '中国' },
+          { parentLabel: '日本' },
+          { parentLabel: '美国' },
+        ])
+
+      const result = await repository.getTravelStats('user-1')
+
+      expect(result).toEqual({
+        totalTrips: 3,
+        uniquePlaces: 3,
+        visitedCountries: 3,
+        totalSupportedCountries: SUPPORTED_OVERSEAS_COUNTRY_SUMMARIES.length + 1,
+      })
+      expect(prisma.userTravelRecord.findMany).toHaveBeenNthCalledWith(1, {
+        where: { userId: 'user-1' },
+        select: { placeId: true },
+        distinct: ['placeId'],
+      })
+      expect(prisma.userTravelRecord.findMany).toHaveBeenNthCalledWith(2, {
+        where: { userId: 'user-1' },
+        select: { parentLabel: true },
+        distinct: ['parentLabel'],
+      })
+    })
+
+    it('does not inflate visitedCountries when same country has multiple admin1 places', async () => {
+      const prisma = createPrismaMock()
+      const repository = new RecordsRepository(prisma as never)
+
+      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
+      prisma.userTravelRecord.findMany
+        .mockResolvedValueOnce([
+          { placeId: 'cn-admin-beijing' },
+          { placeId: 'cn-admin-shanghai' },
+          { placeId: 'jp-pref-tokyo' },
+        ])
+        .mockResolvedValueOnce([
+          { parentLabel: '中国 · 北京' },
+          { parentLabel: '中国 · 上海' },
+          { parentLabel: '日本' },
+        ])
+
+      const result = await repository.getTravelStats('user-1')
+
+      expect(result.totalTrips).toBe(3)
+      expect(result.uniquePlaces).toBe(3)
+      expect(result.visitedCountries).toBe(2)
+    })
+
+    it('does not inflate visitedCountries for multi-visit same place', async () => {
+      const prisma = createPrismaMock()
+      const repository = new RecordsRepository(prisma as never)
+
+      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
+      prisma.userTravelRecord.findMany
+        .mockResolvedValueOnce([{ placeId: 'cn-admin-beijing' }])
+        .mockResolvedValueOnce([{ parentLabel: '中国' }])
+
+      const result = await repository.getTravelStats('user-1')
+
+      expect(result.totalTrips).toBe(3)
+      expect(result.uniquePlaces).toBe(1)
+      expect(result.visitedCountries).toBe(1)
     })
   })
 })
