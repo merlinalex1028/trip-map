@@ -17,6 +17,8 @@ created: 2026-04-24
 
 Phase 31 is a frontend consistency hardening phase, not a redesign phase. Preserve the existing statistics page visual language and interaction model. Do not introduce new components, new visual states, new copy, new colors, new motion, or a new design system unless required to preserve current behavior.
 
+Primary visual anchor remains the existing statistics overview panel first, followed by the three `StatCard` cards; metadata refresh must not introduce a new focal point.
+
 | Property | Value |
 |----------|-------|
 | Tool | none — custom Vue + Tailwind CSS v4 utilities; no `components.json` detected |
@@ -55,10 +57,10 @@ Use exactly the existing statistics page scale. Phase 31 must not change typogra
 |------|------|--------|-------------|
 | Body | 16px | 400 | 1.5 |
 | Label | 14px | 600 | 1.4 |
-| Heading | 24px | 700 | 1.2 |
-| Display | 40px | 800 | 1.1 |
+| Heading | 24px | 600 | 1.2 |
+| Display | 40px | 600 | 1.1 |
 
-Page-specific allowed text classes: state body text may remain `text-sm leading-6`; overview helper text may remain `text-xs leading-5`; eyebrow chips may remain `text-[0.68rem]` or `text-[0.72rem]` exactly as currently implemented. Do not introduce additional font sizes for this phase.
+Typography constraints: Phase 31 may use only the four declared roles above for new or changed typography. Do not add, remove, or modify legacy typography classes already present on the existing statistics page, including `text-xs`, `text-[0.68rem]`, and `text-[0.72rem]`; those classes are preserved as historical implementation details, not available Phase 31 font-size declarations.
 
 ---
 
