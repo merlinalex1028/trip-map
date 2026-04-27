@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: executing
-stopped_at: Phase 30 automated verification passed — awaiting human UAT approval
-last_updated: "2026-04-23T10:38:02Z"
-last_activity: 2026-04-23 -- Phase 30 verification reached human-needed gate
+status: ready_to_plan
+stopped_at: Phase 31 complete — ready to plan Phase 32
+last_updated: "2026-04-27T09:31:19Z"
+last_activity: 2026-04-27 -- Phase 31 complete; ready to plan Phase 32
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 23
+  completed_plans: 23
   percent: 100
 ---
 
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 30 — travel-statistics-and-completion-overview
+**Current focus:** Phase 32 — route-deep-link-and-acceptance-closure
 
 ## Current Position
 
 Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: 30 (travel-statistics-and-completion-overview) — EXECUTING
-Plan: 5 of 5
-Status: Awaiting human verification for Phase 30
-Last activity: 2026-04-23 -- Phase 30 automated verification passed
+Phase: 32
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-04-27
 
-Progress: [##########] 100% plans complete (phase closure pending human UAT)
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: [##########] 100% plans complete (phase closure pending human UAT)
 
 - Last shipped milestone: v5.0
 - Archived scope: 4 phases / 22 plans / 26 tasks
-- Current roadmap: 4 planned phases (27-30)
+- Current roadmap: 6 planned phases (27-32)
 
 **By Phase:**
 
@@ -50,16 +50,18 @@ Progress: [##########] 100% plans complete (phase closure pending human UAT)
 | 28 | 7 | - | - |
 | 29 | 4 | - | - |
 | 30 | 5 | - | - |
+| 31 | 1 | - | - |
 
 **Recent Trend:**
 
-- Last 5 milestones/actions: Phase 28 complete, Phase 29 complete, Phase 30 plans created, Phase 30 gap closure executed, Phase 30 verification reached human-needed gate
-- Trend: Multi-visit foundation、overseas expansion、timeline page 与统计主链路都已交付；当前只剩人工验收与部署环境验证
+- Last 5 milestones/actions: Phase 29 complete, Phase 30 gap closure executed, Phase 30 verification reached human-needed gate, Phase 31 statistics refresh hardening complete, Phase 32 ready to plan
+- Trend: Multi-visit foundation、overseas expansion、timeline page 与统计主链路都已交付；当前剩余 Phase 32 的 deep-link / refresh 与验收闭环
 
 | Phase 27 | complete | 6/6 plans | shipped 2026-04-20 |
 | Phase 28 | complete | 7/7 plans | shipped 2026-04-22 |
 | Phase 29 | complete | 4/4 plans | shipped 2026-04-23 |
 | Phase 30 | human_needed | 5/5 plans | awaiting UAT approval |
+| Phase 31 | complete | 1/1 plans | shipped 2026-04-27 |
 | Init | complete | docs | 4 files |
 
 ## Accumulated Context
@@ -81,13 +83,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- 当前没有新的代码 blocker；Phase 30 仅剩人工验收与部署环境 deep-link / refresh 验证。
+- 当前没有新的代码 blocker；Phase 32 将收口 Phase 29 / Phase 30 的人工验收与部署环境 deep-link / refresh 验证。
 
 ## Session Continuity
 
-Last session: 2026-04-23T06:28:49.561Z
-Stopped at: Phase 30 automated verification passed — awaiting human UAT approval
-Resume file: .planning/phases/30-travel-statistics-and-completion-overview/30-HUMAN-UAT.md
+Last session: 2026-04-27T09:31:19Z
+Stopped at: Phase 31 complete — ready to plan Phase 32
+Resume file: None
 
 ---
-*Last updated: 2026-04-23 — after Phase 30 automated verification*
+*Last updated: 2026-04-27 — after Phase 31 completion*
+
+**Next Phase:** 32 (route-deep-link-and-acceptance-closure) — ready to plan

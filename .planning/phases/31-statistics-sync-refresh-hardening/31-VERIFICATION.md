@@ -1,9 +1,11 @@
 ---
 phase: 31-statistics-sync-refresh-hardening
 verified: 2026-04-27T09:19:40Z
-status: human_needed
+status: passed
 score: 7/7 must-haves verified
 overrides_applied: 0
+human_verification_status: approved
+human_verification_approved_at: 2026-04-27T09:31:19Z
 human_verification:
   - test: "真实浏览器下触发 bootstrap / same-user sync 后检查 Statistics 与 Timeline 同步"
     expected: "无需手动整页刷新，Statistics 的国家数/完成度会在权威 metadata 刷新后及时更新，并与 Timeline 的地点归类一致；无账号切换提示或额外 UI 抖动"
@@ -14,7 +16,7 @@ human_verification:
 
 **Phase Goal:** authoritative metadata 经 bootstrap / same-user sync 刷新后，统计页会稳定重拉并与时间轴保持一致，不再出现国家数 / 完成度滞后。
 **Verified:** 2026-04-27T09:19:40Z
-**Status:** human_needed
+**Status:** passed
 **Re-verification:** No — initial verification
 
 ## Goal Achievement
@@ -83,17 +85,17 @@ human_verification:
 | --- | --- | --- | --- | --- |
 | N/A | - | No blocker/warning anti-patterns found in phase-touched files | ℹ️ Info | 对 Phase 31 修改文件执行 TODO/placeholder/empty-data 扫描后，仅发现合法的初始态、reset 和错误态分支，没有会让目标落空的 stub。 |
 
-### Human Verification Required
+### Human Verification Completed
 
 ### 1. Bootstrap / Same-User Metadata Freshness
 
 **Test:** 使用一个已经发生 overseas authoritative metadata 修正的真实账号，先查看 Timeline 中的地点标题/归类，然后保持 `/statistics` 打开状态触发 same-user sync；随后重新打开应用触发 `/auth/bootstrap` 并再次查看统计页。  
 **Expected:** 无需手动刷新 `/statistics`，`已去过国家/地区数` 与 completion 文案会跟随新的 `parentLabel`/`displayName`/`typeLabel`/`subtitle` 更新，并与 Timeline 一致；过程中不出现“已切换到 ...”提示，也不新增额外 loading/banner。  
-**Why human:** 需要真实账号、真实同步/恢复时序和跨页面肉眼比对。当前自动化把 coverage 分散在 `StatisticsPageView.spec.ts` 与 `auth-session.spec.ts`，没有完整浏览器集成链路。
+**Result:** pass — user approved on 2026-04-27T09:31:19Z.
 
 ### Gaps Summary
 
-未发现会阻断 Phase 31 目标达成的代码缺口。剩余事项是上面的真实浏览器验收，因此本次状态为 `human_needed` 而非 `passed`。
+未发现会阻断 Phase 31 目标达成的代码缺口。真实浏览器验收已由用户确认通过，因此本次状态为 `passed`。
 
 ---
 

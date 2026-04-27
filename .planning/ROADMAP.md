@@ -27,7 +27,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 - [x] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致 (completed 2026-04-22)
 - [ ] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面（实现已完成，审计后转入 gap closure pending）
 - [ ] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度（实现已完成，审计后转入 gap closure pending）
-- [ ] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致
+- [x] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致 (completed 2026-04-27)
 - [ ] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐
 
 ## Phase Overview
@@ -38,7 +38,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 | 28 | Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 27 |
 | 29 | Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
-| 31 | Statistics Sync Refresh Hardening | Planned | STAT-03 | Phase 28, Phase 30 |
+| 31 | Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 28, Phase 30 |
 | 32 | Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
 
 ## Phase Details
@@ -120,7 +120,7 @@ Plans:
 **Depends on:** Phase 28, Phase 30
 **Requirements:** STAT-03
 **Gap Closure:** closes audit integration gap `Phase 28 metadata backfill / same-user sync -> Phase 30 statistics refresh`，并补上 `Overseas metadata -> bootstrap/sync -> statistics completion` flow gap；同时支撑 `STAT-01` / `STAT-02` 的一致性收口。
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 **Success Criteria** (what must be TRUE):
 1. metadata-only authoritative refresh 也会触发 statistics 重新获取或重新计算，不需要整页刷新。
 2. timeline 与 statistics 对同一份 overseas metadata / country completion 始终一致。
@@ -128,7 +128,7 @@ Plans:
 **UI hint:** yes
 
 Plans:
-- [ ] 31-01-PLAN.md — Statistics page metadata-aware refresh trigger + route/auth regressions
+- [x] 31-01-PLAN.md — Statistics page metadata-aware refresh trigger + route/auth regressions
 
 ### Phase 32: Route Deep-Link & Acceptance Closure
 **Goal:** `/timeline` 与 `/statistics` 的路由在目标部署环境可直达 / 刷新，同时 Timeline / Statistics 的人工验收与规划文档状态完成闭环。
@@ -150,12 +150,12 @@ Plans:
 | 28. Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 29 |
 | 29. Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Plan / execute Phase 32 |
 | 30. Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Plan / execute Phase 31, then close remaining UAT in Phase 32 |
-| 31. Statistics Sync Refresh Hardening | Planned | STAT-03 | Execute Phase 31 |
-| 32. Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Draft 32-PLAN.md after Phase 31 scope settles |
+| 31. Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 32 |
+| 32. Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Draft 32-PLAN.md |
 
 ## Current Status
 
-2026-04-24 的 milestone audit 认定 v6.0 仍有两类 gap 需要补齐：一是 statistics 对 metadata-only authoritative refresh 的同步重拉不完整，二是 `/timeline`、`/statistics` 的部署 deep-link / refresh 与 Timeline / Statistics 的人工验收尚未闭环。因此当前 milestone 已新增 Phase 31 和 Phase 32 作为 gap closure phases，后续顺序为：先修复统计刷新一致性，再完成路由部署验收、人工 UAT 和文档状态对齐。
+2026-04-24 的 milestone audit 认定 v6.0 仍有两类 gap 需要补齐：一是 statistics 对 metadata-only authoritative refresh 的同步重拉不完整，二是 `/timeline`、`/statistics` 的部署 deep-link / refresh 与 Timeline / Statistics 的人工验收尚未闭环。Phase 31 已完成统计刷新一致性收口，下一步进入 Phase 32 完成路由部署验收、人工 UAT 和文档状态对齐。
 
 ---
 *Last updated: 2026-04-24 — gap closure phases 31-32 added after milestone audit*
