@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: ready_to_plan
-stopped_at: Phase 31 complete — ready to plan Phase 32
-last_updated: "2026-04-27T09:31:19Z"
-last_activity: 2026-04-27 -- Phase 31 complete; ready to plan Phase 32
+status: planning
+stopped_at: Phase 32 context gathered
+last_updated: "2026-04-27T10:08:16.057Z"
+last_activity: 2026-04-27
 progress:
   total_phases: 6
-  completed_phases: 6
+  completed_phases: 5
   total_plans: 23
   completed_plans: 23
   percent: 100
@@ -87,9 +87,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-27T09:31:19Z
-Stopped at: Phase 31 complete — ready to plan Phase 32
-Resume file: None
+Last session: 2026-04-27T10:08:16.050Z
+Stopped at: Phase 32 context gathered
+Resume file: .planning/phases/32-route-deep-link-and-acceptance-closure/32-CONTEXT.md
 
 ---
 *Last updated: 2026-04-27 — after Phase 31 completion*
