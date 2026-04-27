@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v6.0` 启动中：产品接下来会把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，围绕旅行时间、独立时间轴页面、基础统计和更广海外覆盖继续演进，同时保留现有账号、同步与 Kawaii 地图主舞台体验。
+`v6.0` 收口中：产品已经把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路；当前剩余工作集中在 deep-link / refresh 部署验收与人工 UAT 闭环。
 
 ## Core Value
 
@@ -12,7 +12,7 @@
 
 ## Current State
 
-- **v6.0 进行中（Phase 27-29 已完成，准备进入 Phase 30）**：多次旅行记录数据基座、海外覆盖扩展和独立时间轴页面已经落地，当前下一步是基础旅行统计与完成度视图
+- **v6.0 进行中（Phase 31 已完成，准备进入 Phase 32）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性已经落地，当前下一步是 `/timeline` 与 `/statistics` 的 deep-link / refresh 和人工验收闭环
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
@@ -43,7 +43,6 @@
 
 - `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数
 - `STAT-02`: 用户可以查看国家/地区完成度
-- `STAT-03`: 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”
 
 ### Validated
 
@@ -58,6 +57,7 @@
 - ✓ 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类 — v6.0 / Phase 28
 - ✓ 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
 - ✓ 用户可以在时间轴页面按时间顺序查看自己的旅行记录，并区分同一地点的多次去访 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
+- ✓ 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”，且 authoritative metadata 刷新后统计与时间轴保持一致 — v6.0 / Phase 30-31（Validated in Phase 31: Statistics Sync Refresh Hardening）
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -83,6 +83,7 @@
 | v6.0 先把旅行记录升级为“多次去访 + 旅行日期”模型 | 时间轴和统计都依赖记录从 place-level presence 升级为 trip-level history | ✓ Good — Validated in Phase 27 |
 | 时间轴作为独立页面而不是地图内联模块 | 这是用户明确指定的交互路径，且更适合承载时间序列浏览 | ✓ Good — Validated in Phase 29 |
 | 时间轴入口放在点击用户名后展开的面板内 | 复用现有账号入口心智，避免在地图主舞台额外引入高噪声导航 | ✓ Good — Validated in Phase 29 |
+| 统计页保持 server-authoritative，并用 metadata-aware revision 触发重拉 | 避免在前端本地重算统计口径，同时保证 bootstrap / same-user sync 后不会出现统计滞后 | ✓ Good — Validated in Phase 31 |
 | 单条旅行记录编辑 / 局部删除延后 | 本轮先闭环新增、展示和统计，控制模型迁移复杂度 | — Pending |
 
 ## Archived Milestone Snapshots
@@ -157,4 +158,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-23 — after Phase 29 completion*
+*Last updated: 2026-04-27 — after Phase 31 completion*
