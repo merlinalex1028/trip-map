@@ -38,7 +38,15 @@ const shouldShowStats = computed(
 )
 const travelRecordRevision = computed(() =>
   travelRecords.value
-    .map((record) => `${record.id}:${record.placeId}:${record.createdAt}`)
+    .map((record) => [
+      record.id,
+      record.placeId,
+      record.createdAt,
+      record.parentLabel,
+      record.displayName,
+      record.typeLabel,
+      record.subtitle,
+    ].join('\u0000'))
     .join('|'),
 )
 
