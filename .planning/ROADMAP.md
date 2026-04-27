@@ -120,12 +120,15 @@ Plans:
 **Depends on:** Phase 28, Phase 30
 **Requirements:** STAT-03
 **Gap Closure:** closes audit integration gap `Phase 28 metadata backfill / same-user sync -> Phase 30 statistics refresh`，并补上 `Overseas metadata -> bootstrap/sync -> statistics completion` flow gap；同时支撑 `STAT-01` / `STAT-02` 的一致性收口。
-**Plans:** 0/0 plans drafted
+**Plans:** 1 plan
 **Success Criteria** (what must be TRUE):
 1. metadata-only authoritative refresh 也会触发 statistics 重新获取或重新计算，不需要整页刷新。
 2. timeline 与 statistics 对同一份 overseas metadata / country completion 始终一致。
 3. 回归测试覆盖 bootstrap、same-user sync 和 completion 指标不滞后的场景。
 **UI hint:** yes
+
+Plans:
+- [ ] 31-01-PLAN.md — Statistics page metadata-aware refresh trigger + route/auth regressions
 
 ### Phase 32: Route Deep-Link & Acceptance Closure
 **Goal:** `/timeline` 与 `/statistics` 的路由在目标部署环境可直达 / 刷新，同时 Timeline / Statistics 的人工验收与规划文档状态完成闭环。
@@ -147,7 +150,7 @@ Plans:
 | 28. Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 29 |
 | 29. Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Plan / execute Phase 32 |
 | 30. Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Plan / execute Phase 31, then close remaining UAT in Phase 32 |
-| 31. Statistics Sync Refresh Hardening | Planned | STAT-03 | Draft 31-PLAN.md |
+| 31. Statistics Sync Refresh Hardening | Planned | STAT-03 | Execute Phase 31 |
 | 32. Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Draft 32-PLAN.md after Phase 31 scope settles |
 
 ## Current Status
