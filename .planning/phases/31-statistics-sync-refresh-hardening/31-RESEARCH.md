@@ -360,16 +360,18 @@ function fetchOrQueueStatsRefresh() {
 | A2 | Refetching stats from `auth-session.ts` when the stats page is unmounted would waste requests. | Alternatives / Anti-Patterns | If wrong, a global invalidation design might still be acceptable, but it adds broader scope than needed. |
 | A3 | Browser-local stats duplication risks drift from backend aggregation. | Alternatives / Don't Hand-Roll | If wrong, local derived stats could be feasible, but it would contradict current server-authoritative architecture. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `updatedAt` be exposed in `TravelRecord` contracts?** [VERIFIED: current contract lacks `updatedAt`]
    - What we know: Server mappers omit `updatedAt` from `ContractTravelRecord`, and current records expose `createdAt`. [VERIFIED: `records.service.ts` + `auth.service.ts`]
    - What's unclear: Whether future metadata-only backfills should expose record update revision explicitly. [ASSUMED]
    - Recommendation: Do not add `updatedAt` in Phase 31 unless tests prove explicit update versioning is necessary; metadata fields are enough for this gap. [VERIFIED: current audit issue]
+   - RESOLVED: Phase 31 will not add `updatedAt` to `TravelRecord` contracts. The plan uses explicit metadata fields (`parentLabel`, `displayName`, `typeLabel`, `subtitle`) in the statistics page revision.
 2. **Should a reusable record-revision helper live outside the view?** [VERIFIED: no helper exists]
    - What we know: Only `StatisticsPageView.vue` currently needs the stats refresh revision. [VERIFIED: codebase grep]
    - What's unclear: Whether upcoming phases will need shared invalidation semantics. [ASSUMED]
    - Recommendation: Keep the helper local unless reuse appears during implementation. [ASSUMED]
+   - RESOLVED: Phase 31 keeps the revision local to `StatisticsPageView.vue` unless implementation discovers an already-existing direct helper pattern. No global event bus or auth-store stats fetch will be introduced.
 
 ## Environment Availability
 

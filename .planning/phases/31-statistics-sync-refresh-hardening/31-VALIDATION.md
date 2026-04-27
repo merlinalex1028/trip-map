@@ -2,9 +2,10 @@
 phase: 31
 slug: statistics-sync-refresh-hardening
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-24
+updated: 2026-04-27
 ---
 
 # Phase 31 — Validation Strategy
@@ -38,10 +39,8 @@ created: 2026-04-24
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 31-01-01 | 01 | 1 | STAT-03 | T-31-01 | statistics refresh revision includes metadata fields that affect country/completion stats, not just identity fields | component | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts` | ✅ | ⬜ pending |
-| 31-01-02 | 01 | 1 | STAT-03 | T-31-02 | same-user authoritative refresh triggers stats reload without forcing a session-boundary reset | component | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts src/stores/auth-session.spec.ts` | ✅ | ⬜ pending |
-| 31-02-01 | 02 | 2 | STAT-03 | T-31-03 | in-flight stats fetch coalesces into one follow-up refresh when metadata-only updates arrive mid-request | component | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts src/stores/stats.spec.ts` | ✅ | ⬜ pending |
-| 31-02-02 | 02 | 2 | STAT-03 | T-31-04 | timeline/statistics consistency hardening does not regress existing map-point or stats store semantics | integration | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts src/stores/stats.spec.ts src/stores/auth-session.spec.ts src/stores/map-points.spec.ts && pnpm --filter @trip-map/web typecheck` | ✅ | ⬜ pending |
+| 31-01-01 | 01 | 1 | STAT-03 | T-31-01, T-31-03 | statistics refresh revision includes `parentLabel`, `displayName`, `typeLabel`, and `subtitle`; metadata-only in-flight updates queue exactly one follow-up refresh | component | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts src/stores/stats.spec.ts` | ✅ | ⬜ pending |
+| 31-01-02 | 01 | 1 | STAT-03 | T-31-04 | same-user authoritative metadata refresh applies records without forcing a session-boundary reset | store | `pnpm --filter @trip-map/web exec vitest run src/views/StatisticsPageView.spec.ts src/stores/stats.spec.ts src/stores/auth-session.spec.ts` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -63,11 +62,11 @@ created: 2026-04-24
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 30s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 30s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — aligned with single-plan Phase 31 structure in `31-01-PLAN.md`
