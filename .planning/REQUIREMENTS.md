@@ -18,7 +18,7 @@
 
 - [ ] **STAT-01**: 用户可以查看基础旅行统计，包括总旅行次数、已去过地点数和已去过国家/地区数
 - [ ] **STAT-02**: 用户可以查看国家/地区完成度
-- [ ] **STAT-03**: 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”
+- [x] **STAT-03**: 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”
 
 ### Overseas Expansion（海外覆盖扩展）
 
@@ -63,7 +63,7 @@
 | TRIP-05 | Phase 32 | Pending |
 | STAT-01 | Phase 32 | Pending |
 | STAT-02 | Phase 32 | Pending |
-| STAT-03 | Phase 31 | Pending |
+| STAT-03 | Phase 31 | Complete |
 | GEOX-01 | Phase 28 | Complete |
 | GEOX-02 | Phase 28 | Complete |
 
