@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
 status: planning
-stopped_at: Phase 32 context gathered
-last_updated: "2026-04-27T10:08:16.057Z"
+stopped_at: Phase 32 UI-SPEC approved
+last_updated: "2026-04-27T11:38:55.552Z"
 last_activity: 2026-04-27
 progress:
   total_phases: 6
@@ -87,9 +87,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-27T10:08:16.050Z
-Stopped at: Phase 32 context gathered
-Resume file: .planning/phases/32-route-deep-link-and-acceptance-closure/32-CONTEXT.md
+Last session: 2026-04-27T11:38:55.535Z
+Stopped at: Phase 32 UI-SPEC approved
+Resume file: .planning/phases/32-route-deep-link-and-acceptance-closure/32-UI-SPEC.md
 
 ---
 *Last updated: 2026-04-27 — after Phase 31 completion*
