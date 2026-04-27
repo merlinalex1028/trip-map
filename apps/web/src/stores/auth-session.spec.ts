@@ -261,6 +261,47 @@ describe('auth-session store', () => {
       expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
     })
 
+    it('applies metadata-only same-user refresh without resetting the session boundary', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const currentUser = makeUser()
+      const previousRecord = makeRecord(PHASE12_RESOLVED_CALIFORNIA, {
+        id: 'record-california',
+        createdAt: '2025-02-01T00:00:00.000Z',
+      })
+      const nextRecords = [
+        {
+          ...previousRecord,
+          parentLabel: 'Canada',
+          displayName: 'Ontario',
+          typeLabel: 'Province',
+          subtitle: 'Canada · Province',
+        },
+      ]
+      const resetSpy = vi.spyOn(mapPointsStore, 'resetTravelRecordsForSessionBoundary')
+      const applySpy = vi.spyOn(mapPointsStore, 'applyAuthoritativeTravelRecords')
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = currentUser
+      mapPointsStore.replaceTravelRecords([previousRecord])
+      const boundaryVersionBefore = authSessionStore.boundaryVersion
+      fetchBootstrapMock.mockResolvedValueOnce({
+        authenticated: true,
+        user: currentUser,
+        records: nextRecords,
+      })
+
+      await authSessionStore.refreshAuthenticatedSnapshot()
+
+      expect(fetchBootstrapMock).toHaveBeenCalledTimes(1)
+      expect(resetSpy).not.toHaveBeenCalled()
+      expect(applySpy).toHaveBeenLastCalledWith(nextRecords)
+      expect(mapPointsStore.travelRecords).toEqual(nextRecords)
+      expect(authSessionStore.boundaryVersion).toBe(boundaryVersionBefore)
+      expect(mapUiStore.interactionNotice?.message ?? '').not.toContain('已切换到')
+    })
+
     it('keeps the current snapshot when same-user refresh fails with a non-401 error', async () => {
       const authSessionStore = useAuthSessionStore()
       const mapPointsStore = useMapPointsStore()

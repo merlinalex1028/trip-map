@@ -163,6 +163,122 @@ describe('StatisticsPageView', () => {
     )
   })
 
+  it('re-fetches statistics after metadata-only authoritative refresh changes country metadata', async () => {
+    fetchStatsMock
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 2,
+        totalSupportedCountries: 21,
+      })
+
+    const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+      id: 'california-1',
+      createdAt: '2025-02-01T00:00:00.000Z',
+    })
+    const refreshedRecord = {
+      ...baseRecord,
+      parentLabel: 'Canada',
+      displayName: 'Ontario',
+      typeLabel: 'Province',
+      subtitle: 'Canada · Province',
+    }
+
+    const { mapPointsStore, wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([baseRecord])
+    })
+
+    await flushPromises()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    mapPointsStore.replaceTravelRecords([refreshedRecord])
+    await nextTick()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('[data-state="populated"]').text()).toContain(
+      '1 次旅行 · 1 个地点 · 2 个国家/地区',
+    )
+  })
+
+  it('queues one follow-up refresh for in-flight metadata-only authoritative updates', async () => {
+    let resolveFirst!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+    let resolveSecond!: (value: {
+      totalTrips: number
+      uniquePlaces: number
+      visitedCountries: number
+      totalSupportedCountries: number
+    }) => void
+
+    fetchStatsMock
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSecond = resolve
+          }),
+      )
+
+    const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+      id: 'california-1',
+      createdAt: '2025-02-01T00:00:00.000Z',
+    })
+    const refreshedRecord = {
+      ...baseRecord,
+      parentLabel: 'Canada',
+      displayName: 'Ontario',
+      typeLabel: 'Province',
+      subtitle: 'Canada · Province',
+    }
+
+    const { mapPointsStore, wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([baseRecord])
+    })
+
+    await flushPromises()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    mapPointsStore.replaceTravelRecords([refreshedRecord])
+    await nextTick()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 21 })
+    await flushPromises()
+    await nextTick()
+
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+
+    resolveSecond({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 2, totalSupportedCountries: 21 })
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('[data-state="populated"]').text()).toContain(
+      '1 次旅行 · 1 个地点 · 2 个国家/地区',
+    )
+  })
+
   it('shows visitedCountries in populated state without inflating for multi-visit same place', async () => {
     let resolveStats!: (value: {
       totalTrips: number
