@@ -45,7 +45,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 | 32 | Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
 | 33 | Documentation Cleanup | 1/1 | Complete   | 2026-04-28 |
 | 34 | Nyquist Validation Coverage | 2/2 | Complete    | 2026-04-28 |
-| 35 | Test Fixture Alignment | Planned | — (tech debt) | Phase 30 |
+| 35 | Test Fixture Alignment | 1/1 | Complete | — (tech debt) | Phase 30 |
 
 ## Phase Details
 
@@ -190,9 +190,13 @@ Plans:
 **Depends on:** Phase 30
 **Requirements:** — (tech debt closure)
 **Gap Closure:** closes v6.0-MILESTONE-AUDIT.md test fixture tech debt item
+**Plans:** 1/1 plans complete
 **Success Criteria** (what must be TRUE):
 1. Server stats test mock 改为从 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 导入或计算，不再硬编码数字。
 **UI hint:** no
+
+Plans:
+- [x] 35-01-PLAN.md — 将 records.service.spec.ts 中 4 处硬编码 21 替换为 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量
 
 ## Progress Table
 
@@ -206,7 +210,7 @@ Plans:
 | 32. Route Deep-Link & Acceptance Closure | Complete | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 33 (doc cleanup) |
 | 33. Documentation Cleanup | Planned | — (tech debt) | Phase 34 |
 | 34. Nyquist Validation Coverage | Planned | — (tech debt) | Phase 35 |
-| 35. Test Fixture Alignment | Planned | — (tech debt) | Milestone complete |
+| 35. Test Fixture Alignment | Complete | — (tech debt) | Milestone complete |
 
 ## Current Status
 
