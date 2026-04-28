@@ -215,6 +215,9 @@ describe('App auth shell', () => {
       startDate: null,
       endDate: null,
       createdAt: '2026-04-12T00:00:00.000Z',
+      updatedAt: '2026-04-20T00:00:00.000Z',
+      notes: null,
+      tags: [],
     }
 
     const { wrapper } = await mountApp((authSessionStore) => {
@@ -457,6 +460,9 @@ describe('App auth shell', () => {
           startDate: null,
           endDate: null,
           createdAt: '2026-04-12T00:00:00.000Z',
+          updatedAt: '2026-04-20T00:00:00.000Z',
+          notes: null,
+          tags: [],
         },
       ])
       mapUiStore.setInteractionNotice({
@@ -526,6 +532,9 @@ describe('App auth shell', () => {
       startDate: null,
       endDate: null,
       createdAt: '2026-04-12T00:00:00.000Z',
+      updatedAt: '2026-04-20T00:00:00.000Z',
+      notes: null,
+      tags: [],
     }
     const { wrapper } = await mountApp((store) => {
       store.status = 'authenticated'

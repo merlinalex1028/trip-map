@@ -48,6 +48,9 @@ function toContractTravelRecord(record: UserTravelRecord): TravelRecord {
     startDate: record.startDate ?? null,
     endDate: record.endDate ?? null,
     createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    notes: record.notes ?? null,
+    tags: record.tags,
   }
 }
 

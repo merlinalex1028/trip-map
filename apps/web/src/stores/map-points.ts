@@ -392,6 +392,9 @@ export const useMapPointsStore = defineStore('map-points', () => {
       startDate,
       endDate,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      notes: null,
+      tags: [],
     }
 
     travelRecords.value = [...travelRecords.value, optimisticRecord]

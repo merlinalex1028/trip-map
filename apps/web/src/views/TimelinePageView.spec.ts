@@ -46,6 +46,9 @@ function makeRecord(
     startDate: null,
     endDate: null,
     createdAt: '2025-01-01T00:00:00.000Z',
+    updatedAt: '2025-01-01T00:00:00.000Z',
+    notes: null,
+    tags: [],
     ...overrides,
   }
 }

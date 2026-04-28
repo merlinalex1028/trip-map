@@ -44,6 +44,8 @@ function createTravelRecord(overrides: Partial<UserTravelRecord> = {}): UserTrav
     subtitle: '直辖市 · 中国',
     startDate: null,
     endDate: null,
+    notes: null,
+    tags: [],
     createdAt: new Date('2026-04-20T00:00:00.000Z'),
     updatedAt: new Date('2026-04-20T00:00:00.000Z'),
     ...overrides,

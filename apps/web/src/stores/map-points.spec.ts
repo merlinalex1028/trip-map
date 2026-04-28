@@ -55,6 +55,9 @@ function makeRecord(
     startDate: null,
     endDate: null,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    notes: null,
+    tags: [],
     ...overrides,
   }
 }
@@ -103,6 +106,9 @@ function makeOverseasRecord(
     startDate: null,
     endDate: null,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    notes: null,
+    tags: [],
     ...overrides,
   }
 }
