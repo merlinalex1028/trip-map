@@ -6,6 +6,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 
 import App from './App.vue'
 import MapHomeView from './views/MapHomeView.vue'
+import StatisticsPageView from './views/StatisticsPageView.vue'
 import TimelinePageView from './views/TimelinePageView.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapPointsStore } from './stores/map-points'
@@ -72,6 +73,11 @@ async function mountApp(
         path: '/timeline',
         name: 'timeline',
         component: TimelinePageView,
+      },
+      {
+        path: '/statistics',
+        name: 'statistics',
+        component: StatisticsPageView,
       },
       {
         path: '/:pathMatch(.*)*',
@@ -303,6 +309,8 @@ describe('App auth shell', () => {
     expect(wrapper.get('[data-local-import-dialog]').text()).toContain('finalCount')
   })
 
+  // NOTE: App.spec.ts 使用独立的 memory router（不含 auth guard）。
+  // 真实 router 的 auth guard 行为由 router/index.spec.ts 覆盖。
   it('renders timeline route without LeafletMapStage', async () => {
     const { wrapper } = await mountApp((authSessionStore) => {
       authSessionStore.status = 'anonymous'
@@ -356,6 +364,12 @@ describe('App auth shell', () => {
     expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(false)
     expect(wrapper.find('[data-region="map-shell"]').exists()).toBe(false)
     expect(wrapper.find('[data-route-view="timeline"]').exists()).toBe(true)
+
+    await router.push('/statistics')
+    await flushPromises()
+
+    expect(wrapper.find('[data-region="map-stage"]').exists()).toBe(false)
+    expect(wrapper.find('[data-route-view="statistics"]').exists()).toBe(true)
   })
 
   it('renders the logout boundary notice in the app shell', async () => {
