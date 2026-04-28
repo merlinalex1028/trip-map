@@ -25,10 +25,10 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 
 - [x] **Phase 27: Multi-Visit Record Foundation** - 把账号旅行记录从"每地点一条"升级为"每次旅行一条"，引入旅行日期并保住现有地图点亮主链路 (completed 2026-04-20)
 - [x] **Phase 28: Overseas Coverage Expansion** - 把 authoritative overseas support catalog 扩展到更广的优先国家/地区，并让扩展后的记录在历史与统计视图中保持一致 (completed 2026-04-22)
-- [ ] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面（实现已完成，审计后转入 gap closure pending）
-- [ ] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度（实现已完成，审计后转入 gap closure pending）
+- [x] **Phase 29: Timeline Page & Account Entry** - 在用户名面板增加时间轴入口，并交付独立的个人旅行时间轴页面（已由 Phase 32 收口完成）
+- [x] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度（已由 Phase 32 收口完成）
 - [x] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致 (completed 2026-04-27)
-- [ ] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐
+- [x] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐 (completed 2026-04-28)
 
 ## Phase Overview
 
@@ -135,17 +135,17 @@ Plans:
 **Depends on:** Phase 29, Phase 30, Phase 31
 **Requirements:** TRIP-04, TRIP-05, STAT-01, STAT-02
 **Gap Closure:** closes audit integration gap `Vue Router createWebHistory -> production hosting deep-link / refresh`，并收口 Phase 29 / Phase 30 的 human-needed 验收、`#/timeline` 文档漂移与 roadmap 状态不一致问题。
-**Plans:** 0/3 plans drafted
+**Plans:** 3/3 plans complete
 **Success Criteria** (what must be TRUE):
-1. `/timeline` 与 `/statistics` 在目标部署方式下 direct-open / refresh 不返回 404。（Plan 32-02 ✅ SPA fallback 配置完成）
-2. Timeline / Statistics 的真实浏览器与移动/桌面验收完成，并写回对应 HUMAN-UAT / VERIFICATION / ROADMAP。（Plan 32-03 Task 1 ✅ 文档对齐完成）
-3. `ROADMAP.md`、HUMAN-UAT 与运行时路由写法一致，不再出现 `#/timeline` 这类漂移。（✅ 已清理）
+1. `/timeline` 与 `/statistics` 在目标部署方式下 direct-open / refresh 不返回 404。（✅ Plan 32-02 SPA fallback 配置完成）
+2. Timeline / Statistics 的真实浏览器与移动/桌面验收完成，并写回对应 HUMAN-UAT / VERIFICATION / ROADMAP。（✅ Plan 32-03 文档对齐 + 人工 UAT 完成）
+3. `ROADMAP.md`、HUMAN-UAT 与运行时路由写法一致，不再出现 `#/timeline` 这类漂移。（✅ 5 个文档已清理）
 **UI hint:** yes
 
 Plans:
 - [x] 32-01-PLAN.md — Router auth guard + test coverage (Wave 1)
 - [x] 32-02-PLAN.md — Deploy fallback configuration (Wave 1, checkpoint: deploy verify)
-- [ ] 32-03-PLAN.md — Documentation alignment & human UAT (Wave 2, depends on 32-01, checkpoint: human UAT)
+- [x] 32-03-PLAN.md — Documentation alignment & human UAT (Wave 2, depends on 32-01, checkpoint: human UAT)
 
 ## Progress Table
 
@@ -156,7 +156,7 @@ Plans:
 | 29. Timeline Page & Account Entry | Complete | TRIP-04, TRIP-05 | Closed by Phase 32 doc alignment |
 | 30. Travel Statistics & Completion Overview | Complete | STAT-01, STAT-02, STAT-03 | Closed by Phase 32 deploy fallback + doc alignment |
 | 31. Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 32 |
-| 32. Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Plan 32-01, 32-02 complete; Plan 32-03 in progress |
+| 32. Route Deep-Link & Acceptance Closure | Complete | TRIP-04, TRIP-05, STAT-01, STAT-02 | All 3 plans complete |
 
 ## Current Status
 
