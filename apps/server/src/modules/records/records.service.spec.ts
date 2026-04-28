@@ -281,7 +281,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 2,
         visitedCountries: 2,
-        totalSupportedCountries: 21,
+        totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
       })
 
       const result = await service.getStats('user-1')
@@ -291,7 +291,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 2,
         visitedCountries: 2,
-        totalSupportedCountries: 21,
+        totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
       })
     })
 
@@ -303,7 +303,7 @@ describe('RecordsService', () => {
         totalTrips: 3,
         uniquePlaces: 1,
         visitedCountries: 1,
-        totalSupportedCountries: 21,
+        totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
       })
 
       const result = await service.getStats('user-1')
@@ -311,7 +311,7 @@ describe('RecordsService', () => {
       expect(result.totalTrips).toBe(3)
       expect(result.uniquePlaces).toBe(1)
       expect(result.visitedCountries).toBe(1)
-      expect(result.totalSupportedCountries).toBe(21)
+      expect(result.totalSupportedCountries).toBe(TOTAL_SUPPORTED_TRAVEL_COUNTRIES)
     })
   })
 
