@@ -29,7 +29,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 - [x] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度（已由 Phase 32 收口完成）
 - [x] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致 (completed 2026-04-27)
 - [x] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐 (completed 2026-04-28)
-- [ ] **Phase 33: Documentation Cleanup** - 补全 Phase 32 VERIFICATION.md、同步 REQUIREMENTS.md 追踪表、更新 Phase 29/30 VERIFICATION status
+- [x] **Phase 33: Documentation Cleanup** - 补全 Phase 32 VERIFICATION.md、同步 REQUIREMENTS.md 追踪表、更新 Phase 29/30 VERIFICATION status (completed 2026-04-28)
 - [ ] **Phase 34: Nyquist Validation Coverage** - 补全 Phase 27/29/30/32 Nyquist 验证策略
 - [ ] **Phase 35: Test Fixture Alignment** - Server mock 引用权威 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量
 
@@ -43,7 +43,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 | 30 | Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
 | 31 | Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 28, Phase 30 |
 | 32 | Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
-| 33 | Documentation Cleanup | Planned | — (tech debt) | Phase 32 |
+| 33 | Documentation Cleanup | 1/1 | Complete   | 2026-04-28 |
 | 34 | Nyquist Validation Coverage | Planned | — (tech debt) | Phase 27, Phase 29, Phase 30, Phase 32 |
 | 35 | Test Fixture Alignment | Planned | — (tech debt) | Phase 30 |
 
@@ -158,7 +158,7 @@ Plans:
 **Depends on:** Phase 32
 **Requirements:** — (tech debt closure)
 **Gap Closure:** closes v6.0-MILESTONE-AUDIT.md documentation tech debt items
-**Plans:** 1/1 plans
+**Plans:** 1/1 plans complete
 **Success Criteria** (what must be TRUE):
 1. 32-VERIFICATION.md 存在，包含 router guard / SPA fallback / 文档对齐的验证证据。
 2. REQUIREMENTS.md 追踪表所有 Phase 32 需求标记为 Complete。
@@ -166,7 +166,7 @@ Plans:
 **UI hint:** no
 
 Plans:
-- [ ] 33-01-PLAN.md — 创建 32-VERIFICATION.md + 修复 29/30 VERIFICATION.md 正文状态
+- [x] 33-01-PLAN.md — 创建 32-VERIFICATION.md + 修复 29/30 VERIFICATION.md 正文状态
 
 ### Phase 34: Nyquist Validation Coverage
 **Goal:** 补全 Phase 27/29/30/32 的 Nyquist 验证策略，使其 nyquist_compliant + wave_0_complete。
