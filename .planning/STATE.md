@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: completed
-stopped_at: v6.0 milestone archived
-last_updated: "2026-04-28T07:11:08.923Z"
+milestone: v7.0
+milestone_name: 旅行记录编辑与删除
+status: planning
+last_updated: "2026-04-28T08:42:27.070Z"
 last_activity: 2026-04-28
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 30
-  completed_plans: 30
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,14 +24,10 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 
 ## Current Position
 
-Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
-Last shipped milestone: v5.0 — 账号体系与云同步基础版
-Phase: 35
-Plan: Not started
-Status: Milestone complete
-Last activity: 2026-04-28
-
-Progress: [██████████] 100%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-28 — Milestone v7.0 started
 
 ## Performance Metrics
 

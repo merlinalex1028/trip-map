@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v6.0` 收口中：产品已经把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路；当前里程碑已归档。
+`v6.0` 已完成：产品已经把”去过哪里”升级为”什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路。`v7.0` 聚焦旅行记录编辑与删除——让用户可以修改已有记录的日期、添加备注/标签，并删除单条记录。
 
 ## Core Value
 
@@ -25,15 +25,21 @@
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
 
-## Next Milestone
+## Current Milestone: v7.0 旅行记录编辑与删除
 
-下一里程碑待启动 — 运行 `/gsd-new-milestone` 开始规划。
+**Goal:** 让用户可以编辑已有旅行记录、添加元数据，并删除单条记录
+
+**Target features:**
+- 编辑旅行日期（修改已有记录的开始/结束日期）
+- 添加备注/标签（为旅行记录附加元数据）
+- 单条记录删除（删除单条而非地点级清除）
+- 确认弹窗（编辑/删除前的确认机制，无撤销历史）
 
 ## Requirements
 
 ### Active
 
-（暂无 — 下一里程碑将定义新的 Active requirements）
+（待本里程碑需求定义阶段填充）
 
 ### Validated
 
@@ -63,7 +69,7 @@
 - 同步历史、最近同步时间与更完整的同步状态可见性 — 本轮不处理同步可观察性增强
 - 分享、公开主页与协作能力 — 会引入权限与隐私模型，超出本轮单用户旅行表达范围
 - 旅行照片、游记正文与富文本内容 — 当前只承载旅行时间和基础统计，不做内容社区化
-- 单条旅行记录的编辑 / 局部删除工作流 — v6.0 先聚焦新增与展示，地图取消点亮仍保持地点级清理语义
+- ~~单条旅行记录的编辑 / 局部删除工作流~~ — 已纳入 v7.0 里程碑范围
 - 自动轨迹、GPS 采集或外部行程导入 — 偏离当前“手动点亮 + 主动记录”的产品主线
 - Dark mode — 目前仍非优先项
 - JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
@@ -77,7 +83,9 @@
 | 时间轴作为独立页面而不是地图内联模块 | 这是用户明确指定的交互路径，且更适合承载时间序列浏览 | ✓ Good — Validated in Phase 29 |
 | 时间轴入口放在点击用户名后展开的面板内 | 复用现有账号入口心智，避免在地图主舞台额外引入高噪声导航 | ✓ Good — Validated in Phase 29 |
 | 统计页保持 server-authoritative，并用 metadata-aware revision 触发重拉 | 避免在前端本地重算统计口径，同时保证 bootstrap / same-user sync 后不会出现统计滞后 | ✓ Good — Validated in Phase 31 |
-| 单条旅行记录编辑 / 局部删除延后 | 本轮先闭环新增、展示和统计，控制模型迁移复杂度 | — Pending |
+| 单条旅行记录编辑 / 局部删除延后 | 本轮先闭环新增、展示和统计，控制模型迁移复杂度 | ✓ Resolved — 纳入 v7.0 |
+| v7.0 编辑不含地点修改 | 关联地点不可变更，避免 placeId / boundaryId 级联更新复杂度 | — Pending |
+| v7.0 无编辑历史/撤销 | 仅确认弹窗，不做 undo 栈，控制实现复杂度 | — Pending |
 
 ## Archived Milestone Snapshots
 
@@ -151,4 +159,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 — after v6.0 milestone archive*
+*Last updated: 2026-04-28 — start v7.0 milestone*
