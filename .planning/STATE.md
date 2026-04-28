@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: 旅行记录编辑与删除
 status: planning
-last_updated: "2026-04-28T08:42:27.070Z"
+last_updated: "2026-04-28"
 last_activity: 2026-04-28
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,64 +17,45 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-23)
+See: .planning/PROJECT.md
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 35 — test-fixture-alignment
+**Current focus:** v7.0 旅行记录编辑与删除 — Phase 36 数据层扩展
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 36 — 数据层扩展（Not started）
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-28 — Milestone v7.0 started
+Status: Roadmap created, ready to plan Phase 36
+Last activity: 2026-04-28 — v7.0 roadmap created
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Last shipped milestone: v5.0
-- Archived scope: 4 phases / 22 plans / 26 tasks
-- Current roadmap: 6 planned phases (27-32)
+- Last shipped milestone: v6.0（9 phases, 30 plans, 65 tasks）
+- Current roadmap: 4 planned phases (36-39)
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 27 | 6 | - | - |
-| 28 | 7 | - | - |
-| 29 | 4 | - | - |
-| 30 | 5 | - | - |
-| 31 | 1 | - | - |
-| 34 | 2 | - | - |
-| 35 | 1 | - | - |
-
-**Recent Trend:**
-
-- Last 5 milestones/actions: Phase 29 complete, Phase 30 gap closure executed, Phase 30 verification reached human-needed gate, Phase 31 statistics refresh hardening complete, Phase 32 ready to plan
-- Trend: Multi-visit foundation、overseas expansion、timeline page 与统计主链路都已交付；当前剩余 Phase 32 的 deep-link / refresh 与验收闭环
-
-| Phase 27 | complete | 6/6 plans | shipped 2026-04-20 |
-| Phase 28 | complete | 7/7 plans | shipped 2026-04-22 |
-| Phase 29 | complete | 4/4 plans | shipped 2026-04-23 |
-| Phase 30 | human_needed | 5/5 plans | awaiting UAT approval |
-| Phase 31 | complete | 1/1 plans | shipped 2026-04-27 |
-| Init | complete | docs | 4 files |
-| Phase 32 P32-01,32-02,32-03 | 30m | 3 tasks | 10 files |
-| Phase 33 P01 | 3m25s | 2 tasks | 4 files |
+| Phase | Plans | Status |
+|-------|-------|--------|
+| 36 | TBD | Not started |
+| 37 | TBD | Not started |
+| 38 | TBD | Not started |
+| 39 | TBD | Not started |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting shipped state:
-
-- v5.0 只做邮箱密码 + `sid` cookie 会话，不引入 OAuth 或 JWT refresh 体系。
-- 账号化先锁定 ownership、session 边界和首登迁移，再处理多设备一致与海外覆盖扩展。
-- 海外覆盖仅承诺优先国家/地区的 admin1 扩展，不做全球城市级统一覆盖。
-- `/auth/bootstrap` 成为 web 端 authoritative snapshot 的单一真源，地图层不再自发补打一条 `/records` restore 通道。
-- 海外 admin1 的 displayName / typeLabel / parentLabel / subtitle 统一由 manifest-backed catalog 提供，服务端 resolve、records 校验和 backfill 共用同一真源。
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| v7.0 编辑不含地点修改 | 关联地点不可变更，避免 placeId / boundaryId 级联更新复杂度 | — Pending |
+| v7.0 无编辑历史/撤销 | 仅确认弹窗，不做 undo 栈，控制实现复杂度 | — Pending |
+| 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | — Pending |
+| PATCH 语义而非 PUT | 部分更新场景更灵活，place 字段不可编辑 | — Pending |
+| 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | — Pending |
 
 ### Pending Todos
 
@@ -82,7 +63,7 @@ None yet.
 
 ### Deferred Items
 
-Items acknowledged and deferred at v6.0 milestone close on 2026-04-28:
+Items acknowledged and deferred at v6.0 milestone close:
 
 | Category | Item | Status |
 |----------|------|--------|
@@ -109,10 +90,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T07:10:00.000Z
-Stopped at: v6.0 milestone archived
+Last session: 2026-04-28
+Stopped at: v7.0 roadmap created
 
 ---
-*Last updated: 2026-04-28 — after v6.0 milestone archive*
 
-**Next:** Start new milestone with `/gsd-new-milestone`
+*Last updated: 2026-04-28 — v7.0 roadmap created*
+
+**Next:** Plan Phase 36 with `/gsd-plan-phase 36`

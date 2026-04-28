@@ -40,7 +40,22 @@
 
 ## Traceability
 
-（由 roadmap 填充）
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| EDIT-01 | Phase 36（API）+ Phase 38（UI） | Pending |
+| EDIT-02 | Phase 36（API）+ Phase 38（UI） | Pending |
+| EDIT-03 | Phase 36（API）+ Phase 38（UI） | Pending |
+| EDIT-04 | Phase 36（后端校验）+ Phase 38（前端检查） | Pending |
+| DEL-01 | Phase 36（API）+ Phase 38（UI） | Pending |
+| DEL-02 | Phase 38 | Pending |
+| DEL-03 | Phase 38 | Pending |
+| SYNC-01 | Phase 37 | Pending |
+| SYNC-02 | Phase 37 | Pending |
+| SYNC-03 | Phase 37 | Pending |
+| SYNC-04 | Phase 37 | Pending |
+
+> 13/13 requirements mapped — 100% coverage ✓
 
 ---
 *Created: 2026-04-28*
+*Updated: 2026-04-28 — traceability filled by roadmap*
