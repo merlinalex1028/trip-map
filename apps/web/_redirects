@@ -1,0 +1,3 @@
+# SPA fallback for Netlify / Cloudflare Pages
+# All non-asset, non-API paths serve index.html (HTML5 History Mode)
+/*  /index.html  200
