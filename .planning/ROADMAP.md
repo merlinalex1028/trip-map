@@ -37,7 +37,11 @@
 3. 编辑日期时若与同地点其他记录日期冲突，系统返回 409 并附带冲突提示信息
 4. 备注超过 1000 字符或标签超过 10 个/每个超过 20 字符时，系统返回验证错误
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 36-01-PLAN.md — Prisma schema 扩展 notes/tags + contracts 更新 TravelRecord 接口 + 新增 UpdateTravelRecordRequest
+- [ ] 36-02-PLAN.md — DTO + Repository + Service + Controller 实现 PATCH/DELETE 端点 + Schema Push + 验证
 
 ---
 
@@ -107,7 +111,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 36. 数据层扩展 | 0/? | Not started | - |
+| 36. 数据层扩展 | 0/2 | Not started | - |
 | 37. 前端 Store 与 API 层 | 0/? | Not started | - |
 | 38. 时间轴编辑/删除 UI | 0/? | Not started | - |
 | 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
