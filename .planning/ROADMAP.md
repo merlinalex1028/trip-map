@@ -40,8 +40,17 @@
 **Plans:** 2 plans
 
 Plans:
+
+**Wave 1** — Schema & Contracts（无依赖）
 - [ ] 36-01-PLAN.md — Prisma schema 扩展 notes/tags + contracts 更新 TravelRecord 接口 + 新增 UpdateTravelRecordRequest
+
+**Wave 2** *(blocked on Wave 1 completion)* — API 端点实现
 - [ ] 36-02-PLAN.md — DTO + Repository + Service + Controller 实现 PATCH/DELETE 端点 + Schema Push + 验证
+
+Cross-cutting constraints:
+- 行级权限：所有 repository 方法 where 条件同时匹配 `id + userId`
+- 标签清洗：trim + 去重 + 过滤空字符串（D-10/D-11）
+- 日期冲突：P2002 → 409 ConflictException（D-06）
 
 ---
 
