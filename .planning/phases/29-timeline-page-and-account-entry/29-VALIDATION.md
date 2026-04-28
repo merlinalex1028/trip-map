@@ -1,9 +1,9 @@
 ---
 phase: 29
 slug: timeline-page-and-account-entry
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-23
 ---
 
@@ -38,11 +38,11 @@ created: 2026-04-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 29-01-01 | 01 | 1 | TRIP-04 | — | route setup keeps timeline in same-tab SPA shell and never exposes stale map-only fallback | typecheck | `pnpm --filter @trip-map/web typecheck` | ✅ | ⬜ pending |
-| 29-01-02 | 01 | 1 | TRIP-04 | — | authenticated menu shows timeline CTA and navigation closes menu before route change | component | `pnpm --filter @trip-map/web test -- src/components/auth/AuthTopbarControl.spec.ts` | ❌ W0 | ⬜ pending |
-| 29-02-01 | 02 | 1 | TRIP-05 | — | timeline entries preserve one record per trip and never collapse multi-visit data into one place row | unit | `pnpm --filter @trip-map/web test -- src/services/timeline.spec.ts src/stores/map-points.spec.ts` | ❌ W0 | ⬜ pending |
-| 29-03-01 | 03 | 2 | TRIP-05 | — | timeline page renders authenticated list, anonymous CTA, and empty/restoring states without leaking map-stage-only assumptions | component | `pnpm --filter @trip-map/web test -- src/views/TimelinePageView.spec.ts` | ❌ W0 | ⬜ pending |
-| 29-04-01 | 04 | 3 | TRIP-04, TRIP-05 | — | route, menu, and timeline ordering stay correct end-to-end across map and timeline pages | integration | `pnpm --filter @trip-map/web test -- src/App.spec.ts src/components/auth/AuthTopbarControl.spec.ts src/views/TimelinePageView.spec.ts src/services/timeline.spec.ts` | ❌ W0 | ⬜ pending |
+| 29-01-01 | 01 | 1 | TRIP-04 | — | route setup keeps timeline in same-tab SPA shell and never exposes stale map-only fallback | typecheck | `pnpm --filter @trip-map/web typecheck` | ✅ | ✅ green |
+| 29-01-02 | 01 | 1 | TRIP-04 | — | authenticated menu shows timeline CTA and navigation closes menu before route change | component | `pnpm --filter @trip-map/web test -- src/components/auth/AuthTopbarControl.spec.ts` | ✅ | ✅ green |
+| 29-02-01 | 02 | 1 | TRIP-05 | — | timeline entries preserve one record per trip and never collapse multi-visit data into one place row | unit | `pnpm --filter @trip-map/web test -- src/services/timeline.spec.ts src/stores/map-points.spec.ts` | ✅ | ✅ green |
+| 29-03-01 | 03 | 2 | TRIP-05 | — | timeline page renders authenticated list, anonymous CTA, and empty/restoring states without leaking map-stage-only assumptions | component | `pnpm --filter @trip-map/web test -- src/views/TimelinePageView.spec.ts` | ✅ | ✅ green |
+| 29-04-01 | 04 | 3 | TRIP-04, TRIP-05 | — | route, menu, and timeline ordering stay correct end-to-end across map and timeline pages | integration | `pnpm --filter @trip-map/web test -- src/App.spec.ts src/components/auth/AuthTopbarControl.spec.ts src/views/TimelinePageView.spec.ts src/services/timeline.spec.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,9 +50,9 @@ created: 2026-04-23
 
 ## Wave 0 Requirements
 
-- [ ] `apps/web/src/components/auth/AuthTopbarControl.spec.ts` — 锁定时间轴菜单入口显隐和导航
-- [ ] `apps/web/src/views/TimelinePageView.spec.ts` — 锁定时间轴页状态与列表渲染
-- [ ] `apps/web/src/services/timeline.spec.ts` — 锁定排序与多次去访拆分
+- [x] `apps/web/src/components/auth/AuthTopbarControl.spec.ts` — 锁定时间轴菜单入口显隐和导航（29-04-SUMMARY: commit 0be15f8）
+- [x] `apps/web/src/views/TimelinePageView.spec.ts` — 锁定时间轴页状态与列表渲染（29-04-SUMMARY: commit 6badc58）
+- [x] `apps/web/src/services/timeline.spec.ts` — 锁定排序与多次去访拆分（29-02-SUMMARY: commit 15b8e84）
 
 ---
 
@@ -68,11 +68,11 @@ created: 2026-04-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 60s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 60s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-28
