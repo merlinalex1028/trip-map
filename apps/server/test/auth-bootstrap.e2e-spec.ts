@@ -311,6 +311,9 @@ describe('Auth bootstrap API', () => {
           startDate: null,
           endDate: null,
           createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+          notes: null,
+          tags: [],
         },
       ],
     })
