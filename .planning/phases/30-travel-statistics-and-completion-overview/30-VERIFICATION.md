@@ -26,7 +26,7 @@ human_verification:
 
 **Phase Goal:** 用户可以基于自己的旅行历史看到基础旅行统计与国家/地区完成度，并正确区分总旅行次数与唯一地点完成度。  
 **Verified:** 2026-04-23T10:32:12Z  
-**Status:** human_needed  
+**Status:** passed  
 **Re-verification:** Yes - after gap closure
 
 ## Goal Achievement
@@ -146,9 +146,7 @@ No orphaned Phase 30 requirements found in `REQUIREMENTS.md`.
 本轮 re-verification 确认：上一版 `30-VERIFICATION.md` 里的 3 个 blocker gap 已全部关闭。Phase 30 现在已经具备完整的核心统计链路：  
 后端能返回四字段统计，`visitedCountries` 与 `totalSupportedCountries` 的口径来自 authoritative catalog；前端 store、统计页和账号面板入口全部连通；多次旅行不会错误放大唯一地点或完成度语义。  
 
-当前没有阻塞 Phase 30 goal achievement 的代码缺口，因此不再是 `gaps_found`。本次状态保留为 `human_needed`，原因只有两类：
-1. 统计页作为 UI 功能，仍需要人工确认真实浏览器中的可读性与交互体验。
-2. `createWebHistory()` 的部署 fallback 风险属于外部环境问题，不阻塞核心统计链路，但必须在实际部署中验收。
+当前没有阻塞 Phase 30 goal achievement 的代码缺口，因此不再是 `gaps_found`。Phase 32 已完成人工验收（Phase 32 Plan 03 Human UAT approved）与 SPA fallback 配置（Phase 32 Plan 02），此前两项待人工验收的遗留问题均已闭环，状态更新为 `passed`。
 
 ---
 
