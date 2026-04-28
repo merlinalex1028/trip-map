@@ -1,5 +1,41 @@
 # Milestones
 
+## v6.0 旅行统计、时间轴与海外覆盖增强版 (Shipped: 2026-04-28)
+
+**Phases completed:** 9 phases, 30 plans, 65 tasks
+
+**Key accomplishments:**
+
+- TravelRecord 契约新增 nullable 日期字段，UserTravelRecord 去唯一化并已推送到 Supabase 开发库
+- records 与 auth 后端链路已支持多次旅行记录、nullable 日期字段和 bootstrap 日期恢复，前端可直接消费 trip-level 日期契约
+- map-points store 已升级为 trip-level 多条记录模型，legacy 迁移统一输出未知日期，并为后续日期 UI 准备好 `tripsByPlaceId` 与日期入参契约
+- popup 内联日期表单、多次去访摘要与“再记一次”交互已经接到 map stage/store 契约上，用户在同一地点可追加多条旅行记录
+- LeafletMapStage 的“最近一次”摘要已从 `createdAt` 切换为 `endDate ?? startDate` 选取，并有回归测试兜住补录旧旅行的错误排序
+- 后端 gap closure 已补齐 DTO 直接契约绑定、批量导入日期区间复用校验，以及 UserTravelRecord 的四元组数据库唯一约束兜底
+- Regionalized 21-country overseas support authoring, emitted a v3 geometry dataset with canonical English admin labels, and generated coverage summary constants for downstream consumers
+- Manifest-backed overseas backfill now overwrites persisted labels, and a shared 13-country server regression matrix locks Phase 28 resolve/create/import/bootstrap/sync metadata.
+- Generated-summary-backed unsupported notice helper with Phase 28 overseas fixtures and persisted-metadata consumer regressions on v3 geometry refs
+- Phase 28 geometry shards now keep canonical authoritative `datasetVersion`, while server/contracts regressions and historical fixtures are realigned around that split
+- Persisted userTravelRecord metadata is now backfilled authoritatively, with legacy overseas replay locked by bootstrap and same-user sync migration e2e
+- sourceFeatureId 驱动的 overseas admin1 唯一 identity、fail-fast canonical lookup 守卫，以及 Washington/DC 与 Buenos Aires 冲突回归面
+- Race-safe metadata backfill now survives zero-count row loss, emits skipped-row audit trails, and keeps bootstrap/same-user sync replay pinned to canonical overseas metadata under combo execution
+- Hash 路由驱动的独立地图页/时间轴页壳层，以及用户名菜单中的时间轴导航入口。
+- Pure timeline entry normalization from raw travel records with earliest-first sorting, unknown-date last ordering, and per-place visit sequencing
+- 独立时间轴路由页与逐条旅行卡片 UI，覆盖 restoring、anonymous、empty、populated 四种状态
+- 回归测试锁定用户名菜单时间轴入口、独立时间轴页面状态，以及 App 根壳在 `/` 与 `/timeline` 间的切换语义。
+- TravelStatsResponse 共享合约、受保护的 GET /records/stats 端点，以及区分总旅行次数与唯一地点数的 Prisma 聚合查询
+- Pinia 驱动的统计前端数据层、可复用 Kawaii StatCard 组件，以及基于 `/records/stats` 的五状态 StatisticsPageView
+- 将 StatisticsPageView 接入路由，并在账号菜单中提供与时间轴一致的“查看统计”入口
+- 旅行统计 contract 现已输出已去过国家/地区数与支持覆盖总数，后端按 parentLabel 国家桶去重聚合并补齐多地点/多次旅行回归测试。
+- 统计页现已展示总旅行次数、已去过地点数和已去过国家/地区数三项指标，并补上支持覆盖说明与前端去重场景回归测试。
+- Metadata-only authoritative travel-record refreshes now invalidate statistics without changing the statistics page UI.
+- 1. [Rule 1 - Bug] Plan-specified replacement text contained literal `human_needed` string
+- Phase 27 和 Phase 29 的 VALIDATION.md 已从 draft 状态升级为完整 Nyquist 合规：frontmatter approved、Per-Task Verification Map 全部 ✅ green、Wave 0 与 Sign-Off 全部勾选
+- 将 Phase 30 和 Phase 32 的 VALIDATION.md 从 draft 状态升级至与 Phase 28 一致的完整 Nyquist 合规状态，关闭 v6.0 milestone audit 中识别的验证技术债务。
+- 将 records.service.spec.ts 中的硬编码 21（totalSupportedCountries）替换为权威常量 TOTAL_SUPPORTED_TRAVEL_COUNTRIES
+
+---
+
 ## v5.0 账号体系与云同步基础版 (Shipped: 2026-04-17)
 
 **Phases completed:** 4 phases, 22 plans, 26 tasks

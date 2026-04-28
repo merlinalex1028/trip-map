@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: milestone_complete
-stopped_at: Phase 34 context gathered
-last_updated: "2026-04-28T06:55:24.225Z"
-last_activity: 2026-04-28 -- Phase 35 execution started
+status: completed
+stopped_at: v6.0 milestone archived
+last_updated: "2026-04-28T07:11:08.923Z"
+last_activity: 2026-04-28
 progress:
   total_phases: 9
   completed_phases: 9
   total_plans: 30
-  completed_plans: 29
+  completed_plans: 30
   percent: 100
 ---
 
@@ -85,19 +85,39 @@ Recent decisions affecting shipped state:
 
 None yet.
 
+### Deferred Items
+
+Items acknowledged and deferred at v6.0 milestone close on 2026-04-28:
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | 02-projection-frame-mismatch | unknown |
+| debug | 04-city-hit-radius-too-small | unknown |
+| debug | 08-boundary-highlight-missing | unknown |
+| debug | 09-popup-middle-scroll | investigating |
+| debug | beijing-no-type-label | unknown |
+| debug | california-not-recognized | unknown |
+| debug | canonical-resolve-beijing | unknown |
+| debug | canonical-resolve-response-shape | unknown |
+| debug | geojson-boundary-not-showing | unknown |
+| debug | hk-no-type-label | unknown |
+| debug | illuminate-button-no-effect | unknown |
+| debug | phase-25-uat1-a-window-fails | diagnosed |
+| debug | records-smoke-test-failure | unknown |
+| quick_task | 14 quick tasks (v4.0/v5.0 era) | missing |
+| uat_gap | Phase 29 29-HUMAN-UAT.md | partial |
+| uat_gap | Phase 30 30-HUMAN-UAT.md | passed |
+
 ### Blockers/Concerns
 
-- 当前没有新的代码 blocker；Phase 32 将收口 Phase 29 / Phase 30 的人工验收与部署环境 deep-link / refresh 验证。
+None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T06:14:31.126Z
-Stopped at: Phase 34 context gathered
-Resume file: .planning/phases/34-nyquist-validation-coverage/34-CONTEXT.md
+Last session: 2026-04-28T07:10:00.000Z
+Stopped at: v6.0 milestone archived
 
 ---
-*Last updated: 2026-04-27 — after Phase 31 completion*
+*Last updated: 2026-04-28 — after v6.0 milestone archive*
 
-**Next Phase:** 32 (route-deep-link-and-acceptance-closure) — ready to plan
-
-**Planned Phase:** 32 (route-deep-link-and-acceptance-closure) — 3 plans — 2026-04-28T04:55:24.394Z
+**Next:** Start new milestone with `/gsd-new-milestone`
