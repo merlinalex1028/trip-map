@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
 
-`v6.0` 收口中：产品已经把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路；当前剩余工作集中在 deep-link / refresh 部署验收与人工 UAT 闭环。
+`v6.0` 收口中：产品已经把“去过哪里”升级为“什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路；当前里程碑已归档。
 
 ## Core Value
 
@@ -25,24 +25,15 @@
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
 
-## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
+## Next Milestone
 
-**Goal:** 让用户能够记录每次旅行发生的时间、在同一地点保存多次去访记录，并通过独立时间轴页面与基础统计回看自己的旅行历史，同时把 overseas 覆盖扩展到更广的优先国家/地区。
-
-**Target features:**
-- 点亮地点时可选择旅行时间
-- 同一地点支持多次点亮，代表多次去访
-- 用户可从用户名面板进入独立时间轴页面
-- 时间轴页面按时间顺序展示个人旅行记录
-- 提供国家/地区完成度与基础旅行统计
-- 把 overseas 覆盖扩展到更广的优先国家/地区
+下一里程碑待启动 — 运行 `/gsd-new-milestone` 开始规划。
 
 ## Requirements
 
 ### Active
 
-- `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数
-- `STAT-02`: 用户可以查看国家/地区完成度
+（暂无 — 下一里程碑将定义新的 Active requirements）
 
 ### Validated
 
@@ -58,6 +49,8 @@
 - ✓ 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
 - ✓ 用户可以在时间轴页面按时间顺序查看自己的旅行记录，并区分同一地点的多次去访 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
 - ✓ 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”，且 authoritative metadata 刷新后统计与时间轴保持一致 — v6.0 / Phase 30-31（Validated in Phase 31: Statistics Sync Refresh Hardening）
+- ✓ `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数 — v6.0 / Phase 30
+- ✓ `STAT-02`: 用户可以查看国家/地区完成度 — v6.0 / Phase 30
 - ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
 - ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
 - ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
@@ -158,4 +151,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 — after Phase 35 completion (v6.0 shipped)*
+*Last updated: 2026-04-28 — after v6.0 milestone archive*

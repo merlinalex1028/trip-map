@@ -3,6 +3,7 @@
 ## v6.0 旅行统计、时间轴与海外覆盖增强版 (Shipped: 2026-04-28)
 
 **Phases completed:** 9 phases, 30 plans, 65 tasks
+**Known deferred items at close:** 29 (13 debug sessions, 14 quick tasks, 2 UAT gaps — see STATE.md Deferred Items)
 
 **Key accomplishments:**
 
