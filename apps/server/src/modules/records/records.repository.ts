@@ -138,6 +138,34 @@ export class RecordsRepository {
     }
   }
 
+  async findTravelRecordById(userId: string, id: string): Promise<UserTravelRecord | null> {
+    return this.prisma.userTravelRecord.findFirst({
+      where: { id, userId },
+    })
+  }
+
+  async updateTravelRecord(
+    userId: string,
+    id: string,
+    data: {
+      startDate?: string | null
+      endDate?: string | null
+      notes?: string | null
+      tags?: string[]
+    },
+  ): Promise<UserTravelRecord> {
+    return this.prisma.userTravelRecord.update({
+      where: { id, userId },
+      data,
+    })
+  }
+
+  async deleteTravelRecordById(userId: string, id: string): Promise<void> {
+    await this.prisma.userTravelRecord.delete({
+      where: { id, userId },
+    })
+  }
+
   async deleteTravelRecordByPlaceId(userId: string, placeId: string): Promise<void> {
     await this.prisma.userTravelRecord.deleteMany({
       where: {
