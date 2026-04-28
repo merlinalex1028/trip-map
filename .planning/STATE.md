@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v6.0
 milestone_name: 旅行统计、时间轴与海外覆盖增强版
-status: ready_to_plan
+status: milestone_complete
 stopped_at: Phase 34 context gathered
-last_updated: "2026-04-28T06:25:26.754Z"
-last_activity: 2026-04-28 -- Phase 34 execution started
+last_updated: "2026-04-28T06:55:24.225Z"
+last_activity: 2026-04-28 -- Phase 35 execution started
 progress:
   total_phases: 9
-  completed_phases: 8
-  total_plans: 29
-  completed_plans: 27
-  percent: 89
+  completed_phases: 9
+  total_plans: 30
+  completed_plans: 29
+  percent: 100
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-23)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 34 — nyquist-validation-coverage
+**Current focus:** Phase 35 — test-fixture-alignment
 
 ## Current Position
 
@@ -29,7 +29,7 @@ Milestone: v6.0 — 旅行统计、时间轴与海外覆盖增强版
 Last shipped milestone: v5.0 — 账号体系与云同步基础版
 Phase: 35
 Plan: Not started
-Status: Ready to plan
+Status: Milestone complete
 Last activity: 2026-04-28
 
 Progress: [██████████] 100%
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | 30 | 5 | - | - |
 | 31 | 1 | - | - |
 | 34 | 2 | - | - |
+| 35 | 1 | - | - |
 
 **Recent Trend:**
 

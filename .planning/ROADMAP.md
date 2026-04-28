@@ -31,7 +31,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 - [x] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐 (completed 2026-04-28)
 - [x] **Phase 33: Documentation Cleanup** - 补全 Phase 32 VERIFICATION.md、同步 REQUIREMENTS.md 追踪表、更新 Phase 29/30 VERIFICATION status (completed 2026-04-28)
 - [x] **Phase 34: Nyquist Validation Coverage** - 补全 Phase 27/29/30/32 Nyquist 验证策略（2 plans） (completed 2026-04-28)
-- [ ] **Phase 35: Test Fixture Alignment** - Server mock 引用权威 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量
+- [x] **Phase 35: Test Fixture Alignment** - Server mock 引用权威 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量 (completed 2026-04-28)
 
 ## Phase Overview
 
