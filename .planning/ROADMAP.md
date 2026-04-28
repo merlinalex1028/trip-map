@@ -158,11 +158,15 @@ Plans:
 **Depends on:** Phase 32
 **Requirements:** — (tech debt closure)
 **Gap Closure:** closes v6.0-MILESTONE-AUDIT.md documentation tech debt items
+**Plans:** 1/1 plans
 **Success Criteria** (what must be TRUE):
 1. 32-VERIFICATION.md 存在，包含 router guard / SPA fallback / 文档对齐的验证证据。
 2. REQUIREMENTS.md 追踪表所有 Phase 32 需求标记为 Complete。
 3. Phase 29/30 VERIFICATION.md frontmatter status 同步为 passed。
 **UI hint:** no
+
+Plans:
+- [ ] 33-01-PLAN.md — 创建 32-VERIFICATION.md + 修复 29/30 VERIFICATION.md 正文状态
 
 ### Phase 34: Nyquist Validation Coverage
 **Goal:** 补全 Phase 27/29/30/32 的 Nyquist 验证策略，使其 nyquist_compliant + wave_0_complete。
