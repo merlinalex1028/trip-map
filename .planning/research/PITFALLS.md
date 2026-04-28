@@ -1,215 +1,264 @@
 # Domain Pitfalls
 
-**Domain:** v5.0 为现有 local-first 旅行地图追加账号体系、每用户云同步与更大海外覆盖
-**Researched:** 2026-04-10
+**Domain:** v7.0 旅行记录编辑与删除
+**Researched:** 2026-04-28
 **Confidence:** HIGH
-
-## 建议先拆出的 roadmap phase
-
-1. **Phase 1: Auth & Ownership Foundation**
-   先改数据模型、用户归属、鉴权入口与服务端 ownership。
-2. **Phase 2: Session Boundary & Local Import**
-   处理登录态切换、旧本地数据导入、首登迁移与前端状态重置。
-3. **Phase 3: Sync Semantics & Multi-Device Hardening**
-   处理幂等写入、冲突、离线/重试、多设备一致性。
-4. **Phase 4: Overseas Coverage Foundation**
-   处理 canonical ID 稳定性、geometry 数据源扩展、覆盖说明与回归。
 
 ## Critical Pitfalls
 
-### Pitfall 1: 仍把 `TravelRecord` 设计成“全局 placeId 唯一”
+### Pitfall 1: 删除语义从 placeId 级到 recordId 级的断裂
 
-**What goes wrong:**  
-一旦引入账号，同一个 `placeId` 必须允许被不同用户各自保存；当前模型若不改，第二个用户点亮同一地点会直接冲突，或者被误判为“已点亮”。
+**What goes wrong:** 现有 `deleteTravelRecordByPlaceId(userId, placeId)` 删除该地点下**所有**旅行记录。v7.0 要求"删除单条记录"，但前端 `unilluminate(placeId)` 语义是"取消点亮该地点"——一次删除全部记录。如果直接复用现有 API，用户只想删除某次旅行却会丢失该地点所有记录。
 
-**Why it happens in this codebase:**  
-当前 `TravelRecord` 只有 `placeId @unique`，没有 `userId`，CRUD 也都按 `placeId` 读写。
+**Why it happens:** v6.0 设计时 placeId 是地图点亮的最小粒度，一个 placeId = 一个点亮点位。v7.0 引入了"同一地点多次旅行"后，删除粒度需要从 placeId 降级到 recordId，但现有 API、前端 store、UI 交互全部绑定在 placeId 语义上。
 
-**Prevention:**  
-- 在账号功能上线前先加 `User` / `Account` 归属字段，所有旅行记录改为 `userId + placeId` 复合唯一约束。  
-- 删除、查询、去重、统计全部按 `(userId, placeId)` 做，不再按裸 `placeId`。  
-- 不要让客户端传 `userId` 作为真源，服务端从会话中推导当前用户。
+**Consequences:**
+- 用户在时间轴页面删除某次北京旅行，结果北京所有旅行记录全没了
+- 地图上北京的点亮状态被意外清除（即使还有其他旅行记录）
+- 数据无法恢复（无 undo 机制）
 
-**Roadmap phase:** Phase 1
+**Prevention:**
+- 后端新增 `DELETE /records/by-id/:recordId` 端点，按 `recordId` 删除单条
+- 前端新增 `deleteTravelRecordById(recordId)` API 函数
+- `unilluminate` 保留为"取消点亮"（删除该地点所有记录），新增 `deleteSingleRecord(recordId)` 为"删除单条"
+- 删除前检查：如果该地点只剩最后一条记录，提示用户将取消点亮
 
----
+**Detection:** 测试用例：同一地点有 2 条记录，删除其中 1 条后，另 1 条仍存在且地图仍亮。
 
-### Pitfall 2: 误以为“开了 RLS”就已经隔离了多用户数据
-
-**What goes wrong:**  
-账号上线后仍可能出现跨用户读到全表、删掉别人记录、或 policy 漏写导致“自己也读不到自己数据”的情况。
-
-**Why it happens in this codebase:**  
-当前 migration 只 `ENABLE ROW LEVEL SECURITY`，但还没有按 `userId` 的 `SELECT` / `INSERT` / `DELETE` policy；现有 repository 代码也没有任何 user filter。
-
-**Prevention:**  
-- 在 Phase 1 同时完成三层护栏：服务端 guard、repository `where: { userId }`、数据库 RLS policy。  
-- RLS policy 明确区分 `USING` 与 `WITH CHECK`，不要只写读策略不写写策略。  
-- 若 Prisma 连接角色是表 owner 或高权限角色，确认是否会绕过 RLS；必要时用 `FORCE ROW LEVEL SECURITY` 或继续保持应用层 ownership 校验为主。
-
-**Roadmap phase:** Phase 1
+**Roadmap phase:** 数据层先行（contracts + server），再接 UI
 
 ---
 
-### Pitfall 3: 账号切换后前端沿用旧用户内存态，造成“串号”或空白假象
+### Pitfall 2: 日期编辑触发 @@unique 约束冲突
 
-**What goes wrong:**  
-用户登录、退出、切账号后，地图仍保留上一个用户的点亮结果，或首次鉴权尚未完成时就把空列表缓存成真相，随后不再自动重拉。
+**What goes wrong:** `UserTravelRecord` 的唯一约束是 `@@unique([userId, placeId, startDate, endDate])`。用户修改某条记录的 startDate/endDate 后，新日期组合可能与同地点另一条记录冲突，导致 Prisma 抛出 `P2002` 唯一约束错误。
 
-**Why it happens in this codebase:**  
-`map-points` store 目前只做一次 `bootstrapFromApi()`，`hasBootstrapped` 置位后不会因 auth 状态变化自动重置；失败时还会把 `travelRecords` 置空并停止重试。
+**Why it happens:** 同一地点可以有多次旅行（如北京 2025-02 和 2025-10），如果用户把 2025-02 的 endDate 改成跟 2025-10 的 startDate/endDate 完全一致，就会撞约束。
 
-**Prevention:**  
-- 把 store 生命周期绑定到 auth session，而不是绑定到 app 首次启动。  
-- 明确区分 `auth-loading / unauthenticated / authenticated-ready / sync-error`，不要用空数组同时表达“未加载”和“没有数据”。  
-- 退出和切账号时强制 `reset stores + cancel in-flight requests + clear pending mutations`。
+**Consequences:**
+- 编辑保存时后端返回 500 或未处理的 Prisma 错误
+- 前端乐观更新已应用，但后端失败导致 UI 与实际数据不一致
+- 用户看到模糊的"保存失败"提示，不知道是日期冲突
 
-**Roadmap phase:** Phase 2
+**Prevention:**
+- 后端 `updateTravelRecord` 方法中 catch Prisma `P2002` 错误，转为 `409 Conflict` + 明确提示"该日期范围内已存在同地点旅行记录"
+- 前端编辑表单提交前做本地去重检查：对比当前 `travelRecords` 中同 placeId 的其他记录
+- 考虑放宽 unique 约束为 `@@unique([userId, placeId, startDate])` 或增加版本号字段，但需评估对 import 逻辑的影响
 
----
+**Detection:** 测试用例：同一地点 2 条记录，编辑其中 1 条的日期使其与另 1 条完全相同，应返回 409。
 
-### Pitfall 4: 现有本地用户首次登录后看到空云端，误以为记录丢失
-
-**What goes wrong:**  
-v4.0 之前的用户本来有本地旅行记录；v5.0 若直接把云端列表当唯一真源，首次登录极可能出现“地图被清空”，造成严重信任损失。
-
-**Why it happens in this codebase:**  
-当前前端已经把远端 `/records` 当主真源，本地 legacy 数据迁移路径尚未定义；这是“从单机升级到账号化”最典型的数据感知断层。
-
-**Prevention:**  
-- 单独做“首登导入”phase，不要把它夹在 auth API 开发里顺手做。  
-- 明确导入策略：本地覆盖云端、云端覆盖本地，还是按 `placeId` 合并；并给用户明确确认文案。  
-- 如果要保留“先体验再注册”的产品路径，优先支持匿名身份升级或显式 guest-import，而不是强制先注册再找回数据。
-
-**Roadmap phase:** Phase 2
+**Roadmap phase:** 后端 validation 层 + 前端表单校验
 
 ---
 
-### Pitfall 5: 多设备同时点亮/取消时，当前 API 幂等语义不够稳
+### Pitfall 3: 编辑后时间轴排序错乱
 
-**What goes wrong:**  
-同一用户在两台设备几乎同时点亮同一地点，可能一端成功、一端 409、前端却把 409 当“成功返回 record”处理；结果是状态闪烁、卡住、或 UI 与数据库不一致。
+**What goes wrong:** `buildTimelineEntries` 的排序逻辑依赖 `sortDate`（取 `endDate ?? startDate`）和 `hasKnownDate`。用户编辑日期后，该记录在时间轴中的位置会变化，但前端没有重新触发排序——`timelineEntries` 是 `computed`，依赖 `travelRecords` ref，如果编辑是原地修改而非替换数组，computed 不会重新计算。
 
-**Why it happens in this codebase:**  
-当前客户端已经把 `409` 当作幂等成功分支，但后端冲突返回的是异常，不是 canonical record；再叠加账号和多设备后，这会从边缘问题变成主链路问题。
+**Why it happens:** Vue 的 `shallowRef` 对数组内部元素的修改不敏感。如果后端返回更新后的记录，前端用 `travelRecords.value = travelRecords.value.map(r => r.id === updated.id ? updated : r)` 替换，computed 会正确触发。但如果只修改了某个元素的属性而不替换引用，排序不会更新。
 
-**Prevention:**  
-- 服务端把“点亮 place”设计成真正幂等的 upsert/put 语义，并返回最终 canonical record。  
-- 每个 mutation 带操作类型和稳定幂等键，不要只靠 HTTP 状态码猜测结果。  
-- 前端明确区分 `401/403`、`409`、网络失败、重试中，不要统一回滚成“空状态”。
+**Consequences:**
+- 用户编辑了日期，但时间轴中该记录仍停留在原位置
+- `visitOrdinal` 和 `visitCount` 可能变得不一致
+- 用户刷新后才看到正确排序，造成困惑
 
-**Roadmap phase:** Phase 3
+**Prevention:**
+- 编辑成功后，用更新后的记录替换 `travelRecords` 数组中的对应元素（保持 immutable 模式）
+- 确保 `travelRecords.value = [...travelRecords.value]` 或 `travelRecords.value.map(...)` 触发 shallowRef 更新
+- 测试：编辑日期后立即检查 `timelineEntries` 的排序是否反映新日期
 
----
-
-### Pitfall 6: 在 canonical ID 规则未稳定前就大规模扩海外覆盖，旧记录会失去可回放性
-
-**What goes wrong:**  
-一旦新增国家、替换海外数据源或重命名 `boundaryId`，历史同步记录可能还能存在数据库里，但地图无法重新高亮，甚至被识别成另一块区域。
-
-**Why it happens in this codebase:**  
-当前记录直接持久化 `boundaryId` 与 `datasetVersion`，前端 reopen/highlight 也直接依赖这些字段；海外层又建立在 Natural Earth admin-1 之上，本身就存在行政层级、命名和历史变更不完全稳定的问题。
-
-**Prevention:**  
-- 先定义“稳定 canonical place ID”与“可变 render boundary ID”的分层，不要把 render ID 当永久身份。  
-- 引入 boundary alias / migration table，允许旧 `boundaryId` 映射到新 geometry。  
-- 每次海外扩容必须附带“历史记录 reopen 回归”，不是只测新国家能点亮。
-
-**Roadmap phase:** Phase 4
+**Roadmap phase:** 前端 store 层
 
 ---
 
-### Pitfall 7: 混合多种海外边界来源后，解析语义和渲染语义会慢慢漂移
+### Pitfall 4: 编辑/删除后统计缓存未刷新
 
-**What goes wrong:**  
-解析结果说的是“一级行政区”，渲染实际用的是另一层级或另一版本边界，最终出现标题正确、点亮错误、命中区域怪异、同国不同州精度不一致。
+**What goes wrong:** `useStatsStore` 通过 `fetchStatsData()` 从服务端拉取统计，但编辑或删除记录后不会自动触发刷新。用户删除一条记录后，统计页面仍显示旧的 totalTrips / uniquePlaces / visitedCountries 数字。
 
-**Why it happens in this codebase:**  
-现有中国链路与海外链路本来就使用不同数据源与坐标体系，海外 `Natural Earth` 数据里也已有国家级特殊注释；覆盖扩展若继续“按国家补洞”，很容易把 canonical、geometry、命名翻译各做各的。
+**Why it happens:** 现有流程中，`illuminate` 和 `unilluminate` 完成后只更新 `travelRecords` 和显示 notice，没有调用 `statsStore.fetchStatsData()`。v6.0 中统计刷新依赖 `boundaryVersion` 变化触发的 bootstrap 重拉，但编辑/删除不会改变 `boundaryVersion`。
 
-**Prevention:**  
-- 维持单一 ingestion contract：source catalog、checksum、dataset version、admin level、命名来源必须一起版本化。  
-- 每新增一批国家，都要补 fixtures：resolve、confirm、persist、reopen、highlight 五段式回归。  
-- 明确规定 v5.0 海外只支持一个可解释的行政层级，不要有的国家到州、有的国家到省、有的国家退到国家级却不提示。
+**Consequences:**
+- 统计数字与实际记录数不一致
+- 用户可能看到"去过 5 个地方"但实际只剩 4 条记录
+- 只有手动刷新页面才能看到正确统计
 
-**Roadmap phase:** Phase 4
+**Prevention:**
+- 每次 edit/delete mutation 成功后，调用 `useStatsStore().fetchStatsData()` 刷新统计
+- 考虑在 `map-points` store 的 edit/delete 成功回调中统一触发
+- 或者让统计 store 监听 `travelRecords` 变化自动刷新（但需防抖避免频繁请求）
+
+**Roadmap phase:** 前端 store 联动层
+
+---
+
+### Pitfall 5: 备注/标签字段缺失导致 schema 迁移风险
+
+**What goes wrong:** 当前 `UserTravelRecord` 没有 `note` 和 `tags` 字段。添加这些字段需要 Prisma schema migration。如果 `note` 设为非空默认值，现有记录会被填充空字符串；如果 `tags` 用 JSON 类型，需要考虑 PostgreSQL 的 JSONB 索引。
+
+**Why it happens:** v6.0 的数据模型只关注旅行日期和地点元数据，没有预留内容扩展字段。
+
+**Consequences:**
+- Migration 失败或数据丢失（如果操作不当）
+- 现有记录的 note/tags 为空，UI 需要处理 null/空值
+- 如果 tags 用 String[] 类型，Prisma 的数组字段在不同数据库 provider 行为不同
+
+**Prevention:**
+- `note` 字段用 `String?`（可选），默认 null
+- `tags` 字段用 `String[]`（Prisma 原生数组），默认空数组 `[]`
+- Migration 文件添加后运行 `prisma migrate dev` 验证
+- contracts 中 `TravelRecord` 接口同步添加 `note?: string` 和 `tags?: string[]`
+- 前端表单提交时，空 note 传 null 而非空字符串
+
+**Roadmap phase:** 最先执行（Phase 1: data model migration）
+
+---
 
 ## Moderate Pitfalls
 
-### Pitfall 1: 没有显式 mutation 队列，网络抖动时乐观 UI 会反复打脸
+### Pitfall 6: 乐观更新回滚时 UI 状态不一致
 
-**What goes wrong:**  
-当前 `illuminate/unilluminate` 直接乐观改内存，失败就回滚。加上 auth token 过期、移动端弱网、多设备后，这会频繁造成“刚点亮又灭掉”的体验。
+**What goes wrong:** 现有 `illuminate` 和 `unilluminate` 都使用乐观更新模式（先更新 UI，失败后回滚）。编辑操作如果也用乐观更新，回滚时需要恢复原记录的所有字段（包括日期、note、tags），但如果用户在回滚前又做了其他操作，回滚会覆盖新操作。
 
-**Prevention:**  
-- 引入 per-user pending mutation queue、重试策略和“待同步”态。  
-- 把 401/refresh failure 与普通网络失败分开处理。
+**Prevention:**
+- 编辑操作的乐观更新只替换目标记录，不影响其他记录
+- 回滚时用 `previousRecords` 快照恢复，与现有 `unilluminate` 模式一致
+- 编辑期间对目标记录设置 `pendingRecordIds`（类似 `pendingPlaceIds`），禁止对同一记录重复编辑
+- 测试：编辑失败后检查原记录是否完整恢复
 
-**Roadmap phase:** Phase 3
-
----
-
-### Pitfall 2: 海外覆盖不透明，用户会把“不支持”理解成“识别错了”
-
-**What goes wrong:**  
-更多海外国家上线后，用户点击某些区域只能识别到上层行政区，或根本无法点亮；如果 UI 不明确说明支持层级和覆盖边界，用户会把问题归因于账号同步或地图 bug。
-
-**Prevention:**  
-- 在 popup/summary 中明确显示当前国家的支持层级与“不支持原因”。  
-- 提供 coverage 文案或国家级支持矩阵，不要让用户靠试错理解能力边界。
-
-**Roadmap phase:** Phase 4
+**Roadmap phase:** 前端 store 层
 
 ---
 
-### Pitfall 3: 把 auth 做成强制登录墙，会破坏现有“先点图再决定是否登录”的价值
+### Pitfall 7: 多设备编辑竞态（last-write-wins）
 
-**What goes wrong:**  
-应用从轻量地图工具突然变成“进来先注册”，会直接降低首次体验，尤其对原本只是想临时点几下地图的用户。
+**What goes wrong:** 用户在设备 A 编辑了北京旅行的日期为 2025-03，同时在设备 B 编辑同一条记录的日期为 2025-05。设备 B 的写入覆盖了 A 的，用户无感知。
 
-**Prevention:**  
-- 保留游客体验，登录只在需要跨设备同步时触发。  
-- 如果选择匿名身份升级路径，必须设计清楚“何时转正、如何保留数据、何时清理匿名账号”。
+**Why it happens:** 当前系统没有版本号或 ETag 机制，`refreshAuthenticatedSnapshot` 只是全量替换，不做冲突检测。
 
-**Roadmap phase:** Phase 2
+**Consequences:**
+- 静默数据丢失
+- 用户不知道自己的编辑被覆盖
+
+**Prevention:**
+- v7.0 已决定"无撤销历史"，所以接受 last-write-wins
+- 但在 `updatedAt` 字段上做文章：编辑请求携带 `expectedUpdatedAt`，后端检查是否一致，不一致返回 `409 Conflict`
+- 前端收到 409 后提示"记录已被其他设备修改，将刷新为最新版本"
+- 如果不引入冲突检测，至少在 foreground refresh 时用 `applyAuthoritativeTravelRecords` 覆盖本地（现有机制已支持）
+
+**Roadmap phase:** 可选增强，如果不做则依赖 foreground refresh 最终一致
+
+---
+
+### Pitfall 8: 删除确认弹窗与 pending 状态重叠
+
+**What goes wrong:** 用户点击删除，确认弹窗弹出，但在弹窗显示期间该记录的前一次操作（如编辑）还在 pending 中。用户确认删除后，删除请求发出，但编辑请求也返回了，导致 UI 状态混乱。
+
+**Prevention:**
+- 确认弹窗打开前检查目标记录是否在 `pendingRecordIds` 中，如果是则禁用删除按钮
+- 删除操作使用 recordId 而非 placeId，避免误删
+- 弹窗关闭时清除相关状态
+
+**Roadmap phase:** UI 交互层
+
+---
+
+### Pitfall 9: 编辑日期后 `displayPoints` 的 `createdAt` 语义漂移
+
+**What goes wrong:** `displayPoints` 用 `createdAt` 做同 placeId 去重（取最新 createdAt 的记录作为地图显示）。但 `createdAt` 是记录创建时间，不是旅行时间。如果用户编辑了 `startDate`/`endDate`，`createdAt` 不变，地图显示的"代表记录"可能不是用户期望的那次旅行。
+
+**Prevention:**
+- 地图去重逻辑改为：同 placeId 下优先取有日期的记录，再按 `startDate` 降序
+- 或者保持现状（createdAt 降序），但在 UI 上明确标注"显示最新添加的记录"
+- 编辑不改变 createdAt，这是正确行为——createdAt 代表"何时记录"而非"何时旅行"
+
+**Roadmap phase:** 前端 display 逻辑层
+
+---
+
+### Pitfall 10: PATCH 响应未包含 updatedAt，前端无法检测并发冲突
+
+**What goes wrong:** 如果后端 PATCH 端点只返回更新后的记录但不包含 `updatedAt` 字段，前端无法知道这次写入是否覆盖了其他设备的修改。当前 `TravelRecord` contract 中没有 `updatedAt` 字段。
+
+**Prevention:**
+- 在 contracts 的 `TravelRecord` 接口中添加 `updatedAt: string`
+- PATCH/PUT 响应返回完整记录（含 updatedAt）
+- 前端编辑请求携带 `expectedUpdatedAt`，后端对比后决定是否接受
+
+**Roadmap phase:** contracts + server
+
+---
+
+## Minor Pitfalls
+
+### Pitfall 11: tags 输入的边界情况
+
+**What goes wrong:** 用户输入重复标签、空标签、超长标签、含特殊字符的标签。
+
+**Prevention:**
+- 前端：去重、trim、限制单个标签长度（如 20 字符）、限制标签数量（如 10 个）
+- 后端：`class-validator` 验证 tags 数组的每个元素
+- 特殊字符处理：tags 作为纯文本存储，不做特殊转义
+
+**Roadmap phase:** 前端表单 + 后端 validation
+
+---
+
+### Pitfall 12: note 字段的 XSS 风险
+
+**What goes wrong:** 如果 note 内容在 UI 中用 `v-html` 渲染，可能注入恶意脚本。
+
+**Prevention:**
+- 始终用 `{{ note }}`（文本插值）渲染，不用 `v-html`
+- 后端存储时不做 HTML 转义（这是纯文本字段）
+- 如果未来支持 Markdown 渲染，使用 sanitize 库
+
+**Roadmap phase:** 前端渲染层
+
+---
+
+### Pitfall 13: 编辑表单的日期格式一致性
+
+**What goes wrong:** 前端日期选择器输出格式（如 ISO 8601 `2025-03-15`）与后端存储格式不一致，或与时区相关。
+
+**Prevention:**
+- 日期统一用 `YYYY-MM-DD` 字符串格式（无时区）
+- 前端 date picker 输出 ISO date string
+- 后端 Prisma 中 `startDate` 和 `endDate` 是 `String?` 类型，不做 Date 转换
+- contracts 中明确 `startDate: string | null`（已有）
+
+**Roadmap phase:** 全链路一致性
+
+---
 
 ## Phase-Specific Warnings
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Auth & Ownership Foundation | 直接在现有 `TravelRecord` 上叠 auth，没先改唯一键和归属字段 | 先做 schema/repository/API 归属改造，再接前端登录 |
-| Auth & Ownership Foundation | 只配登录，不配 ownership filter / RLS policy | 同 phase 完成服务端过滤、RLS、权限回归 |
-| Session Boundary & Local Import | 登录态变化不触发 store reset，出现串号或空白缓存 | 把 store bootstrap 绑定 session；登录/退出强制重置 |
-| Session Boundary & Local Import | v4.x 本地数据无迁移方案 | 单独做首登导入与合并确认，不与 auth 表单耦合 |
-| Sync Semantics & Multi-Device Hardening | 双设备重复写入导致 409/回滚/闪烁 | 服务端幂等 upsert + 客户端 mutation queue |
-| Sync Semantics & Multi-Device Hardening | token 过期被当普通失败处理 | 单独处理 auth refresh 失败，禁止静默吞掉 |
-| Overseas Coverage Foundation | 先大批量加国家，后补 canonical/boundary 稳定性 | 先锁 canonical ID 规则、alias 迁移和回归基线 |
-| Overseas Coverage Foundation | 支持层级不统一，用户误解“同步有问题” | UI 明确标识国家支持层级与不支持原因 |
+| Schema Migration | Migration 与现有数据不兼容 | 用可选字段（`String?`、`String[]` default `[]`），先 migrate 再写业务逻辑 |
+| 编辑 API (PATCH) | 返回值不包含 updatedAt，前端无法做乐观更新冲突检测 | PATCH 响应返回完整 TravelRecord（含 updatedAt） |
+| 删除 API (by recordId) | 前端仍用 placeId 调删除，误删全部记录 | 新增独立端点 `DELETE /records/:recordId`，保留旧端点兼容 |
+| 前端 store 编辑方法 | 直接修改 shallowRef 内部元素，computed 不触发 | immutable 替换：`travelRecords.value.map(r => r.id === id ? updated : r)` |
+| 统计刷新 | 编辑/删除后统计不更新 | mutation 成功后显式调用 `statsStore.fetchStatsData()` |
+| 确认弹窗 | 弹窗关闭后状态残留 | 弹窗组件 unmount 时清除所有临时状态 |
+| 时间轴重排序 | 编辑日期后时间轴位置不变 | 确保 travelRecords 引用更新触发 computed 重算 |
+| contracts 同步 | 新增字段未在 contracts 中定义，前后端类型不一致 | 先改 contracts，build 后再改 server 和 web |
 
 ## Current-Code Warning Signs
 
-- `apps/server/prisma/schema.prisma`: `TravelRecord.placeId` 仍是全局唯一，尚无 `userId`。
-- `apps/server/src/modules/records/records.repository.ts`: 旅行记录查询/删除未按用户过滤。
-- `apps/server/prisma/migrations/20260408093000_enable_rls_for_public_tables/migration.sql`: 目前只有 `ENABLE RLS`，未见用户级 policy。
-- `apps/web/src/stores/map-points.ts`: `bootstrapFromApi()` 是一次性启动逻辑，且失败后不会自动重试。
-- `apps/web/src/stores/map-points.ts`: `illuminate/unilluminate` 依赖乐观更新，尚无同步队列。
-- `apps/web/src/services/api/records.ts`: 客户端已把 `409` 当幂等成功分支，但服务端尚未提供稳定“冲突即返回最终 record”语义。
+- `apps/server/prisma/schema.prisma`: `UserTravelRecord` 的 `@@unique([userId, placeId, startDate, endDate])` 在日期编辑时可能冲突
+- `apps/server/src/modules/records/records.repository.ts`: `deleteTravelRecordByPlaceId` 删除整个 placeId 的所有记录，不是单条
+- `apps/server/src/modules/records/records.controller.ts`: 删除端点是 `DELETE :placeId`，不是 `DELETE :recordId`
+- `packages/contracts/src/records.ts`: `TravelRecord` 接口缺少 `updatedAt`、`note`、`tags` 字段
+- `apps/web/src/stores/map-points.ts`: `unilluminate(placeId)` 删除整个 placeId，无单条删除能力
+- `apps/web/src/services/timeline.ts`: `buildTimelineEntries` 的 computed 依赖 `travelRecords` 引用变化，原地修改不触发重算
+- `apps/web/src/stores/stats.ts`: `fetchStatsData` 不会在 edit/delete 后自动调用
 
 ## Sources
 
-- 本地代码证据：
-  - `.planning/PROJECT.md`
-  - `.planning/MILESTONES.md`
-  - `apps/server/prisma/schema.prisma`
-  - `apps/server/src/modules/records/records.repository.ts`
-  - `apps/server/prisma/migrations/20260408093000_enable_rls_for_public_tables/migration.sql`
-  - `apps/web/src/stores/map-points.ts`
-  - `apps/web/src/services/api/records.ts`
-- 官方资料：
-  - Supabase Row Level Security: https://supabase.com/docs/guides/database/postgres/row-level-security
-  - Supabase Auth `getUser`: https://supabase.com/docs/reference/javascript/auth-getuser
-  - Supabase Anonymous Sign-Ins: https://supabase.com/docs/guides/auth/auth-anonymous
-  - PostgreSQL Row Security Policies: https://www.postgresql.org/docs/current/ddl-rowsecurity.html
-  - PostgreSQL `CREATE POLICY`: https://www.postgresql.org/docs/current/sql-createpolicy.html
-  - Prisma composite unique constraints: https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-composite-ids-and-constraints
-  - Natural Earth Admin-1 States and Provinces: https://www.naturalearthdata.com/downloads/10m-cultural-vectors/10m-admin-1-states-provinces/
+- Prisma schema: `apps/server/prisma/schema.prisma` — `UserTravelRecord` 唯一约束分析
+- 前端 store: `apps/web/src/stores/map-points.ts` — 乐观更新与 pending 状态机制
+- 时间轴排序: `apps/web/src/services/timeline.ts` — `buildTimelineEntries` 排序逻辑
+- 统计 store: `apps/web/src/stores/stats.ts` — 统计刷新机制
+- 现有删除 API: `apps/server/src/modules/records/records.repository.ts` — `deleteTravelRecordByPlaceId` 语义
+- PROJECT.md: v7.0 scope 与 Key Decisions
+- Prisma composite unique constraints: https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-composite-ids-and-constraints

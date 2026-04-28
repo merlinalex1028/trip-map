@@ -1,271 +1,365 @@
-# Architecture Research: v5.0 账号体系、云同步与海外覆盖扩展
+# v7.0 Architecture: 旅行记录编辑与删除
 
-**Domain:** 现有 trip-map 架构上的新增集成层
-**Researched:** 2026-04-10
+**Domain:** 现有 trip-map 架构上的记录编辑、元数据与单条删除集成
+**Researched:** 2026-04-28
 **Confidence:** HIGH
 
-## Current Constraints
+## Existing Architecture Baseline
 
-- `apps/server/prisma/schema.prisma` 中 `TravelRecord.placeId` 仍是全局唯一，无法表达“同一地点被多个用户点亮”。
-- `apps/server/src/modules/records/*` 当前是公开 CRUD，没有身份上下文，`findAllTravel()` 会返回整张表。
-- `apps/web/src/services/api/records.ts` 是裸 `fetch`，没有统一凭证注入。
-- `apps/web/src/stores/map-points.ts` 的 bootstrap 逻辑是匿名全量拉取，且本地状态主键直接等于 `placeId`。
-- `apps/server/src/modules/canonical-places/canonical-places.service.ts` 已经把 canonical place 元数据和海外 geometry manifest 绑在一起，说明“扩海外”应继续走数据资产扩展，而不是塞进 records/auth 业务表。
+### Data Model (Prisma `UserTravelRecord`)
 
-## Recommended Architecture
-
-```text
-apps/web
-  auth-session store
-  map-points store
-  api client (credentials: include)
-        |
-        v
-apps/server
-  auth module -> user/session guard
-  bootstrap endpoint -> user profile + records snapshot
-  records module -> per-user record set
-  canonical-places module -> public resolve/confirm
-        |
-        v
-PostgreSQL
-  users
-  auth_sessions
-  user_travel_records
-  smoke_records
-
-data pipeline
-  canonical place dataset
-  geometry manifest + overseas shards
 ```
+UserTravelRecord {
+  id, userId, placeId, boundaryId, placeKind, datasetVersion,
+  displayName, regionSystem, adminType, typeLabel, parentLabel,
+  subtitle, startDate?, endDate?, createdAt, updatedAt
 
-## New vs Modified Pieces
-
-### New
-
-| Area | Piece | Responsibility |
-|------|-------|----------------|
-| Server | `auth` module | 注册、登录、登出、会话恢复、当前用户读取 |
-| Server | `users` repository/service | 用户唯一身份与密码哈希管理 |
-| Server | `session` guard + `@CurrentUser()` decorator | 把 cookie/session 解析成请求用户上下文 |
-| Server | bootstrap endpoint (`GET /auth/bootstrap`) | 一次返回 `user + records snapshot`，作为同步入口 |
-| Database | `User` | 账号主体 |
-| Database | `AuthSession` | 服务端可撤销会话，多设备登录基础 |
-| Database | `UserTravelRecord` | 用户私有旅行记录，唯一键改为 `(userId, placeId)` |
-| Contracts | `auth.ts` / `bootstrap.ts` | 注册、登录、会话、bootstrap DTO |
-| Web | `auth-session` store | 启动时恢复登录态，持有 `user/bootstrapStatus` |
-| Web | authenticated API wrapper | 统一 `credentials: 'include'`、401 清理、错误归一化 |
-
-### Modified
-
-| Area | Piece | Change |
-|------|-------|--------|
-| Server | `records` module | 从“全局 records”改为“当前用户 records” |
-| Server | `main.ts` | 注册 cookie/session 所需 Fastify 插件，必要时补跨域 cookie 配置 |
-| Database | 现有 `TravelRecord` | 不再作为 v5 主表；建议保留为 legacy 数据，不直接硬改归属 |
-| Contracts | `TravelRecord` | 建议补 `updatedAt`，保留 canonical snapshot 字段 |
-| Web | `services/api/records.ts` | 走 authenticated API wrapper，语义改为“当前用户记录” |
-| Web | `stores/map-points.ts` | 不再自己决定登录态；依赖 auth bootstrap 成功后加载记录 |
-| Data pipeline | canonical/geometry 生成链路 | 扩大海外 place catalog 与 geometry manifest，但不改 auth/records 边界 |
-
-## User Ownership Model
-
-**推荐不要在现有 `TravelRecord` 上原地做 ownership backfill。** 当前全局表没有任何可信 owner 信息，无法安全地把旧记录归到某个用户。
-
-### 推荐数据模型
-
-| Table | Key fields | Notes |
-|------|------------|-------|
-| `User` | `id`, `email`(unique), `passwordHash`, `createdAt`, `updatedAt` | 账号主体 |
-| `AuthSession` | `id`, `userId`, `sessionTokenHash`, `expiresAt`, `revokedAt`, `lastSeenAt` | 支持多设备登录与服务端登出 |
-| `UserTravelRecord` | `id`, `userId`, `placeId`, `boundaryId`, `datasetVersion`, `displayName`, `regionSystem`, `adminType`, `typeLabel`, `parentLabel`, `subtitle`, `createdAt`, `updatedAt` | `@@unique([userId, placeId])` |
-
-### Why New Table Instead of In-Place Mutation
-
-- 现有 `TravelRecord.placeId @unique` 是全局约束，直接修改会让迁移窗口复杂化。
-- 旧数据没有 owner，强行加 `userId` 只会把不确定数据永久带入正式模型。
-- 新表切换更清晰：v5 代码只读写 `UserTravelRecord`，legacy 表留作审计/清理。
-
-## Auth and Session Design
-
-**推荐：同域 HttpOnly cookie + 服务端 session 表，不在前端持久化 JWT。**
-
-### Why
-
-- 现有 web 默认通过 `/api` 同域访问后端，cookie 模式与现状最贴合。
-- 刷新页面后，前端只需重新请求 bootstrap，不需要本地保存 access token。
-- 服务端 session 天然支持“退出当前设备 / 全部设备退出 / 会话撤销”。
-- 对 `fetch` 的改造面最小：统一加 `credentials: 'include'` 即可。
-
-### Request Flow
-
-1. `POST /auth/register` 或 `POST /auth/login`
-2. 服务端创建 `AuthSession`，写入 HttpOnly cookie
-3. Web 启动时调用 `GET /auth/bootstrap`
-4. 服务端根据 cookie 解析用户，返回：
-
-```ts
-{
-  user: {
-    id: string
-    email: string
-  },
-  records: TravelRecord[]
+  @@unique([userId, placeId, startDate, endDate])
+  @@index([userId, placeId])
 }
 ```
 
-5. `map-points` 用返回的 `records` 初始化，而不是自己单独匿名拉取
+**Key constraint**: unique key = `(userId, placeId, startDate, endDate)`. Same user can have multiple trips to the same place with different date ranges.
 
-### Guard Boundary
+### Current API Surface
 
-- `POST /auth/register`
-- `POST /auth/login`
-- `POST /auth/logout`
-- `GET /auth/bootstrap`
-- `GET/POST/DELETE /records`
+| Method | Path | Purpose | Notes |
+|--------|------|---------|-------|
+| GET | `/records` | List all user records | Returns `TravelRecord[]` |
+| POST | `/records` | Create one record | With date range |
+| DELETE | `/records/:placeId` | Delete ALL records for place | `deleteMany` by placeId |
+| POST | `/records/import` | Bulk import | Dedup by (placeId, startDate, endDate) |
+| GET | `/records/stats` | Aggregate stats | totalTrips, uniquePlaces, visitedCountries |
 
-`/places/resolve` 与 `/places/confirm` 继续保持公开，避免地理识别能力被登录态耦合。
+**Critical gap**: Current `DELETE /records/:placeId` is a **place-level clear** (deletes all trips). v7.0 needs **single record deletion by record ID**.
 
-## Sync Bootstrap and Conflict Semantics
+### Current Frontend Data Flow
 
-### v5 Sync Scope
+```
+Map click -> geo-lookup -> canonical resolve -> MapContextPopup
+  -> TripDateForm -> illuminate() -> createTravelRecord API
+  -> travelRecords ref updates -> timelineEntries / displayPoints recompute
 
-v5 应定义为：**登录后拉取服务端权威快照 + 所有写操作直写服务端**。  
-不要在本里程碑引入离线队列、后台 diff engine、CRDT 或复杂双向合并。
+Timeline page reads: mapPointsStore.timelineEntries (computed from travelRecords)
+Statistics page reads: statsStore.stats (server-authoritative, re-fetched on travelRecordRevision change)
+```
 
-### Bootstrap Contract
+### Current Delete Flow (place-level)
 
-`GET /auth/bootstrap` 是唯一权威入口：
+```
+PointSummaryCard -> emit('unilluminate')
+  -> MapContextPopup -> LeafletMapStage -> mapPointsStore.unilluminate(placeId)
+  -> Optimistic: remove all records for placeId from travelRecords
+  -> API: DELETE /records/:placeId (deleteMany)
+  -> On failure: rollback + notice
+```
 
-- `200`: 已登录，返回 `user + records`
-- `401`: 未登录，前端清空 auth state 与 map records
+---
 
-这比“先 `/auth/me` 再 `/records`”更稳，能避免前端在 session 失效边界出现分裂状态。
+## Integration Points for v7.0
 
-### Mutation Semantics
+### 1. Prisma Schema Changes
 
-| Operation | Server semantics | Frontend handling |
-|----------|------------------|-------------------|
-| Illuminate | 对 `(userId, placeId)` 执行 upsert / create-if-missing | 乐观插入，成功后用服务端记录覆盖 |
-| Unilluminate | 按 `(userId, placeId)` 删除；不存在也返回成功语义 | 乐观删除，失败时回滚 |
-| Re-bootstrap | 始终以下一份服务端快照覆盖本地 `travelRecords` | 用于刷新、重新登录、401 后恢复 |
+**Add to `UserTravelRecord`**:
 
-### Conflict Rule
+```prisma
+model UserTravelRecord {
+  // ... existing fields ...
+  notes        String?   // 备注，可选
+  tags         String[]  // 标签数组，PostgreSQL native array
+  // startDate, endDate already exist
+  // updatedAt already exists
+}
+```
 
-- **同地点重复点亮**：按 idempotent create 处理，返回当前服务端行。
-- **一端删除、一端仍显示旧数据**：不做增量冲突合并；以下次 bootstrap 为准。
-- **同账号多设备并发**：服务端权威，客户端仅保证“本次操作”的乐观一致性。
+**Migration**: Additive only -- `notes TEXT`, `tags TEXT[] DEFAULT '{}'`. No data backfill needed. Unique constraint `@@unique([userId, placeId, startDate, endDate])` unchanged.
 
-这套语义足够支撑“跨设备同步基础版”，但不会过早把系统推进到实时同步复杂度。
+### 2. Contracts Changes (`packages/contracts/src/records.ts`)
 
-## Overseas Coverage Expansion Path
+**Modify `TravelRecord` interface** -- add:
 
-### Principle
+```typescript
+export interface TravelRecord {
+  // ... existing fields ...
+  notes: string | null   // NEW
+  tags: string[]         // NEW
+}
+```
 
-海外扩展走 **canonical dataset + geometry manifest + shard 资产** 三件套，不走 records schema 定制。
+**New request type**:
 
-### Integration Rule
+```typescript
+export interface UpdateTravelRecordRequest {
+  startDate?: string | null
+  endDate?: string | null
+  notes?: string | null
+  tags?: string[]
+}
+```
 
-- `UserTravelRecord` 继续存 canonical snapshot：`placeId / boundaryId / datasetVersion / labels`
-- 渲染时仍通过 `boundaryId -> geometry manifest` 判断当前是否有边界覆盖
-- 新增海外地点时，主要改动应落在：
-  - canonical place 数据源
-  - geometry shard 生成
-  - `GEOMETRY_MANIFEST`
-  - 必要的 `placeId` / `boundaryId` 兼容映射
+**No change to `CreateTravelRecordRequest`** -- notes/tags are optional additions after creation.
 
-### Compatibility Requirement
+### 3. Backend Changes
 
-海外覆盖扩展时，**优先保持既有 `placeId` 稳定**。如果确实需要重命名：
+#### 3a. New Endpoint: `PATCH /records/:id`
 
-- 服务端增加 alias/compat lookup，或
-- 提供一次性 backfill 脚本迁移 `UserTravelRecord.placeId/boundaryId`
+```
+Controller: RecordsController.patchTravel(id, body) -> RecordsService.updateTravel(userId, id, body)
+Service: validate date range, assert record belongs to userId, call repository
+Repository: prisma.userTravelRecord.update({ where: { id }, data: { startDate, endDate, notes, tags } })
+```
 
-不要把“place ID 兼容”推给前端 `map-points` store。
+**Response**: Updated `TravelRecord` (full object).
 
-## Migration Path
+**Validation**:
+- `id` must be a valid record ID belonging to the authenticated user
+- If both `startDate` and `endDate` provided, `endDate >= startDate`
+- `notes` max length (suggest 500 chars)
+- `tags` max array length (suggest 10), each tag max 30 chars
+- Place fields (placeId, boundaryId, etc.) are NOT editable -- only date + metadata
 
-### Phase A: Expand Without Cutover
+#### 3b. New Endpoint: `DELETE /records/record/:id` (single record)
 
-1. 新增 `User`、`AuthSession`、`UserTravelRecord`
-2. 保留旧 `TravelRecord` 不动，视为 legacy
-3. 新增 auth/bootstrap/contracts，但暂不切换现有 records 流量
+**Why not reuse `DELETE /records/:placeId`**: The existing endpoint deletes ALL trips for a place. v7.0 needs single-record deletion. Two approaches:
 
-### Phase B: Cut Over Runtime
+- **Option A**: `DELETE /records/:id` with a route that distinguishes ID vs placeId -- fragile, IDs are cuid, placeIds are composite strings
+- **Option B (recommended)**: `DELETE /records/record/:id` -- unambiguous new route
 
-1. `records` 模块改为只访问 `UserTravelRecord`
-2. 受保护路由全部从 request user 取 `userId`
-3. 前端先跑 auth bootstrap，再初始化 `map-points`
-4. 401 统一触发本地状态清空
+```
+Controller: RecordsController.deleteTravelById(id) -> RecordsService.deleteTravelById(userId, id)
+Repository: prisma.userTravelRecord.delete({ where: { id } })
+```
 
-### Phase C: Legacy Handling
+**Keep existing `DELETE /records/:placeId`** -- the map popup "取消点亮" still needs place-level clear (removes all trips + unhighlights boundary).
 
-1. 导出或审计旧 `TravelRecord`
-2. 明确“不自动认领 legacy 记录”
-3. 稳定后再决定删除 legacy 表或保留只读归档
+#### 3c. Modify `toContractTravelRecord` mapping
 
-## Migration Hotspots
+Add `notes` and `tags` to the response mapper in `records.service.ts`:
 
-| Hotspot | Why risky | Mitigation |
-|--------|-----------|------------|
-| 旧 `TravelRecord` 无 owner | 不能可信回填到用户 | 新建 `UserTravelRecord`，legacy 隔离 |
-| `map-points` 现在自己 bootstrap | 容易和 auth state 脱节 | 改成依赖 `auth-session` store 的 bootstrap 结果 |
-| 现有 API client 无凭证策略 | 登录后请求不会自动带 cookie | 统一 API wrapper + `credentials: 'include'` |
-| 海外 place/boundary 重命名 | 已保存记录可能失去边界覆盖 | placeId 稳定优先；必要时做 alias/backfill |
-| 公开 `/records` 语义切换 | 容易导致旧测试/旧前端误读全局数据 | contracts 与 e2e 同步更新，明确“当前用户记录” |
+```typescript
+function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord {
+  return {
+    // ... existing fields ...
+    notes: record.notes ?? null,
+    tags: record.tags ?? [],
+  }
+}
+```
 
-## Suggested Build Order
+### 4. Frontend API Layer (`apps/web/src/services/api/records.ts`)
 
-1. **Auth foundation**
-   - Prisma 新表
-   - cookie/session 基础设施
-   - `auth` module + `GET /auth/bootstrap`
+**New functions**:
 
-2. **Per-user records cutover**
-   - 新 `UserTravelRecord` repository/service
-   - `records` 路由接入 guard
-   - contracts 增加 `updatedAt` 与 bootstrap DTO
+```typescript
+export async function updateTravelRecord(
+  id: string,
+  request: UpdateTravelRecordRequest,
+): Promise<TravelRecord> {
+  return apiFetchJson<TravelRecord>(`/records/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  })
+}
 
-3. **Web bootstrap rewrite**
-   - 新 `auth-session` store
-   - API wrapper 加 `credentials: 'include'`
-   - `map-points` 改成消费 bootstrap snapshot
+export async function deleteTravelRecordById(id: string): Promise<void> {
+  return apiFetchJson<void>(
+    `/records/record/${encodeURIComponent(id)}`,
+    { method: 'DELETE' },
+    { responseType: 'none' },
+  )
+}
+```
 
-4. **Legacy isolation + verification**
-   - legacy 数据导出/审计
-   - 登录/登出/换设备/bootstrap 回归测试
-   - 多账号互不串数据验证
+**Existing `deleteTravelRecord(placeId)`** -- keep as-is for place-level clear.
 
-5. **Overseas coverage expansion**
-   - 扩 canonical place catalog 与 geometry shards
-   - 做兼容映射/回填策略
-   - 验证“老记录仍可展示，新地点可识别可点亮”
+### 5. Frontend Store Changes (`map-points.ts`)
 
-## Roadmap Implications
+#### New state
 
-- 账号体系必须先于记录 ownership 改造落地，否则 records 无法有稳定命名空间。
-- sync baseline 应作为 auth 的一部分交付，不要把 bootstrap 拆成独立后补 phase。
-- 海外覆盖扩展应排在“用户私有 records 稳定”之后；否则会在 place/boundary 兼容上同时踩两类迁移风险。
-- `SmokeRecord` 不应进入本 milestone 主链路，除非它被明确用于 auth/records 迁移验证。
+```typescript
+const editingRecordId = shallowRef<string | null>(null)  // Which record is being edited
+```
+
+#### New actions
+
+```typescript
+async function updateRecord(recordId: string, updates: UpdateTravelRecordRequest) {
+  // Optimistic: patch the record in travelRecords
+  // API call: updateTravelRecord(recordId, updates)
+  // On success: replace with server response
+  // On failure: rollback + notice
+}
+
+async function deleteSingleRecord(recordId: string) {
+  // Optimistic: remove record from travelRecords
+  // API call: deleteTravelRecordById(recordId)
+  // On success: notice
+  // On failure: rollback + notice
+}
+```
+
+**Optimistic update pattern** follows existing `illuminate`/`unilluminate` pattern -- snapshot previous state, apply optimistic change, rollback on failure.
+
+#### Deletion propagation
+
+When a single record is deleted:
+- `travelRecords` ref updates -> `timelineEntries` recomputes automatically (it's a computed)
+- `displayPoints` recomputes (uses latest record per placeId)
+- If the deleted record was the last trip for that placeId -> place disappears from map highlight
+- `tripsByPlaceId` recomputes -> popup trip count updates
+- Statistics page watches `travelRecordRevision` which includes record IDs -> triggers re-fetch
+
+**No special propagation logic needed** -- all downstream consumers are derived from `travelRecords`.
+
+### 6. Frontend UI Entry Points
+
+#### 6a. Timeline Page -- Edit & Delete per card
+
+**Modify `TimelineVisitCard.vue`**:
+
+- Add action buttons: "编辑" and "删除" (pill-shaped, kawaii style)
+- "编辑" -> opens inline edit form (reuses/adapts `TripDateForm` + adds notes/tags fields)
+- "删除" -> confirmation dialog -> `mapPointsStore.deleteSingleRecord(recordId)`
+
+**New component: `TimelineEditForm.vue`**:
+
+- Extends `TripDateForm` pattern with additional fields:
+  - Start/end date inputs (pre-filled from existing record)
+  - Notes textarea
+  - Tags input (comma-separated or pill-chip input)
+- Emits `submit: { startDate, endDate, notes, tags }` and `cancel`
+- Parent `TimelineVisitCard` handles emit -> `mapPointsStore.updateRecord(recordId, updates)`
+
+#### 6b. Map Popup -- Edit existing trip dates
+
+**Modify `PointSummaryCard.vue`**:
+
+- In the trip summary section (when `isSaved`), add "编辑记录" button alongside existing "再记一次去访"
+- "编辑记录" -> emits `editRecord: { recordId }` up to `MapContextPopup` -> `LeafletMapStage`
+- This opens an edit form within the popup (similar to how `TripDateForm` expands inline)
+
+**Note**: The popup edit is simpler than timeline -- only date editing. Notes/tags editing is timeline-only to keep the popup compact.
+
+#### 6c. Confirmation Dialog
+
+**New component: `ConfirmDialog.vue`**:
+
+- Generic reusable confirmation modal
+- Props: `title`, `message`, `confirmLabel`, `cancelLabel`, `tone` (warning/danger)
+- Emits: `confirm`, `cancel`
+- Used for:
+  - Delete confirmation (timeline card)
+  - Edit save confirmation (if date changed significantly -- optional, could skip for simplicity)
+
+### 7. Statistics Propagation
+
+**Current mechanism** (`StatisticsPageView.vue`):
+- `travelRecordRevision` computed watches: `id, placeId, createdAt, parentLabel, displayName, typeLabel, subtitle`
+- When revision changes -> `statsStore.fetchStatsData()` re-fetches from server
+
+**What needs to change**:
+- Add `startDate`, `endDate` to `travelRecordRevision` -- editing dates doesn't change stats numbers but ensures consistency
+- Delete propagation: removing a record changes `travelRecordRevision` (fewer entries) -> triggers re-fetch -> stats update
+
+**No stats computation change needed** -- stats remain server-authoritative.
+
+---
+
+## New vs Modified Files Summary
+
+### New Files
+
+| File | Purpose |
+|------|---------|
+| `apps/server/src/modules/records/dto/update-travel-record.dto.ts` | PATCH request validation |
+| `apps/web/src/components/timeline/TimelineEditForm.vue` | Inline edit form in timeline |
+| `apps/web/src/components/shared/ConfirmDialog.vue` | Reusable confirmation dialog |
+
+### Modified Files
+
+| File | Changes |
+|------|---------|
+| `apps/server/prisma/schema.prisma` | Add `notes`, `tags` to UserTravelRecord |
+| `packages/contracts/src/records.ts` | Add `notes`, `tags` to TravelRecord; add UpdateTravelRecordRequest |
+| `apps/server/src/modules/records/records.controller.ts` | Add PATCH `:id` and DELETE `record/:id` |
+| `apps/server/src/modules/records/records.service.ts` | Add `updateTravel`, `deleteTravelById`; update mapper |
+| `apps/server/src/modules/records/records.repository.ts` | Add `updateTravelRecord`, `deleteTravelRecordById` |
+| `apps/web/src/services/api/records.ts` | Add `updateTravelRecord`, `deleteTravelRecordById` |
+| `apps/web/src/stores/map-points.ts` | Add `updateRecord`, `deleteSingleRecord`, `editingRecordId` |
+| `apps/web/src/components/timeline/TimelineVisitCard.vue` | Add edit/delete buttons, wire to store |
+| `apps/web/src/components/map-popup/PointSummaryCard.vue` | Add "编辑记录" button, `editRecord` emit |
+| `apps/web/src/components/map-popup/MapContextPopup.vue` | Pass through `editRecord` emit |
+| `apps/web/src/views/StatisticsPageView.vue` | Add date fields to `travelRecordRevision` |
+
+---
+
+## Build Order
+
+### Phase 1: Data Layer (contracts + prisma + backend)
+1. Prisma schema migration -- add `notes`, `tags`
+2. Contracts -- update `TravelRecord`, add `UpdateTravelRecordRequest`
+3. Backend DTO -- `UpdateTravelRecordDto`
+4. Backend repository -- `updateTravelRecord`, `deleteTravelRecordById`
+5. Backend service -- `updateTravel`, `deleteTravelById`, update mapper
+6. Backend controller -- PATCH `:id`, DELETE `record/:id`
+7. Backend tests
+
+### Phase 2: Frontend API + Store
+8. Frontend API -- `updateTravelRecord`, `deleteTravelRecordById`
+9. Map points store -- `updateRecord`, `deleteSingleRecord`, optimistic logic
+10. Store tests
+
+### Phase 3: Timeline Edit/Delete UI
+11. `ConfirmDialog` component
+12. `TimelineEditForm` component
+13. Modify `TimelineVisitCard` -- add actions + wire edit form + delete
+
+### Phase 4: Map Popup Edit
+14. Modify `PointSummaryCard` -- add "编辑记录" button
+15. Modify `MapContextPopup` -- pass through editRecord
+16. Wire popup edit to store
+
+### Phase 5: Integration & Propagation
+17. Update `travelRecordRevision` in StatisticsPageView
+18. E2E verification: edit date -> timeline updates -> stats correct
+19. E2E verification: delete single -> timeline removes -> map highlight logic -> stats re-fetch
+
+---
+
+## Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| PATCH for edit, not PUT | Partial updates only (date + metadata), place identity immutable |
+| Separate `DELETE /records/record/:id` route | Avoids collision with existing `DELETE /records/:placeId` |
+| Keep existing place-level delete | Map popup "取消点亮" still needs it |
+| Notes/tags only editable from timeline | Popup stays compact; timeline is the "detail view" |
+| Tags as string array, not separate model | Simple, PostgreSQL native array, no join table needed |
+| No undo history | Per PROJECT.md decision -- confirmation dialog only |
+| Optimistic updates | Follows existing illuminate/unilluminate pattern |
+
+---
 
 ## Sources
 
-### Internal code
+### Internal code (all confidence HIGH)
 
-- `apps/server/prisma/schema.prisma`
-- `apps/server/src/modules/records/records.service.ts`
-- `apps/server/src/modules/records/records.repository.ts`
-- `apps/server/src/modules/records/records.controller.ts`
-- `apps/server/src/modules/canonical-places/canonical-places.service.ts`
-- `apps/web/src/services/api/records.ts`
-- `apps/web/src/stores/map-points.ts`
-- `apps/web/src/services/geometry-manifest.ts`
-- `apps/web/src/services/city-boundaries.ts`
-
-### External references
-
-- NestJS Authentication: https://docs.nestjs.com/security/authentication
-- NestJS Session techniques: https://docs.nestjs.com/techniques/session
-- Prisma compound unique constraints: https://www.prisma.io/docs/orm/prisma-client/special-fields-and-types/working-with-composite-ids-and-constraints
-- MDN `Request.credentials`: https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
-- MDN `Set-Cookie`: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+- `apps/server/prisma/schema.prisma` -- UserTravelRecord model, unique constraint
+- `apps/server/src/modules/records/records.controller.ts` -- existing endpoints including DELETE :placeId
+- `apps/server/src/modules/records/records.service.ts` -- toContractTravelRecord mapper, deleteTravel
+- `apps/server/src/modules/records/records.repository.ts` -- deleteTravelRecordByPlaceId (deleteMany)
+- `apps/server/src/modules/records/dto/create-travel-record.dto.ts` -- current DTO shape
+- `packages/contracts/src/records.ts` -- TravelRecord, CreateTravelRecordRequest interfaces
+- `packages/contracts/src/index.ts` -- re-export surface
+- `apps/web/src/services/api/records.ts` -- createTravelRecord, deleteTravelRecord, importTravelRecords
+- `apps/web/src/services/api/client.ts` -- apiFetchJson, error handling
+- `apps/web/src/stores/map-points.ts` -- illuminate, unilluminate, travelRecords, timelineEntries, displayPoints
+- `apps/web/src/stores/stats.ts` -- statsStore, fetchStatsData
+- `apps/web/src/views/TimelinePageView.vue` -- timeline rendering, uses timelineEntries
+- `apps/web/src/views/StatisticsPageView.vue` -- travelRecordRevision watcher, stats refresh
+- `apps/web/src/components/timeline/TimelineVisitCard.vue` -- read-only card, no edit/delete
+- `apps/web/src/components/map-popup/PointSummaryCard.vue` -- illuminate/unilluminate, TripDateForm
+- `apps/web/src/components/map-popup/TripDateForm.vue` -- date input form pattern
+- `apps/web/src/components/map-popup/MapContextPopup.vue` -- popup shell, emit passthrough
+- `apps/web/src/services/timeline.ts` -- buildTimelineEntries, TimelineEntry type
