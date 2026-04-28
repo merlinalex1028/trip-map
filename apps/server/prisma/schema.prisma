@@ -79,6 +79,8 @@ model UserTravelRecord {
   subtitle       String
   startDate      String?
   endDate        String?
+  notes          String?
+  tags           String[]  @default([])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
