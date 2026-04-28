@@ -1,9 +1,9 @@
 ---
 phase: 30
 slug: travel-statistics-and-completion-overview
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-23
 ---
 
@@ -38,11 +38,11 @@ created: 2026-04-23
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 30-01-01 | 01 | 1 | STAT-01 | — | N/A | unit | `pnpm --filter server test -- stats` | ❌ W0 | ⬜ pending |
-| 30-01-02 | 01 | 1 | STAT-01 | — | N/A | unit | `pnpm --filter server test -- stats` | ❌ W0 | ⬜ pending |
-| 30-02-01 | 02 | 2 | STAT-01 | — | N/A | unit | `pnpm --filter web test run -- stats` | ❌ W0 | ⬜ pending |
-| 30-02-02 | 02 | 2 | STAT-02 | — | N/A | unit | `pnpm --filter web test run -- stats` | ❌ W0 | ⬜ pending |
-| 30-03-01 | 03 | 3 | STAT-01 | — | N/A | manual | Browser: navigate to /statistics, verify stats display | — | ⬜ pending |
+| 30-01-01 | 01 | 1 | STAT-01 | — | 合约定义正确的统计响应类型 | unit | `pnpm --filter @trip-map/contracts build` — 退出码 0（30-01-SUMMARY） | ✅ | ✅ green |
+| 30-01-02 | 01 | 1 | STAT-01 | — | 受 GET /records/stats 认证保护，仅返回当前用户的统计 | unit | `pnpm --filter @trip-map/server exec vitest run src/modules/records/records.service.spec.ts` — 通过（30-01-SUMMARY） | ✅ | ✅ green |
+| 30-02-01 | 02 | 2 | STAT-01 | — | 匿名用户不展示统计数据，由页面层 gate（restoring/anonymous 状态分流） | unit | `pnpm --filter @trip-map/web test -- src/stores/stats.spec.ts src/components/statistics/StatCard.spec.ts` — 通过（30-02-SUMMARY） | ✅ | ✅ green |
+| 30-02-02 | 02 | 2 | STAT-02 | — | 统计页五种状态正确分流（restoring/anonymous/error/empty/populated），匿名态显示登录提示 | unit | `pnpm --filter @trip-map/web test -- src/views/StatisticsPageView.spec.ts` — 通过（30-02-SUMMARY） | ✅ | ✅ green |
+| 30-03-01 | 03 | 3 | STAT-01 | — | 统计页通过已登录菜单入口可导航到达，按钮顺序 timeline → statistics → logout | manual | Browser: navigate to /statistics, verify stats display | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,10 +50,8 @@ created: 2026-04-23
 
 ## Wave 0 Requirements
 
-- [ ] `apps/server/src/records/stats.service.spec.ts` — stubs for STAT-01, STAT-02, STAT-03
-- [ ] `apps/web/src/stores/__tests__/stats.spec.ts` — stubs for store state management
-
-*Existing test infrastructure (vitest + jest) covers the framework — only test stubs need creation.*
+- [x] `apps/server/src/modules/records/records.service.spec.ts` — stubs for STAT-01, STAT-02, STAT-03（实际路径，已在 30-01 中创建并通过）
+- [x] `apps/web/src/stores/stats.spec.ts` — stubs for store state management（实际路径，已在 30-02 中创建并通过）
 
 ---
 
@@ -69,11 +67,11 @@ created: 2026-04-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-28
