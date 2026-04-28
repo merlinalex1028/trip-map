@@ -63,10 +63,10 @@
 | TRIP-01 | Phase 27 | Complete |
 | TRIP-02 | Phase 27 | Complete |
 | TRIP-03 | Phase 27 | Complete |
-| TRIP-04 | Phase 32 | Pending |
-| TRIP-05 | Phase 32 | Pending |
-| STAT-01 | Phase 32 | Pending |
-| STAT-02 | Phase 32 | Pending |
+| TRIP-04 | Phase 32 | Complete |
+| TRIP-05 | Phase 32 | Complete |
+| STAT-01 | Phase 32 | Complete |
+| STAT-02 | Phase 32 | Complete |
 | STAT-03 | Phase 31 | Complete |
 | GEOX-01 | Phase 28 | Complete |
 | GEOX-02 | Phase 28 | Complete |
@@ -78,4 +78,4 @@
 
 ---
 *Requirements defined: 2026-04-17*
-*Last updated: 2026-04-24 — gap closure phases 31-32 added after milestone audit*
+*Last updated: 2026-04-28 — Phase 32 completed, traceability table synchronized*

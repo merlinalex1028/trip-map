@@ -7,12 +7,12 @@
 - ✅ **v3.0 全栈化与行政区地图重构** — Phases 11-18，已于 2026-04-03 归档（[详情](milestones/v3.0-ROADMAP.md)）
 - ✅ **v4.0 Kawaii UI 重构 & Tailwind 集成** — Phases 19-22，已于 2026-04-10 归档（[详情](milestones/v4.0-ROADMAP.md)）
 - ✅ **v5.0 账号体系与云同步基础版** — Phases 23-26，已于 2026-04-17 归档（[详情](milestones/v5.0-ROADMAP.md)）
-- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-32，执行中（2026-04-24 审计后新增 Phase 31-32 收口统计刷新与 deep-link / UAT gaps）
+- ◆ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-35，收口中（2026-04-28 审计后新增 Phase 33-35 关闭文档同步、Nyquist 验证与测试固件 debt）
 
 ## Current Milestone: v6.0 旅行统计、时间轴与海外覆盖增强版
 
 **Milestone:** v6.0  
-**Phases:** 27-32  
+**Phases:** 27-35  
 **Requirements:** 10
 
 ## Overview
@@ -29,6 +29,9 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 - [x] **Phase 30: Travel Statistics & Completion Overview** - 基于多次旅行记录与扩展后的覆盖范围，交付基础旅行统计与国家/地区完成度（已由 Phase 32 收口完成）
 - [x] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致 (completed 2026-04-27)
 - [x] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐 (completed 2026-04-28)
+- [ ] **Phase 33: Documentation Cleanup** - 补全 Phase 32 VERIFICATION.md、同步 REQUIREMENTS.md 追踪表、更新 Phase 29/30 VERIFICATION status
+- [ ] **Phase 34: Nyquist Validation Coverage** - 补全 Phase 27/29/30/32 Nyquist 验证策略
+- [ ] **Phase 35: Test Fixture Alignment** - Server mock 引用权威 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量
 
 ## Phase Overview
 
@@ -39,7 +42,10 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 | 29 | Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Phase 27, Phase 28 |
 | 30 | Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Phase 27, Phase 28, Phase 29 |
 | 31 | Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 28, Phase 30 |
-| 32 | Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
+| 32 | Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
+| 33 | Documentation Cleanup | Planned | — (tech debt) | Phase 32 |
+| 34 | Nyquist Validation Coverage | Planned | — (tech debt) | Phase 27, Phase 29, Phase 30, Phase 32 |
+| 35 | Test Fixture Alignment | Planned | — (tech debt) | Phase 30 |
 
 ## Phase Details
 
@@ -147,6 +153,38 @@ Plans:
 - [x] 32-02-PLAN.md — Deploy fallback configuration (Wave 1, checkpoint: deploy verify)
 - [x] 32-03-PLAN.md — Documentation alignment & human UAT (Wave 2, depends on 32-01, checkpoint: human UAT)
 
+### Phase 33: Documentation Cleanup
+**Goal:** 补全 Phase 32 VERIFICATION.md，同步 REQUIREMENTS.md 追踪表（TRIP-04/05/STAT-01/02 → Complete），更新 Phase 29/30 VERIFICATION.md frontmatter status（human_needed → passed）。
+**Depends on:** Phase 32
+**Requirements:** — (tech debt closure)
+**Gap Closure:** closes v6.0-MILESTONE-AUDIT.md documentation tech debt items
+**Success Criteria** (what must be TRUE):
+1. 32-VERIFICATION.md 存在，包含 router guard / SPA fallback / 文档对齐的验证证据。
+2. REQUIREMENTS.md 追踪表所有 Phase 32 需求标记为 Complete。
+3. Phase 29/30 VERIFICATION.md frontmatter status 同步为 passed。
+**UI hint:** no
+
+### Phase 34: Nyquist Validation Coverage
+**Goal:** 补全 Phase 27/29/30/32 的 Nyquist 验证策略，使其 nyquist_compliant + wave_0_complete。
+**Depends on:** Phase 27, Phase 29, Phase 30, Phase 32
+**Requirements:** — (tech debt closure)
+**Gap Closure:** closes v6.0-MILESTONE-AUDIT.md nyquist validation tech debt items
+**Success Criteria** (what must be TRUE):
+1. 27-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
+2. 29-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
+3. 30-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
+4. 32-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
+**UI hint:** no
+
+### Phase 35: Test Fixture Alignment
+**Goal:** Server test mock 使用权威常量而非硬编码 `21`，消除 fixture / production 口径不一致风险。
+**Depends on:** Phase 30
+**Requirements:** — (tech debt closure)
+**Gap Closure:** closes v6.0-MILESTONE-AUDIT.md test fixture tech debt item
+**Success Criteria** (what must be TRUE):
+1. Server stats test mock 改为从 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 导入或计算，不再硬编码数字。
+**UI hint:** no
+
 ## Progress Table
 
 | Phase | Status | Requirements | Next Step |
@@ -156,11 +194,14 @@ Plans:
 | 29. Timeline Page & Account Entry | Complete | TRIP-04, TRIP-05 | Closed by Phase 32 doc alignment |
 | 30. Travel Statistics & Completion Overview | Complete | STAT-01, STAT-02, STAT-03 | Closed by Phase 32 deploy fallback + doc alignment |
 | 31. Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 32 |
-| 32. Route Deep-Link & Acceptance Closure | Complete | TRIP-04, TRIP-05, STAT-01, STAT-02 | All 3 plans complete |
+| 32. Route Deep-Link & Acceptance Closure | Complete | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 33 (doc cleanup) |
+| 33. Documentation Cleanup | Planned | — (tech debt) | Phase 34 |
+| 34. Nyquist Validation Coverage | Planned | — (tech debt) | Phase 35 |
+| 35. Test Fixture Alignment | Planned | — (tech debt) | Milestone complete |
 
 ## Current Status
 
-2026-04-24 的 milestone audit 认定 v6.0 仍有两类 gap 需要补齐：一是 statistics 对 metadata-only authoritative refresh 的同步重拉不完整，二是 `/timeline`、`/statistics` 的部署 deep-link / refresh 与 Timeline / Statistics 的人工验收尚未闭环。Phase 31 已完成统计刷新一致性收口；Phase 32 规划完毕（3 plans, 2 waves），进入执行阶段完成路由部署验收、人工 UAT 和文档状态对齐。
+2026-04-28 的 milestone audit 认定 v6.0 全部 9 项需求已交付，5/5 E2E 流程完成，无关键阻塞。剩余 8 项技术债务（3 文档同步 + 4 Nyquist 验证 + 1 测试固件），已规划 Phase 33-35 逐项关闭。
 
 ---
-*Last updated: 2026-04-24 — gap closure phases 31-32 added after milestone audit*
+*Last updated: 2026-04-28 — gap closure phases 33-35 added after milestone re-audit*
