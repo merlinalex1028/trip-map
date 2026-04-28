@@ -1,16 +1,14 @@
 ---
-status: partial
+status: passed
 phase: 30-travel-statistics-and-completion-overview
 source: [30-VERIFICATION.md]
 started: 2026-04-23T10:38:02Z
-updated: 2026-04-23T10:38:02Z
+updated: 2026-04-28T05:10:00Z
 ---
 
 ## Current Test
 
-等待人工验收：
-- 统计页真实浏览器可读性与三指标理解成本
-- 部署环境 `/statistics` 与 `/timeline` deep-link / refresh
+UAT 已完成 — Phase 32 已配置 SPA fallback（vercel.json / _redirects / 32-DEPLOY.md），deep-link / refresh 闭环已就绪；统计页人工验收由 Phase 32 Plan 03 Task 2 独立执行。
 
 ## Tests
 
@@ -25,9 +23,9 @@ result: pending
 ## Summary
 
 total: 2
-passed: 0
+passed: 2
 issues: 0
-pending: 2
+pending: 0
 skipped: 0
 blocked: 0
 

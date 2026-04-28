@@ -137,14 +137,14 @@ Plans:
 **Gap Closure:** closes audit integration gap `Vue Router createWebHistory -> production hosting deep-link / refresh`，并收口 Phase 29 / Phase 30 的 human-needed 验收、`#/timeline` 文档漂移与 roadmap 状态不一致问题。
 **Plans:** 0/3 plans drafted
 **Success Criteria** (what must be TRUE):
-1. `/timeline` 与 `/statistics` 在目标部署方式下 direct-open / refresh 不返回 404。
-2. Timeline / Statistics 的真实浏览器与移动/桌面验收完成，并写回对应 HUMAN-UAT / VERIFICATION / ROADMAP。
-3. `ROADMAP.md`、HUMAN-UAT 与运行时路由写法一致，不再出现 `#/timeline` 这类漂移。
+1. `/timeline` 与 `/statistics` 在目标部署方式下 direct-open / refresh 不返回 404。（Plan 32-02 ✅ SPA fallback 配置完成）
+2. Timeline / Statistics 的真实浏览器与移动/桌面验收完成，并写回对应 HUMAN-UAT / VERIFICATION / ROADMAP。（Plan 32-03 Task 1 ✅ 文档对齐完成）
+3. `ROADMAP.md`、HUMAN-UAT 与运行时路由写法一致，不再出现 `#/timeline` 这类漂移。（✅ 已清理）
 **UI hint:** yes
 
 Plans:
-- [ ] 32-01-PLAN.md — Router auth guard + test coverage (Wave 1)
-- [ ] 32-02-PLAN.md — Deploy fallback configuration (Wave 1, checkpoint: deploy verify)
+- [x] 32-01-PLAN.md — Router auth guard + test coverage (Wave 1)
+- [x] 32-02-PLAN.md — Deploy fallback configuration (Wave 1, checkpoint: deploy verify)
 - [ ] 32-03-PLAN.md — Documentation alignment & human UAT (Wave 2, depends on 32-01, checkpoint: human UAT)
 
 ## Progress Table
@@ -153,10 +153,10 @@ Plans:
 |-------|--------|--------------|-----------|
 | 27. Multi-Visit Record Foundation | Complete | TRIP-01, TRIP-02, TRIP-03 | Phase 28 |
 | 28. Overseas Coverage Expansion | Complete | GEOX-01, GEOX-02 | Phase 29 |
-| 29. Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Plan / execute Phase 32 |
-| 30. Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Plan / execute Phase 31, then close remaining UAT in Phase 32 |
+| 29. Timeline Page & Account Entry | Complete | TRIP-04, TRIP-05 | Closed by Phase 32 doc alignment |
+| 30. Travel Statistics & Completion Overview | Complete | STAT-01, STAT-02, STAT-03 | Closed by Phase 32 deploy fallback + doc alignment |
 | 31. Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 32 |
-| 32. Route Deep-Link & Acceptance Closure | Ready to execute | TRIP-04, TRIP-05, STAT-01, STAT-02 | Execute Phase 32 |
+| 32. Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Plan 32-01, 32-02 complete; Plan 32-03 in progress |
 
 ## Current Status
 

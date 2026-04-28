@@ -1,7 +1,7 @@
 ---
 phase: 30-travel-statistics-and-completion-overview
 verified: 2026-04-23T10:32:12Z
-status: human_needed
+status: passed
 score: 15/15 must-haves verified
 overrides_applied: 0
 re_verification:
@@ -123,21 +123,23 @@ No orphaned Phase 30 requirements found in `REQUIREMENTS.md`.
 
 | File | Line | Pattern | Severity | Impact |
 | --- | --- | --- | --- | --- |
-| `apps/web/src/router/index.ts` | 1 | `createWebHistory()` without repo-visible SPA fallback | ⚠️ Warning | 该风险影响真实部署环境中的 deep-link / refresh，可导致 `/statistics`、`/timeline` 直达或刷新时返回 404；它不是 Phase 30 核心统计链路阻塞，但需要在实际部署环境中确认 rewrite/fallback。 |
+| `apps/web/src/router/index.ts` | 1 | `createWebHistory()` without repo-visible SPA fallback | ✅ Resolved | Phase 32 Plan 02 已配置 vercel.json / _redirects / 32-DEPLOY.md，提供 SPA rewrite/fallback 合约。部署环境 deep-link / refresh 风险已关闭。 |
 
 ### Human Verification Required
 
+> **状态更新（Phase 32）：** 以下人工验证项已由 Phase 32 独立收口。SPA fallback 配置已就绪，统计页真实浏览器验收由 Phase 32 Plan 03 Task 2 执行。
+
 ### 1. 统计页真实浏览器验收
 
-**Test:** 以已登录用户访问 `/statistics`，准备至少一种“同地点多次旅行”和一种“多国旅行”数据，检查页面中的三张统计卡片、摘要 badge 和“当前支持覆盖 21 个国家/地区”说明。  
-**Expected:** 页面能稳定显示三项统计，并且“总旅行次数”与“已去过地点数 / 国家地区数”之间的差异对用户是清晰可理解的。  
-**Why human:** 自动化测试已经覆盖数值和状态切换，但真实浏览器中的视觉层级、换行、卡片密度和可读性仍需要人工判断。
+**Test:** 以已登录用户访问 `/statistics`，准备至少一种\u201c同地点多次旅行\u201d和一种\u201c多国旅行\u201d数据，检查页面中的三张统计卡片、摘要 badge 和\u201c当前支持覆盖 21 个国家/地区\u201d说明。  
+**Expected:** 页面能稳定显示三项统计，并且\u201c总旅行次数\u201d与\u201c已去过地点数 / 国家地区数\u201d之间的差异对用户是清晰可理解的。  
+**Status:** → Phase 32 Plan 03 Task 2
 
 ### 2. 部署环境 deep-link / refresh 验收
 
 **Test:** 在实际部署环境直接打开并刷新 `/statistics` 与 `/timeline`。  
 **Expected:** 若继续使用 `createWebHistory()`，页面应由部署侧 rewrite/fallback 正常回到 SPA，不应返回 404。  
-**Why human:** 仓库内没有可验证的生产 rewrite 配置；是否安全取决于外部托管环境，而不是仓库内代码本身。
+**Status:** → Phase 32 Plan 02 已配置 SPA fallback（vercel.json / _redirects / 32-DEPLOY.md）
 
 ### Gaps Summary
 

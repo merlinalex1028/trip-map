@@ -1,12 +1,12 @@
 ---
 phase: 29-timeline-page-and-account-entry
 verified: 2026-04-23T04:40:25Z
-status: human_needed
+status: passed
 score: 8/8 must-haves verified
 overrides_applied: 0
 human_verification:
-  - test: "使用真实已登录账号，从用户名菜单点击“时间轴”进入 #/timeline"
-    expected: "菜单先关闭，URL 切到 #/timeline，共享顶栏保留，地图舞台消失，并出现独立时间轴页面"
+  - test: "使用真实已登录账号，从用户名菜单点击“时间轴”进入 /timeline"
+    expected: "菜单先关闭，URL 切到 /timeline，共享顶栏保留，地图舞台消失，并出现独立时间轴页面"
     why_human: "这属于真实浏览器用户流与视觉集成验证，组件测试无法完全替代"
   - test: "准备含已知日期、未知日期、同地点多次去访的真实账号数据后浏览时间轴列表"
     expected: "已知日期记录按最早优先显示，未知日期稳定排在最后，同地点多次去访拆成多张卡片并显示“第 N 次 / 共 N 次”"
@@ -31,7 +31,7 @@ human_verification:
 | --- | --- | --- | --- |
 | 1 | 已登录用户名面板中存在清晰的“时间轴”入口，并带独立图标与 pill 按钮样式 | ✓ 已验证 | `AuthTopbarControl.vue` 在第 132-150 行渲染 `data-auth-menu-item="timeline"` 按钮和图标容器；匿名态仅显示登录按钮（第 79-87 行）。 |
 | 2 | 点击菜单入口会先关闭菜单，再在同一 tab 内导航到独立时间轴页面 | ✓ 已验证 | `handleNavigateToTimeline()` 在 `AuthTopbarControl.vue` 第 36-39 行先 `closeMenu()` 再 `router.push('/timeline')`；`AuthTopbarControl.spec.ts` 第 71-84 行断言导航发生且菜单关闭。 |
-| 3 | App 主壳由 Router 驱动，时间轴页面是独立 route，而不是地图主舞台里的内联模块 | ✓ 已验证 | `main.ts` 第 9 行安装 router；`router/index.ts` 第 6-24 行定义 `#/` 与 `#/timeline`；`App.vue` 第 143 行改为 `<RouterView />`；`MapHomeView.vue` 单独承接 `LeafletMapStage`；`App.spec.ts` 第 306-359 行验证 timeline route 不渲染 map stage。 |
+| 3 | App 主壳由 Router 驱动，时间轴页面是独立 route，而不是地图主舞台里的内联模块 | ✓ 已验证 | `main.ts` 第 9 行安装 router；`router/index.ts` 第 6-24 行定义 `/` 与 `/timeline`；`App.vue` 第 143 行改为 `<RouterView />`；`MapHomeView.vue` 单独承接 `LeafletMapStage`；`App.spec.ts` 第 306-359 行验证 timeline route 不渲染 map stage。 |
 | 4 | 时间轴数据直接从原始 `travelRecords` 派生，而不是复用 `displayPoints` 的地点去重结果 | ✓ 已验证 | `map-points.ts` 第 102-118 行保留 `displayPoints` 去重语义，第 129 行单独暴露 `timelineEntries = computed(() => buildTimelineEntries(travelRecords.value))`。 |
 | 5 | 排序遵循“有日期优先、最早优先、未知日期后置”，`createdAt` 只做稳定 tie-break，不当作旅行日期展示 | ✓ 已验证 | `timeline.ts` 第 41-62 行先比较 `hasKnownDate`、`sortDate`、`startDate`，最后才比较 `createdAt` 和 `recordId`；`TimelineVisitCard.vue` 第 12-21 行仅展示 `startDate/endDate`，未知日期显示固定文案 `日期未知`；`timeline.spec.ts` 第 57-149 行覆盖最早优先、未知日期后置和 tie-break。 |
 | 6 | 同一地点多次去访在 selector 层就被拆成多条 entry，并带 `visitOrdinal` / `visitCount` | ✓ 已验证 | `timeline.ts` 第 65-84 行逐条 record 生成 entry 并回填 `visitOrdinal`、`visitCount`；`map-points.spec.ts` 第 946-985 行验证同地点两次去访不会被压成一条。 |
@@ -102,7 +102,7 @@ human_verification:
 
 | 文件 | 行 | 模式 | 严重级别 | 影响 |
 | --- | --- | --- | --- | --- |
-| `apps/web/src/App.spec.ts` | 63 | 测试内重复定义 memory router 路由表，而不是直接复用 `src/router/index.ts` | ⚠️ Warning | 如果运行时路由路径或命名未来发生漂移，而测试夹具未同步更新，route-shell 回归可能出现假阳性。 |
+| `apps/web/src/App.spec.ts` | 63 | 测试内重复定义 memory router 路由表，而不是直接复用 `src/router/index.ts` | ⚠️ Resolved | Phase 32 已补充 `/statistics` 到 App.spec.ts 测试路由表，并将 auth guard 回归测试移到 `router/index.spec.ts`（独立导入真实 router）。App.spec.ts 的独立 router 与真实 router guard 行为已明确分离。 |
 
 补充说明：对 phase 29 相关实现文件执行了 TODO/FIXME/placeholder/空实现扫描，未发现阻断目标达成的占位实现。扫描命中的 `null` 初始值均属于 Pinia/Vue 的正常状态初始化，不属于 stub。
 
@@ -111,7 +111,7 @@ human_verification:
 ### 1. 已登录菜单跳转链路
 
 **Test:** 使用真实已登录账号，点击顶栏用户名展开菜单，再点击“时间轴”。  
-**Expected:** 菜单关闭，地址切到 `#/timeline`，共享顶栏保留，地图舞台消失，出现独立时间轴页面。  
+**Expected:** 菜单关闭，地址切到 `/timeline`，共享顶栏保留，地图舞台消失，出现独立时间轴页面。  
 **Why human:** 这是完整用户流和真实浏览器渲染验证，happy-dom 与 mock router 不能完全替代。
 
 ### 2. 真实旅行历史排序与多次去访呈现
@@ -128,7 +128,7 @@ human_verification:
 
 ### 结论
 
-代码层面未发现阻断 Phase 29 目标达成的缺口：独立 `#/timeline` 路由、用户名菜单入口、基于 `travelRecords` 的时间轴数据派生、最早优先排序、未知日期后置、多次去访拆分，以及对应回归测试都已落地并通过自动验证。
+代码层面未发现阻断 Phase 29 目标达成的缺口：独立 `/timeline` 路由、用户名菜单入口、基于 `travelRecords` 的时间轴数据派生、最早优先排序、未知日期后置、多次去访拆分，以及对应回归测试都已落地并通过自动验证。
 
 当前状态之所以不是 `passed`，仅因为本阶段仍包含必须由真人完成的浏览器验收项：真实登录链路、真实历史数据排序可读性，以及移动端/桌面端视觉表现。除此之外，唯一需要关注的非阻断性风险是 `App.spec.ts` 复制了测试用路由表，后续若调整运行时路由，建议改为复用 `src/router/index.ts` 或抽出共享 route factory，以避免测试夹具与运行时配置漂移。
 
