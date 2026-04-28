@@ -135,12 +135,17 @@ Plans:
 **Depends on:** Phase 29, Phase 30, Phase 31
 **Requirements:** TRIP-04, TRIP-05, STAT-01, STAT-02
 **Gap Closure:** closes audit integration gap `Vue Router createWebHistory -> production hosting deep-link / refresh`，并收口 Phase 29 / Phase 30 的 human-needed 验收、`#/timeline` 文档漂移与 roadmap 状态不一致问题。
-**Plans:** 0/0 plans drafted
+**Plans:** 0/3 plans drafted
 **Success Criteria** (what must be TRUE):
 1. `/timeline` 与 `/statistics` 在目标部署方式下 direct-open / refresh 不返回 404。
 2. Timeline / Statistics 的真实浏览器与移动/桌面验收完成，并写回对应 HUMAN-UAT / VERIFICATION / ROADMAP。
 3. `ROADMAP.md`、HUMAN-UAT 与运行时路由写法一致，不再出现 `#/timeline` 这类漂移。
 **UI hint:** yes
+
+Plans:
+- [ ] 32-01-PLAN.md — Router auth guard + test coverage (Wave 1)
+- [ ] 32-02-PLAN.md — Deploy fallback configuration (Wave 1, checkpoint: deploy verify)
+- [ ] 32-03-PLAN.md — Documentation alignment & human UAT (Wave 2, depends on 32-01, checkpoint: human UAT)
 
 ## Progress Table
 
@@ -151,11 +156,11 @@ Plans:
 | 29. Timeline Page & Account Entry | Gap Closure Pending | TRIP-04, TRIP-05 | Plan / execute Phase 32 |
 | 30. Travel Statistics & Completion Overview | Gap Closure Pending | STAT-01, STAT-02, STAT-03 | Plan / execute Phase 31, then close remaining UAT in Phase 32 |
 | 31. Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 32 |
-| 32. Route Deep-Link & Acceptance Closure | Planned | TRIP-04, TRIP-05, STAT-01, STAT-02 | Draft 32-PLAN.md |
+| 32. Route Deep-Link & Acceptance Closure | Ready to execute | TRIP-04, TRIP-05, STAT-01, STAT-02 | Execute Phase 32 |
 
 ## Current Status
 
-2026-04-24 的 milestone audit 认定 v6.0 仍有两类 gap 需要补齐：一是 statistics 对 metadata-only authoritative refresh 的同步重拉不完整，二是 `/timeline`、`/statistics` 的部署 deep-link / refresh 与 Timeline / Statistics 的人工验收尚未闭环。Phase 31 已完成统计刷新一致性收口，下一步进入 Phase 32 完成路由部署验收、人工 UAT 和文档状态对齐。
+2026-04-24 的 milestone audit 认定 v6.0 仍有两类 gap 需要补齐：一是 statistics 对 metadata-only authoritative refresh 的同步重拉不完整，二是 `/timeline`、`/statistics` 的部署 deep-link / refresh 与 Timeline / Statistics 的人工验收尚未闭环。Phase 31 已完成统计刷新一致性收口；Phase 32 规划完毕（3 plans, 2 waves），进入执行阶段完成路由部署验收、人工 UAT 和文档状态对齐。
 
 ---
 *Last updated: 2026-04-24 — gap closure phases 31-32 added after milestone audit*
