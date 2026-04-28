@@ -1,5 +1,6 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common'
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import type {
   ImportTravelRecordsResponse,
@@ -16,6 +17,7 @@ import {
 } from '../canonical-places/place-metadata-catalog.js'
 import { RecordsRepository } from './records.repository.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
+import type { UpdateTravelRecordDto } from './dto/update-travel-record.dto.js'
 import type { ImportTravelRecordsDto } from './dto/import-travel-records.dto.js'
 
 function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
@@ -53,6 +55,9 @@ function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord 
     startDate: record.startDate ?? null,
     endDate: record.endDate ?? null,
     createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+    notes: record.notes ?? null,
+    tags: record.tags,
   }
 }
 
@@ -97,6 +102,49 @@ export class RecordsService {
 
   async deleteTravel(userId: string, placeId: string): Promise<void> {
     await this.recordsRepository.deleteTravelRecordByPlaceId(userId, placeId)
+  }
+
+  async updateTravelRecord(userId: string, id: string, input: UpdateTravelRecordDto): Promise<ContractTravelRecord> {
+    // 日期变更时做范围校验
+    if (input.startDate !== undefined || input.endDate !== undefined) {
+      const existing = await this.recordsRepository.findTravelRecordById(userId, id)
+      if (!existing) {
+        throw new NotFoundException(`Record ${id} not found`)
+      }
+      const effectiveStart = input.startDate ?? existing.startDate
+      const effectiveEnd = input.endDate ?? existing.endDate
+      this.assertValidDateRange({ startDate: effectiveStart, endDate: effectiveEnd })
+    }
+
+    // 标签清洗 — trim + 去重 + 过滤空字符串
+    const cleanData = { ...input }
+    if (cleanData.tags) {
+      cleanData.tags = [...new Set(cleanData.tags.map(t => t.trim()).filter(t => t.length > 0))]
+    }
+
+    try {
+      const record = await this.recordsRepository.updateTravelRecord(userId, id, cleanData)
+      return toContractTravelRecord(record)
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new ConflictException('与已有记录冲突: 相同日期范围内已存在同地点旅行记录')
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Record ${id} not found`)
+      }
+      throw error
+    }
+  }
+
+  async deleteTravelRecord(userId: string, id: string): Promise<void> {
+    try {
+      await this.recordsRepository.deleteTravelRecordById(userId, id)
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw new NotFoundException(`Record ${id} not found`)
+      }
+      throw error
+    }
   }
 
   async getStats(userId: string): Promise<TravelStatsResponse> {
