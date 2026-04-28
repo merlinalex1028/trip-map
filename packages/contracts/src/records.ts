@@ -25,11 +25,21 @@ export interface TravelRecord {
   startDate: string | null
   endDate: string | null
   createdAt: string
+  updatedAt: string
+  notes: string | null
+  tags: string[]
 }
 
 export interface CreateTravelRecordRequest extends CanonicalPlaceSummary {
   startDate: string | null
   endDate: string | null
+}
+
+export interface UpdateTravelRecordRequest {
+  startDate?: string | null
+  endDate?: string | null
+  notes?: string | null
+  tags?: string[]
 }
 
 export interface ImportTravelRecordsRequest {
