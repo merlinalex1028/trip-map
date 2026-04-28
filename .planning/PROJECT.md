@@ -12,7 +12,7 @@
 
 ## Current State
 
-- **v6.0 进行中（Phase 31 已完成，准备进入 Phase 32）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性已经落地，当前下一步是 `/timeline` 与 `/statistics` 的 deep-link / refresh 和人工验收闭环
+- **v6.0 收尾中（Phase 32-34 已完成，进入 Phase 35）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性、deep-link/refresh、文档同步与 Nyquist 验证覆盖均已落地，当前下一步是 Phase 35 测试固件对齐
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
 - **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
@@ -158,4 +158,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-27 — after Phase 31 completion*
+*Last updated: 2026-04-28 — after Phase 34 completion*
