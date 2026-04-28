@@ -30,7 +30,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 - [x] **Phase 31: Statistics Sync Refresh Hardening** - 修复 authoritative metadata 刷新后 statistics 可能滞后的问题，确保统计与时间轴保持一致 (completed 2026-04-27)
 - [x] **Phase 32: Route Deep-Link & Acceptance Closure** - 收口 `/timeline` 与 `/statistics` 的 deep-link / refresh 闭环，并完成 Timeline / Statistics 的人工验收与文档对齐 (completed 2026-04-28)
 - [x] **Phase 33: Documentation Cleanup** - 补全 Phase 32 VERIFICATION.md、同步 REQUIREMENTS.md 追踪表、更新 Phase 29/30 VERIFICATION status (completed 2026-04-28)
-- [ ] **Phase 34: Nyquist Validation Coverage** - 补全 Phase 27/29/30/32 Nyquist 验证策略（2 plans）
+- [x] **Phase 34: Nyquist Validation Coverage** - 补全 Phase 27/29/30/32 Nyquist 验证策略（2 plans） (completed 2026-04-28)
 - [ ] **Phase 35: Test Fixture Alignment** - Server mock 引用权威 TOTAL_SUPPORTED_TRAVEL_COUNTRIES 常量
 
 ## Phase Overview
@@ -44,7 +44,7 @@ v6.0 让产品从"一个地点是否去过"的单次点亮模型，升级为"同
 | 31 | Statistics Sync Refresh Hardening | Complete | STAT-03 | Phase 28, Phase 30 |
 | 32 | Route Deep-Link & Acceptance Closure | Executing | TRIP-04, TRIP-05, STAT-01, STAT-02 | Phase 29, Phase 30, Phase 31 |
 | 33 | Documentation Cleanup | 1/1 | Complete   | 2026-04-28 |
-| 34 | Nyquist Validation Coverage | Planned | — (tech debt) | Phase 27, Phase 29, Phase 30, Phase 32 |
+| 34 | Nyquist Validation Coverage | 2/2 | Complete    | 2026-04-28 |
 | 35 | Test Fixture Alignment | Planned | — (tech debt) | Phase 30 |
 
 ## Phase Details
@@ -173,7 +173,7 @@ Plans:
 **Depends on:** Phase 27, Phase 29, Phase 30, Phase 32
 **Requirements:** — (tech debt closure)
 **Gap Closure:** closes v6.0-MILESTONE-AUDIT.md nyquist validation tech debt items
-**Plans:** 2 plans (both Wave 1)
+**Plans:** 2/2 plans complete
 **Success Criteria** (what must be TRUE):
 1. 27-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
 2. 29-VALIDATION.md: nyquist_compliant=true, wave_0_complete=true
@@ -182,8 +182,8 @@ Plans:
 **UI hint:** no
 
 Plans:
-- [ ] 34-01-PLAN.md — 升级 Phase 27/29 VALIDATION.md 至 Nyquist 完整合规（Per-Task Verification Map + Sign-Off + frontmatter）
-- [ ] 34-02-PLAN.md — 升级 Phase 30/32 VALIDATION.md 至 Nyquist 完整合规（Per-Task Verification Map + Sign-Off + frontmatter）
+- [x] 34-01-PLAN.md — 升级 Phase 27/29 VALIDATION.md 至 Nyquist 完整合规（Per-Task Verification Map + Sign-Off + frontmatter）
+- [x] 34-02-PLAN.md — 升级 Phase 30/32 VALIDATION.md 至 Nyquist 完整合规（Per-Task Verification Map + Sign-Off + frontmatter）
 
 ### Phase 35: Test Fixture Alignment
 **Goal:** Server test mock 使用权威常量而非硬编码 `21`，消除 fixture / production 口径不一致风险。
