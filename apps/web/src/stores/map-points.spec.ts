@@ -18,10 +18,12 @@ import { useMapUiStore } from './map-ui'
 // Hoisted mocks
 // ---------------------------------------------------------------------------
 
-const { createMock, deleteMock } = vi.hoisted(() => {
+const { createMock, deleteMock, updateMock, deleteSingleMock } = vi.hoisted(() => {
   return {
     createMock: vi.fn<() => Promise<TravelRecord>>(),
     deleteMock: vi.fn<() => Promise<void>>(),
+    updateMock: vi.fn<() => Promise<TravelRecord>>(),
+    deleteSingleMock: vi.fn<() => Promise<void>>(),
   }
 })
 
@@ -29,6 +31,8 @@ vi.mock('../services/api/records', () => {
   return {
     createTravelRecord: createMock,
     deleteTravelRecord: deleteMock,
+    updateTravelRecord: updateMock,
+    deleteSingleRecord: deleteSingleMock,
   }
 })
 
@@ -123,6 +127,9 @@ describe('map-points store', () => {
     createMock.mockReset()
     deleteMock.mockReset()
     deleteMock.mockResolvedValue(undefined)
+    updateMock.mockReset()
+    deleteSingleMock.mockReset()
+    deleteSingleMock.mockResolvedValue(undefined)
   })
 
   // -------------------------------------------------------------------------
@@ -595,6 +602,311 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       await expect(store.unilluminate('non-existent')).resolves.toBeUndefined()
       expect(store.travelRecords).toHaveLength(0)
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // updateRecord
+  // -------------------------------------------------------------------------
+
+  describe('updateRecord', () => {
+    it('updates record optimistically before API returns', async () => {
+      let resolveUpdate!: (value: TravelRecord) => void
+      updateMock.mockImplementation(
+        () =>
+          new Promise((r) => {
+            resolveUpdate = r
+          }),
+      )
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-01-01',
+      })])
+
+      const promise = store.updateRecord('rec-1', { startDate: '2025-06-01' })
+
+      // 乐观更新 — API 调用前已更新
+      expect(store.travelRecords[0]?.startDate).toBe('2025-06-01')
+
+      const serverRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-06-01',
+      })
+      resolveUpdate(serverRecord)
+      await promise
+    })
+
+    it('replaces optimistic data with server data on success', async () => {
+      const serverRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-06-01',
+        endDate: '2025-06-07',
+        notes: 'vacation',
+        tags: ['summer'],
+      })
+      updateMock.mockResolvedValueOnce(serverRecord)
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-01-01',
+      })])
+
+      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+
+      expect(store.travelRecords[0]?.startDate).toBe('2025-06-01')
+      expect(store.travelRecords[0]?.notes).toBe('vacation')
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '旅行记录已更新。',
+      })
+    })
+
+    it('rolls back on API failure', async () => {
+      updateMock.mockRejectedValueOnce(new Error('update failed'))
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-01-01',
+      })])
+
+      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+
+      // 回滚到原始状态
+      expect(store.travelRecords[0]?.startDate).toBe('2025-01-01')
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '编辑失败，旅行记录暂时没有同步成功，请稍后重试。',
+      })
+    })
+
+    it('routes 401 through handleUnauthorized instead of generic warning', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const handleUnauthorizedSpy = vi.spyOn(authSessionStore, 'handleUnauthorized')
+
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+      updateMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'session-unauthorized',
+          message: 'Session expired',
+        }),
+      )
+
+      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+
+      expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
+      expect(mapUiStore.interactionNotice?.message).not.toBe(
+        '编辑失败，旅行记录暂时没有同步成功，请稍后重试。',
+      )
+    })
+
+    it('does not write result back after session boundary resets', async () => {
+      let resolveUpdate!: (value: TravelRecord) => void
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-01-01',
+      })])
+      updateMock.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveUpdate = resolve
+          }),
+      )
+
+      const updatePromise = store.updateRecord('rec-1', { startDate: '2025-06-01' })
+
+      authSessionStore.handleUnauthorized()
+      resolveUpdate(makeRecord(PHASE12_RESOLVED_BEIJING, {
+        id: 'rec-1',
+        startDate: '2025-06-01',
+      }))
+      await updatePromise
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(store.travelRecords).toEqual([])
+    })
+
+    it('does nothing if recordId not found', async () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+
+      await store.updateRecord('non-existent', { startDate: '2025-06-01' })
+
+      expect(updateMock).not.toHaveBeenCalled()
+      expect(store.travelRecords[0]?.startDate).toBeNull()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // deleteSingleRecord
+  // -------------------------------------------------------------------------
+
+  describe('deleteSingleRecord', () => {
+    it('removes record optimistically before API returns', async () => {
+      let resolveDelete!: () => void
+      deleteSingleMock.mockImplementation(
+        () =>
+          new Promise((r) => {
+            resolveDelete = r
+          }),
+      )
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1', startDate: '2025-01-01' }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-2', startDate: '2025-06-01' }),
+      ])
+
+      const promise = store.deleteSingleRecord('rec-1')
+
+      // 乐观删除 — API 调用前已移除
+      expect(store.travelRecords).toHaveLength(1)
+      expect(store.travelRecords[0]?.id).toBe('rec-2')
+
+      resolveDelete()
+      await promise
+    })
+
+    it('confirms deletion on success with info notice', async () => {
+      deleteSingleMock.mockResolvedValueOnce(undefined)
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+
+      await store.deleteSingleRecord('rec-1')
+
+      expect(store.travelRecords).toHaveLength(0)
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '旅行记录已删除。',
+      })
+    })
+
+    it('rolls back on API failure', async () => {
+      deleteSingleMock.mockRejectedValueOnce(new Error('delete failed'))
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+
+      await store.deleteSingleRecord('rec-1')
+
+      expect(store.travelRecords).toHaveLength(1)
+      expect(store.travelRecords[0]?.id).toBe('rec-1')
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'warning',
+        message: '删除失败，旅行记录暂时没有同步成功，请稍后重试。',
+      })
+    })
+
+    it('routes 401 through handleUnauthorized instead of generic warning', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const store = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      const handleUnauthorizedSpy = vi.spyOn(authSessionStore, 'handleUnauthorized')
+
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+      deleteSingleMock.mockRejectedValueOnce(
+        new ApiClientError({
+          status: 401,
+          code: 'session-unauthorized',
+          message: 'Session expired',
+        }),
+      )
+
+      await store.deleteSingleRecord('rec-1')
+
+      expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
+      expect(mapUiStore.interactionNotice?.message).not.toBe(
+        '删除失败，旅行记录暂时没有同步成功，请稍后重试。',
+      )
+    })
+
+    it('does not roll back after session boundary resets', async () => {
+      let rejectDelete!: (reason?: unknown) => void
+      const authSessionStore = useAuthSessionStore()
+      deleteSingleMock.mockImplementationOnce(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectDelete = reject
+          }),
+      )
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+
+      const deletePromise = store.deleteSingleRecord('rec-1')
+
+      authSessionStore.handleUnauthorized()
+      rejectDelete(new Error('delete failed after logout'))
+      await deletePromise
+
+      expect(authSessionStore.status).toBe('anonymous')
+      expect(store.travelRecords).toEqual([])
+    })
+
+    it('does nothing if recordId not found', async () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
+
+      await store.deleteSingleRecord('non-existent')
+
+      expect(deleteSingleMock).not.toHaveBeenCalled()
+      expect(store.travelRecords).toHaveLength(1)
+    })
+
+    it('updates timelineEntries after deletion', async () => {
+      deleteSingleMock.mockResolvedValueOnce(undefined)
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'rec-1',
+          startDate: '2025-01-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'rec-2',
+          startDate: '2025-06-01',
+        }),
+      ])
+
+      expect(store.timelineEntries).toHaveLength(2)
+
+      await store.deleteSingleRecord('rec-1')
+
+      expect(store.timelineEntries).toHaveLength(1)
+      expect(store.timelineEntries[0]?.recordId).toBe('rec-2')
     })
   })
 

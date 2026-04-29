@@ -379,4 +379,76 @@ describe('StatisticsPageView', () => {
     expect(populated.text()).toContain('3 次旅行 · 2 个地点 · 2 个国家/地区')
     expect(populated.text()).toContain('当前支持覆盖 21 个国家/地区。')
   })
+
+  it('re-fetches statistics after editing notes', async () => {
+    fetchStatsMock
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+
+    const recordWithNotes = makeRecord(PHASE12_RESOLVED_BEIJING, {
+      id: 'beijing-1',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      notes: 'great trip',
+    })
+
+    const { mapPointsStore } = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    await flushPromises()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    mapPointsStore.replaceTravelRecords([recordWithNotes])
+    await nextTick()
+    await flushPromises()
+
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('re-fetches statistics after editing tags', async () => {
+    fetchStatsMock
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+
+    const recordWithTags = makeRecord(PHASE12_RESOLVED_BEIJING, {
+      id: 'beijing-1',
+      createdAt: '2025-01-01T00:00:00.000Z',
+      tags: ['summer', 'family'],
+    })
+
+    const { mapPointsStore } = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    await flushPromises()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    mapPointsStore.replaceTravelRecords([recordWithTags])
+    await nextTick()
+    await flushPromises()
+
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+  })
 })

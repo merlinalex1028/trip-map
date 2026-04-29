@@ -5,7 +5,9 @@ import { computed, shallowRef } from 'vue'
 import { isUnauthorizedApiClientError } from '../services/api/client'
 import {
   createTravelRecord,
+  deleteSingleRecord as deleteSingleRecordApi,
   deleteTravelRecord,
+  updateTravelRecord as updateTravelRecordApi,
 } from '../services/api/records'
 import {
   hasBoundaryCoverageForBoundaryId,
@@ -188,6 +190,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
   const RECORD_WRITE_FAILED_NOTICE = '点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
   const RECORD_DELETE_SUCCESS_NOTICE = '已从当前账号移除。'
   const RECORD_DELETE_FAILED_NOTICE = '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
+  const RECORD_UPDATE_SUCCESS_NOTICE = '旅行记录已更新。'
+  const RECORD_UPDATE_FAILED_NOTICE = '编辑失败，旅行记录暂时没有同步成功，请稍后重试。'
+  const RECORD_SINGLE_DELETE_SUCCESS_NOTICE = '旅行记录已删除。'
+  const RECORD_SINGLE_DELETE_FAILED_NOTICE = '删除失败，旅行记录暂时没有同步成功，请稍后重试。'
 
   function replaceTravelRecords(records: TravelRecord[]) {
     travelRecords.value = [...records]
@@ -517,6 +523,109 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
   }
 
+  async function updateRecord(
+    recordId: string,
+    request: import('@trip-map/contracts').UpdateTravelRecordRequest,
+  ) {
+    const authSessionStore = useAuthSessionStore()
+    const boundaryVersionAtStart = authSessionStore.boundaryVersion
+    const previousRecords = [...travelRecords.value]
+    const targetRecord = previousRecords.find((r) => r.id === recordId)
+    if (!targetRecord) {
+      return
+    }
+
+    // 乐观更新 — PATCH 语义：只覆盖传入字段
+    const optimisticRecord: TravelRecord = {
+      ...targetRecord,
+      ...request,
+      updatedAt: new Date().toISOString(),
+    }
+    travelRecords.value = previousRecords.map((r) =>
+      r.id === recordId ? optimisticRecord : r,
+    )
+
+    try {
+      const updatedRecord = await updateTravelRecordApi(recordId, request)
+
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
+      // 用服务端权威数据替换
+      travelRecords.value = travelRecords.value.map((r) =>
+        r.id === recordId ? updatedRecord : r,
+      )
+      useMapUiStore().setInteractionNotice({
+        tone: 'info',
+        message: RECORD_UPDATE_SUCCESS_NOTICE,
+      })
+    } catch (error) {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
+      // 回滚到原始状态
+      travelRecords.value = previousRecords
+
+      if (isUnauthorizedApiClientError(error)) {
+        if (authSessionStore.currentUser) {
+          authSessionStore.handleUnauthorized()
+        }
+      } else {
+        useMapUiStore().setInteractionNotice({
+          tone: 'warning',
+          message: RECORD_UPDATE_FAILED_NOTICE,
+        })
+      }
+    }
+  }
+
+  async function deleteSingleRecord(recordId: string) {
+    const authSessionStore = useAuthSessionStore()
+    const boundaryVersionAtStart = authSessionStore.boundaryVersion
+    const previousRecords = [...travelRecords.value]
+    const targetRecord = previousRecords.find((r) => r.id === recordId)
+    if (!targetRecord) {
+      return
+    }
+
+    // 乐观删除
+    travelRecords.value = previousRecords.filter((r) => r.id !== recordId)
+
+    try {
+      await deleteSingleRecordApi(recordId)
+
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
+      // 成功 — 确认删除（已是最新状态）
+      useMapUiStore().setInteractionNotice({
+        tone: 'info',
+        message: RECORD_SINGLE_DELETE_SUCCESS_NOTICE,
+      })
+    } catch (error) {
+      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        return
+      }
+
+      // 回滚
+      travelRecords.value = previousRecords
+
+      if (isUnauthorizedApiClientError(error)) {
+        if (authSessionStore.currentUser) {
+          authSessionStore.handleUnauthorized()
+        }
+      } else {
+        useMapUiStore().setInteractionNotice({
+          tone: 'warning',
+          message: RECORD_SINGLE_DELETE_FAILED_NOTICE,
+        })
+      }
+    }
+  }
+
   function isPlaceIlluminated(placeId: string): boolean {
     return travelRecords.value.some((record) => record.placeId === placeId)
   }
@@ -555,6 +664,8 @@ export const useMapPointsStore = defineStore('map-points', () => {
     openSavedPointForPlaceOrStartDraft,
     illuminate,
     unilluminate,
+    updateRecord,
+    deleteSingleRecord,
     isPlaceIlluminated,
     isPlacePending,
   }

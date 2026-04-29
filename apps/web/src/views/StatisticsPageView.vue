@@ -46,6 +46,10 @@ const travelRecordRevision = computed(() =>
       record.displayName,
       record.typeLabel,
       record.subtitle,
+      record.startDate,
+      record.endDate,
+      record.notes,
+      record.tags.join(','),
     ].join('\u0000'))
     .join('|'),
 )
