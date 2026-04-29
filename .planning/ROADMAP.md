@@ -125,7 +125,10 @@ Plans:
 1. Phase 38 有 VERIFICATION.md，记录所有 must-have 验证结果
 2. Phase 39 有 VERIFICATION.md，记录所有 must-have 验证结果
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 40-01-PLAN.md — 为 Phase 38/39 生成 VERIFICATION.md
 
 ---
 
@@ -169,7 +172,7 @@ Plans:
 | 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
 | 38. 时间轴编辑/删除 UI | 2/2 | Complete   | 2026-04-29 |
 | 39. Map Popup 集成与端到端闭环 | 1/1 | Complete   | 2026-04-29 |
-| 40. 补齐阶段验证文档 | 0/? | Not started | - |
+| 40. 补齐阶段验证文档 | 1/1 | In progress  | - |
 | 41. 补齐 Nyquist 验证 | 0/? | Not started | - |
 
 ---
