@@ -21,7 +21,7 @@
 
 - [x] **Phase 36: 数据层扩展** — Prisma schema 扩展 notes/tags、contracts 更新、PATCH/DELETE 后端端点、日期冲突校验 (completed 2026-04-29)
 - [x] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新 (completed 2026-04-29)
-- [ ] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示
+- [x] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示 (completed 2026-04-29)
 - [ ] **Phase 39: Map Popup 集成与端到端闭环** — 地图 popup 编辑/删除入口、E2E 验证
 
 ## Phase Details
@@ -85,15 +85,15 @@ Plans:
 3. 用户点击删除按钮后，系统展示确认弹窗，需确认后才执行删除
 4. 删除该地点最后一条记录时，系统提示将取消该地点的点亮状态
 
-**Plans:** 2 plans (2 waves)
+**Plans:** 2/2 plans complete
 
 Plans:
 
 **Wave 1** — 编辑功能组件（无外部依赖）
-- [ ] 38-01-PLAN.md — 日期冲突检查纯函数 date-conflict.ts + 标签输入控件 TagInput.vue + 编辑表单 TimelineEditForm.vue
+- [x] 38-01-PLAN.md — 日期冲突检查纯函数 date-conflict.ts + 标签输入控件 TagInput.vue + 编辑表单 TimelineEditForm.vue
 
 **Wave 2** *(blocked on Wave 1 completion)* — 删除功能 + 卡片集成
-- [ ] 38-02-PLAN.md — 确认弹窗 ConfirmDialog.vue + TimelineVisitCard 集成编辑/删除交互 + TimelineEntry 扩展 notes/tags
+- [x] 38-02-PLAN.md — 确认弹窗 ConfirmDialog.vue + TimelineVisitCard 集成编辑/删除交互 + TimelineEntry 扩展 notes/tags
 
 ---
 
@@ -107,7 +107,10 @@ Plans:
 2. 删除前展示确认弹窗，删除最后一条记录时提示将取消点亮
 3. 从地图 popup 编辑后，时间轴和统计数据同步更新
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 39-01-PLAN.md — PopupTripRecord 组件 + PointSummaryCard 编辑/删除集成
 
 ---
 
@@ -115,13 +118,13 @@ Plans:
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EDIT-01 修改旅行日期 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-02 添加/修改备注 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-03 添加/修改标签 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-04 日期冲突检查 | Phase 36（后端）+ Phase 38（前端） | Pending |
-| DEL-01 删除单条记录 | Phase 36（API）+ Phase 38（UI） | Pending |
-| DEL-02 删除确认弹窗 | Phase 38 | Pending |
-| DEL-03 最后一条提示 | Phase 38 | Pending |
+| EDIT-01 修改旅行日期 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-02 添加/修改备注 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-03 添加/修改标签 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-04 日期冲突检查 | Phase 36（后端）+ Phase 38（前端） | Complete |
+| DEL-01 删除单条记录 | Phase 36（API）+ Phase 38（UI） | Complete |
+| DEL-02 删除确认弹窗 | Phase 38 | Complete |
+| DEL-03 最后一条提示 | Phase 38 | Complete |
 | SYNC-01 时间轴自动重排序 | Phase 37 | Complete |
 | SYNC-02 时间轴自动移除 | Phase 37 | Complete |
 | SYNC-03 统计自动刷新 | Phase 37 | Complete |
@@ -135,8 +138,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
 | 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
-| 38. 时间轴编辑/删除 UI | 0/2 | Not started | - |
-| 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
+| 38. 时间轴编辑/删除 UI | 2/2 | Complete   | 2026-04-29 |
+| 39. Map Popup 集成与端到端闭环 | 0/1 | Planning | - |
 
 ---
 
