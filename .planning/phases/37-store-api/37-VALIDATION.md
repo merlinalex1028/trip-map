@@ -2,8 +2,8 @@
 phase: 37
 slug: store-api
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-29
 ---
 
@@ -36,12 +36,12 @@ created: 2026-04-29
 
 ## Per-Task Verification Map
 
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
-|---------|------|------|-------------|-----------|-------------------|--------|
-| 37-01-01 | 01 | 1 | SYNC-01 | unit | `pnpm --filter @trip-map/web vitest run` | ⬜ pending |
-| 37-01-02 | 01 | 1 | SYNC-02 | unit | `pnpm --filter @trip-map/web vitest run` | ⬜ pending |
-| 37-01-03 | 01 | 1 | SYNC-03 | unit | `pnpm --filter @trip-map/web vitest run` | ⬜ pending |
-| 37-01-04 | 01 | 1 | SYNC-04 | unit | `pnpm --filter @trip-map/web vitest run` | ⬜ pending |
+| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
+|---------|------|------|-------------|-----------|-------------------|-------------|--------|
+| 37-01-01 | 01 | 1 | SYNC-01 | unit | `pnpm --filter @trip-map/web test src/stores/map-points.spec.ts` | ✅ | ✅ green |
+| 37-01-02 | 01 | 1 | SYNC-02 | unit | `pnpm --filter @trip-map/web test src/stores/map-points.spec.ts` | ✅ | ✅ green |
+| 37-01-03 | 01 | 1 | SYNC-03 | unit | `pnpm --filter @trip-map/web test src/views/StatisticsPageView.spec.ts` | ✅ | ✅ green |
+| 37-01-04 | 01 | 1 | SYNC-04 | unit | `pnpm --filter @trip-map/web test src/stores/map-points.spec.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,7 +49,7 @@ created: 2026-04-29
 
 ## Wave 0 Requirements
 
-- Existing infrastructure covers all phase requirements. Vitest + happy-dom already configured.
+- [x] `apps/web/src/services/api/records.spec.ts` — API 函数测试文件已创建并通过
 
 ---
 
@@ -63,11 +63,11 @@ created: 2026-04-29
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-29
