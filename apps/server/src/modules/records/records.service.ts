@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
-import type { SmokeRecord, UserTravelRecord } from '@prisma/client'
+import type { SmokeRecord } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 
 import type {
@@ -9,7 +9,6 @@ import type {
   TravelRecord as ContractTravelRecord,
   TravelStatsResponse,
 } from '@trip-map/contracts'
-import type { PlaceKind } from '@trip-map/contracts'
 
 import {
   getCanonicalPlaceSummaryByBoundaryId,
@@ -19,6 +18,7 @@ import { RecordsRepository } from './records.repository.js'
 import type { CreateTravelRecordDto } from './dto/create-travel-record.dto.js'
 import type { UpdateTravelRecordDto } from './dto/update-travel-record.dto.js'
 import type { ImportTravelRecordsDto } from './dto/import-travel-records.dto.js'
+import { toContractTravelRecord } from './travel-record.mapper.js'
 
 function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
   return {
@@ -36,28 +36,6 @@ function toSmokeRecordResponse(record: SmokeRecord): SmokeRecordResponse {
     note: record.note ?? undefined,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
-  }
-}
-
-function toContractTravelRecord(record: UserTravelRecord): ContractTravelRecord {
-  return {
-    id: record.id,
-    placeId: record.placeId,
-    boundaryId: record.boundaryId,
-    placeKind: record.placeKind as PlaceKind,
-    datasetVersion: record.datasetVersion,
-    displayName: record.displayName,
-    regionSystem: record.regionSystem as ContractTravelRecord['regionSystem'],
-    adminType: record.adminType as ContractTravelRecord['adminType'],
-    typeLabel: record.typeLabel as ContractTravelRecord['typeLabel'],
-    parentLabel: record.parentLabel as ContractTravelRecord['parentLabel'],
-    subtitle: record.subtitle,
-    startDate: record.startDate ?? null,
-    endDate: record.endDate ?? null,
-    createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
-    notes: record.notes ?? null,
-    tags: record.tags,
   }
 }
 
@@ -111,8 +89,8 @@ export class RecordsService {
       if (!existing) {
         throw new NotFoundException(`Record ${id} not found`)
       }
-      const effectiveStart = input.startDate ?? existing.startDate
-      const effectiveEnd = input.endDate ?? existing.endDate
+      const effectiveStart = input.startDate !== undefined ? input.startDate : existing.startDate
+      const effectiveEnd = input.endDate !== undefined ? input.endDate : existing.endDate
       this.assertValidDateRange({ startDate: effectiveStart, endDate: effectiveEnd })
     }
 

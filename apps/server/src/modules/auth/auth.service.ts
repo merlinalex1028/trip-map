@@ -7,11 +7,11 @@ import type {
   LoginResponse,
   RegisterRequest,
   RegisterResponse,
-  TravelRecord,
 } from '@trip-map/contracts'
-import { Prisma, type User, type UserTravelRecord } from '@prisma/client'
+import { Prisma, type User } from '@prisma/client'
 
 import { AuthRepository } from './auth.repository.js'
+import { toContractTravelRecord } from '../records/travel-record.mapper.js'
 
 export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
 
@@ -29,28 +29,6 @@ function toAuthUser(user: User): AuthUser {
     username: user.username,
     email: user.email,
     createdAt: user.createdAt.toISOString(),
-  }
-}
-
-function toContractTravelRecord(record: UserTravelRecord): TravelRecord {
-  return {
-    id: record.id,
-    placeId: record.placeId,
-    boundaryId: record.boundaryId,
-    placeKind: record.placeKind as TravelRecord['placeKind'],
-    datasetVersion: record.datasetVersion,
-    displayName: record.displayName,
-    regionSystem: record.regionSystem as TravelRecord['regionSystem'],
-    adminType: record.adminType as TravelRecord['adminType'],
-    typeLabel: record.typeLabel ?? '',
-    parentLabel: record.parentLabel ?? '',
-    subtitle: record.subtitle,
-    startDate: record.startDate ?? null,
-    endDate: record.endDate ?? null,
-    createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
-    notes: record.notes ?? null,
-    tags: record.tags,
   }
 }
 
