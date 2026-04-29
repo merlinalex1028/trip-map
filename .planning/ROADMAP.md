@@ -85,7 +85,15 @@ Plans:
 3. 用户点击删除按钮后，系统展示确认弹窗，需确认后才执行删除
 4. 删除该地点最后一条记录时，系统提示将取消该地点的点亮状态
 
-**Plans:** TBD
+**Plans:** 2 plans (2 waves)
+
+Plans:
+
+**Wave 1** — 编辑功能组件（无外部依赖）
+- [ ] 38-01-PLAN.md — 日期冲突检查纯函数 date-conflict.ts + 标签输入控件 TagInput.vue + 编辑表单 TimelineEditForm.vue
+
+**Wave 2** *(blocked on Wave 1 completion)* — 删除功能 + 卡片集成
+- [ ] 38-02-PLAN.md — 确认弹窗 ConfirmDialog.vue + TimelineVisitCard 集成编辑/删除交互 + TimelineEntry 扩展 notes/tags
 
 ---
 
@@ -127,7 +135,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
 | 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
-| 38. 时间轴编辑/删除 UI | 0/? | Not started | - |
+| 38. 时间轴编辑/删除 UI | 0/2 | Not started | - |
 | 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
 
 ---
