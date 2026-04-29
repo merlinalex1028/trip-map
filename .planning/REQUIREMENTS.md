@@ -21,10 +21,10 @@
 
 ### 数据一致性
 
-- [ ] **SYNC-01**: 编辑旅行记录后，时间轴页面自动按新日期重新排序
-- [ ] **SYNC-02**: 删除旅行记录后，时间轴页面自动移除对应卡片
-- [ ] **SYNC-03**: 编辑或删除旅行记录后，统计页面自动刷新数据
-- [ ] **SYNC-04**: 编辑或删除操作在网络失败时，前端乐观更新正确回滚
+- [x] **SYNC-01**: 编辑旅行记录后，时间轴页面自动按新日期重新排序
+- [x] **SYNC-02**: 删除旅行记录后，时间轴页面自动移除对应卡片
+- [x] **SYNC-03**: 编辑或删除旅行记录后，统计页面自动刷新数据
+- [x] **SYNC-04**: 编辑或删除操作在网络失败时，前端乐观更新正确回滚
 
 ## Future Requirements
 
@@ -49,10 +49,10 @@
 | DEL-01 | Phase 36（API）+ Phase 38（UI） | Pending |
 | DEL-02 | Phase 38 | Pending |
 | DEL-03 | Phase 38 | Pending |
-| SYNC-01 | Phase 37 | Pending |
-| SYNC-02 | Phase 37 | Pending |
-| SYNC-03 | Phase 37 | Pending |
-| SYNC-04 | Phase 37 | Pending |
+| SYNC-01 | Phase 37 | Complete |
+| SYNC-02 | Phase 37 | Complete |
+| SYNC-03 | Phase 37 | Complete |
+| SYNC-04 | Phase 37 | Complete |
 
 > 13/13 requirements mapped — 100% coverage ✓
 

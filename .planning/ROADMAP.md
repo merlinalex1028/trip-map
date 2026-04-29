@@ -20,7 +20,7 @@
 ## Phases
 
 - [x] **Phase 36: 数据层扩展** — Prisma schema 扩展 notes/tags、contracts 更新、PATCH/DELETE 后端端点、日期冲突校验 (completed 2026-04-29)
-- [ ] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新
+- [x] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新 (completed 2026-04-29)
 - [ ] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示
 - [ ] **Phase 39: Map Popup 集成与端到端闭环** — 地图 popup 编辑/删除入口、E2E 验证
 
@@ -70,7 +70,7 @@ Cross-cutting constraints:
 Plans:
 
 **Wave 1** — API + Store + 统计刷新（无外部依赖）
-- [ ] 37-01-PLAN.md — API 层 updateTravelRecord/deleteSingleRecord + Store 乐观更新 updateRecord/deleteSingleRecord + StatisticsPageView revision 扩展
+- [x] 37-01-PLAN.md — API 层 updateTravelRecord/deleteSingleRecord + Store 乐观更新 updateRecord/deleteSingleRecord + StatisticsPageView revision 扩展
 
 ---
 
@@ -114,10 +114,10 @@ Plans:
 | DEL-01 删除单条记录 | Phase 36（API）+ Phase 38（UI） | Pending |
 | DEL-02 删除确认弹窗 | Phase 38 | Pending |
 | DEL-03 最后一条提示 | Phase 38 | Pending |
-| SYNC-01 时间轴自动重排序 | Phase 37 | Pending |
-| SYNC-02 时间轴自动移除 | Phase 37 | Pending |
-| SYNC-03 统计自动刷新 | Phase 37 | Pending |
-| SYNC-04 乐观更新回滚 | Phase 37 | Pending |
+| SYNC-01 时间轴自动重排序 | Phase 37 | Complete |
+| SYNC-02 时间轴自动移除 | Phase 37 | Complete |
+| SYNC-03 统计自动刷新 | Phase 37 | Complete |
+| SYNC-04 乐观更新回滚 | Phase 37 | Complete |
 
 > 13/13 requirements mapped — 100% coverage ✓
 
@@ -126,7 +126,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
-| 37. 前端 Store 与 API 层 | 0/1 | Not started | - |
+| 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
 | 38. 时间轴编辑/删除 UI | 0/? | Not started | - |
 | 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
 
