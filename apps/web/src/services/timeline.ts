@@ -14,6 +14,8 @@ export interface TimelineEntry {
   sortDate: string | null
   visitOrdinal: number
   visitCount: number
+  notes: string | null
+  tags: string[]
 }
 
 function toTimelineEntry(record: TravelRecord): Omit<TimelineEntry, 'visitOrdinal' | 'visitCount'> {
@@ -29,6 +31,8 @@ function toTimelineEntry(record: TravelRecord): Omit<TimelineEntry, 'visitOrdina
     startDate: record.startDate,
     endDate: record.endDate,
     createdAt: record.createdAt,
+    notes: record.notes,
+    tags: record.tags,
     hasKnownDate,
     sortDate: hasKnownDate ? (record.endDate ?? record.startDate) : null,
   }
