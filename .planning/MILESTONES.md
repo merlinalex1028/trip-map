@@ -1,5 +1,22 @@
 # Milestones
 
+## v7.0 旅行记录编辑与删除 (Shipped: 2026-04-29)
+
+**Phases completed:** 6 phases, 8 plans, 23 tasks
+
+**Key accomplishments:**
+
+- Prisma schema 和 contracts 类型定义扩展，新增 notes/tags 字段和 UpdateTravelRecordRequest 接口
+- PATCH /records/:id 和 DELETE /records/record/:id 后端端点完整实现，含输入验证、标签清洗、日期冲突检测
+- updateTravelRecord/deleteSingleRecord API functions with store-level optimistic update/rollback and automatic timeline re-sort + stats refresh on edit/delete
+- One-liner:
+- ConfirmDialog 通用确认弹窗 + TimelineVisitCard 编辑/删除交互（编辑模式切换、删除确认弹窗、最后一条 destructive 警告）
+- PopupTripRecord 组件 + PointSummaryCard 集成，让用户可以在地图 popup 中编辑/删除旅行记录
+- One-liner:
+- 补齐 Phase 36/37/39 的 VALIDATION.md 文档，全部标记 nyquist_compliant: true 并通过验证签收
+
+---
+
 ## v6.0 旅行统计、时间轴与海外覆盖增强版 (Shipped: 2026-04-28)
 
 **Phases completed:** 9 phases, 30 plans, 65 tasks

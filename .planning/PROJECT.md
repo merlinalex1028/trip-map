@@ -2,9 +2,9 @@
 
 ## What This Is
 
-一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、重开和点亮自己的旅行记录。
+一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和点亮自己的旅行记录。
 
-`v6.0` 已完成：产品已经把”去过哪里”升级为”什么时候去过、去过几次、整体完成度如何”，并完成旅行时间、独立时间轴、基础统计、海外覆盖扩展与统计刷新一致性主链路。`v7.0` 聚焦旅行记录编辑与删除——让用户可以修改已有记录的日期、添加备注/标签，并删除单条记录。
+`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在时间轴和地图入口均可操作。`v8.0` 规划中。
 
 ## Core Value
 
@@ -12,6 +12,7 @@
 
 ## Current State
 
+- **v7.0 已于 2026-04-29 归档**：6 phases（36-41），8 plans，23 tasks，13/13 requirements satisfied，milestone audit passed，396 测试通过
 - **v6.0 已完成（Phase 27-35 全部交付）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性、deep-link/refresh、文档同步、Nyquist 验证覆盖与测试固件对齐均已落地
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
@@ -25,15 +26,21 @@
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
 
-## Current Milestone: v7.0 旅行记录编辑与删除
+## Current Milestone: v7.0 旅行记录编辑与删除 ✅
 
-**Goal:** 让用户可以编辑已有旅行记录、添加元数据，并删除单条记录
+**Status:** SHIPPED 2026-04-29 — 13/13 requirements satisfied
 
-**Target features:**
-- 编辑旅行日期（修改已有记录的开始/结束日期）
-- 添加备注/标签（为旅行记录附加元数据）
-- 单条记录删除（删除单条而非地点级清除）
-- 确认弹窗（编辑/删除前的确认机制，无撤销历史）
+**Delivered:**
+- ✅ 编辑旅行日期、添加备注和标签
+- ✅ 单条记录删除 + 确认弹窗
+- ✅ 最后一条记录 destructive 风格警告
+- ✅ 时间轴页面编辑/删除 + Map Popup 编辑/删除双入口
+- ✅ 乐观更新 + 网络失败回滚
+- ✅ 编辑/删除后时间轴自动重排序、统计自动刷新
+
+## Next Milestone: v8.0 (规划中)
+
+**目标待定**
 
 ## Requirements
 
@@ -52,16 +59,27 @@
 - ✓ 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复 — v6.0 / Phase 27
 - ✓ 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行 — v6.0 / Phase 28
 - ✓ 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类 — v6.0 / Phase 28
-- ✓ 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
-- ✓ 用户可以在时间轴页面按时间顺序查看自己的旅行记录，并区分同一地点的多次去访 — v6.0 / Phase 29（Validated in Phase 29: Timeline Page & Account Entry）
-- ✓ 当同一地点存在多次旅行记录时，统计会正确区分“总旅行次数”和“唯一地点 / 完成度”，且 authoritative metadata 刷新后统计与时间轴保持一致 — v6.0 / Phase 30-31（Validated in Phase 31: Statistics Sync Refresh Hardening）
-- ✓ `STAT-01`: 用户可以查看基础旅行统计，包括旅行次数、已去过地点数与国家/地区数 — v6.0 / Phase 30
+- ✓ 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面 — v6.0 / Phase 29
+- ✓ 用户可以在时间轴页面按时间顺序查看自己的旅行记录，并区分同一地点的多次去访 — v6.0 / Phase 29
+- ✓ 当同一地点存在多次旅行记录时，统计会正确区分"总旅行次数"和"唯一地点 / 完成度" — v6.0 / Phase 30-31
+- ✓ `STAT-01`: 用户可以查看基础旅行统计 — v6.0 / Phase 30
 - ✓ `STAT-02`: 用户可以查看国家/地区完成度 — v6.0 / Phase 30
-- ✓ Tailwind CSS 已集成到 `apps/web`，可在 Vue SFC 中使用工具类 — v4.0
-- ✓ 页面使用奶油白背景（#FAFAFA / #FFF5F5），并提供 `sakura` / `mint` / `lavender` / `cream` 主题 token — v4.0
-- ✓ Nunito Variable 已作为全局字体基线生效 — v4.0
-- ✓ App shell、popup、PointSummaryCard 已完成 Kawaii/Tailwind 主路径迁移 — v4.0
-- ✓ pill-shaped 按钮/徽章、floating-cloud 卡片、宽松 spacing、hover / active motion 合同均已通过 formal verification 与 milestone audit — v4.0
+- ✓ Tailwind CSS 已集成到 `apps/web` — v4.0
+- ✓ 页面使用奶油白背景及主题 token — v4.0
+- ✓ Nunito Variable 全局字体基线 — v4.0
+- ✓ Kawaii/Tailwind 主路径迁移完成 — v4.0
+- ✓ pill-shaped 按钮、floating-cloud 卡片、设计语言 formal verification — v4.0
+- ✓ `EDIT-01`: 用户可以修改已有旅行记录的开始日期和结束日期 — v7.0
+- ✓ `EDIT-02`: 用户可以为旅行记录添加或修改纯文本备注（最长 1000 字符）— v7.0
+- ✓ `EDIT-03`: 用户可以为旅行记录添加或修改标签（最多 10 个，每个最长 20 字符）— v7.0
+- ✓ `EDIT-04`: 编辑日期时自动检查同地点其他记录日期冲突并提示 — v7.0
+- ✓ `DEL-01`: 用户可以删除单条旅行记录 — v7.0
+- ✓ `DEL-02`: 删除前展示确认弹窗 — v7.0
+- ✓ `DEL-03`: 删除最后一条记录时提示将取消点亮 — v7.0
+- ✓ `SYNC-01`: 编辑后时间轴自动重排序 — v7.0
+- ✓ `SYNC-02`: 删除后时间轴自动移除 — v7.0
+- ✓ `SYNC-03`: 编辑/删除后统计自动刷新 — v7.0
+- ✓ `SYNC-04`: 网络失败时乐观更新正确回滚 — v7.0
 
 ### Out of Scope
 
@@ -69,7 +87,7 @@
 - 同步历史、最近同步时间与更完整的同步状态可见性 — 本轮不处理同步可观察性增强
 - 分享、公开主页与协作能力 — 会引入权限与隐私模型，超出本轮单用户旅行表达范围
 - 旅行照片、游记正文与富文本内容 — 当前只承载旅行时间和基础统计，不做内容社区化
-- ~~单条旅行记录的编辑 / 局部删除工作流~~ — 已纳入 v7.0 里程碑范围
+- 单条旅行记录编辑与删除 — 已在 v7.0 实现，不再属于 Out of Scope
 - 自动轨迹、GPS 采集或外部行程导入 — 偏离当前“手动点亮 + 主动记录”的产品主线
 - Dark mode — 目前仍非优先项
 - JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
@@ -79,13 +97,17 @@
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v6.0 先把旅行记录升级为“多次去访 + 旅行日期”模型 | 时间轴和统计都依赖记录从 place-level presence 升级为 trip-level history | ✓ Good — Validated in Phase 27 |
+| v6.0 先把旅行记录升级为"多次去访 + 旅行日期"模型 | 时间轴和统计都依赖记录从 place-level presence 升级为 trip-level history | ✓ Good — Validated in Phase 27 |
 | 时间轴作为独立页面而不是地图内联模块 | 这是用户明确指定的交互路径，且更适合承载时间序列浏览 | ✓ Good — Validated in Phase 29 |
 | 时间轴入口放在点击用户名后展开的面板内 | 复用现有账号入口心智，避免在地图主舞台额外引入高噪声导航 | ✓ Good — Validated in Phase 29 |
 | 统计页保持 server-authoritative，并用 metadata-aware revision 触发重拉 | 避免在前端本地重算统计口径，同时保证 bootstrap / same-user sync 后不会出现统计滞后 | ✓ Good — Validated in Phase 31 |
 | 单条旅行记录编辑 / 局部删除延后 | 本轮先闭环新增、展示和统计，控制模型迁移复杂度 | ✓ Resolved — 纳入 v7.0 |
-| v7.0 编辑不含地点修改 | 关联地点不可变更，避免 placeId / boundaryId 级联更新复杂度 | — Pending |
-| v7.0 无编辑历史/撤销 | 仅确认弹窗，不做 undo 栈，控制实现复杂度 | — Pending |
+| v7.0 编辑不含地点修改 | 关联地点不可变更，避免 placeId / boundaryId 级联更新复杂度 | ✓ Good — Validated in v7.0 |
+| v7.0 无编辑历史/撤销 | 仅确认弹窗，不做 undo 栈，控制实现复杂度 | ✓ Good — Validated in v7.0 |
+| PATCH 语义而非 PUT | 部分更新场景更灵活，place 字段不可编辑 | ✓ Good — Implemented in Phase 36 |
+| 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | ✓ Good — Implemented in Phase 36 |
+| store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | ✓ Good — Implemented in Phase 37 |
+| 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✓ Good — Implemented in Phase 36 |
 
 ## Archived Milestone Snapshots
 
@@ -159,4 +181,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-28 — start v7.0 milestone*
+*Last updated: 2026-04-29 — v7.0 shipped, archived*
