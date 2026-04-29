@@ -15,14 +15,16 @@
 
 **Goal:** 让用户可以编辑已有旅行记录、添加元数据，并删除单条记录
 **Granularity:** coarse
-**Phase range:** 36-39
+**Phase range:** 36-41
 
 ## Phases
 
 - [x] **Phase 36: 数据层扩展** — Prisma schema 扩展 notes/tags、contracts 更新、PATCH/DELETE 后端端点、日期冲突校验 (completed 2026-04-29)
 - [x] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新 (completed 2026-04-29)
 - [x] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示 (completed 2026-04-29)
-- [ ] **Phase 39: Map Popup 集成与端到端闭环** — 地图 popup 编辑/删除入口、E2E 验证
+- [x] **Phase 39: Map Popup 集成与端到端闭环** — PopupTripRecord 每记录编辑/删除组件 + PointSummaryCard 集成 + MapContextPopup 适配，396 测试通过 (completed 2026-04-29)
+- [ ] **Phase 40: 补齐阶段验证文档** — 为 Phase 38/39 生成 VERIFICATION.md，确认已实现功能满足验收标准
+- [ ] **Phase 41: 补齐 Nyquist 验证** — 为 Phase 36/37/39 完成 Nyquist 验证，确保验证覆盖率达标
 
 ## Phase Details
 
@@ -107,10 +109,37 @@ Plans:
 2. 删除前展示确认弹窗，删除最后一条记录时提示将取消点亮
 3. 从地图 popup 编辑后，时间轴和统计数据同步更新
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 39-01-PLAN.md — PopupTripRecord 组件 + PointSummaryCard 编辑/删除集成
+- [x] 39-01-PLAN.md — PopupTripRecord 组件 + PointSummaryCard 编辑/删除集成
+
+---
+
+### Phase 40: 补齐阶段验证文档
+
+**Goal:** 为 Phase 38/39 生成 VERIFICATION.md，确认已实现功能满足验收标准
+**Depends on:** Phase 38, Phase 39
+**Requirements:** None（文档补齐）
+**Success Criteria**（可观察行为）:
+1. Phase 38 有 VERIFICATION.md，记录所有 must-have 验证结果
+2. Phase 39 有 VERIFICATION.md，记录所有 must-have 验证结果
+
+**Plans:** TBD
+
+---
+
+### Phase 41: 补齐 Nyquist 验证
+
+**Goal:** 为 Phase 36/37/39 完成 Nyquist 验证，确保验证覆盖率达标
+**Depends on:** Phase 36, Phase 37, Phase 39
+**Requirements:** None（验证补齐）
+**Success Criteria**（可观察行为）:
+1. Phase 36 有 VALIDATION.md 且 nyquist_compliant: true
+2. Phase 37 的 Nyquist 验证完成（nyquist_compliant: true）
+3. Phase 39 有 VALIDATION.md 且 nyquist_compliant: true
+
+**Plans:** TBD
 
 ---
 
@@ -139,7 +168,9 @@ Plans:
 | 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
 | 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
 | 38. 时间轴编辑/删除 UI | 2/2 | Complete   | 2026-04-29 |
-| 39. Map Popup 集成与端到端闭环 | 0/1 | Planning | - |
+| 39. Map Popup 集成与端到端闭环 | 1/1 | Complete   | 2026-04-29 |
+| 40. 补齐阶段验证文档 | 0/? | Not started | - |
+| 41. 补齐 Nyquist 验证 | 0/? | Not started | - |
 
 ---
 

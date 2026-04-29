@@ -8,16 +8,16 @@
 
 ### 记录编辑
 
-- [ ] **EDIT-01**: 用户可以修改已有旅行记录的开始日期和结束日期
-- [ ] **EDIT-02**: 用户可以为旅行记录添加或修改纯文本备注（最长 1000 字符）
-- [ ] **EDIT-03**: 用户可以为旅行记录添加或修改标签（最多 10 个，每个最长 20 字符）
-- [ ] **EDIT-04**: 编辑日期时，系统自动检查同地点其他记录的日期冲突并提示用户
+- [x] **EDIT-01**: 用户可以修改已有旅行记录的开始日期和结束日期
+- [x] **EDIT-02**: 用户可以为旅行记录添加或修改纯文本备注（最长 1000 字符）
+- [x] **EDIT-03**: 用户可以为旅行记录添加或修改标签（最多 10 个，每个最长 20 字符）
+- [x] **EDIT-04**: 编辑日期时，系统自动检查同地点其他记录的日期冲突并提示用户
 
 ### 记录删除
 
-- [ ] **DEL-01**: 用户可以删除单条旅行记录（按记录 ID，不影响同地点其他记录）
-- [ ] **DEL-02**: 删除前系统展示确认弹窗，用户需确认后才执行删除
-- [ ] **DEL-03**: 删除该地点最后一条记录时，系统提示将取消该地点的点亮状态
+- [x] **DEL-01**: 用户可以删除单条旅行记录（按记录 ID，不影响同地点其他记录）
+- [x] **DEL-02**: 删除前系统展示确认弹窗，用户需确认后才执行删除
+- [x] **DEL-03**: 删除该地点最后一条记录时，系统提示将取消该地点的点亮状态
 
 ### 数据一致性
 
@@ -42,13 +42,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EDIT-01 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-02 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-03 | Phase 36（API）+ Phase 38（UI） | Pending |
-| EDIT-04 | Phase 36（后端校验）+ Phase 38（前端检查） | Pending |
-| DEL-01 | Phase 36（API）+ Phase 38（UI） | Pending |
-| DEL-02 | Phase 38 | Pending |
-| DEL-03 | Phase 38 | Pending |
+| EDIT-01 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-02 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-03 | Phase 36（API）+ Phase 38（UI） | Complete |
+| EDIT-04 | Phase 36（后端校验）+ Phase 38（前端检查） | Complete |
+| DEL-01 | Phase 36（API）+ Phase 38（UI） | Complete |
+| DEL-02 | Phase 38 | Complete |
+| DEL-03 | Phase 38 | Complete |
 | SYNC-01 | Phase 37 | Complete |
 | SYNC-02 | Phase 37 | Complete |
 | SYNC-03 | Phase 37 | Complete |
