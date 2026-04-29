@@ -1,8 +1,17 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
+import { vi } from 'vitest'
 
 import MapContextPopup from './MapContextPopup.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+
+vi.mock('../../stores/map-points', () => ({
+  useMapPointsStore: () => ({
+    tripsByPlaceId: new Map(),
+    updateRecord: vi.fn(),
+    deleteSingleRecord: vi.fn(),
+  }),
+}))
 
 function createDraftPoint(overrides: Partial<DraftMapPoint> = {}): DraftMapPoint {
   return {

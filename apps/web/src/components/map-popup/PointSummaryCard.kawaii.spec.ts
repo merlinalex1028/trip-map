@@ -4,10 +4,19 @@ import {
   PHASE12_RESOLVED_CALIFORNIA,
 } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
+import { vi } from 'vitest'
 
 import PointSummaryCard from './PointSummaryCard.vue'
 import pointSummaryCardSource from './PointSummaryCard.vue?raw'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+
+vi.mock('../../stores/map-points', () => ({
+  useMapPointsStore: () => ({
+    tripsByPlaceId: new Map(),
+    updateRecord: vi.fn(),
+    deleteSingleRecord: vi.fn(),
+  }),
+}))
 
 type ViewSummarySurface = {
   mode: 'view'

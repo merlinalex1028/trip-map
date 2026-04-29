@@ -3,6 +3,9 @@ import { computed, ref } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+import { buildTimelineEntries } from '../../services/timeline'
+import { useMapPointsStore } from '../../stores/map-points'
+import PopupTripRecord from './PopupTripRecord.vue'
 import TripDateForm from './TripDateForm.vue'
 
 interface CandidateListItem {
@@ -174,6 +177,16 @@ const illuminateButtonClass = computed(() => [
   props.isSaved ? primaryCtaOnClass : primaryCtaOffClass,
 ])
 const isFormExpanded = ref(false)
+
+const mapPointsStore = useMapPointsStore()
+const currentPlaceId = computed(() =>
+  props.surface.mode === 'candidate-select' ? null : props.surface.point?.placeId ?? null,
+)
+const placeRecords = computed(() =>
+  currentPlaceId.value ? (mapPointsStore.tripsByPlaceId.get(currentPlaceId.value) ?? []) : [],
+)
+const placeTimelineEntries = computed(() => buildTimelineEntries(placeRecords.value))
+
 const tripCountDisplay = computed(() => {
   if (!props.isSaved) return null
 
@@ -356,35 +369,31 @@ function handleContinueWithFallback() {
           </p>
         </div>
 
+        <!-- Per-record edit/delete list (replaces static trip-summary) -->
         <div
-          v-if="!isCandidateMode && isSaved"
-          class="point-summary-card__trip-summary grid gap-2 rounded-2xl border border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.85),rgba(255,255,255,0.92))] p-4"
-          data-region="trip-summary"
+          v-if="!isCandidateMode && isSaved && placeTimelineEntries.length > 0"
+          class="point-summary-card__records gap-2"
+          data-region="popup-records"
         >
-          <p
-            class="point-summary-card__trip-count text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)]"
-            data-trip-summary-count="true"
-          >
-            {{ tripCountDisplay }}
-          </p>
-          <p
-            class="point-summary-card__trip-latest text-[var(--font-label-size)] text-[var(--color-ink-muted)]"
-            data-trip-summary-latest="true"
-          >
-            {{ latestTripDisplay }}
-          </p>
-          <button
-            v-if="!isFormExpanded"
-            type="button"
-            class="point-summary-card__record-again min-h-11 rounded-full border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] px-4 py-2 text-[var(--font-label-size)] font-bold text-[var(--color-accent-strong)] shadow-[0_14px_28px_rgba(244,143,177,0.34)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
-            :disabled="isPending || !isIlluminatable"
-            data-record-again="true"
-            aria-label="再记一次这次旅行"
-            @click="openTripDateForm"
-          >
-            再记一次去访
-          </button>
+          <PopupTripRecord
+            v-for="entry in placeTimelineEntries"
+            :key="entry.recordId"
+            :entry="entry"
+          />
         </div>
+
+        <!-- 再记一次去访按钮 -->
+        <button
+          v-if="!isCandidateMode && isSaved && !isFormExpanded"
+          type="button"
+          class="point-summary-card__record-again min-h-11 rounded-full border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] px-4 py-2 text-[var(--font-label-size)] font-bold text-[var(--color-accent-strong)] shadow-[0_14px_28px_rgba(244,143,177,0.34)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
+          :disabled="isPending || !isIlluminatable"
+          data-record-again="true"
+          aria-label="再记一次这次旅行"
+          @click="openTripDateForm"
+        >
+          再记一次去访
+        </button>
 
         <div
           v-if="!isCandidateMode && isFormExpanded"
@@ -456,6 +465,14 @@ function handleContinueWithFallback() {
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
+}
+
+.point-summary-card__records {
+  display: grid;
+  max-height: 200px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .point-summary-card__content {

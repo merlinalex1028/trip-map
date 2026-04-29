@@ -884,7 +884,8 @@ describe('LeafletMapStage', () => {
       await nextTick()
       await flushPromises()
 
-      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 1 次')
+      expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
+      expect(wrapper.findAll('[data-region="popup-trip-record"]')).toHaveLength(1)
 
       await wrapper.get('[data-record-again]').trigger('click')
       await wrapper.vm.$nextTick()
@@ -904,7 +905,7 @@ describe('LeafletMapStage', () => {
         }),
       )
       expect(mapPointsStore.tripsByPlaceId.get(PHASE12_RESOLVED_BEIJING.placeId)).toHaveLength(2)
-      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 2 次')
+      expect(wrapper.findAll('[data-region="popup-trip-record"]')).toHaveLength(2)
     })
 
     it('selects the latest trip by travel date, not by createdAt (VERIFICATION gap close)', async () => {
@@ -947,13 +948,17 @@ describe('LeafletMapStage', () => {
       await nextTick()
       await flushPromises()
 
-      // 先验证聚合正确（tripsByPlaceId 里真的有两条）
-      expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 2 次')
+      // 先验证 per-record 渲染正确（tripsByPlaceId 里真的有两条）
+      expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
+      const records = wrapper.findAll('[data-region="popup-trip-record"]')
+      expect(records).toHaveLength(2)
 
-      // 核心断言：摘要必须展示真正旅行时间最近的 2025-10-01，而不是最后录入的 2025-05-01
-      const latestText = wrapper.get('[data-trip-summary-latest]').text()
-      expect(latestText).toContain('2025-10-01')
-      expect(latestText).not.toContain('2025-05-01')
+      // 核心断言：per-record 列表按日期升序排列，第一条是较早的 2025-05-01，最后一条是最近的 2025-10-01
+      const firstRecordText = records[0]!.text()
+      expect(firstRecordText).toContain('2025-05-01')
+      const lastRecordText = records[records.length - 1]!.text()
+      expect(lastRecordText).toContain('2025-10-01')
+      expect(lastRecordText).not.toContain('2025-05-01')
     })
 
     it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {

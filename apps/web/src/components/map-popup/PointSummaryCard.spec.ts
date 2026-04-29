@@ -5,12 +5,24 @@ import {
   PHASE28_RESOLVED_CALIFORNIA,
   type ResolvedCanonicalPlace,
 } from '@trip-map/contracts'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
+import { vi } from 'vitest'
 
 import { buildUnsupportedOverseasNotice } from '../../constants/overseas-support'
+import PopupTripRecord from './PopupTripRecord.vue'
 import PointSummaryCard from './PointSummaryCard.vue'
 import TripDateForm from './TripDateForm.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
+
+const mockTripsByPlaceId = vi.hoisted(() => new Map<string, any[]>())
+
+vi.mock('../../stores/map-points', () => ({
+  useMapPointsStore: () => ({
+    tripsByPlaceId: mockTripsByPlaceId,
+    updateRecord: vi.fn(),
+    deleteSingleRecord: vi.fn(),
+  }),
+}))
 
 const ambiguousResolve = (() => {
   if (PHASE12_AMBIGUOUS_RESOLVE.status !== 'ambiguous') {
@@ -251,32 +263,70 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     })
   })
 
-  it('shows the saved trip summary with visit count and latest label', () => {
+  it('renders per-record PopupTripRecord list when isSaved=true and records exist', () => {
+    mockTripsByPlaceId.set('cn-beijing', [
+      {
+        id: 'record-1',
+        placeId: 'cn-beijing',
+        boundaryId: 'boundary-1',
+        placeKind: 'CN_ADMIN',
+        datasetVersion: 'v1',
+        displayName: '北京',
+        regionSystem: 'CN',
+        adminType: 'MUNICIPALITY',
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '北京市',
+        startDate: '2025-01-15',
+        endDate: null,
+        createdAt: '2025-01-16T00:00:00.000Z',
+        updatedAt: '2025-01-16T00:00:00.000Z',
+        notes: null,
+        tags: [],
+      },
+      {
+        id: 'record-2',
+        placeId: 'cn-beijing',
+        boundaryId: 'boundary-1',
+        placeKind: 'CN_ADMIN',
+        datasetVersion: 'v1',
+        displayName: '北京',
+        regionSystem: 'CN',
+        adminType: 'MUNICIPALITY',
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '北京市',
+        startDate: '2024-06-01',
+        endDate: '2024-06-10',
+        createdAt: '2024-06-11T00:00:00.000Z',
+        updatedAt: '2024-06-11T00:00:00.000Z',
+        notes: '和家人一起',
+        tags: ['美食', '文化'],
+      },
+    ])
+
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
         isSaved: true,
-        tripCount: 3,
-        latestTripLabel: '2025-10-01',
       },
     })
 
-    expect(wrapper.get('[data-trip-summary-count]').text()).toContain('已去过 3 次')
-    expect(wrapper.get('[data-trip-summary-latest]').text()).toContain('2025-10-01')
+    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
+    const records = wrapper.findAllComponents(PopupTripRecord)
+    expect(records.length).toBe(2)
   })
 
-  it('falls back to unknown-date copy when saved summary has no dated trips', () => {
+  it('hides per-record list when no records in store', () => {
+    mockTripsByPlaceId.clear()
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
         isSaved: true,
-        tripCount: 0,
-        latestTripLabel: null,
       },
     })
 
-    expect(wrapper.text()).toContain('尚未记录过去访日期')
-    expect(wrapper.text()).toContain('日期未知')
+    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(false)
   })
 
   it('expands TripDateForm from the re-record CTA on saved points', async () => {
@@ -327,6 +377,72 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
 
     expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
     expect(wrapper.emitted('illuminate')).toBeFalsy()
+  })
+
+  it('does not render popup-records when isSaved=false', () => {
+    mockTripsByPlaceId.set('cn-beijing', [
+      {
+        id: 'record-1',
+        placeId: 'cn-beijing',
+        boundaryId: '',
+        placeKind: 'CN_ADMIN' as const,
+        datasetVersion: 'v1',
+        displayName: '北京',
+        regionSystem: 'CN',
+        adminType: 'MUNICIPALITY',
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '北京市',
+        startDate: '2025-01-15',
+        endDate: null,
+        createdAt: '2025-01-16T00:00:00.000Z',
+        updatedAt: '2025-01-16T00:00:00.000Z',
+        notes: null,
+        tags: [],
+      },
+    ])
+
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: false,
+      },
+    })
+
+    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(false)
+  })
+
+  it('does not render popup-records in candidate-select mode', () => {
+    mockTripsByPlaceId.set('cn-beijing', [
+      {
+        id: 'record-1',
+        placeId: 'cn-beijing',
+        boundaryId: '',
+        placeKind: 'CN_ADMIN' as const,
+        datasetVersion: 'v1',
+        displayName: '北京',
+        regionSystem: 'CN',
+        adminType: 'MUNICIPALITY',
+        typeLabel: '直辖市',
+        parentLabel: '中国',
+        subtitle: '北京市',
+        startDate: '2025-01-15',
+        endDate: null,
+        createdAt: '2025-01-16T00:00:00.000Z',
+        updatedAt: '2025-01-16T00:00:00.000Z',
+        notes: null,
+        tags: [],
+      },
+    ])
+
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeCandidateSurface(),
+        isSaved: true,
+      },
+    })
+
+    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(false)
   })
 })
 
