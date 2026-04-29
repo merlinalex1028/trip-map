@@ -37,9 +37,9 @@ describe('TimelineEditForm', () => {
       props: { record: entry },
     })
 
-    expect(wrapper.get('[data-edit-input="start-date"]').element).toHaveValue('2025-01-15')
-    expect(wrapper.get('[data-edit-input="end-date"]').element).toHaveValue('2025-01-20')
-    expect(wrapper.get('[data-edit-input="notes"]').element).toHaveValue('旅行备注')
+    expect((wrapper.get('[data-edit-input="start-date"]').element as HTMLInputElement).value).toBe('2025-01-15')
+    expect((wrapper.get('[data-edit-input="end-date"]').element as HTMLInputElement).value).toBe('2025-01-20')
+    expect((wrapper.get('[data-edit-input="notes"]').element as HTMLTextAreaElement).value).toBe('旅行备注')
     expect(wrapper.findAll('[data-tag-chip]')).toHaveLength(2)
   })
 
@@ -95,7 +95,7 @@ describe('TimelineEditForm', () => {
     await wrapper.get('[data-edit-input="start-date"]').setValue('2025-01-20')
     await wrapper.get('[data-edit-input="end-date"]').setValue('2025-01-25')
     await wrapper.get('[data-edit-input="notes"]').setValue('更新后的备注')
-    await wrapper.get('[data-edit-submit="true"]').trigger('click')
+    await wrapper.get('form').trigger('submit')
 
     expect(wrapper.emitted('submit')?.[0]?.[0]).toEqual({
       startDate: '2025-01-20',
@@ -137,8 +137,11 @@ describe('TimelineEditForm', () => {
     // 清空备注
     const textarea = wrapper.get('[data-edit-input="notes"]')
     await textarea.setValue('')
-    await wrapper.get('[data-edit-submit="true"]').trigger('click')
+    await wrapper.get('form').trigger('submit')
 
-    expect(wrapper.emitted('submit')?.[0]?.[0].notes).toBeNull()
+    const emitted = wrapper.emitted('submit')
+    expect(emitted).toBeDefined()
+    const payload = emitted![0][0] as Record<string, unknown>
+    expect(payload.notes).toBeNull()
   })
 })
