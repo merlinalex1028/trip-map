@@ -23,7 +23,7 @@
 - [x] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新 (completed 2026-04-29)
 - [x] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示 (completed 2026-04-29)
 - [x] **Phase 39: Map Popup 集成与端到端闭环** — PopupTripRecord 每记录编辑/删除组件 + PointSummaryCard 集成 + MapContextPopup 适配，396 测试通过 (completed 2026-04-29)
-- [ ] **Phase 40: 补齐阶段验证文档** — 为 Phase 38/39 生成 VERIFICATION.md，确认已实现功能满足验收标准
+- [x] **Phase 40: 补齐阶段验证文档** — 为 Phase 38/39 生成 VERIFICATION.md，确认已实现功能满足验收标准 (completed 2026-04-29)
 - [ ] **Phase 41: 补齐 Nyquist 验证** — 为 Phase 36/37/39 完成 Nyquist 验证，确保验证覆盖率达标
 
 ## Phase Details
@@ -125,10 +125,10 @@ Plans:
 1. Phase 38 有 VERIFICATION.md，记录所有 must-have 验证结果
 2. Phase 39 有 VERIFICATION.md，记录所有 must-have 验证结果
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 40-01-PLAN.md — 为 Phase 38/39 生成 VERIFICATION.md
+- [x] 40-01-PLAN.md — 为 Phase 38/39 生成 VERIFICATION.md
 
 ---
 
@@ -142,7 +142,10 @@ Plans:
 2. Phase 37 的 Nyquist 验证完成（nyquist_compliant: true）
 3. Phase 39 有 VALIDATION.md 且 nyquist_compliant: true
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 41-01-PLAN.md — 为 Phase 36/37/39 生成/更新 VALIDATION.md 并标记 nyquist_compliant: true
 
 ---
 
@@ -172,8 +175,8 @@ Plans:
 | 37. 前端 Store 与 API 层 | 1/1 | Complete   | 2026-04-29 |
 | 38. 时间轴编辑/删除 UI | 2/2 | Complete   | 2026-04-29 |
 | 39. Map Popup 集成与端到端闭环 | 1/1 | Complete   | 2026-04-29 |
-| 40. 补齐阶段验证文档 | 1/1 | In progress  | - |
-| 41. 补齐 Nyquist 验证 | 0/? | Not started | - |
+| 40. 补齐阶段验证文档 | 1/1 | Complete   | 2026-04-29 |
+| 41. 补齐 Nyquist 验证 | 1/1 | Planning complete | - |
 
 ---
 
