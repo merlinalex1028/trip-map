@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.0
 milestone_name: 旅行记录编辑与删除
 status: executing
-stopped_at: Phase 36 complete
-last_updated: "2026-04-29T01:30:00.000Z"
-last_activity: 2026-04-29 -- Phase 36 completed (code review + verification passed)
+stopped_at: Phase 37 planned
+last_updated: "2026-04-29T02:00:00.000Z"
+last_activity: 2026-04-29 -- Phase 37 planned (1 plan)
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
+  total_plans: 3
   completed_plans: 2
   percent: 25
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 36 — data-layer-extension
+**Current focus:** Phase 37 — 前端 Store 与 API 层
 
 ## Current Position
 
 Phase: 37 (前端 Store 与 API 层) — READY
-Plan: TBD
-Status: Phase 36 complete, ready for Phase 37
-Last activity: 2026-04-29 -- Phase 36 completed
+Plan: 37-01-PLAN.md
+Status: Phase 37 planned, ready for execution
+Last activity: 2026-04-29 -- Phase 37 planned
 
 ## Performance Metrics
 
@@ -42,7 +42,7 @@ Last activity: 2026-04-29 -- Phase 36 completed
 | Phase | Plans | Status |
 |-------|-------|--------|
 | 36 | 2 plans (2 waves) | ✅ Complete (2026-04-29) |
-| 37 | TBD | Ready to plan |
+| 37 | 1 plan (1 wave) | 📋 Planned |
 | 38 | TBD | Not started |
 | 39 | TBD | Not started |
 
@@ -57,6 +57,7 @@ Last activity: 2026-04-29 -- Phase 36 completed
 | 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✅ 已实现 |
 | PATCH 语义而非 PUT | 部分更新场景更灵活，place 字段不可编辑 | ✅ 已实现 |
 | 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | ✅ 已实现 |
+| store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | — Pending |
 
 ### Pending Todos
 
@@ -91,11 +92,11 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-28T10:30:00.000Z
-Stopped at: Phase 36 planned
+Last session: 2026-04-29T02:00:00.000Z
+Stopped at: Phase 37 planned
 
 ---
 
-*Last updated: 2026-04-29 — Phase 36 complete*
+*Last updated: 2026-04-29 — Phase 37 planned*
 
-**Next:** Plan and execute Phase 37 with `/gsd-plan-phase 37` then `/gsd-execute-phase 37`
+**Next:** Execute Phase 37 with `/gsd-execute-phase 37`

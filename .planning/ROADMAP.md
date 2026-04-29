@@ -65,7 +65,12 @@ Cross-cutting constraints:
 3. 编辑或删除旅行记录后，统计页面自动刷新数据
 4. 编辑或删除操作在网络失败时，前端乐观更新正确回滚到原始状态
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+
+**Wave 1** — API + Store + 统计刷新（无外部依赖）
+- [ ] 37-01-PLAN.md — API 层 updateTravelRecord/deleteSingleRecord + Store 乐观更新 updateRecord/deleteSingleRecord + StatisticsPageView revision 扩展
 
 ---
 
@@ -121,7 +126,7 @@ Cross-cutting constraints:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
-| 37. 前端 Store 与 API 层 | 0/? | Not started | - |
+| 37. 前端 Store 与 API 层 | 0/1 | Not started | - |
 | 38. 时间轴编辑/删除 UI | 0/? | Not started | - |
 | 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
 
