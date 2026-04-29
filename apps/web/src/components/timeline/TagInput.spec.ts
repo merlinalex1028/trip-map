@@ -94,7 +94,7 @@ describe('TagInput', () => {
     })
 
     const input = wrapper.get('[data-tag-input-field]')
-    await input.setValue('这是一个超过二十个字符的标签名字测试')
+    await input.setValue('这是一个超过二十个字符的标签名字测试啊啊啊')
     await input.trigger('keydown', { key: 'Enter' })
 
     expect(wrapper.emitted('update:tags')).toBeFalsy()
