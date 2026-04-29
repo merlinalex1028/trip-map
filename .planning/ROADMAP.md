@@ -19,7 +19,7 @@
 
 ## Phases
 
-- [ ] **Phase 36: 数据层扩展** — Prisma schema 扩展 notes/tags、contracts 更新、PATCH/DELETE 后端端点、日期冲突校验
+- [x] **Phase 36: 数据层扩展** — Prisma schema 扩展 notes/tags、contracts 更新、PATCH/DELETE 后端端点、日期冲突校验 (completed 2026-04-29)
 - [ ] **Phase 37: 前端 Store 与 API 层** — updateRecord / deleteSingleRecord API 与 store 方法、乐观更新回滚、编辑/删除后时间轴重排序与统计刷新
 - [ ] **Phase 38: 时间轴编辑/删除 UI** — 编辑表单、标签输入、日期冲突本地检查、确认弹窗、删除最后一条提示
 - [ ] **Phase 39: Map Popup 集成与端到端闭环** — 地图 popup 编辑/删除入口、E2E 验证
@@ -37,7 +37,7 @@
 3. 编辑日期时若与同地点其他记录日期冲突，系统返回 409 并附带冲突提示信息
 4. 备注超过 1000 字符或标签超过 10 个/每个超过 20 字符时，系统返回验证错误
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 
@@ -45,7 +45,7 @@ Plans:
 - [x] 36-01-PLAN.md — Prisma schema 扩展 notes/tags + contracts 更新 TravelRecord 接口 + 新增 UpdateTravelRecordRequest
 
 **Wave 2** *(blocked on Wave 1 completion)* — API 端点实现
-- [ ] 36-02-PLAN.md — DTO + Repository + Service + Controller 实现 PATCH/DELETE 端点 + Schema Push + 验证
+- [x] 36-02-PLAN.md — DTO + Repository + Service + Controller 实现 PATCH/DELETE 端点 + Schema Push + 验证
 
 Cross-cutting constraints:
 - 行级权限：所有 repository 方法 where 条件同时匹配 `id + userId`
@@ -120,7 +120,7 @@ Cross-cutting constraints:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 36. 数据层扩展 | 1/2 | In Progress|  |
+| 36. 数据层扩展 | 2/2 | Complete   | 2026-04-29 |
 | 37. 前端 Store 与 API 层 | 0/? | Not started | - |
 | 38. 时间轴编辑/删除 UI | 0/? | Not started | - |
 | 39. Map Popup 集成与端到端闭环 | 0/? | Not started | - |
