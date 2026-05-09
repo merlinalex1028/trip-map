@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
-status: planning
-last_updated: "2026-05-09T06:09:04.835Z"
+status: roadmap_ready
+last_updated: "2026-05-09T07:14:58.000Z"
 last_activity: 2026-05-09
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,30 +20,33 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** v7.0 已归档，规划 v8.0
+**Current focus:** v8.0 roadmap 已创建，下一步进入 Phase 42
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 42（ready to discuss / plan）
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-09 — Milestone v8.0 started
+Status: Roadmap ready
+Last activity: 2026-05-09 — v8.0 roadmap created
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Last shipped milestone: v6.0（9 phases, 30 plans, 65 tasks）
-- Current roadmap: 4 planned phases (36-39)
+- Last shipped milestone: v7.0（6 phases, 8 plans, 23 tasks）
+- Current roadmap: 7 planned phases (42-48)
 
 **By Phase:**
 
 | Phase | Plans | Status |
 |-------|-------|--------|
-| 36 | 2 plans (2 waves) | ✅ Complete (2026-04-29) |
-| 37 | 1 plan (1 wave) | ✅ Complete (2026-04-29) |
-| 38 | 2 plans (2 waves) | ✅ Complete (2026-04-29) |
-| 39 | 1 plan (1 wave) | ✅ Complete (2026-04-29) |
+| 42 | 0 plans | Not Started |
+| 43 | 0 plans | Not Started |
+| 44 | 0 plans | Not Started |
+| 45 | 0 plans | Not Started |
+| 46 | 0 plans | Not Started |
+| 47 | 0 plans | Not Started |
+| 48 | 0 plans | Not Started |
 
 ## Accumulated Context
 
@@ -57,6 +60,7 @@ Last activity: 2026-05-09 — Milestone v8.0 started
 | PATCH 语义而非 PUT | 部分更新场景更灵活，place 字段不可编辑 | ✅ 已实现 |
 | 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | ✅ 已实现 |
 | store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | ✅ 已实现 |
+| v8.0 地图弹窗统一为地点信息 + 留下足迹 | 用户确认已保存地点 popup 不查看过往记录，也不显示“再留一次足迹”分支 | — Pending |
 
 ### Pending Todos
 
@@ -96,6 +100,6 @@ Stopped at: v7.0 里程碑完成
 
 ---
 
-*Last updated: 2026-04-29 — v7.0 完成*
+*Last updated: 2026-05-09 — v8.0 roadmap ready*
 
-**Next:** 启动 v8.0 里程碑
+**Next:** `$gsd-discuss-phase 42` or `$gsd-plan-phase 42`

@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和留下自己的旅行足迹。
 
-`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 正在规划 Yume Kawaii 视觉重构、登录落地页、全应用登录门禁、地图覆盖扩展和独立日期弹窗。
+`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 已完成需求和路线图规划，准备进入 Yume Kawaii 视觉重构、登录落地页、全应用登录门禁、地图覆盖扩展和独立日期弹窗实现阶段。
 
 ## Core Value
 
@@ -48,7 +48,13 @@
 
 ### Active
 
-（待本里程碑需求定义阶段填充）
+- `DS-01`-`DS-05`: 引入 shadcn-vue / ECharts / 统一图标方案，并建立 Yume Kawaii theme bridge
+- `AUTH-01`-`AUTH-05`: 新增落地页、登录/注册入口、全应用登录门禁和登录后 `/map` 入口
+- `SHELL-01`-`SHELL-04`: 建立登录后应用壳、左侧导航、移动端导航适配和全局文案替换
+- `MAP-01`-`MAP-06` + `DATE-01`-`DATE-06`: 升级世界足迹地图、统一地点弹窗和独立“留下足迹”日期弹窗
+- `COV-01`-`COV-04`: 扩展当前可识别地点的可保存能力，并解释仍不可用的 authoritative 限制
+- `JOURNAL-01`-`JOURNAL-06`: 将时间轴升级为旅途手账，不提供添加新旅行入口和收藏入口
+- `MEM-01`-`MEM-07` + `QA-01`-`QA-05`: 将统计升级为旅途回忆 dashboard，并完成视觉、可访问性和回归验证
 
 ### Validated
 
@@ -113,6 +119,7 @@
 | 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✓ Good — Implemented in Phase 36 |
 | v8.0 不做收藏功能 | 用户确认除收藏外纳入设计图功能，收藏状态会引入新数据模型与页面分支 | — Pending |
 | 旅途手账不提供“添加新旅行”入口 | 用户确认旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | — Pending |
+| 地图弹窗始终使用统一地点信息 UI 与“留下足迹”入口 | 用户确认已保存地点 popup 不显示过往记录，不使用“再留一次足迹”分支 | — Pending |
 
 ## Archived Milestone Snapshots
 
@@ -186,4 +193,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — v8.0 milestone started*
+*Last updated: 2026-05-09 — v8.0 roadmap ready*
