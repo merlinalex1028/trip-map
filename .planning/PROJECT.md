@@ -2,9 +2,9 @@
 
 ## What This Is
 
-一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和点亮自己的旅行记录。
+一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和留下自己的旅行足迹。
 
-`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在时间轴和地图入口均可操作。`v8.0` 规划中。
+`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 正在规划 Yume Kawaii 视觉重构、登录落地页、全应用登录门禁、地图覆盖扩展和独立日期弹窗。
 
 ## Core Value
 
@@ -26,21 +26,23 @@
 - 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
 - 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
 
-## Current Milestone: v7.0 旅行记录编辑与删除 ✅
+## Current Milestone: v8.0 Yume Kawaii 视觉重构与登录地图体验
 
-**Status:** SHIPPED 2026-04-29 — 13/13 requirements satisfied
+**Goal:** 将现有旅行地图升级为登录后使用的梦かわいい风格完整应用，并补齐设计图中除收藏外的页面与交互能力。
 
-**Delivered:**
-- ✅ 编辑旅行日期、添加备注和标签
-- ✅ 单条记录删除 + 确认弹窗
-- ✅ 最后一条记录 destructive 风格警告
-- ✅ 时间轴页面编辑/删除 + Map Popup 编辑/删除双入口
-- ✅ 乐观更新 + 网络失败回滚
-- ✅ 编辑/删除后时间轴自动重排序、统计自动刷新
+**Target features:**
+- 新增未登录落地页，用户点击登录后才进入地图；地图、旅途手账、旅途回忆等应用页面都需要登录
+- 按 `8.0/` 设计图实现 Yume Kawaii / Soft Pastel Glassmorphism / Anime Travel Diary 风格，包括左侧导航、用户卡片、插画位与轻量漂浮动效
+- 地图首页保留核心地图体验，升级为“世界足迹”视觉，弹窗始终展示真实地点信息和“留下足迹”
+- 点击“留下足迹”后打开独立日期选择弹窗，支持日历与快捷日期选择
+- 当前系统可识别的地图位置尽量全部扩展为可保存/可用，降低“识别但不可留下足迹”的断裂感
+- `点亮` 文案替换为 `留下足迹`，`旅行统计` 替换为 `旅途回忆`，`时间轴` 替换为 `旅途手账`
+- 旅途手账升级为发光竖线、节点、旅行卡片和视觉缩略图，不提供“添加新旅行”入口
+- 旅途回忆升级为 dashboard，包含概览卡、趋势图、分布图、年度趋势、风格分析、热门足迹排行和回忆图片横滑
 
-## Next Milestone: v8.0 (规划中)
-
-**目标待定**
+**Out of scope for v8.0:**
+- 收藏功能，包括“我的收藏”、爱心/星标收藏按钮、收藏状态管理
+- 用户上传旅行照片或富文本游记；本轮只实现设计图所需的视觉缩略图/插画位
 
 ## Requirements
 
@@ -86,12 +88,13 @@
 - 第三方 OAuth 登录与账号接入增强 — 本轮重点转向旅行记录表达与统计，不扩展登录体系
 - 同步历史、最近同步时间与更完整的同步状态可见性 — 本轮不处理同步可观察性增强
 - 分享、公开主页与协作能力 — 会引入权限与隐私模型，超出本轮单用户旅行表达范围
-- 旅行照片、游记正文与富文本内容 — 当前只承载旅行时间和基础统计，不做内容社区化
+- 旅行照片上传、游记正文与富文本内容 — 当前只承载旅行时间、备注、标签、统计和视觉缩略图/插画位，不做内容社区化
 - 单条旅行记录编辑与删除 — 已在 v7.0 实现，不再属于 Out of Scope
 - 自动轨迹、GPS 采集或外部行程导入 — 偏离当前“手动点亮 + 主动记录”的产品主线
 - Dark mode — 目前仍非优先项
 - JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
 - 全球城市级统一覆盖 — 范围过大，v6.0 先扩展优先海外国家/地区的 admin1 能力
+- 收藏功能 — v8.0 明确不纳入，包括我的收藏、爱心/星标收藏按钮与收藏状态管理
 
 ## Key Decisions
 
@@ -108,6 +111,8 @@
 | 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | ✓ Good — Implemented in Phase 36 |
 | store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | ✓ Good — Implemented in Phase 37 |
 | 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✓ Good — Implemented in Phase 36 |
+| v8.0 不做收藏功能 | 用户确认除收藏外纳入设计图功能，收藏状态会引入新数据模型与页面分支 | — Pending |
+| 旅途手账不提供“添加新旅行”入口 | 用户确认旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | — Pending |
 
 ## Archived Milestone Snapshots
 
@@ -181,4 +186,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-29 — v7.0 shipped, archived*
+*Last updated: 2026-05-09 — v8.0 milestone started*

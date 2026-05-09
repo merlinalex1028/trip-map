@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.0
-milestone_name: 旅行记录编辑与删除
-status: complete
-stopped_at: v7.0 里程碑已归档
-last_updated: "2026-04-29T15:00:00.000Z"
-last_activity: 2026-04-29 -- v7.0 milestone archived
+milestone: v8.0
+milestone_name: Yume Kawaii 视觉重构与登录地图体验
+status: planning
+last_updated: "2026-05-09T06:09:04.835Z"
+last_activity: 2026-05-09
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md
 
 ## Current Position
 
-Phase: 41 (补齐 Nyquist 验证) — Complete
-Plan: 1 of 1
-Status: Milestone archived
-Last activity: 2026-04-29 -- v7.0 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-09 — Milestone v8.0 started
 
 ## Performance Metrics
 
