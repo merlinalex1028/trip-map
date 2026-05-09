@@ -7,11 +7,12 @@
 
 ### 1. 引入 UI 库后默认样式吞掉项目风格
 
-**风险:** Element Plus/Naive UI 默认组件视觉和当前高保图不一致，可能出现“后台系统控件贴在少女风页面上”的割裂。
+**风险:** Element Plus/Naive UI 默认组件视觉和当前高保图不一致，可能出现“后台系统控件贴在少女风页面上”的割裂。shadcn-vue 默认也偏中性，需要主动改成 Yume Kawaii。
 
 **预防:**
-- 只用 UI 库承接交互行为，不直接接受默认视觉。
-- 建立 `KawaiiUiProvider` / theme overrides，把颜色、圆角、阴影、字体映射到项目 token。
+- 优先 shadcn-vue，把组件源码纳入项目并直接主题化。
+- 如果使用 Naive/Element，只用 UI 库承接交互行为，不直接接受默认视觉。
+- 建立 `KawaiiUiProvider` / theme overrides 或 shadcn token bridge，把颜色、圆角、阴影、字体映射到项目 token。
 - 对 Modal/DatePicker/Button/Menu 做最小视觉封装组件，不在页面中散落原始库组件。
 
 ### 2. UI 库全量导入导致 bundle 和 CSS 面失控
@@ -19,9 +20,19 @@
 **风险:** 全量导入大型 UI 库可能显著增加首屏资源；全局 CSS 也可能覆盖现有 Tailwind token。
 
 **预防:**
-- 优先 Naive UI 或按需导入策略。
+- 优先 shadcn-vue，因为只安装实际组件源码。
+- 如果用 Naive UI，采用局部使用和 tree-shaking。
 - 如果选 Element Plus，采用按需导入或只在局部组件手动导入所需组件/样式。
 - 路线图中单独设“依赖接入验证”任务，跑 `pnpm --filter @trip-map/web build` 并检查页面基线。
+
+### 2.5 shadcn-vue 初始化与现有 alias 冲突
+
+**风险:** 当前 `apps/web` 没有 `@` -> `src` alias，而 shadcn-vue 通常依赖该别名和 `components.json`。如果直接 init，生成组件可能无法通过 TypeScript/Vite resolve。
+
+**预防:**
+- 在依赖 phase 先补 `vite.config.ts` 和 `tsconfig.json` alias。
+- 先安装少量组件验证 build，再批量添加组件。
+- `components/ui` 只放 primitive，不混入业务页面。
 
 ### 3. `/` 从地图改成落地页会破坏现有测试和用户路径
 
@@ -137,8 +148,8 @@
 
 执行 phase 前必须回答：
 
-1. UI 库最终选 Naive UI 还是 Element Plus？
-2. DatePicker 是否使用 UI 库内置，还是单独用 `@vuepic/vue-datepicker`？
+1. UI 方案最终选 shadcn-vue、Naive UI 还是 Element Plus？
+2. DatePicker 是否使用 shadcn-vue Calendar / UI 库内置，还是单独用 `@vuepic/vue-datepicker`？
 3. Iconify 是否使用运行时 API，还是本地注册固定图标？
 4. 旅途回忆图表数据是前端派生还是扩展后端 stats？
 5. 落地页插画是否直接使用 `8.0/落地页.png` 风格切图，还是先用 CSS/本地占位资产重建？

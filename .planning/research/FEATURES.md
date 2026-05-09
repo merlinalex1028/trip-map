@@ -49,7 +49,7 @@ v8.0 范围解释：
 
 v8.0 范围解释：
 - 必须从地图 popup 中抽离日期选择，成为 modal。
-- 日历/日期选择优先使用 UI 库 DatePicker；如果无法满足高保图，再使用专用 datepicker。
+- 日历/日期选择优先使用 shadcn-vue Calendar + Dialog/Popover；如果无法满足高保图，再使用专用 datepicker。
 - 数据仍写入现有 `CreateTravelRecordRequest.startDate/endDate`，不新增旅途内容模型。
 
 ### 旅途手账
@@ -125,6 +125,6 @@ v8.0 范围解释：
 
 ## 关键开放点
 
-- UI 库最终选 Naive UI 还是 Element Plus，需要在执行前定稿。研究推荐 Naive UI，Element Plus 作为稳妥备选。
+- UI 方案最终选 shadcn-vue、Naive UI 还是 Element Plus，需要在执行前定稿。研究推荐 shadcn-vue，Naive UI / Element Plus 作为备选。
 - 旅途回忆图表数据是否必须全部 server-authoritative？如果是，需要扩展 stats contract；如果接受前端派生，可更快落地。
 - 落地页插画素材如何交付：本轮可先使用设计图风格的本地 CSS/图片占位，后续再替换成正式素材。

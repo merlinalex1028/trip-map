@@ -20,17 +20,34 @@
 
 ## UI 库评估
 
-### 推荐：Naive UI
+### 首选：shadcn-vue
+
+适合 v8.0 的原因：
+- `shadcn-vue` 不是传统黑盒组件库，而是把组件源码安装到项目中；这更适合高保视觉落地，可以直接改组件结构、class 和 token。
+- 基于 Tailwind 与 Reka UI 原语，和当前 Tailwind 4 + Vue 3 架构方向一致；Dialog、Calendar、Popover、Button、Card、Tabs、Sidebar、Dropdown Menu、Sheet、Skeleton 等能力能覆盖 v8.0 基础交互。
+- 默认组件源码进入 `apps/web/src/components/ui` 后，可以用现有 Yume Kawaii token 重写，而不会被外部库默认主题强约束。
+- 适合把落地页、侧栏、日期弹窗、卡片、Tabs、空状态、菜单等做成统一的“项目内设计系统”，后续维护比覆盖 Naive/Element 默认样式更自然。
+
+主要使用边界：
+- 使用 shadcn-vue 承接基础组件和可访问性原语：Dialog、Popover、Calendar、Sidebar、Dropdown Menu、Tabs、Button、Card、Skeleton、Scroll Area。
+- 不使用 shadcn 默认黑白/灰阶视觉，所有组件安装后都要做 Yume Kawaii 主题化。
+- shadcn-vue 的 chart 组件适合基础 line/bar/pie，但设计图需要雷达图、地图/热力和高度定制图表，因此图表仍推荐 ECharts。
+
+执行注意：
+- 需要先为 `apps/web` 配置组件别名（通常是 `@/` 指向 `src`）和 shadcn-vue 的 `components.json`。
+- 因为当前 `vite.config.ts` / `tsconfig.json` 只有依赖别名，没有 `@` alias，执行 phase 必须先补 alias。
+- shadcn-vue 会修改/新增项目源码文件，后续需要把这些组件视为本项目代码维护。
+
+### 备选：Naive UI
 
 适合 v8.0 的原因：
 - Vue 3 + TypeScript 友好，组件覆盖完整，包含 Modal、Drawer、Menu、Tabs、DatePicker、ConfigProvider 等常用能力。
-- 主题系统可通过 JS theme overrides 定制，不要求 Less/Sass 变量或额外 webpack loader，更容易贴合现有 Tailwind token。
+- 主题系统可通过 JS theme overrides 定制，不要求 Less/Sass 变量或额外 webpack loader，能贴合现有 Tailwind token。
 - 官方说明组件可 tree-shaking，且无需导入全局 CSS，降低和现有 Tailwind/Tokens 冲突概率。
 
-主要使用边界：
-- 只承接基础交互控件：日期选择、弹窗、抽屉/菜单、按钮、空状态、骨架、消息。
-- 不把 Naive 默认视觉直接暴露给用户，所有 v8.0 页面仍用项目 Yume Kawaii token 做外层皮肤。
-- 不用 Naive 的 Result 图形素材，避免引入与当前少女旅行风不一致的资源。
+劣势：
+- 仍是运行时组件库，深度改结构不如 shadcn-vue 自由。
+- 高保图的插画式卡片、侧栏和日期弹窗可能需要较多 wrapper 覆盖。
 
 ### 备选：Element Plus
 
@@ -48,7 +65,7 @@
 | 方案 | 原因 |
 |---|---|
 | Vuetify / Ant Design Vue | 默认设计语言强，重皮肤成本高，不贴合 Yume Kawaii |
-| 只用 Headless UI | Vue 生态与复杂日期选择/图表仍需额外依赖，组合成本不低 |
+| 只用 Headless UI | Vue 生态与复杂日期选择/图表仍需额外依赖，组合成本不低；shadcn-vue 已经提供更完整的 Vue + Tailwind 组合 |
 | 全部手写 Modal / DatePicker / Menu | 可控但会消耗 v8.0 主要精力，且可访问性和键盘交互容易遗漏 |
 
 ## 图表库评估
@@ -74,13 +91,13 @@
 
 两条可行路线：
 
-1. **随 UI 库走**：如果选 Naive UI 或 Element Plus，优先使用其 DatePicker。  
-   适合减少依赖数量，日期弹窗的 Modal + DatePicker + Button 同源。
+1. **随 UI 方案走**：如果选 shadcn-vue，优先使用 Calendar + Popover/Dialog 组合；如果选 Naive UI 或 Element Plus，优先使用其 DatePicker。  
+   适合减少依赖数量，日期弹窗的 Modal/Calendar/Button 同源。
 
 2. **专用日期库**：`@vuepic/vue-datepicker`。  
    适合日期需求变复杂时使用，支持单日、范围、多日历、locale、周数、键盘和可访问性，当前项目 Vue 版本满足其 Vue 3.5 要求。
 
-推荐 v8.0 先走路线 1，除非 UI 库 DatePicker 无法实现高保图日历交互，再切换 `@vuepic/vue-datepicker`。
+推荐 v8.0 先走路线 1。shadcn-vue 的 Calendar 更适合被高保定制；如果范围选择和快捷日期实现成本过高，再切换 `@vuepic/vue-datepicker`。
 
 ## 图标库
 
@@ -107,10 +124,18 @@
 首选组合：
 
 ```bash
-pnpm --filter @trip-map/web add naive-ui echarts vue-echarts @iconify/vue
+pnpm --filter @trip-map/web dlx shadcn-vue@latest init
+pnpm --filter @trip-map/web dlx shadcn-vue@latest add button card dialog popover calendar tabs sidebar dropdown-menu skeleton scroll-area
+pnpm --filter @trip-map/web add echarts vue-echarts @iconify/vue
 ```
 
 备选组合：
+
+```bash
+pnpm --filter @trip-map/web add naive-ui echarts vue-echarts @iconify/vue
+```
+
+或：
 
 ```bash
 pnpm --filter @trip-map/web add element-plus @element-plus/icons-vue echarts vue-echarts @iconify/vue
@@ -125,6 +150,7 @@ pnpm --filter @trip-map/web add @vuepic/vue-datepicker
 
 ## Sources
 
+- shadcn-vue official docs — Vue + Tailwind component source installation, Dialog/Calendar/Sidebar/Chart components
 - Naive UI npm / README — Vue 3、TypeScript、主题可定制、tree-shaking、无需导入全局 CSS
 - Element Plus official DatePicker docs — `shortcuts`、`daterange`、`value-format`
 - Element Plus quick start docs — 全量导入和按需导入策略

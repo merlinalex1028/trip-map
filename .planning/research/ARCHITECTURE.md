@@ -153,6 +153,35 @@ StatisticsPageView.vue
 
 ## UI 依赖接入点
 
+如果选 shadcn-vue：
+
+```text
+apps/web/
+  components.json
+  src/components/ui/
+    button/
+    card/
+    dialog/
+    popover/
+    calendar/
+    tabs/
+    sidebar/
+    dropdown-menu/
+    skeleton/
+    scroll-area/
+  src/lib/utils.ts
+```
+
+接入前置：
+- 在 `apps/web/tsconfig.json` 和 `apps/web/vite.config.ts` 增加 `@` -> `src` alias。
+- 运行 shadcn-vue init/add 后，把生成组件纳入源码管理。
+- 将 shadcn 默认 CSS variables / class 适配到现有 `styles/tokens.css`，避免出现默认黑白灰主题。
+
+使用原则：
+- shadcn-vue 组件作为项目内 UI primitives：Button、Card、Dialog、Popover、Calendar、Tabs、Sidebar、Dropdown Menu、Skeleton、ScrollArea。
+- 高保页面组件只组合这些 primitives，不直接把复杂业务放进 `components/ui`。
+- 每个 shadcn 组件安装后都可以按 Yume Kawaii 视觉微调，优先在 wrapper / token 层改，必要时改组件源码。
+
 如果选 Naive UI：
 
 ```text
@@ -169,6 +198,8 @@ components/ui/
 - 基础控件使用 UI 库：Modal、DatePicker、Menu、Button、Skeleton、Empty、Tabs。
 - 页面结构、卡片视觉、插画背景、地图 popup 仍由本项目组件和 Tailwind/CSS 控制。
 - UI 库 theme overrides 映射现有 `--color-accent`、`--radius-bubble`、`--shadow-float` 等 token。
+
+推荐：优先 shadcn-vue；只有在 shadcn-vue Calendar/Sidebar 接入成本超过预期时，切换 Naive UI 或 Element Plus。
 
 ## 统计数据契约扩展选项
 

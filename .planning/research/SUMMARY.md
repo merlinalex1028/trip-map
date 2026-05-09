@@ -9,7 +9,7 @@
 
 v8.0 不是单纯换皮，而是一次“入口、导航、地图记录主链路、时间线表达、统计表达”的整体产品化升级。新增 `8.0/落地页.png` 明确了未登录首屏应先用沉浸式旅行插画和 CTA 建立价值，再引导登录进入地图；登录后应用应切换为左侧导航的 Yume Kawaii 旅行日记壳。
 
-用户明确要求不要自己造轮子，因此研究结论调整为：**当前项目没有通用 UI 组件库，v8.0 应引入成熟第三方依赖承接基础控件、日期选择、图表和图标**。推荐首选 `Naive UI + echarts + vue-echarts + @iconify/vue`，以现有 Tailwind token 做 Yume Kawaii 皮肤；Element Plus 作为备选，优势是 DatePicker 能力稳、中文生态成熟，但默认视觉更偏后台系统。
+用户明确要求不要自己造轮子，并追加提出评估 `shadcn-vue`。研究结论调整为：**当前项目没有通用 UI 组件库，v8.0 应引入成熟第三方依赖承接基础控件、日期选择、图表和图标**。`shadcn-vue` 符合需求并更贴合高保定制，因为它把组件源码放进项目，可直接用 Tailwind/token 改成 Yume Kawaii；图表仍推荐 `echarts + vue-echarts`，因为 shadcn-vue 图表覆盖设计图里的雷达/地图热力不如 ECharts 稳。
 
 最大风险有三类：第一，路由从 `/` 地图改为落地页会影响现有测试和用户路径；第二，地图“识别即可用”不能只靠 UI 放开，必须和 authoritative catalog / geometry / 后端 guard 对齐；第三，旅途回忆图表不能用静态假数据，必须从当前账号真实记录或扩展后的 stats contract 派生。
 
@@ -18,15 +18,23 @@ v8.0 不是单纯换皮，而是一次“入口、导航、地图记录主链路
 首选：
 
 ```bash
-pnpm --filter @trip-map/web add naive-ui echarts vue-echarts @iconify/vue
+pnpm --filter @trip-map/web dlx shadcn-vue@latest init
+pnpm --filter @trip-map/web dlx shadcn-vue@latest add button card dialog popover calendar tabs sidebar dropdown-menu skeleton scroll-area
+pnpm --filter @trip-map/web add echarts vue-echarts @iconify/vue
 ```
 
 为什么：
-- `naive-ui`：Vue 3 + TypeScript，组件完整，主题 overrides 易于和现有 token 对接，无需全局 CSS。
+- `shadcn-vue`：Vue + Tailwind 组件源码方案，Dialog/Calendar/Sidebar/Tabs/Card/Button 等基础能力足够，且比黑盒组件库更适合高保定制。
 - `echarts + vue-echarts`：覆盖折线、环图、柱状、雷达等旅途回忆图表，支持主题化和按需注册。
 - `@iconify/vue`：统一地图、日历、手账、图鉴、奖章等图标来源；建议固定图标本地注册，避免运行时公网依赖。
 
 备选：
+
+```bash
+pnpm --filter @trip-map/web add naive-ui echarts vue-echarts @iconify/vue
+```
+
+或：
 
 ```bash
 pnpm --filter @trip-map/web add element-plus @element-plus/icons-vue echarts vue-echarts @iconify/vue
@@ -102,7 +110,7 @@ pnpm --filter @trip-map/web add @vuepic/vue-datepicker
 
 ## Critical Decisions for Requirements
 
-- UI 库推荐 Naive UI；如果你更偏向成熟中文生态，可换 Element Plus。
+- UI 方案推荐 shadcn-vue；如果执行中发现 Calendar/Sidebar 成本过高，可换 Naive UI；如果更偏向成熟中文生态，可换 Element Plus。
 - 图表不要手写，使用 ECharts。
 - 日期选择优先用所选 UI 库内置 DatePicker；复杂度不够再引入 `@vuepic/vue-datepicker`。
 - 旅途回忆图表不能展示假数据。
@@ -132,6 +140,7 @@ pnpm --filter @trip-map/web add @vuepic/vue-datepicker
 - `apps/web/src/views/StatisticsPageView.vue`
 - `packages/contracts/src/stats.ts`
 - `apps/server/src/modules/records/records.repository.ts`
+- shadcn-vue official docs
 - Naive UI npm / README
 - Element Plus DatePicker and Quick Start official docs
 - Apache ECharts official handbook and features docs
