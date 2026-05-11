@@ -44,7 +44,14 @@
 3. 旅途回忆后续可使用 ECharts/vue-echarts 渲染折线、环图、柱状和雷达图。
 4. 页面图标由统一方案提供，实际使用图标不依赖运行时公网拉取。
 
-**Plans:** 0 plans yet
+**Plans:** 5 plans
+
+Plans:
+- [ ] 42-01-PLAN.md — Pin dependencies, configure `@` aliases, and generate the locked shadcn-vue primitive set.
+- [ ] 42-02-PLAN.md — Recalibrate v8 theme tokens and theme generated primitives with a primitive state matrix.
+- [ ] 42-03-PLAN.md — Add local semantic `KawaiiIcon` registry and wrapper.
+- [ ] 42-04-PLAN.md — Add ECharts module registration, Yume Kawaii chart theme, and `BaseChart`.
+- [ ] 42-05-PLAN.md — Wire the dev-only `/__ui` showcase route and full phase gate.
 
 ---
 
