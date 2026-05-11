@@ -45,8 +45,8 @@ const props = withDefaults(defineProps<{
   <section
     data-base-chart
     :aria-busy="loading"
-    :style="{ minHeight: `${minHeight}px` }"
-    class="relative"
+    :style="{ minHeight: `${minHeight}px`, height: `${minHeight}px` }"
+    class="relative w-full"
   >
     <div
       v-if="error"
@@ -87,6 +87,7 @@ const props = withDefaults(defineProps<{
       :option="option"
       :theme="YUME_KAWAII_CHART_THEME"
       :autoresize="{ throttle: 100 }"
+      style="width: 100%; height: 100%;"
     />
   </section>
 </template>

@@ -16,7 +16,7 @@ const demoOption: YumeChartOption = {
       Chart Foundation
     </h2>
     <div class="grid gap-4 md:grid-cols-2">
-      <div>
+      <div class="min-h-[300px]">
         <p class="mb-1 text-sm text-[var(--color-ink-muted)]">
           Demo Line Chart
         </p>

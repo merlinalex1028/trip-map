@@ -9,7 +9,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-[var(--gradient-selected)] text-white shadow-[var(--shadow-button)] hover:opacity-90",
+          "bg-[var(--color-accent)] text-white shadow-[var(--shadow-button)] hover:bg-[var(--color-accent-strong)] hover:shadow-[0_14px_28px_rgba(247,90,155,0.18)] transition-all",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
