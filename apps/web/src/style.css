@@ -16,6 +16,14 @@
   --color-cream-100: #FAFAFA;
   --color-cream-200: #FFF5F5;
   --color-cream-300: #FDF5FF;
+  --color-yume-page: #FFF8FD;
+  --color-yume-accent: #F75A9B;
+  --color-yume-purple: #8B6FEF;
+  --color-yume-sky: #5EA7F2;
+  --color-yume-mint: #7ED9B6;
+  --color-yume-warm: #F5A354;
+  --color-yume-ink: #25146F;
+  --color-yume-frame: #E8DDF6;
   --font-sans: 'Nunito Variable', 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', sans-serif;
 }

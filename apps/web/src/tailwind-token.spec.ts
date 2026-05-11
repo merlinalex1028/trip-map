@@ -94,8 +94,6 @@ describe('tailwind token contracts', () => {
     expect(tokensSource).toContain('--font-family-body:')
     expect(tokensSource).toContain("'Nunito Variable'")
     expect(tokensSource).toContain('--font-family-display:')
-    expect(tokensSource).toContain('--color-page: #FAFAFA;')
-    expect(tokensSource).toContain('--color-page-bottom: #FFF5F5;')
     expect(tokensSource).toContain('--color-state-selected:')
 
     expect(globalSource).toContain('font-family: var(--font-family-body);')
@@ -103,5 +101,39 @@ describe('tailwind token contracts', () => {
     expect(globalSource).toContain('.leaflet-container svg {')
     expect(globalSource).toContain('max-width: none;')
     expect(globalSource).toContain('max-height: none;')
+  })
+
+  it('asserts v8 token baseline colors in tokens.css', () => {
+    const tokensSource = readWebFile('src/styles/tokens.css')
+
+    expect(tokensSource).toContain('--color-page: #FFF8FD;')
+    expect(tokensSource).toContain('--color-accent: #F75A9B;')
+    expect(tokensSource).toContain('--color-ink-strong: #25146F;')
+    expect(tokensSource).toContain('--color-ink-muted: #6F5B99;')
+    expect(tokensSource).toContain('--color-frame: #E8DDF6;')
+  })
+
+  it('asserts v8 radius and motion tokens in tokens.css', () => {
+    const tokensSource = readWebFile('src/styles/tokens.css')
+
+    expect(tokensSource).toContain('--radius-control: 22px;')
+    expect(tokensSource).toContain('--radius-card: 28px;')
+    expect(tokensSource).toContain('--radius-bubble: 32px;')
+    expect(tokensSource).toContain('--radius-pill: 999px;')
+    expect(tokensSource).toContain('--motion-quick: 140ms;')
+    expect(tokensSource).toContain('--motion-emphasis: 180ms;')
+  })
+
+  it('asserts v8 theme colors in style.css', () => {
+    const styleSource = readWebFile('src/style.css')
+
+    expect(styleSource).toContain('--color-yume-accent: #F75A9B;')
+    expect(styleSource).toContain('--color-yume-page: #FFF8FD;')
+    expect(styleSource).toContain('--color-yume-purple: #8B6FEF;')
+    expect(styleSource).toContain('--color-yume-sky: #5EA7F2;')
+    expect(styleSource).toContain('--color-yume-mint: #7ED9B6;')
+    expect(styleSource).toContain('--color-yume-warm: #F5A354;')
+    expect(styleSource).toContain('--color-yume-ink: #25146F;')
+    expect(styleSource).toContain('--color-yume-frame: #E8DDF6;')
   })
 })
