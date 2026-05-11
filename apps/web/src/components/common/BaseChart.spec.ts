@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import BaseChart from './BaseChart.vue'
 
 vi.mock('vue-echarts', () => ({
-  VChart: {
+  default: {
     name: 'VChart',
     props: ['option', 'theme', 'autoresize', 'loading'],
     template: '<div data-mocked-vchart :data-theme="theme" :data-autoresize="JSON.stringify(autoresize)"></div>',
