@@ -88,7 +88,7 @@ The app shell applies only to authenticated `/map`, `/journal`, and `/memories` 
 | Brand area | Height `72px`; logo `36px`; brand `旅记`; subtitle `探索世界 · 记录美好`. |
 | User card | Avatar `96px`, username only. No level, stars, stats, summaries, badges, progress, or upload control. |
 | Navigation | Exactly three entries in this order: `世界足迹` -> `/map`, `旅途手账` -> `/journal`, `旅途回忆` -> `/memories`. Each uses `KawaiiIcon` and Chinese text. |
-| Nav item | Height `48px`, horizontal padding `16px`, icon `22px`, gap `12px`, radius `18px`. Current route sets `aria-current="page"` and visual active state. |
+| Nav item | Height `48px`, horizontal padding `16px`, icon `22px`, gap `8px`, radius `18px`. Current route sets `aria-current="page"` and visual active state. |
 | Illustration | One bottom illustration using `sidebar-illustration.png`, width `220px`, decorative alt, fixed across all authenticated routes. |
 | Logout | Bottom action label `退出登录`; min height `44px`; routes to `/` after success. No confirmation modal. |
 | Main inset | `min-width: 0`, fill remaining width, padding `24px`. Child views keep their own content; Phase 43 only changes route-facing shell/copy. |
@@ -187,7 +187,7 @@ Route-facing vocabulary is fixed: `世界足迹`, `旅途手账`, `旅途回忆`
 | Semantic text | Landing headings, CTA labels, nav labels, username, restore text, empty states, and errors are real DOM text. |
 | Decorative images | Scene backgrounds and sidebar illustration use `alt=""` and `aria-hidden="true"`. Default avatar uses `alt="默认头像"` unless username-specific alt is provided. |
 | Buttons and links | CTA triggers are `<button type="button">`; sidebar entries are `RouterLink`; logout is a button. |
-| Focus | Visible focus ring: `2px solid #F75A9B`, offset `3px`; focus must not be clipped by rounded containers. |
+| Focus | Visible focus ring: `2px solid #F75A9B`, offset `4px`; focus must not be clipped by rounded containers. |
 | Keyboard order | Landing: brand is not focusable, hero CTAs, bottom CTAs, auth dialog. Shell: nav entries, logout, then route content. |
 | Active nav | Current route sets `aria-current="page"` and does not rely on color alone. |
 | Auth dialog | Reuse existing `AuthDialog`; preserve focus trap, Escape close, submit error announcement, and focus return. |
