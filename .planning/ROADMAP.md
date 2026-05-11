@@ -22,7 +22,7 @@
 
 ## Phases
 
-- [ ] **Phase 42: UI Primitives 与 Yume Kawaii Theme Bridge** — 引入 shadcn-vue、ECharts/Iconify 等依赖，并建立可复用的 Soft Pastel Glassmorphism 组件与 token 基线
+- [x] **Phase 42: UI Primitives 与 Yume Kawaii Theme Bridge** — 引入 shadcn-vue、ECharts/Iconify 等依赖，并建立可复用的 Soft Pastel Glassmorphism 组件与 token 基线 (completed 2026-05-11)
 - [ ] **Phase 43: Landing、登录门禁与应用壳** — 新增未登录落地页、全应用登录守卫、登录后左侧导航壳和全局文案替换
 - [ ] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈
 - [ ] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry
@@ -44,14 +44,14 @@
 3. 旅途回忆后续可使用 ECharts/vue-echarts 渲染折线、环图、柱状和雷达图。
 4. 页面图标由统一方案提供，实际使用图标不依赖运行时公网拉取。
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 42-01-PLAN.md — Pin dependencies, configure `@` aliases, and generate the locked shadcn-vue primitive set.
-- [ ] 42-02-PLAN.md — Recalibrate v8 theme tokens and theme generated primitives with a primitive state matrix.
-- [ ] 42-03-PLAN.md — Add local semantic `KawaiiIcon` registry and wrapper.
-- [ ] 42-04-PLAN.md — Add ECharts module registration, Yume Kawaii chart theme, and `BaseChart`.
-- [ ] 42-05-PLAN.md — Wire the dev-only `/__ui` showcase route and full phase gate.
+- [x] 42-01-PLAN.md — Pin dependencies, configure `@` aliases, and generate the locked shadcn-vue primitive set.
+- [x] 42-02-PLAN.md — Recalibrate v8 theme tokens and theme generated primitives with a primitive state matrix.
+- [x] 42-03-PLAN.md — Add local semantic `KawaiiIcon` registry and wrapper.
+- [x] 42-04-PLAN.md — Add ECharts module registration, Yume Kawaii chart theme, and `BaseChart`.
+- [x] 42-05-PLAN.md — Wire the dev-only `/__ui` showcase route and full phase gate.
 
 ---
 
@@ -215,7 +215,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 42. UI Primitives 与 Yume Kawaii Theme Bridge | 0/0 | Not Started | — |
+| 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
 | 43. Landing、登录门禁与应用壳 | 0/0 | Not Started | — |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 0/0 | Not Started | — |
 | 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
