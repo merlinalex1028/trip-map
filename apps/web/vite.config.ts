@@ -14,7 +14,8 @@ export default defineConfig({
       nanoid: fromWebRoot('./node_modules/nanoid'),
       'd3-geo': fromWebRoot('./node_modules/d3-geo'),
       '@floating-ui/dom': fromWebRoot('./node_modules/@floating-ui/dom'),
-      '@vue/test-utils': fromWebRoot('./node_modules/@vue/test-utils')
+      '@vue/test-utils': fromWebRoot('./node_modules/@vue/test-utils'),
+      '@': fromWebRoot('./src')
     }
   },
   server: {
