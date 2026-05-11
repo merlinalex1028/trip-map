@@ -4,6 +4,31 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import router from './index'
 import { useAuthSessionStore } from '../stores/auth-session'
 
+describe('router /__ui route guard', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    router.push('/')
+  })
+
+  it('has /__ui route before catch-all', async () => {
+    await router.isReady()
+    const route = router.resolve('/__ui')
+    expect(route.name).toBe('ui-showcase')
+  })
+
+  it('redirects /__ui to / in production', async () => {
+    const originalDev = import.meta.env.DEV
+    vi.stubEnv('DEV', false)
+    try {
+      await router.push('/__ui')
+      await router.isReady()
+      expect(router.currentRoute.value.fullPath).toBe('/')
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+})
+
 describe('router auth guard', () => {
   beforeEach(() => {
     setActivePinia(createPinia())

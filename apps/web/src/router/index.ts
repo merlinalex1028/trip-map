@@ -26,6 +26,12 @@ export const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/__ui',
+      name: 'ui-showcase',
+      beforeEnter: () => (import.meta.env.DEV ? true : { path: '/' }),
+      component: () => import('../views/UiShowcaseView.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/',
     },
