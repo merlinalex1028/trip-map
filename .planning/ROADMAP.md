@@ -68,7 +68,13 @@ Plans:
 4. 移动端导航不会挤压地图主区域，匿名访问受保护页面会回到落地页。
 5. 全局文案完成替换：`点亮` -> `留下足迹`，`旅行统计` -> `旅途回忆`，`时间轴` -> `旅途手账`。
 
-**Plans:** 0 plans yet
+**Plans:** 4 plans
+
+Plans:
+- [ ] 43-01-PLAN.md — Copy semantic v8 assets and build the public landing view with real auth CTAs.
+- [ ] 43-02-PLAN.md — Replace route/auth semantics for `/`, `/map`, `/journal`, `/memories`, and post-auth `/map` navigation.
+- [ ] 43-03-PLAN.md — Add the authenticated left sidebar shell and remove old topbar route navigation.
+- [ ] 43-04-PLAN.md — Migrate route-facing copy/hooks and run the Phase 43 focused/full verification gate.
 
 ---
 
@@ -216,7 +222,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
-| 43. Landing、登录门禁与应用壳 | 0/0 | Not Started | — |
+| 43. Landing、登录门禁与应用壳 | 0/4 | Not Started | — |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 0/0 | Not Started | — |
 | 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
