@@ -23,7 +23,7 @@
 ## Phases
 
 - [x] **Phase 42: UI Primitives 与 Yume Kawaii Theme Bridge** — 引入 shadcn-vue、ECharts/Iconify 等依赖，并建立可复用的 Soft Pastel Glassmorphism 组件与 token 基线 (completed 2026-05-11)
-- [ ] **Phase 43: Landing、登录门禁与应用壳** — 新增未登录落地页、全应用登录守卫、登录后左侧导航壳和全局文案替换
+- [x] **Phase 43: Landing、登录门禁与应用壳** — 新增未登录落地页、全应用登录守卫、登录后左侧导航壳和全局文案替换 (completed 2026-05-12)
 - [ ] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈
 - [ ] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry
 - [ ] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口
@@ -68,18 +68,18 @@ Plans:
 4. 移动端导航不会挤压地图主区域，匿名访问受保护页面会回到落地页。
 5. 全局文案完成替换：`点亮` -> `留下足迹`，`旅行统计` -> `旅途回忆`，`时间轴` -> `旅途手账`。
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
-- [ ] 43-01-PLAN.md — Copy semantic v8 assets and build the public landing view with real auth CTAs.
+- [x] 43-01-PLAN.md — Copy semantic v8 assets and build the public landing view with real auth CTAs.
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 43-02-PLAN.md — Replace route/auth semantics for `/`, `/map`, `/journal`, `/memories`, and post-auth `/map` navigation.
-- [ ] 43-03-PLAN.md — Add the authenticated left sidebar shell and remove old topbar route navigation.
+- [x] 43-02-PLAN.md — Replace route/auth semantics for `/`, `/map`, `/journal`, `/memories`, and post-auth `/map` navigation.
+- [x] 43-03-PLAN.md — Add the authenticated left sidebar shell and remove old topbar route navigation.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 43-04-PLAN.md — Migrate route-facing copy/hooks and run the Phase 43 focused/full verification gate.
+- [x] 43-04-PLAN.md — Migrate route-facing copy/hooks and run the Phase 43 focused/full verification gate.
 
 ---
 
@@ -176,15 +176,15 @@ Plans:
 | DS-03 | Phase 42 | Pending |
 | DS-04 | Phase 42 | Pending |
 | DS-05 | Phase 42 | Pending |
-| AUTH-01 | Phase 43 | Pending |
-| AUTH-02 | Phase 43 | Pending |
-| AUTH-03 | Phase 43 | Pending |
-| AUTH-04 | Phase 43 | Pending |
-| AUTH-05 | Phase 43 | Pending |
-| SHELL-01 | Phase 43 | Pending |
-| SHELL-02 | Phase 43 | Pending |
-| SHELL-03 | Phase 43 | Pending |
-| SHELL-04 | Phase 43 | Pending |
+| AUTH-01 | Phase 43 | Complete |
+| AUTH-02 | Phase 43 | Complete |
+| AUTH-03 | Phase 43 | Complete |
+| AUTH-04 | Phase 43 | Complete |
+| AUTH-05 | Phase 43 | Complete |
+| SHELL-01 | Phase 43 | Complete |
+| SHELL-02 | Phase 43 | Complete |
+| SHELL-03 | Phase 43 | Complete |
+| SHELL-04 | Phase 43 | Complete |
 | MAP-01 | Phase 44 | Pending |
 | MAP-02 | Phase 44 | Pending |
 | MAP-03 | Phase 44 | Pending |
@@ -227,7 +227,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
-| 43. Landing、登录门禁与应用壳 | 0/4 | Not Started | — |
+| 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 0/0 | Not Started | — |
 | 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
@@ -237,4 +237,4 @@ Plans:
 ---
 
 *Created: 2026-05-09*
-*Last updated: 2026-05-09 — v8.0 roadmap created*
+*Last updated: 2026-05-12 — Phase 43 completed*

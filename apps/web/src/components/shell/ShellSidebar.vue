@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { computed, shallowRef } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 
-import defaultAvatar from '@/assets/v8/shell/default-avatar.png'
+import defaultAvatar from '@/assets/v8/shell/user-avatar.png'
 import sidebarIllustration from '@/assets/v8/shell/sidebar-illustration.png'
 import KawaiiIcon from '@/components/common/KawaiiIcon.vue'
 import {
@@ -24,26 +24,12 @@ const navItems = [
 
 const authSessionStore = useAuthSessionStore()
 const { currentUser } = storeToRefs(authSessionStore)
-const { logout } = authSessionStore
 const route = useRoute()
-const router = useRouter()
-const logoutError = shallowRef('')
 
 const displayUsername = computed(() => currentUser.value?.username ?? '旅行家')
 
 function isActiveRoute(path: string) {
   return route.path === path
-}
-
-async function handleLogout() {
-  logoutError.value = ''
-
-  try {
-    await logout()
-    await router.replace('/')
-  } catch {
-    logoutError.value = '退出登录失败，请稍后重试。'
-  }
 }
 </script>
 
@@ -127,22 +113,7 @@ async function handleLogout() {
       </div>
     </SidebarContent>
 
-    <SidebarFooter class="px-4 pb-5 pt-0">
-      <p
-        v-if="logoutError"
-        class="rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-destructive)_18%,white_82%)] bg-white/86 px-4 py-3 text-sm text-[var(--color-destructive)]"
-        role="alert"
-      >
-        {{ logoutError }}
-      </p>
-      <button
-        type="button"
-        class="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-[color:color-mix(in_srgb,var(--color-destructive)_22%,white_78%)] bg-white/86 px-4 py-2 text-sm font-semibold text-[var(--color-destructive)] transition duration-[var(--motion-quick)] hover:bg-white"
-        data-shell-logout
-        @click="handleLogout"
-      >
-        退出登录
-      </button>
-    </SidebarFooter>
+    <!-- Logout removed — pending design review (see 43-UAT.md test 10) -->
+    <div class="px-4 pb-5 pt-0" />
   </div>
 </template>
