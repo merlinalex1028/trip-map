@@ -458,17 +458,18 @@ const authSessionStore = useAuthSessionStore()
 
 **If this table is empty:** All claims in this research were verified or cited; no user confirmation is needed for research conclusions. [VERIFIED: RESEARCH.md self-check]
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which exact transparent `切图 X@2x.png` files should become `default-avatar.png` and `sidebar-illustration.png`?**  
-   - What we know: The manifest requires a default user avatar and one reliable sidebar illustration, and context says not to copy the incorrect `世界足迹` lower-left illustration blindly. [VERIFIED: prd/v8.0/ASSET-MANIFEST.md] [VERIFIED: .planning/phases/43-landing/43-CONTEXT.md]  
-   - What's unclear: The generic Chinese `切图 X@2x.png` filenames do not encode semantic asset names. [VERIFIED: find prd/v8.0/切图]  
-   - Recommendation: Planner should include a Wave 0 visual asset-selection task that copies selected files into semantic English paths before UI implementation. [VERIFIED: prd/v8.0/CUTTING-GUIDE.md]
+1. **RESOLVED: Selected transparent `切图 X@2x.png` asset mapping for Phase 43.**  
+   - Landing backgrounds are fixed by D-02 and the UI-SPEC asset contract: `prd/v8.0/切图/落地页上半背景.png` -> `apps/web/src/assets/v8/landing/landing-upper-bg.png`; `prd/v8.0/切图/落地页下半背景.png` -> `apps/web/src/assets/v8/landing/landing-lower-bg.png`. [VERIFIED: .planning/phases/43-landing/43-CONTEXT.md] [VERIFIED: .planning/phases/43-landing/43-UI-SPEC.md]  
+   - Landing support assets are selected for optional high-fidelity restoration: `prd/v8.0/切图/切图 5@2x.png` -> `apps/web/src/assets/v8/landing/travel-postcards.png`; `prd/v8.0/切图/切图 12@2x.png` -> `apps/web/src/assets/v8/landing/cta-mascot.png`; `prd/v8.0/切图/切图 6@2x.png` -> `apps/web/src/assets/v8/mascots/logo-cat-outline.png`. [VERIFIED: .planning/phases/43-landing/43-UI-SPEC.md]  
+   - Shell assets are selected explicitly: `prd/v8.0/切图/切图 13@2x.png` -> `apps/web/src/assets/v8/shell/default-avatar.png`; `prd/v8.0/切图/切图 17@2x.png` -> `apps/web/src/assets/v8/shell/sidebar-illustration.png`. [VERIFIED: .planning/phases/43-landing/43-UI-SPEC.md]  
+   - Phase 43 Plan 01 Task 1 implements this mapping as copy-only asset work before landing/shell UI imports these semantic English paths. [VERIFIED: .planning/phases/43-landing/43-01-PLAN.md]
 
-2. **Should Phase 43 run screenshot comparison, or leave visual screenshot QA to Phase 48?**  
-   - What we know: Phase 48 owns full visual QA requirements, while Phase 43 requires high-fidelity landing behavior. [VERIFIED: .planning/ROADMAP.md] [VERIFIED: .planning/phases/43-landing/43-CONTEXT.md]  
-   - What's unclear: The Phase 43 gate can be unit/component-heavy, but high-fidelity landing risk benefits from at least one desktop screenshot check. [VERIFIED: prd/v8.0/UI/落地页.png]  
-   - Recommendation: Planner should add a lightweight desktop manual/browser check for Phase 43 and leave broad multi-page screenshot QA to Phase 48. [VERIFIED: .planning/ROADMAP.md]
+2. **RESOLVED: Phase 43 includes lightweight browser screenshot verification, while broad visual QA remains Phase 48.**  
+   - Plan 04 now includes a blocking browser/manual screenshot gate for `/` and `/map` at desktop viewports `1366x768`, `1440x900`, `1536x1024`, and `1920x1080`. [VERIFIED: .planning/phases/43-landing/43-04-PLAN.md]  
+   - The gate checks the UI-SPEC desktop constraints most likely to regress in implementation: centered `1536px` landing stage, `1672px` scene background bleed, hero text offset near `clamp(96px, 9vw, 144px)` and `128px` top, bottom CTA panel width `min(1240px, calc(100vw - 160px))` with at least `120px` height, no viewport-width font scaling, and authenticated `/map` shell sidebar width `280px` without old topbar/navigation overlap. [VERIFIED: .planning/phases/43-landing/43-UI-SPEC.md]  
+   - Phase 48 still owns broad multi-page visual QA across desktop/mobile, maps, charts, dialogs, and motion/accessibility regression. [VERIFIED: .planning/ROADMAP.md]
 
 ## Environment Availability
 
