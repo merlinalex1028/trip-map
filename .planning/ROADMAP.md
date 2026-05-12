@@ -71,9 +71,14 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
+**Wave 1**
 - [ ] 43-01-PLAN.md — Copy semantic v8 assets and build the public landing view with real auth CTAs.
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 43-02-PLAN.md — Replace route/auth semantics for `/`, `/map`, `/journal`, `/memories`, and post-auth `/map` navigation.
 - [ ] 43-03-PLAN.md — Add the authenticated left sidebar shell and remove old topbar route navigation.
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 43-04-PLAN.md — Migrate route-facing copy/hooks and run the Phase 43 focused/full verification gate.
 
 ---
