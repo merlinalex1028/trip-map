@@ -1,19 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { nextTick } from 'vue'
 
 import AuthTopbarControl from './AuthTopbarControl.vue'
 import { useAuthSessionStore } from '../../stores/auth-session'
-
-const { routerPushMock } = vi.hoisted(() => ({
-  routerPushMock: vi.fn(),
-}))
-
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: routerPushMock,
-  }),
-}))
 
 function makeUser() {
   return {
@@ -26,6 +15,7 @@ function makeUser() {
 
 function mountControl(options?: {
   authenticated?: boolean
+  setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void
 }) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -33,6 +23,7 @@ function mountControl(options?: {
   const authSessionStore = useAuthSessionStore()
   authSessionStore.status = options?.authenticated ? 'authenticated' : 'anonymous'
   authSessionStore.currentUser = options?.authenticated ? makeUser() : null
+  options?.setup?.(authSessionStore)
 
   const wrapper = mount(AuthTopbarControl, {
     global: {
@@ -47,73 +38,32 @@ function mountControl(options?: {
 }
 
 describe('AuthTopbarControl', () => {
-  beforeEach(() => {
-    routerPushMock.mockReset()
-    routerPushMock.mockResolvedValue(undefined)
+  it('renders only the anonymous auth trigger when not authenticated', () => {
+    const { wrapper } = mountControl()
+
+    expect(wrapper.get('[data-auth-trigger="anonymous"]').text()).toContain('登录 / 注册')
+    expect(wrapper.findAll('button')).toHaveLength(1)
   })
 
-  it('shows the timeline entry only for authenticated users', async () => {
-    const anonymous = mountControl()
-
-    expect(anonymous.wrapper.find('[data-auth-menu-item="timeline"]').exists()).toBe(false)
-    expect(anonymous.wrapper.find('[data-auth-menu-item="statistics"]').exists()).toBe(false)
-
-    anonymous.wrapper.unmount()
-
-    const authenticated = mountControl({ authenticated: true })
-
-    await authenticated.wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
-    await nextTick()
-
-    expect(authenticated.wrapper.find('[data-auth-menu-item="timeline"]').exists()).toBe(true)
-    expect(authenticated.wrapper.find('[data-auth-menu-item="statistics"]').exists()).toBe(true)
-    expect(authenticated.wrapper.get('[data-auth-menu-item="timeline"]').text()).toContain('时间轴')
-    expect(authenticated.wrapper.get('[data-auth-menu-item="statistics"]').text()).toContain('查看统计')
-  })
-
-  it('navigates to timeline from the authenticated menu', async () => {
+  it('does not expose authenticated route navigation surfaces anymore', () => {
     const { wrapper } = mountControl({ authenticated: true })
 
-    await wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
-    await nextTick()
-
-    expect(wrapper.find('[data-auth-menu]').exists()).toBe(true)
-
-    await wrapper.get('[data-auth-menu-item="timeline"]').trigger('click')
-    await nextTick()
-
-    expect(routerPushMock).toHaveBeenCalledWith('/timeline')
-    expect(wrapper.find('[data-auth-menu]').exists()).toBe(false)
+    expect(wrapper.find('[data-auth-trigger="anonymous"]').exists()).toBe(false)
+    expect(wrapper.find('[data-auth-trigger="authenticated"]').exists()).toBe(false)
+    expect(wrapper.findAll('[data-auth-menu-item]').length).toBe(0)
+    expect(wrapper.findAll('button').length).toBe(0)
   })
 
-  it('keeps the logout action after the timeline entry', async () => {
-    const { wrapper } = mountControl({ authenticated: true })
+  it('opens login mode from the anonymous trigger', async () => {
+    let openAuthModalSpy: ReturnType<typeof vi.spyOn>
+    const { wrapper } = mountControl({
+      setup: (authSessionStore) => {
+        openAuthModalSpy = vi.spyOn(authSessionStore, 'openAuthModal')
+      },
+    })
 
-    await wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
-    await nextTick()
+    await wrapper.get('[data-auth-trigger="anonymous"]').trigger('click')
 
-    const menuItems = wrapper.findAll('[data-auth-menu-item]').map((item) =>
-      item.attributes('data-auth-menu-item'),
-    )
-
-    expect(menuItems).toContain('timeline')
-    expect(menuItems).toContain('statistics')
-    expect(menuItems).toContain('logout')
-    expect(menuItems.indexOf('timeline')).toBeLessThan(menuItems.indexOf('logout'))
-    expect(menuItems.indexOf('timeline')).toBeLessThan(menuItems.indexOf('statistics'))
-    expect(menuItems.indexOf('statistics')).toBeLessThan(menuItems.indexOf('logout'))
-  })
-
-  it('navigates to statistics from the authenticated menu', async () => {
-    const { wrapper } = mountControl({ authenticated: true })
-
-    await wrapper.get('[data-auth-trigger="authenticated"]').trigger('click')
-    await nextTick()
-
-    await wrapper.get('[data-auth-menu-item="statistics"]').trigger('click')
-    await nextTick()
-
-    expect(routerPushMock).toHaveBeenCalledWith('/statistics')
-    expect(wrapper.find('[data-auth-menu]').exists()).toBe(false)
+    expect(openAuthModalSpy).toHaveBeenCalledWith('login')
   })
 })

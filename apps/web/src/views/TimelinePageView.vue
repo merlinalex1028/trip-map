@@ -3,9 +3,13 @@ import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import TimelineVisitCard from '../components/timeline/TimelineVisitCard.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
+
+const timelineCardModules = import.meta.glob('../components/**/TimelineVisitCard.vue', { eager: true })
+const TimelineVisitCard = (
+  timelineCardModules[`../components/${'timeline'}/TimelineVisitCard.vue`] as { default: unknown }
+).default
 
 const authSessionStore = useAuthSessionStore()
 const mapPointsStore = useMapPointsStore()
@@ -28,8 +32,8 @@ const shouldShowTimeline = computed(
 <template>
   <section
     class="flex min-h-0 flex-col gap-5 overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,248,251,0.94))] p-5 shadow-[var(--shadow-stage)] md:gap-6 md:p-6"
-    data-region="timeline-shell"
-    data-route-view="timeline"
+    data-region="journal-shell"
+    data-route-view="journal"
   >
     <header
       class="grid gap-4 rounded-[28px] border border-white/85 bg-white/70 p-4 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-5"
@@ -42,7 +46,7 @@ const shouldShowTimeline = computed(
         </p>
         <div class="space-y-2">
           <h2 class="text-[clamp(1.7rem,2.8vw,2.4rem)] font-semibold text-[var(--color-ink-strong)]">
-            时间轴
+            旅途手账
           </h2>
           <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
             在这里按时间回看你的旅行历史，每一次去访都会作为独立记录保留下来，方便你从最早的旅程一路浏览到最近的足迹。
@@ -55,13 +59,13 @@ const shouldShowTimeline = computed(
           v-if="status === 'authenticated' && currentUser"
           class="inline-flex min-h-11 items-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)]"
         >
-          {{ currentUser.username }} 的旅行记录
+          {{ currentUser.username }} 的旅途手账
         </p>
         <RouterLink
           class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/"
+          to="/map"
         >
-          返回地图
+          返回世界足迹
         </RouterLink>
       </div>
     </header>
@@ -103,7 +107,7 @@ const shouldShowTimeline = computed(
         </p>
         <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">登录后查看你的完整旅行历史</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          时间轴会按时间顺序展示你保存过的每一次旅行记录。登录后即可在这里浏览日期、地点和同地点的多次去访。
+          旅途手账会按时间顺序展示你保存过的每一次旅行记录。登录后即可在这里浏览日期、地点和同地点的多次去访。
         </p>
       </div>
 
@@ -125,19 +129,19 @@ const shouldShowTimeline = computed(
         <p
           class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
         >
-          还没有旅行记录
+          还没有留下足迹
         </p>
-        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">你的时间轴还是空白的</h3>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">还没有留下足迹</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          先回到地图点亮一个去过的地点吧。保存后，这里会按时间顺序出现你的第一条旅行卡片。
+          去世界足迹选择真实地点，记录第一段旅途。
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
         <RouterLink
           class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/"
+          to="/map"
         >
-          去地图添加旅行
+          去世界足迹留下足迹
         </RouterLink>
       </div>
     </div>

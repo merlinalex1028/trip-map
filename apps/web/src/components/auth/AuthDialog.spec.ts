@@ -1,6 +1,17 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { replaceSpy } = vi.hoisted(() => ({
+  replaceSpy: vi.fn(),
+}))
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    replace: replaceSpy,
+  }),
+}))
 
 import AuthDialog from './AuthDialog.vue'
 import { ApiClientError } from '../../services/api/client'
@@ -31,6 +42,10 @@ function mountDialog(
 }
 
 describe('AuthDialog', () => {
+  beforeEach(() => {
+    replaceSpy.mockReset()
+  })
+
   it('renders only 登录 and 注册 tabs', () => {
     const { wrapper } = mountDialog()
 
@@ -69,7 +84,7 @@ describe('AuthDialog', () => {
     expect(wrapper.find('input[name="password"]').exists()).toBe(true)
   })
 
-  it('calls login and closeAuthModal after a successful 登录 submit', async () => {
+  it('calls login, closes the dialog, and navigates to /map after a successful 登录 submit', async () => {
     const { wrapper } = mountDialog((authSessionStore) => {
       vi.spyOn(authSessionStore, 'login').mockResolvedValue(undefined)
       vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
@@ -90,9 +105,10 @@ describe('AuthDialog', () => {
       password: 'super-secret',
     })
     expect(closeAuthModalSpy).toHaveBeenCalled()
+    expect(replaceSpy).toHaveBeenCalledWith('/map')
   })
 
-  it('calls register and closeAuthModal after a successful 注册 submit', async () => {
+  it('calls register, closes the dialog, and navigates to /map after a successful 注册 submit', async () => {
     const { wrapper } = mountDialog((authSessionStore) => {
       vi.spyOn(authSessionStore, 'register').mockResolvedValue(undefined)
       vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
@@ -118,6 +134,7 @@ describe('AuthDialog', () => {
       password: 'super-secret',
     })
     expect(closeAuthModalSpy).toHaveBeenCalled()
+    expect(replaceSpy).toHaveBeenCalledWith('/map')
   })
 
   it('keeps the dialog open and shows a form error when 登录 fails with auth-submit 401', async () => {
@@ -142,6 +159,7 @@ describe('AuthDialog', () => {
     await flushPromises()
 
     expect(closeAuthModalSpy).not.toHaveBeenCalled()
+    expect(replaceSpy).not.toHaveBeenCalled()
     expect(authSessionStore.isAuthModalOpen).toBe(true)
     expect(wrapper.get('[role="alert"]').text()).toContain('登录失败')
   })

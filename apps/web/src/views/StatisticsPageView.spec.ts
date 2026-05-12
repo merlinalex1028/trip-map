@@ -97,8 +97,45 @@ describe('StatisticsPageView', () => {
   it('renders anonymous state for visitors without a session', () => {
     const { wrapper } = mountStatisticsPage()
 
-    expect(wrapper.get('[data-state="anonymous"]').text()).toContain('登录后查看你的旅行统计')
+    expect(wrapper.get('[data-route-view="memories"]').attributes('data-region')).toBe('memories-shell')
+    expect(wrapper.text()).toContain('旅途回忆')
+    expect(wrapper.get('[data-state="anonymous"]').text()).toContain('登录后查看你的旅途回忆')
     expect(wrapper.text()).toContain('立即登录')
+  })
+
+  it('renders the updated empty and error copy contracts', async () => {
+    fetchStatsMock.mockResolvedValue({
+      totalTrips: 0,
+      uniquePlaces: 0,
+      visitedCountries: 0,
+      totalSupportedCountries: 21,
+    })
+
+    const { wrapper } = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('[data-state="empty"]').text()).toContain('还没有留下足迹')
+    expect(wrapper.get('[data-state="empty"]').text()).toContain('去世界足迹留下足迹')
+
+    fetchStatsMock.mockReset()
+    fetchStatsMock.mockRejectedValueOnce(new Error('network'))
+
+    const mountedErrorPage = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    expect(mountedErrorPage.wrapper.get('[data-state="error"]').text()).toContain(
+      '旅途数据暂时没有同步成功，请刷新页面或稍后重试。',
+    )
   })
 
   it('re-fetches statistics after travel records change during an in-flight request', async () => {

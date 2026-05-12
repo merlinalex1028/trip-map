@@ -2,6 +2,7 @@
 import type { LoginRequest, RegisterRequest } from '@trip-map/contracts'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, reactive, shallowRef, useTemplateRef, watch } from 'vue'
+import { useRouter } from 'vue-router'
 
 import { ApiClientError } from '../../services/api/client'
 import { useAuthSessionStore } from '../../stores/auth-session'
@@ -9,6 +10,7 @@ import { useAuthSessionStore } from '../../stores/auth-session'
 type AuthMode = 'login' | 'register'
 
 const authSessionStore = useAuthSessionStore()
+const router = useRouter()
 const { authMode, isAuthModalOpen, isSubmitting } = storeToRefs(authSessionStore)
 const { closeAuthModal, login, openAuthModal, register } = authSessionStore
 
@@ -95,6 +97,7 @@ async function handleSubmit() {
     }
 
     closeAuthModal()
+    await router.replace('/map')
   } catch (error) {
     if (error instanceof ApiClientError) {
       submitError.value =

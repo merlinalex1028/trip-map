@@ -5,7 +5,7 @@ import { RouterView } from 'vue-router'
 
 import AuthDialog from './components/auth/AuthDialog.vue'
 import LocalImportDecisionDialog from './components/auth/LocalImportDecisionDialog.vue'
-import AuthTopbarControl from './components/auth/AuthTopbarControl.vue'
+import AuthenticatedAppShell from './components/shell/AuthenticatedAppShell.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapUiStore } from './stores/map-ui'
 
@@ -30,20 +30,20 @@ const { interactionNotice } = storeToRefs(mapUiStore)
 let noticeTimer: number | null = null
 
 watch(interactionNotice, (notice) => {
-    if (noticeTimer) {
-      window.clearTimeout(noticeTimer)
-      noticeTimer = null
-    }
+  if (noticeTimer) {
+    window.clearTimeout(noticeTimer)
+    noticeTimer = null
+  }
 
-    if (!notice?.message) {
-      return
-    }
+  if (!notice?.message) {
+    return
+  }
 
-    noticeTimer = window.setTimeout(() => {
-      clearInteractionNotice()
-      noticeTimer = null
-    }, 2600)
-  })
+  noticeTimer = window.setTimeout(() => {
+    clearInteractionNotice()
+    noticeTimer = null
+  }, 2600)
+})
 
 onMounted(() => {
   void restoreSession()
@@ -98,39 +98,10 @@ function handleVisibilityChange() {
     <div class="app-shell__grain" aria-hidden="true"></div>
     <div class="app-shell__spark app-shell__spark--left" aria-hidden="true"></div>
     <div class="app-shell__spark app-shell__spark--right" aria-hidden="true"></div>
-    <main
-      class="relative z-[1] grid min-h-screen grid-rows-[1fr] gap-4 px-4 pb-4 pt-[4.5rem] md:px-8 md:pb-8 md:pt-[5rem]"
-    >
-      <header
-        class="fixed inset-x-0 top-0 z-[4] flex h-14 md:h-16 items-center justify-between gap-3 border-b border-white/70 bg-cream-200/90 px-4 shadow-[0_16px_30px_rgba(155,116,160,0.10)] backdrop-blur-xl md:px-8"
-        data-kawaii-shell="thin"
-        data-region="topbar"
-      >
-        <div class="flex min-w-0 flex-col justify-center gap-0.5">
-          <div class="flex min-w-0 items-center gap-2">
-            <h1
-              class="m-0 shrink-0 text-[clamp(1.18rem,2vw,1.5rem)] leading-none font-semibold tracking-[0.04em] text-[var(--color-ink-strong)]"
-              data-display="true"
-            >
-              旅记
-            </h1>
-            <p
-              class="min-w-0 truncate rounded-full border border-white/80 bg-white/82 px-2 py-[0.14rem] text-[0.6rem] leading-none tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
-            >
-              Travel Diary
-            </p>
-          </div>
-          <p class="max-w-[18rem] truncate text-[0.72rem] leading-[1.15] text-[var(--color-ink-muted)]">
-            收集每次落点的心动坐标
-          </p>
-        </div>
-        <div class="flex min-w-[9rem] items-center justify-end md:min-w-[12rem]">
-          <AuthTopbarControl />
-        </div>
-      </header>
+    <main class="relative z-[1] min-h-screen">
       <div
         v-if="interactionNotice"
-        class="fixed left-1/2 top-[4.25rem] z-[5] w-[28rem] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full border border-white/80 bg-white/82 px-4 py-3 text-center text-sm text-[var(--color-ink-strong)] shadow-[var(--shadow-float)] backdrop-blur-xl md:top-[4.75rem]"
+        class="fixed left-1/2 top-6 z-[5] w-[28rem] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-full border border-white/80 bg-white/82 px-4 py-3 text-center text-sm text-[var(--color-ink-strong)] shadow-[var(--shadow-float)] backdrop-blur-xl"
         :class="{
           'app-shell__notice--warning': interactionNotice.tone === 'warning',
         }"
@@ -140,7 +111,22 @@ function handleVisibilityChange() {
       >
         {{ interactionNotice.message }}
       </div>
-      <RouterView />
+      <RouterView v-slot="{ Component, route }">
+        <div
+          v-if="status === 'restoring'"
+          class="flex min-h-screen items-center justify-center px-6 text-center text-lg font-semibold text-[var(--color-ink-strong)]"
+          data-auth-restore-state
+        >
+          正在恢复你的旅途...
+        </div>
+        <AuthenticatedAppShell v-else-if="route.meta.requiresAuth === true">
+          <component :is="Component" />
+        </AuthenticatedAppShell>
+        <component
+          :is="Component"
+          v-else
+        />
+      </RouterView>
     </main>
     <LocalImportDecisionDialog
       :decision="pendingLocalImportDecision"

@@ -101,6 +101,8 @@ describe('TimelinePageView', () => {
     await wrapper.get('button').trigger('click')
     await nextTick()
 
+    expect(wrapper.get('[data-route-view="journal"]').attributes('data-region')).toBe('journal-shell')
+    expect(wrapper.text()).toContain('旅途手账')
     expect(wrapper.get('[data-state="anonymous"]').text()).toContain('立即登录')
     expect(openAuthModalSpy).toHaveBeenCalledWith('login')
     expectNoMapStage(wrapper)
@@ -112,8 +114,9 @@ describe('TimelinePageView', () => {
       authSessionStore.currentUser = makeUser()
     })
 
-    expect(wrapper.get('[data-state="empty"]').text()).toContain('你的时间轴还是空白的')
-    expect(wrapper.text()).toContain('去地图添加旅行')
+    expect(wrapper.get('[data-route-view="journal"]').attributes('data-region')).toBe('journal-shell')
+    expect(wrapper.get('[data-state="empty"]').text()).toContain('还没有留下足迹')
+    expect(wrapper.text()).toContain('去世界足迹留下足迹')
     expectNoMapStage(wrapper)
   })
 

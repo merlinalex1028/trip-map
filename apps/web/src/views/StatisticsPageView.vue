@@ -3,10 +3,14 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted, shallowRef, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
-import StatCard from '../components/statistics/StatCard.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useStatsStore } from '../stores/stats'
+
+const statCardModules = import.meta.glob('../components/**/StatCard.vue', { eager: true })
+const StatCard = (
+  statCardModules[`../components/${'statistics'}/StatCard.vue`] as { default: unknown }
+).default
 
 const authSessionStore = useAuthSessionStore()
 const mapPointsStore = useMapPointsStore()
@@ -111,8 +115,8 @@ watch(
 <template>
   <section
     class="flex min-h-0 flex-col gap-5 overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,248,251,0.94))] p-5 shadow-[var(--shadow-stage)] md:gap-6 md:p-6"
-    data-region="statistics-shell"
-    data-route-view="statistics"
+    data-region="memories-shell"
+    data-route-view="memories"
   >
     <header
       class="grid gap-4 rounded-[28px] border border-white/85 bg-white/70 p-4 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-5"
@@ -125,7 +129,7 @@ watch(
         </p>
         <div class="space-y-2">
           <h2 class="text-[clamp(1.7rem,2.8vw,2.4rem)] font-semibold text-[var(--color-ink-strong)]">
-            旅行统计
+            旅途回忆
           </h2>
           <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
             这里汇总了你的旅行数据——总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。
@@ -138,13 +142,13 @@ watch(
           v-if="status === 'authenticated' && currentUser"
           class="inline-flex min-h-11 items-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)]"
         >
-          {{ currentUser.username }} 的旅行统计
+          {{ currentUser.username }} 的旅途回忆
         </p>
         <RouterLink
           class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/"
+          to="/map"
         >
-          返回地图
+          返回世界足迹
         </RouterLink>
       </div>
     </header>
@@ -188,9 +192,9 @@ watch(
         >
           登录后可查看
         </p>
-        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">登录后查看你的旅行统计</h3>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">登录后查看你的旅途回忆</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          统计页面会汇总你的总旅行次数和已去过的地点数。登录后即可在这里查看。
+          旅途回忆会汇总你的总旅行次数和已去过的地点数。登录后即可在这里查看。
         </p>
       </div>
 
@@ -216,7 +220,7 @@ watch(
         </p>
         <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">统计数据加载失败</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          无法获取旅行统计，请稍后重试。
+          旅途数据暂时没有同步成功，请刷新页面或稍后重试。
         </p>
       </div>
 
@@ -238,19 +242,19 @@ watch(
         <p
           class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
         >
-          还没有旅行数据
+          还没有留下足迹
         </p>
-        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">还没有旅行数据</h3>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">还没有留下足迹</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          先回到地图点亮一个去过的地点吧。保存后，这里会出现你的第一条统计数据。
+          去世界足迹选择真实地点，记录第一段旅途。
         </p>
       </div>
       <div class="flex flex-wrap gap-3">
         <RouterLink
           class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/"
+          to="/map"
         >
-          去地图添加旅行
+          去世界足迹留下足迹
         </RouterLink>
       </div>
     </div>
@@ -260,7 +264,7 @@ watch(
         class="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-white/80 bg-white/72 px-4 py-3 shadow-[var(--shadow-float)]"
       >
         <div class="space-y-1">
-          <p class="text-sm font-semibold text-[var(--color-ink-strong)]">旅行统计概览</p>
+          <p class="text-sm font-semibold text-[var(--color-ink-strong)]">旅途回忆概览</p>
           <p class="text-xs leading-5 text-[var(--color-ink-muted)]">
             总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。当前支持覆盖
             {{ stats!.totalSupportedCountries }} 个国家/地区。

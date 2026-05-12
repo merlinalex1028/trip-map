@@ -13,6 +13,8 @@ const { status } = storeToRefs(authSessionStore)
   <section
     class="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-[32px] border border-white/80 bg-white/65 p-4 shadow-[var(--shadow-stage)] md:p-6"
     data-region="map-shell"
+    data-route-view="map"
+    aria-label="世界足迹"
   >
     <LeafletMapStage class="min-h-0 flex-1" />
     <AuthRestoreOverlay :visible="status === 'restoring'" />

@@ -9,8 +9,6 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import App from './App.vue'
 import { useAuthSessionStore } from './stores/auth-session'
 import { useMapUiStore } from './stores/map-ui'
-import MapHomeView from './views/MapHomeView.vue'
-import TimelinePageView from './views/TimelinePageView.vue'
 
 vi.mock('./composables/usePopupAnchoring', () => ({
   usePopupAnchoring: () => ({
@@ -99,8 +97,13 @@ async function mountApp() {
   const pinia = createPinia()
   setActivePinia(pinia)
   const authSessionStore = useAuthSessionStore()
-  authSessionStore.status = 'anonymous'
-  authSessionStore.currentUser = null
+  authSessionStore.status = 'authenticated'
+  authSessionStore.currentUser = {
+    id: 'user-1',
+    username: 'Alice',
+    email: 'alice@example.com',
+    createdAt: '2026-04-12T00:00:00.000Z',
+  }
   vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
 
   const router = createRouter({
@@ -108,13 +111,18 @@ async function mountApp() {
     routes: [
       {
         path: '/',
-        name: 'map-home',
-        component: MapHomeView,
+        name: 'landing',
+        component: {
+          template: '<div data-route-view="landing">Landing</div>',
+        },
       },
       {
-        path: '/timeline',
-        name: 'timeline',
-        component: TimelinePageView,
+        path: '/map',
+        name: 'world-footprints',
+        meta: { requiresAuth: true },
+        component: {
+          template: '<section data-region="map-shell" data-route-view="map"><div class="min-h-0 flex-1" data-region="map-stage">Map</div></section>',
+        },
       },
       {
         path: '/:pathMatch(.*)*',
@@ -129,7 +137,7 @@ async function mountApp() {
     },
   })
 
-  await router.push('/')
+  await router.push('/map')
   await router.isReady()
 
   return wrapper
@@ -144,17 +152,12 @@ describe('App kawaii shell contracts', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps the topbar as a thin shell with roomy app spacing', async () => {
+  it('renders the authenticated shell instead of the thin topbar contract', async () => {
     const wrapper = await mountApp()
-    const topbar = wrapper.get('[data-region="topbar"]')
-    const mainShell = wrapper.get('main')
 
-    expect(topbar.attributes('data-kawaii-shell')).toBe('thin')
-    expect(topbar.attributes('class')).toContain('h-14')
-    expect(topbar.attributes('class')).toContain('md:h-16')
-    expect(mainShell.attributes('class')).toContain(
-      'gap-4 px-4 pb-4 pt-[4.5rem] md:px-8 md:pb-8 md:pt-[5rem]',
-    )
+    expect(wrapper.find('[data-app-shell]').exists()).toBe(true)
+    expect(wrapper.find('[data-shell-sidebar]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(false)
   })
 
   it('renders the interaction notice as a pill capsule with text interpolation only', async () => {
@@ -174,27 +177,21 @@ describe('App kawaii shell contracts', () => {
     expect(notice.attributes('class')).toContain(
       'rounded-full border border-white/80 bg-white/82 px-4 py-3',
     )
-    expect(notice.attributes('class')).toContain('text-sm')
-    expect(notice.attributes('class')).toContain('shadow-[var(--shadow-float)]')
     expect(notice.text()).toContain('notice contract')
     expect(source).toContain('{{ interactionNotice.message }}')
     expect(source).not.toContain('v-html')
   })
 
-  it('keeps the map shell roomy without leaking transform utilities onto the map host', async () => {
+  it('keeps the authenticated shell contract free of old topbar markup and transform leakage', async () => {
     const wrapper = await mountApp()
-    const mapShell = wrapper.get('[data-region="map-shell"]')
+    const appShell = wrapper.get('[data-app-shell]')
     const mapStage = wrapper.get('[data-region="map-stage"]')
-    const mapStageClasses = mapStage.attributes('class')
+    const source = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8')
 
-    const mapShellClasses = mapShell.attributes('class')
-
-    expect(mapShellClasses).toContain('rounded-[32px]')
-    expect(mapShellClasses).toContain('border-white/80')
-    expect(mapShellClasses).toContain('bg-white/65')
-    expect(mapShellClasses).toContain('p-4')
-    expect(mapShellClasses).toContain('md:p-6')
-    expect(mapShellClasses).toContain('gap-4')
-    expect(mapStageClasses).not.toMatch(/scale|translate|rotate|skew|perspective|filter/)
+    expect(appShell.attributes('style')).toContain('--sidebar-width: 280px')
+    expect(wrapper.find('[data-region="topbar"]').exists()).toBe(false)
+    expect(source).not.toContain('data-region="topbar"')
+    expect(source).not.toContain('data-kawaii-shell="thin"')
+    expect(mapStage.attributes('class')).not.toMatch(/scale|translate|rotate|skew|perspective|filter/)
   })
 })

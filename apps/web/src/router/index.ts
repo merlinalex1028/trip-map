@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+import LandingPageView from '../views/LandingPageView.vue'
 import MapHomeView from '../views/MapHomeView.vue'
 import StatisticsPageView from '../views/StatisticsPageView.vue'
 import TimelinePageView from '../views/TimelinePageView.vue'
@@ -10,18 +11,24 @@ export const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'map-home',
-      component: MapHomeView,
+      name: 'landing',
+      component: LandingPageView,
     },
     {
-      path: '/timeline',
-      name: 'timeline',
+      path: '/map',
+      name: 'world-footprints',
+      component: MapHomeView,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/journal',
+      name: 'travel-journal',
       component: TimelinePageView,
       meta: { requiresAuth: true },
     },
     {
-      path: '/statistics',
-      name: 'statistics',
+      path: '/memories',
+      name: 'travel-memories',
       component: StatisticsPageView,
       meta: { requiresAuth: true },
     },
@@ -43,6 +50,10 @@ router.beforeEach(async (to) => {
 
   if (authSessionStore.status === 'restoring') {
     await authSessionStore.restoreSession()
+  }
+
+  if (to.path === '/' && authSessionStore.status === 'authenticated') {
+    return { path: '/map', replace: true }
   }
 
   if (to.meta.requiresAuth && authSessionStore.status !== 'authenticated') {
