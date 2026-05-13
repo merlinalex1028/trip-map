@@ -96,14 +96,14 @@ Plans:
 4. 日期提交符合后端 `YYYY-MM-DD` 契约，并在打开弹窗时锁定当前地点 payload，避免切换地图地点后保存错位。
 5. 未登录、不可用地点、保存中、保存失败和保存成功状态都有清晰反馈与可访问焦点管理。
 
-**Plans:** 5 plans
+**Plans:** 2/5 plans executed
 
 Plans:
 **Wave 0**
-- [ ] 44-01-PLAN.md — Lock Phase 44 popup, dialog, marker, sidebar, and snapshot regression contracts.
+- [x] 44-01-PLAN.md — Lock Phase 44 popup, dialog, marker, sidebar, and snapshot regression contracts.
 
 **Wave 1** *(blocked on Wave 0 completion)*
-- [ ] 44-02-PLAN.md — Prepare P0 assets and restore world-footprints map stage, marker, and map-route sidebar visuals.
+- [x] 44-02-PLAN.md — Prepare P0 assets and restore world-footprints map stage, marker, and map-route sidebar visuals.
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 44-03-PLAN.md — Refactor the map popup into a unified factual place card with one `留下足迹` entry.
@@ -242,7 +242,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
-| 44. 世界足迹地图与留下足迹日期弹窗 | 0/0 | Not Started | — |
+| 44. 世界足迹地图与留下足迹日期弹窗 | 2/5 | In Progress|  |
 | 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |

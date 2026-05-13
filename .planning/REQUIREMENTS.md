@@ -31,8 +31,8 @@
 
 ### World Footprints Map
 
-- [ ] **MAP-01**: 地图页保留现有 Leaflet 地图识别主链路，并升级为 `8.0/世界足迹.png` 所表达的柔粉紫地图舞台。
-- [ ] **MAP-02**: 地图中的已保存/识别中地点使用星形或发光足迹标记，并在 hover/active 时有轻量动效。
+- [x] **MAP-01**: 地图页保留现有 Leaflet 地图识别主链路，并升级为 `8.0/世界足迹.png` 所表达的柔粉紫地图舞台。
+- [x] **MAP-02**: 地图中的已保存/识别中地点使用星形或发光足迹标记，并在 hover/active 时有轻量动效。
 - [ ] **MAP-03**: 用户点击地图后，弹窗始终展示真实地点信息、类型标签、地区信息和“留下足迹”入口。
 - [ ] **MAP-04**: 地图弹窗不再内嵌日期表单；点击“留下足迹”后打开独立日期选择弹窗。
 - [ ] **MAP-05**: 已保存地点弹窗不展示该地点过往旅行记录，也不使用“再留一次足迹”分支文案；弹窗始终保持同一套真实地点信息 UI 和“留下足迹”入口。
@@ -130,8 +130,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SHELL-02 | Phase 43 | Pending |
 | SHELL-03 | Phase 43 | Pending |
 | SHELL-04 | Phase 43 | Pending |
-| MAP-01 | Phase 44 | Pending |
-| MAP-02 | Phase 44 | Pending |
+| MAP-01 | Phase 44 | Complete |
+| MAP-02 | Phase 44 | Complete |
 | MAP-03 | Phase 44 | Pending |
 | MAP-04 | Phase 44 | Pending |
 | MAP-05 | Phase 44 | Pending |

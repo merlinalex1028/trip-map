@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
 status: executing
-stopped_at: Phase 44 UI-SPEC approved
-last_updated: "2026-05-13T06:41:43.275Z"
-last_activity: 2026-05-13 -- Phase 44 execution started
+stopped_at: Completed 44-02-PLAN.md
+last_updated: "2026-05-13T08:47:02.730Z"
+last_activity: 2026-05-13
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 14
-  completed_plans: 9
-  percent: 64
+  completed_plans: 11
+  percent: 79
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 44 (world-footprints-map-footprint-date-dialog) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 44
-Last activity: 2026-05-13 -- Phase 44 execution started
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-05-13
 
 ## Performance Metrics
 
@@ -67,6 +67,10 @@ Last activity: 2026-05-13 -- Phase 44 execution started
 | Phase 43 authenticated shell 左侧 sidebar | 280px 固定宽度，不收缩，无旧 topbar | ✅ 已实现 |
 | Phase 43 全局文案替换 | `点亮`→`留下足迹`，`旅行统计`→`旅途回忆`，`时间轴`→`旅途手账` | ✅ 已实现 |
 
+- [Phase 44]: sidebar 仅在 /map 切换到 world-footprints 视觉模式 — 遵守 Phase 43 的三项导航壳约束，不把 Phase 44 扩大为跨路由 shell 重设计。
+- [Phase 44]: 地图舞台只叠加 world-footprints 视觉壳 — 保留 useLeafletMap、resolveCanonicalPlace、confirmCanonicalPlace 与 MapContextPopup 识别链路，避免视觉恢复引入交互回归。
+- [Phase 44]: 角色 PNG 资产改用 cwebp 输出目标 WebP — 当前环境下 sips 无法写入 WebP，改用本地 cwebp 解决阻塞且不改变产物契约。
+
 ### Pending Todos
 
 None yet.
@@ -100,8 +104,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-13T03:56:55.844Z
-Stopped at: Phase 44 UI-SPEC approved
+Last session: 2026-05-13T08:47:02.716Z
+Stopped at: Completed 44-02-PLAN.md
 
 ---
 
