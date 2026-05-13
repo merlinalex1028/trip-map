@@ -827,9 +827,10 @@ onMounted(() => {
 
 <template>
   <section
-    class="leaflet-map-stage"
+    class="leaflet-map-stage world-footprints-stage"
     :class="{ 'leaflet-map-stage--selected': Boolean(selectedPointId) }"
     data-region="map-stage"
+    data-map-stage-visual="world-footprints"
     aria-label="旅行世界地图"
   >
     <div ref="mapContainer" class="leaflet-map-stage__map"></div>
@@ -865,6 +866,44 @@ onMounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 36px;
+  background: #FFF8FD;
+  box-shadow:
+    0 24px 54px rgba(139, 111, 239, 0.14),
+    0 18px 40px rgba(247, 90, 155, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.world-footprints-stage::before,
+.world-footprints-stage::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.world-footprints-stage::before {
+  inset: 10px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(242, 232, 255, 0.62);
+  z-index: 0;
+}
+
+.world-footprints-stage::after {
+  right: 28px;
+  bottom: 24px;
+  width: 144px;
+  height: 72px;
+  border-radius: 999px;
+  background: #EAF6FF;
+  opacity: 0.46;
+  box-shadow:
+    -96px -54px 0 #F2E8FF,
+    -184px 10px 0 rgba(255, 240, 247, 0.72);
+  z-index: 0;
 }
 
 .leaflet-map-stage__map {
@@ -873,9 +912,12 @@ onMounted(() => {
   min-height: 0;
   border-radius: 28px;
   overflow: hidden;
-  border: 1px solid rgba(199, 171, 200, 0.52);
-  background: var(--color-page);
-  z-index: 0;
+  border: 1px solid rgba(255, 255, 255, 0.82);
+  background: #F2E8FF;
+  box-shadow:
+    0 18px 34px rgba(139, 111, 239, 0.12),
+    inset 0 0 0 1px rgba(234, 246, 255, 0.8);
+  z-index: 1;
 }
 
 .leaflet-map-stage--selected .leaflet-map-stage__map {

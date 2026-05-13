@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { computed, shallowRef } from 'vue'
 
+import pinStarBlue from '@/assets/v8/pins/pin-star-blue.png'
+import pinStarOrange from '@/assets/v8/pins/pin-star-orange.png'
+import pinStarPink from '@/assets/v8/pins/pin-star-pink.png'
+import pinStarPurple from '@/assets/v8/pins/pin-star-purple.png'
 import { useMapPointsStore } from '../stores/map-points'
 import type { MapPointDisplay } from '../types/map-point'
 
@@ -28,6 +32,24 @@ function getMarkerState(point: MapPointDisplay) {
   }
 
   return 'neutral'
+}
+
+function getMarkerPin(point: MapPointDisplay) {
+  const state = getMarkerState(point)
+
+  if (state === 'selected') {
+    return pinStarPink
+  }
+
+  if (state === 'saved') {
+    return pinStarBlue
+  }
+
+  if (state === 'draft') {
+    return pinStarOrange
+  }
+
+  return pinStarPurple
 }
 
 function handlePointSelect(point: MapPointDisplay) {
@@ -100,6 +122,7 @@ function handlePointBlur(pointId: string) {
         }"
         type="button"
         :data-point-id="point.id"
+        data-marker-visual="star-footprint"
         :aria-pressed="point.id === props.selectedPointId"
         :aria-label="buildAriaLabel(point)"
         @click="handlePointSelect(point)"
@@ -108,7 +131,12 @@ function handlePointBlur(pointId: string) {
         @focus="handlePointFocus(point.id)"
         @blur="handlePointBlur(point.id)"
       >
-        <span class="seed-marker__dot" aria-hidden="true"></span>
+        <img
+          class="seed-marker__star"
+          :src="getMarkerPin(point)"
+          alt=""
+          aria-hidden="true"
+        >
       </button>
       <span
         v-if="isLabelVisible(point)"
@@ -141,7 +169,7 @@ function handlePointBlur(pointId: string) {
 }
 
 .seed-marker__button {
-  /* Keep the geographic anchor on the dot itself so labels never shift marker position. */
+  /* Keep the geographic anchor on the star itself so labels never shift marker position. */
   position: absolute;
   left: 0;
   top: 0;
@@ -195,31 +223,18 @@ function handlePointBlur(pointId: string) {
   outline-offset: 4px;
 }
 
-.seed-marker__dot {
+.seed-marker__star {
   position: relative;
-  width: 0.92rem;
-  height: 0.92rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid color-mix(in srgb, var(--color-state-neutral-outline) 78%, white 22%);
-  background: var(--gradient-neutral);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 0 0 6px rgba(255, 248, 238, 0.76),
-    0 12px 16px rgba(125, 113, 133, 0.16);
-  transition:
-    transform var(--motion-quick) ease,
-    box-shadow var(--motion-quick) ease,
-    border-color var(--motion-quick) ease,
-    background var(--motion-quick) ease;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 16px rgba(125, 113, 133, 0.18));
+  transition: transform var(--motion-quick) ease;
 }
 
-.seed-marker__button:hover .seed-marker__dot,
-.seed-marker__button:focus-visible .seed-marker__dot {
+.seed-marker__button:hover .seed-marker__star,
+.seed-marker__button:focus-visible .seed-marker__star {
   transform: scale(1.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 0 0 8px rgba(255, 248, 238, 0.84),
-    0 14px 18px rgba(125, 113, 133, 0.2);
 }
 
 .seed-marker__button:hover::before,
@@ -233,13 +248,8 @@ function handlePointBlur(pointId: string) {
   transform: translate(-50%, -50%) scale(1.04);
 }
 
-.seed-marker--saved .seed-marker__dot {
-  border-color: color-mix(in srgb, var(--color-secondary) 72%, white 28%);
-  background: var(--gradient-saved);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 0 0 6px rgba(223, 244, 248, 0.8),
-    0 14px 20px rgba(98, 185, 211, 0.24);
+.seed-marker--saved .seed-marker__star {
+  filter: drop-shadow(0 14px 20px rgba(98, 185, 211, 0.24));
 }
 
 .seed-marker--saved .seed-marker__button::before {
@@ -251,13 +261,8 @@ function handlePointBlur(pointId: string) {
   box-shadow: 0 0 0 1px rgba(98, 185, 211, 0.18);
 }
 
-.seed-marker--draft .seed-marker__dot {
-  border-color: color-mix(in srgb, var(--color-accent) 72%, white 28%);
-  background: var(--gradient-selected);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 0 0 7px rgba(255, 220, 232, 0.7),
-    0 14px 20px rgba(244, 143, 177, 0.28);
+.seed-marker--draft .seed-marker__star {
+  filter: drop-shadow(0 14px 20px rgba(244, 143, 177, 0.28));
   animation: draft-marker-pulse 1.75s ease-in-out infinite;
 }
 
@@ -270,12 +275,9 @@ function handlePointBlur(pointId: string) {
   box-shadow: 0 0 0 1px rgba(255, 120, 173, 0.2);
 }
 
-.seed-marker--dimmed .seed-marker__dot {
+.seed-marker--dimmed .seed-marker__star {
   opacity: 0.62;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.66),
-    0 0 0 5px rgba(255, 248, 238, 0.42),
-    0 8px 10px rgba(125, 113, 133, 0.1);
+  filter: drop-shadow(0 8px 10px rgba(125, 113, 133, 0.12));
 }
 
 .seed-marker--dimmed .seed-marker__button::before,
@@ -283,14 +285,9 @@ function handlePointBlur(pointId: string) {
   opacity: 0.28;
 }
 
-.seed-marker--selected .seed-marker__dot,
-.seed-marker__button--selected .seed-marker__dot {
-  border-color: color-mix(in srgb, var(--color-accent-strong) 74%, white 26%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.88),
-    0 0 0 4px rgba(255, 255, 255, 0.9),
-    0 0 0 9px rgba(255, 220, 232, 0.76),
-    0 18px 24px rgba(244, 143, 177, 0.32);
+.seed-marker--selected .seed-marker__star,
+.seed-marker__button--selected .seed-marker__star {
+  filter: drop-shadow(0 18px 24px rgba(244, 143, 177, 0.32));
 }
 
 .seed-marker--selected .seed-marker__button::before,
@@ -324,7 +321,6 @@ function handlePointBlur(pointId: string) {
   line-height: 1.2;
   box-shadow: var(--shadow-button);
   pointer-events: none;
-  letter-spacing: 0.02em;
 }
 
 .seed-marker--saved .seed-marker__label {
@@ -346,29 +342,21 @@ function handlePointBlur(pointId: string) {
   0%,
   100% {
     transform: scale(1);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.88),
-      0 0 0 8px rgba(255, 220, 232, 0.56),
-      0 18px 22px rgba(244, 143, 177, 0.24);
   }
 
   50% {
     transform: scale(1.1);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.88),
-      0 0 0 11px rgba(255, 220, 232, 0.72),
-      0 20px 26px rgba(244, 143, 177, 0.32);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .seed-marker__dot,
+  .seed-marker__star,
   .seed-marker__button::before,
   .seed-marker__button::after {
     transition: none;
   }
 
-  .seed-marker--draft .seed-marker__dot {
+  .seed-marker--draft .seed-marker__star {
     animation: none;
   }
 }
