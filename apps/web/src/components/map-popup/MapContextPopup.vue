@@ -31,8 +31,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
-  illuminate: [payload: { startDate: string | null; endDate: string | null }]
-  unilluminate: []
+  leaveFootprint: []
 }>()
 
 const popupRef = useTemplateRef<HTMLElement>('popup')
@@ -77,9 +76,7 @@ watch(
   }
 )
 
-defineExpose({
-  getPopupElement
-})
+defineExpose({ getPopupElement })
 </script>
 
 <template>
@@ -121,8 +118,7 @@ defineExpose({
         :latest-trip-label="latestTripLabel"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
-        @illuminate="emit('illuminate', $event)"
-        @unilluminate="emit('unilluminate')"
+        @leave-footprint="emit('leaveFootprint')"
       />
     </div>
   </aside>
