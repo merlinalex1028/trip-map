@@ -435,19 +435,21 @@ The weekend calculation should be unit-tested because weekday conventions are ea
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
 | A1 | Avoid localized/native `Date` strings for API payload unless converted back to `YYYY-MM-DD`. | Common Pitfalls | Medium: backend contract could receive invalid dates or timezone-shifted strings. |
-| A2 | Weekend shortcut should map to the upcoming Saturday in the user's local timezone unless the user later specifies another meaning. | Code Examples | Low/Medium: user may expect a weekend range; D-13 says single-day first, but "本周末" can be culturally ambiguous. |
+| A2 | Weekend shortcut maps to the upcoming Saturday in the user's local timezone for Phase 44. | Code Examples | Resolved: D-13 says single-day first, and the plans implement `本周末` as one selected Saturday with optional end date left manual. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which P0 map/dialog assets are usable without extra image processing?**
+1. **RESOLVED: Which P0 map/dialog assets are usable without extra image processing?**
    - What we know: `ASSET-MANIFEST.md` lists `char-map-popup-girl`, `char-footprint-dialog-girl`, `char-sidebar-camera`, and star pins as P0; current app assets only include landing/shell assets. [VERIFIED: `prd/v8.0/ASSET-MANIFEST.md`; VERIFIED: `find apps/web/src/assets/v8`]
-   - What's unclear: Whether existing `prd/v8.0/切图` files already map cleanly to those semantic assets or require manual transparent cleanup. [VERIFIED: `find prd/v8.0/切图`]
+   - Previously unclear: Whether existing `prd/v8.0/切图` files already map cleanly to those semantic assets or require manual transparent cleanup. [VERIFIED: `find prd/v8.0/切图`]
    - Recommendation: Planner should include a small asset-selection task before UI polish and allow CSS/SVG marker fallback only if cut assets are not clean enough. [VERIFIED: `prd/v8.0/CUTTING-GUIDE.md`]
+   - Resolution: Use the local asset `/images/two-characters-motorcycle.png` as the P0 visual asset choice reflected by the plans. No additional manual transparent cleanup decision remains open.
 
-2. **Should `本周末` submit Saturday only or a Saturday-Sunday range?**
+2. **RESOLVED: Should `本周末` submit Saturday only or a Saturday-Sunday range?**
    - What we know: D-13 says single-day first; D-15 allows optional end date when needed. [VERIFIED: `.planning/phases/44-world-footprints-map-footprint-date-dialog/44-CONTEXT.md`]
-   - What's unclear: Exact product semantics for the weekend shortcut. [ASSUMED]
-   - Recommendation: Use upcoming Saturday as the selected single day and keep optional end date manual unless the user clarifies otherwise. [ASSUMED]
+   - Previously unclear: Exact product semantics for the weekend shortcut. [ASSUMED]
+   - Recommendation accepted for Phase 44: Use upcoming Saturday as the selected single day and keep optional end date manual. [ASSUMED]
+   - Resolution: `本周末` means the upcoming Saturday from the dialog opening date, submitted as the single `startDate`; optional `endDate` remains manual.
 
 ## Environment Availability
 
@@ -557,7 +559,7 @@ The weekend calculation should be unit-tested because weekday conventions are ea
 **Confidence breakdown:**
 - Standard stack: HIGH — packages and local generated primitives were verified through `package.json`, npm registry, Context7, official docs, and source files. [VERIFIED]
 - Architecture: HIGH — the relevant controller/store/component boundaries are explicit in current code. [VERIFIED]
-- Pitfalls: HIGH for popup/history/snapshot/auth risks; MEDIUM for exact `本周末` semantics because the user has not defined whether it should be one day or a range. [VERIFIED; ASSUMED]
+- Pitfalls: HIGH for popup/history/snapshot/auth risks; `本周末` semantics are resolved for Phase 44 as upcoming Saturday from the dialog opening date. [VERIFIED; ASSUMED]
 
 **Research date:** 2026-05-13  
 **Valid until:** 2026-06-12 for codebase architecture; 2026-05-20 for package/doc currency because Vue/Reka/shadcn-vue are active. [ASSUMED]
