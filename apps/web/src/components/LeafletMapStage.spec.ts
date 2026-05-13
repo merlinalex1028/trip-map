@@ -12,7 +12,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { buildUnsupportedOverseasNotice } from '../constants/overseas-support'
 import LeafletMapStage from './LeafletMapStage.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
-import TripDateForm from './map-popup/TripDateForm.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
@@ -286,6 +285,7 @@ describe('LeafletMapStage', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
+    document.body.innerHTML = ''
   })
 
   // -------------------------------------------------------------------------
@@ -597,7 +597,10 @@ describe('LeafletMapStage', () => {
       } as unknown as import('leaflet').Map
 
       ;(leafletMapContainer.mapRef as any).value = fakeMap as unknown as null
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
 
       ;(leafletMapContainer.isReadyRef as any).value = true
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
@@ -620,9 +623,7 @@ describe('LeafletMapStage', () => {
       expect(wrapper.get('[data-region="point-summary-card"]').attributes('data-summary-mode')).toBe(
         'detected-preview',
       )
-      expect(wrapper.get('[data-illuminate-state="off"]').attributes('data-illuminatable')).toBe(
-        'true',
-      )
+      expect(wrapper.get('[data-footprint-cta="true"]').attributes('disabled')).toBeUndefined()
     })
 
     it('clears stale selection and suppresses notice when unsupported click has no fallback hit', async () => {
@@ -785,7 +786,7 @@ describe('LeafletMapStage', () => {
       wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
       await nextTick()
 
-      expect(wrapper.find('[data-region="footprint-date-dialog"]').exists()).toBe(true)
+      expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).not.toBeNull()
       expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
     })
 
@@ -801,7 +802,10 @@ describe('LeafletMapStage', () => {
       }
       recordsApiMock.createTravelRecord.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
 
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
       mapPointsStore.startDraftFromDetection(makeDraftPoint(PHASE12_RESOLVED_BEIJING))
@@ -823,14 +827,15 @@ describe('LeafletMapStage', () => {
       await nextTick()
 
       const dialog = wrapper.getComponent({ name: 'FootprintDateDialog' })
-      expect(dialog.get('[data-footprint-place-name]').text()).toContain('北京')
-      dialog.vm.$emit('submit', { startDate: '2026-05-13', endDate: null })
+      expect(document.body.textContent).toContain('北京')
+      dialog.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
       expect(recordsApiMock.createTravelRecord).toHaveBeenCalledWith(
         expect.objectContaining({
           placeId: PHASE12_RESOLVED_BEIJING.placeId,
-          startDate: '2026-05-13',
+          boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
+          startDate: '2025-10-01',
           endDate: null,
         }),
       )
@@ -848,7 +853,10 @@ describe('LeafletMapStage', () => {
       authSessionStore.status = 'anonymous'
       authSessionStore.currentUser = null
 
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
       mapPointsStore.startDraftFromDetection(makeDraftPoint())
@@ -859,34 +867,7 @@ describe('LeafletMapStage', () => {
       await nextTick()
       wrapper
         .getComponent({ name: 'FootprintDateDialog' })
-        .vm.$emit('submit', { startDate: '2026-05-13', endDate: null })
-      await flushPromises()
-
-      expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
-      expect(openAuthModalSpy).toHaveBeenCalledWith('login')
-      expect(mapPointsStore.summarySurfaceState?.mode).toBe('detected-preview')
-    })
-
-    it('opens the login modal instead of writing records when the user is anonymous', async () => {
-      const authSessionStore = useAuthSessionStore()
-      const mapPointsStore = useMapPointsStore()
-      const openAuthModalSpy = vi.spyOn(authSessionStore, 'openAuthModal')
-      authSessionStore.status = 'anonymous'
-      authSessionStore.currentUser = null
-
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
-
-      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
-      mapPointsStore.startDraftFromDetection(makeDraftPoint())
-      await nextTick()
-      await flushPromises()
-
-      await wrapper.get('[data-illuminate-state="off"]').trigger('click')
-      await wrapper.vm.$nextTick()
-
-      const tripForm = wrapper.findComponent(TripDateForm)
-      expect(tripForm.exists()).toBe(true)
-      await tripForm.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
+        .vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
       expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
@@ -917,18 +898,21 @@ describe('LeafletMapStage', () => {
 
       const mapPointsStore = useMapPointsStore()
       const illuminateSpy = vi.spyOn(mapPointsStore, 'illuminate')
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
       mapPointsStore.startDraftFromDetection(makeDraftPoint())
       await nextTick()
       await flushPromises()
 
-      await wrapper.get('[data-illuminate-state="off"]').trigger('click')
-      await wrapper.vm.$nextTick()
-      const tripForm = wrapper.findComponent(TripDateForm)
-      expect(tripForm.exists()).toBe(true)
-      await tripForm.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
+      wrapper
+        .getComponent({ name: 'FootprintDateDialog' })
+        .vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
       expect(illuminateSpy).toHaveBeenCalledWith(
@@ -947,11 +931,11 @@ describe('LeafletMapStage', () => {
       expect(addFeaturesMock).toHaveBeenCalledWith('CN', fc)
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'info',
-        message: '已同步到当前账号。',
+        message: '足迹已保存。',
       })
     })
 
-    it('re-records a visit from the "再记一次" CTA on an illuminated point', async () => {
+    it('keeps the dialog open and shows inline error copy when save fails', async () => {
       const authSessionStore = useAuthSessionStore()
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
@@ -962,60 +946,31 @@ describe('LeafletMapStage', () => {
       }
 
       const mapPointsStore = useMapPointsStore()
-      const illuminateSpy = vi.spyOn(mapPointsStore, 'illuminate')
-      recordsApiMock.createTravelRecord.mockResolvedValueOnce(
-        makeRecord(PHASE12_RESOLVED_BEIJING, {
-          id: 'server-rec-beijing-repeat',
-          startDate: '2025-11-05',
-          endDate: '2025-11-10',
-          createdAt: '2025-11-10T00:00:00.000Z',
-        }),
-      )
-
-      mapPointsStore.replaceTravelRecords([
-        makeRecord(PHASE12_RESOLVED_BEIJING, {
-          startDate: '2025-10-01',
-          endDate: null,
-          createdAt: '2025-10-01T00:00:00.000Z',
-        }),
-      ])
+      recordsApiMock.createTravelRecord.mockRejectedValueOnce(new Error('create failed'))
 
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
-      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
       await nextTick()
       await flushPromises()
 
-      expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
-      expect(wrapper.findAll('[data-region="popup-trip-record"]')).toHaveLength(1)
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
 
-      await wrapper.get('[data-record-again]').trigger('click')
-      await wrapper.vm.$nextTick()
-
-      const tripForm = wrapper.findComponent(TripDateForm)
-      expect(tripForm.exists()).toBe(true)
-      await tripForm.vm.$emit('submit', {
-        startDate: '2025-11-05',
-        endDate: '2025-11-10',
-      })
+      const dialog = wrapper.getComponent({ name: 'FootprintDateDialog' })
+      dialog.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
       await flushPromises()
 
-      expect(illuminateSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          startDate: '2025-11-05',
-          endDate: '2025-11-10',
-        }),
+      expect(
+        document.body.querySelector('[data-footprint-error="true"]')?.textContent?.trim(),
+      ).toBe(
+        '足迹暂时没有保存成功，请检查网络后重试。',
       )
-      expect(mapPointsStore.tripsByPlaceId.get(PHASE12_RESOLVED_BEIJING.placeId)).toHaveLength(2)
-      expect(wrapper.findAll('[data-region="popup-trip-record"]')).toHaveLength(2)
+      expect(dialog.props('open')).toBe(true)
     })
 
-    it('selects the latest trip by travel date, not by createdAt (VERIFICATION gap close)', async () => {
-      // 回归保护：VERIFICATION.md truth #10 gap 1
-      // 用户先录入一次 2025-10-01 的旅行，然后补录一次旅行时间更早（2025-05-01 -- 2025-05-05）
-      // 但 createdAt 更晚的历史记录。
-      // popup 摘要必须显示真正最近的旅行日期 2025-10-01，而不是最后被录入的 2025-05-01。
+    it('closes the dialog, clears the frozen place snapshot, and restores focus after save succeeds', async () => {
       const authSessionStore = useAuthSessionStore()
       authSessionStore.status = 'authenticated'
       authSessionStore.currentUser = {
@@ -1024,44 +979,35 @@ describe('LeafletMapStage', () => {
         email: 'alice@example.com',
         createdAt: '2026-04-12T00:00:00.000Z',
       }
-
       const mapPointsStore = useMapPointsStore()
+      const mapUiStore = useMapUiStore()
+      recordsApiMock.createTravelRecord.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
 
-      // 记录 A：先录入（createdAt 较早），但旅行时间是真正最近的一次
-      const newerTripRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
-        id: 'server-rec-beijing-newer-trip',
-        startDate: '2025-10-01',
-        endDate: null,
-        createdAt: '2025-10-01T00:00:00.000Z',
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
       })
-      // 记录 B：后录入（createdAt 较晚），但旅行时间是更早的一次
-      const olderTripRecord = makeRecord(PHASE12_RESOLVED_BEIJING, {
-        id: 'server-rec-beijing-older-trip',
-        startDate: '2025-05-01',
-        endDate: '2025-05-05',
-        createdAt: '2025-11-20T00:00:00.000Z',
-      })
-
-      mapPointsStore.replaceTravelRecords([newerTripRecord, olderTripRecord])
-
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
       ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
-      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
       await nextTick()
       await flushPromises()
 
-      // 先验证 per-record 渲染正确（tripsByPlaceId 里真的有两条）
-      expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
-      const records = wrapper.findAll('[data-region="popup-trip-record"]')
-      expect(records).toHaveLength(2)
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
 
-      // 核心断言：per-record 列表按日期升序排列，第一条是较早的 2025-05-01，最后一条是最近的 2025-10-01
-      const firstRecordText = records[0]!.text()
-      expect(firstRecordText).toContain('2025-05-01')
-      const lastRecordText = records[records.length - 1]!.text()
-      expect(lastRecordText).toContain('2025-10-01')
-      expect(lastRecordText).not.toContain('2025-05-01')
+      const dialog = wrapper.getComponent({ name: 'FootprintDateDialog' })
+      dialog.vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
+      await flushPromises()
+      await nextTick()
+
+      expect(dialog.props('open')).toBe(false)
+      expect(dialog.props('place')).toBeNull()
+      expect(mapUiStore.interactionNotice).toMatchObject({
+        tone: 'info',
+        message: '足迹已保存。',
+      })
+      expect(document.activeElement?.getAttribute('data-footprint-cta')).toBe('true')
     })
 
     it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {
@@ -1121,9 +1067,8 @@ describe('LeafletMapStage', () => {
       await triggerMapClick({ lat: 49.2827, lng: -123.1207 })
       await flushPromises()
 
-      const button = wrapper.get('[data-illuminate-state="off"]')
+      const button = wrapper.get('[data-footprint-cta="true"]')
       expect(button.attributes('disabled')).toBeDefined()
-      expect(button.attributes('data-illuminatable')).toBe('false')
       expect(mapPointsStore.summaryMode).toBe('detected-preview')
       expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
       expect(mapPointsStore.draftPoint).toEqual(
@@ -1137,45 +1082,9 @@ describe('LeafletMapStage', () => {
       expect(wrapper.text()).toContain(buildUnsupportedOverseasNotice('British Columbia'))
       expect(mapUiStore.interactionNotice).toBeNull()
 
-      wrapper.getComponent(MapContextPopup).vm.$emit('illuminate', {
-        startDate: '2025-10-01',
-        endDate: null,
-      })
-      await nextTick()
-
+      await button.trigger('click')
       expect(mapUiStore.interactionNotice).toBeNull()
-    })
-
-    it('surfaces a success notice after unilluminate via the popup action', async () => {
-      const authSessionStore = useAuthSessionStore()
-      authSessionStore.status = 'authenticated'
-      authSessionStore.currentUser = {
-        id: 'user-1',
-        username: 'Alice',
-        email: 'alice@example.com',
-        createdAt: '2026-04-12T00:00:00.000Z',
-      }
-      const mapPointsStore = useMapPointsStore()
-      const mapUiStore = useMapUiStore()
-      recordsApiMock.deleteTravelRecord.mockResolvedValueOnce(undefined)
-
-      mapPointsStore.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING)])
-
-      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
-
-      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
-      mapPointsStore.selectPointById(PHASE12_RESOLVED_BEIJING.placeId)
-      await nextTick()
-      await flushPromises()
-
-      await wrapper.get('[data-illuminate-state="on"]').trigger('click')
-      await flushPromises()
-
-      expect(mapPointsStore.isPlaceIlluminated(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
-      expect(mapUiStore.interactionNotice).toMatchObject({
-        tone: 'info',
-        message: '已从当前账号移除。',
-      })
+      expect(wrapper.getComponent({ name: 'FootprintDateDialog' }).props('open')).toBe(false)
     })
   })
 

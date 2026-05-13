@@ -60,7 +60,7 @@ const deleteDialogConfig = computed(() => {
   if (props.entry.visitCount === 1) {
     return {
       title: '删除该地点最后一条记录',
-      message: '这是该地点的唯一一条记录，删除后将取消该地点的点亮状态。确认删除？',
+      message: '这是该地点的唯一一条记录，删除后将移除这个地点的足迹。确认删除？',
       tone: 'destructive' as const,
     }
   }

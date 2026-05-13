@@ -91,7 +91,7 @@ describe('SeedMarkerLayer', () => {
       },
     })
 
-    expect(wrapper.get('[data-marker-visual="star-footprint"]').exists()).toBe(true)
+    expect(wrapper.find('[data-marker-visual="star-footprint"]').exists()).toBe(true)
     expect(seedMarkerLayerSource).toContain('data-marker-visual="star-footprint"')
     expect(seedMarkerLayerSource).toContain('.seed-marker__star')
     expect(seedMarkerLayerSource).toContain('width: 44px;')

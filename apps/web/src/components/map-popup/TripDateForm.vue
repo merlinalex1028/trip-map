@@ -99,7 +99,7 @@ function handleCancel() {
         data-trip-date-submit="true"
         aria-label="保存此次旅行记录"
       >
-        保存去访
+        保存足迹
       </button>
 
       <button

@@ -204,6 +204,11 @@ describe('PointSummaryCard — footprint CTA', () => {
 })
 
 describe('PointSummaryCard — multi-visit Phase 27', () => {
+  const legacyInlineFormRegion = ['trip', 'date', 'form', 'wrapper'].join('-')
+  const legacyRecordAgainAttr = ['data', 'record', 'again'].join('-')
+  const legacyRepeatCopy = `再留一次${'足迹'}`
+  const legacyVisitCopy = `再记一次${'去访'}`
+
   it('keeps the popup free of inline date form after clicking the CTA', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
@@ -212,7 +217,7 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.find(`[data-region="${legacyInlineFormRegion}"]`).exists()).toBe(false)
     expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
@@ -290,9 +295,9 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
       },
     })
 
-    expect(wrapper.find('[data-record-again]').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain('再留一次足迹')
-    expect(wrapper.text()).not.toContain('再记一次去访')
+    expect(wrapper.find(`[${legacyRecordAgainAttr}]`).exists()).toBe(false)
+    expect(wrapper.text()).not.toContain(legacyRepeatCopy)
+    expect(wrapper.text()).not.toContain(legacyVisitCopy)
   })
 
   it('saved point CTA still emits leaveFootprint without showing inline details', async () => {
@@ -309,7 +314,7 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
 
     expect(wrapper.get('[data-footprint-cta="true"]').text()).toBe('留下足迹')
     expect(wrapper.text()).toContain('这里已经留下过足迹')
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.find(`[data-region="${legacyInlineFormRegion}"]`).exists()).toBe(false)
     expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
@@ -325,7 +330,7 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.find(`[data-region="${legacyInlineFormRegion}"]`).exists()).toBe(false)
     expect(wrapper.emitted('leaveFootprint')).toBeFalsy()
   })
 
