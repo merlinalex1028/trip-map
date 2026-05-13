@@ -25,7 +25,8 @@ import { useMapPointsStore } from '../stores/map-points'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapUiStore } from '../stores/map-ui'
 import type { GeoCityCandidate, GeoDetectionResult } from '../types/geo'
-import type { DraftMapPoint } from '../types/map-point'
+import type { DraftMapPoint, FootprintPlaceSnapshot } from '../types/map-point'
+import FootprintDateDialog from './map-popup/FootprintDateDialog.vue'
 import MapContextPopup from './map-popup/MapContextPopup.vue'
 
 type PopupAnchorSource = 'marker' | 'pending' | 'boundary'
@@ -127,6 +128,20 @@ const isSummarySurfaceVisible = computed(() => Boolean(summarySurfaceState.value
 const isDesktopPopupVisible = computed(
   () => isSummarySurfaceVisible.value && popupAnchor.value !== null,
 )
+
+const FOOTPRINT_SAVE_SUCCESS_NOTICE = '足迹已保存。'
+const FOOTPRINT_SAVE_FAILED_NOTICE = '足迹暂时没有保存成功，请检查网络后重试。'
+
+const footprintPlaceSnapshot = shallowRef<FootprintPlaceSnapshot | null>(null)
+const isFootprintDialogOpen = shallowRef(false)
+const isFootprintSubmitting = shallowRef(false)
+const footprintDialogError = shallowRef<string | null>(null)
+
+watch(isFootprintDialogOpen, (open) => {
+  if (!open && !isFootprintSubmitting.value) {
+    resetFootprintDialogState()
+  }
+})
 
 // --- Anchor refresh ---
 
@@ -511,17 +526,37 @@ const isActivePointIlluminatable = computed(() => {
   )
 })
 
-// --- Illuminate handlers ---
+async function focusFootprintReturnTarget() {
+  await nextTick()
+  const popupElement = popupRef.value?.getPopupElement()
 
-async function handleIlluminate(payload: { startDate: string | null; endDate: string | null }) {
+  const trigger = popupElement?.querySelector<HTMLElement>('[data-footprint-cta="true"]:not([disabled])')
+  if (trigger) {
+    trigger.focus()
+    return
+  }
+
+  popupElement?.querySelector<HTMLElement>('.map-context-popup__title')?.focus()
+}
+
+function resetFootprintDialogState() {
+  footprintDialogError.value = null
+  footprintPlaceSnapshot.value = null
+}
+
+function closeFootprintDateDialog() {
+  if (isFootprintSubmitting.value) {
+    return
+  }
+
+  isFootprintDialogOpen.value = false
+  resetFootprintDialogState()
+}
+
+function openFootprintDateDialog() {
   const surface = summarySurfaceState.value
   if (!surface || surface.mode === 'candidate-select') return
   const point = surface.point
-
-  if (authStatus.value !== 'authenticated' || !currentUser.value) {
-    authSessionStore.openAuthModal('login')
-    return
-  }
 
   if (
     !isActivePointIlluminatable.value ||
@@ -537,7 +572,7 @@ async function handleIlluminate(payload: { startDate: string | null; endDate: st
     return
   }
 
-  await mapPointsStore.illuminate({
+  footprintPlaceSnapshot.value = {
     placeId: point.placeId,
     boundaryId: point.boundaryId,
     placeKind: point.placeKind,
@@ -547,22 +582,86 @@ async function handleIlluminate(payload: { startDate: string | null; endDate: st
     adminType: point.adminType,
     typeLabel: point.typeLabel,
     parentLabel: point.parentLabel,
-    subtitle: point.subtitle ?? point.cityContextLabel ?? '',
-    startDate: payload.startDate,
-    endDate: payload.endDate,
-  })
-
-  const entry = getGeometryManifestEntry(point.boundaryId)
-
-  if (entry) {
-    await loadShardIfNeeded(point.boundaryId, entry.layer as 'CN' | 'OVERSEAS')
+    subtitle: point.subtitle ?? point.cityContextLabel ?? null,
   }
+  footprintDialogError.value = null
+  isFootprintDialogOpen.value = true
 }
 
-function handleUnilluminate() {
-  const pid = activePointPlaceId.value
-  if (!pid) return
-  void mapPointsStore.unilluminate(pid)
+async function submitFootprintDate(payload: { startDate: string | null; endDate: string | null }) {
+  const snapshot = footprintPlaceSnapshot.value
+
+  if (!snapshot) {
+    return
+  }
+
+  if (authStatus.value !== 'authenticated' || !currentUser.value) {
+    authSessionStore.openAuthModal('login')
+    return
+  }
+
+  if (
+    !snapshot.placeId ||
+    !snapshot.placeKind ||
+    !snapshot.datasetVersion ||
+    !snapshot.boundaryId ||
+    !snapshot.regionSystem ||
+    !snapshot.adminType ||
+    !snapshot.typeLabel ||
+    !snapshot.parentLabel
+  ) {
+    return
+  }
+
+  const snapshotPayload = {
+    placeId: snapshot.placeId,
+    boundaryId: snapshot.boundaryId,
+    placeKind: snapshot.placeKind,
+    datasetVersion: snapshot.datasetVersion,
+    displayName: snapshot.displayName,
+    regionSystem: snapshot.regionSystem,
+    adminType: snapshot.adminType,
+    typeLabel: snapshot.typeLabel,
+    parentLabel: snapshot.parentLabel,
+    subtitle: snapshot.subtitle,
+    startDate: payload.startDate,
+    endDate: payload.endDate,
+  }
+
+  footprintDialogError.value = null
+  isFootprintSubmitting.value = true
+
+  try {
+    const result = await mapPointsStore.illuminate(snapshotPayload)
+
+    if (result.status === 'saved') {
+      isFootprintDialogOpen.value = false
+      resetFootprintDialogState()
+      setInteractionNotice({
+        tone: 'info',
+        message: FOOTPRINT_SAVE_SUCCESS_NOTICE,
+      })
+
+      const entry = getGeometryManifestEntry(snapshot.boundaryId)
+      if (entry) {
+        await loadShardIfNeeded(snapshot.boundaryId, entry.layer as 'CN' | 'OVERSEAS')
+      }
+
+      await focusFootprintReturnTarget()
+      return
+    }
+
+    if (result.status === 'failed') {
+      footprintDialogError.value = FOOTPRINT_SAVE_FAILED_NOTICE
+      return
+    }
+
+    if (result.status === 'unauthorized' || result.status === 'stale') {
+      return
+    }
+  } finally {
+    isFootprintSubmitting.value = false
+  }
 }
 
 // --- Boundary click handler (D-12) ---
@@ -847,8 +946,15 @@ onMounted(() => {
       :trip-count="activePointTripCount"
       :latest-trip-label="activePointLatestTripLabel"
       @confirm-candidate="handleConfirmCandidate"
-      @illuminate="handleIlluminate"
-      @unilluminate="handleUnilluminate"
+      @leave-footprint="openFootprintDateDialog"
+    />
+    <FootprintDateDialog
+      v-model:open="isFootprintDialogOpen"
+      :place="footprintPlaceSnapshot"
+      :is-submitting="isFootprintSubmitting"
+      :error-message="footprintDialogError"
+      @submit="submitFootprintDate"
+      @cancel="closeFootprintDateDialog"
     />
     <div
       v-if="pendingGeoHit"
