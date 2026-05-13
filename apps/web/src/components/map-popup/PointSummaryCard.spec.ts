@@ -307,6 +307,8 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
+    expect(wrapper.get('[data-footprint-cta="true"]').text()).toBe('留下足迹')
+    expect(wrapper.text()).toContain('这里已经留下过足迹')
     expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
     expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })

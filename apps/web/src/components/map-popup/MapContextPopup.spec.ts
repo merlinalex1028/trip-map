@@ -88,6 +88,9 @@ describe('MapContextPopup', () => {
 
     expect(wrapper.get('.map-context-popup').attributes('role')).toBe('dialog')
     expect(wrapper.get('.map-context-popup').attributes('aria-modal')).toBe('false')
+    expect(wrapper.findComponent(PointSummaryCard).get('[data-footprint-cta="true"]').exists()).toBe(
+      true,
+    )
     expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
