@@ -34,9 +34,9 @@
 - [x] **MAP-01**: 地图页保留现有 Leaflet 地图识别主链路，并升级为 `8.0/世界足迹.png` 所表达的柔粉紫地图舞台。
 - [x] **MAP-02**: 地图中的已保存/识别中地点使用星形或发光足迹标记，并在 hover/active 时有轻量动效。
 - [ ] **MAP-03**: 用户点击地图后，弹窗始终展示真实地点信息、类型标签、地区信息和“留下足迹”入口。
-- [ ] **MAP-04**: 地图弹窗不再内嵌日期表单；点击“留下足迹”后打开独立日期选择弹窗。
+- [x] **MAP-04**: 地图弹窗不再内嵌日期表单；点击“留下足迹”后打开独立日期选择弹窗。
 - [ ] **MAP-05**: 已保存地点弹窗不展示该地点过往旅行记录，也不使用“再留一次足迹”分支文案；弹窗始终保持同一套真实地点信息 UI 和“留下足迹”入口。
-- [ ] **MAP-06**: 网络失败、未登录、不可用地点和保存中的状态都有清晰反馈，不出现静默失败。
+- [x] **MAP-06**: 网络失败、未登录、不可用地点和保存中的状态都有清晰反馈，不出现静默失败。
 
 ### Footprint Date Dialog
 
@@ -44,8 +44,8 @@
 - [ ] **DATE-02**: 日期弹窗显示当前地点名称、类型标签、地区信息和 Yume Kawaii 插画/提示区。
 - [ ] **DATE-03**: 日期弹窗支持今天、明天、本周末、选择其他日期等快捷选择。
 - [ ] **DATE-04**: 日期弹窗提交值统一为 `{ startDate: string | null; endDate: string | null }`，并符合后端 `YYYY-MM-DD` 契约。
-- [ ] **DATE-05**: 日期弹窗打开时 snapshot 当前地点 payload，用户切换地图地点不会把记录保存到错误地点。
-- [ ] **DATE-06**: 取消、关闭、提交中、提交失败、提交成功状态均可访问且不会丢失焦点。
+- [x] **DATE-05**: 日期弹窗打开时 snapshot 当前地点 payload，用户切换地图地点不会把记录保存到错误地点。
+- [x] **DATE-06**: 取消、关闭、提交中、提交失败、提交成功状态均可访问且不会丢失焦点。
 
 ### Coverage Expansion
 
@@ -133,15 +133,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MAP-01 | Phase 44 | Complete |
 | MAP-02 | Phase 44 | Complete |
 | MAP-03 | Phase 44 | Pending |
-| MAP-04 | Phase 44 | Pending |
+| MAP-04 | Phase 44 | Complete |
 | MAP-05 | Phase 44 | Pending |
-| MAP-06 | Phase 44 | Pending |
+| MAP-06 | Phase 44 | Complete |
 | DATE-01 | Phase 44 | Pending |
 | DATE-02 | Phase 44 | Pending |
 | DATE-03 | Phase 44 | Pending |
 | DATE-04 | Phase 44 | Pending |
-| DATE-05 | Phase 44 | Pending |
-| DATE-06 | Phase 44 | Pending |
+| DATE-05 | Phase 44 | Complete |
+| DATE-06 | Phase 44 | Complete |
 | COV-01 | Phase 45 | Pending |
 | COV-02 | Phase 45 | Pending |
 | COV-03 | Phase 45 | Pending |

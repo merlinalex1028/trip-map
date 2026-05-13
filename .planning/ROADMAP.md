@@ -24,7 +24,7 @@
 
 - [x] **Phase 42: UI Primitives 与 Yume Kawaii Theme Bridge** — 引入 shadcn-vue、ECharts/Iconify 等依赖，并建立可复用的 Soft Pastel Glassmorphism 组件与 token 基线 (completed 2026-05-11)
 - [x] **Phase 43: Landing、登录门禁与应用壳** — 新增未登录落地页、全应用登录守卫、登录后左侧导航壳和全局文案替换 (completed 2026-05-12)
-- [ ] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈
+- [x] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈 (completed 2026-05-13)
 - [ ] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry
 - [ ] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口
 - [ ] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区
@@ -96,7 +96,7 @@ Plans:
 4. 日期提交符合后端 `YYYY-MM-DD` 契约，并在打开弹窗时锁定当前地点 payload，避免切换地图地点后保存错位。
 5. 未登录、不可用地点、保存中、保存失败和保存成功状态都有清晰反馈与可访问焦点管理。
 
-**Plans:** 3/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 **Wave 0**
@@ -107,10 +107,10 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [x] 44-03-PLAN.md — Refactor the map popup into a unified factual place card with one `留下足迹` entry.
-- [ ] 44-04-PLAN.md — Build the standalone shadcn-vue footprint date Dialog and date payload contract.
+- [x] 44-04-PLAN.md — Build the standalone shadcn-vue footprint date Dialog and date payload contract.
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 44-05-PLAN.md — Wire snapshot-safe Dialog submission, store feedback, and the full Phase 44 verification gate.
+- [x] 44-05-PLAN.md — Wire snapshot-safe Dialog submission, store feedback, and the full Phase 44 verification gate.
 
 ---
 
@@ -242,7 +242,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
-| 44. 世界足迹地图与留下足迹日期弹窗 | 3/5 | In Progress|  |
+| 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |

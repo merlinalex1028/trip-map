@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
 status: executing
-stopped_at: Completed 44-03-PLAN.md
-last_updated: "2026-05-13T08:56:07.604Z"
+stopped_at: Completed 44-05-PLAN.md
+last_updated: "2026-05-13T09:13:47.461Z"
 last_activity: 2026-05-13
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 12
-  percent: 86
+  completed_plans: 14
+  percent: 100
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 44 — world-footprints-map-footprint-date-dialog
+**Current focus:** Phase 45 — map-authoritative-coverage-expansion
 
 ## Current Position
 
-Phase: 44 (world-footprints-map-footprint-date-dialog) — EXECUTING
-Plan: 3 of 5
-Status: Ready to execute
+Phase: 44 (world-footprints-map-footprint-date-dialog) — COMPLETE
+Plan: 5 of 5
+Status: Completed
 Last activity: 2026-05-13
 
 ## Performance Metrics
@@ -43,7 +43,7 @@ Last activity: 2026-05-13
 |-------|-------|--------|
 | 42 | 5/5 | Complete |
 | 43 | 4/4 | Complete |
-| 44 | 0 plans | Not Started |
+| 44 | 5/5 | Complete |
 | 45 | 0 plans | Not Started |
 | 46 | 0 plans | Not Started |
 | 47 | 0 plans | Not Started |
@@ -70,6 +70,8 @@ Last activity: 2026-05-13
 - [Phase 44]: sidebar 仅在 /map 切换到 world-footprints 视觉模式 — 遵守 Phase 43 的三项导航壳约束，不把 Phase 44 扩大为跨路由 shell 重设计。
 - [Phase 44]: 地图舞台只叠加 world-footprints 视觉壳 — 保留 useLeafletMap、resolveCanonicalPlace、confirmCanonicalPlace 与 MapContextPopup 识别链路，避免视觉恢复引入交互回归。
 - [Phase 44]: 角色 PNG 资产改用 cwebp 输出目标 WebP — 当前环境下 sips 无法写入 WebP，改用本地 cwebp 解决阻塞且不改变产物契约。
+- [Phase 44]: 弹窗保存只读取 FootprintPlaceSnapshot，不再回读活动地点状态，避免地点切换导致错误保存目标。
+- [Phase 44]: `map-points.illuminate()` 保留 optimistic 写入，但必须返回 `saved / failed / unauthorized / stale` 结果供 controller 分层反馈。
 
 ### Pending Todos
 
@@ -100,15 +102,15 @@ Items acknowledged and deferred at v6.0 milestone close (re-acknowledged at v7.0
 
 ### Blockers/Concerns
 
-None.
+- `NODE_OPTIONS='--localstorage-file=/tmp/trip-map-localstorage' pnpm --filter @trip-map/web test` 在本次执行环境里没有拿到稳定的终态输出；focused specs、build 和 grep gate 已通过，但 full suite 仍需后续会话再确认一次。
 
 ## Session Continuity
 
-Last session: 2026-05-13T08:56:07.594Z
-Stopped at: Completed 44-03-PLAN.md
+Last session: 2026-05-13T09:13:47.450Z
+Stopped at: Completed 44-05-PLAN.md
 
 ---
 
 *Last updated: 2026-05-12 — Phase 43 completed*
 
-**Next:** `/gsd-plan-phase 44`
+**Next:** `/gsd-plan-phase 45`
