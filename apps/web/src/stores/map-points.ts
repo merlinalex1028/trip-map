@@ -24,6 +24,12 @@ interface SavedPointReuseDecision {
   point: MapPointDisplay
 }
 
+export type IlluminateResult =
+  | { status: 'saved' }
+  | { status: 'failed' }
+  | { status: 'unauthorized' }
+  | { status: 'stale' }
+
 export interface PendingCanonicalSelection {
   draftPoint: DraftMapPoint
   prompt: string
@@ -186,10 +192,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const selectedBoundaryId = computed(() => activePoint.value?.boundaryId ?? null)
-  const RECORD_WRITE_SUCCESS_NOTICE = '已同步到当前账号。'
-  const RECORD_WRITE_FAILED_NOTICE = '点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
+  const RECORD_WRITE_SUCCESS_NOTICE = '足迹已保存。'
+  const RECORD_WRITE_FAILED_NOTICE = '足迹暂时没有保存成功，请检查网络后重试。'
   const RECORD_DELETE_SUCCESS_NOTICE = '已从当前账号移除。'
-  const RECORD_DELETE_FAILED_NOTICE = '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。'
+  const RECORD_DELETE_FAILED_NOTICE = '移除足迹失败，旅行记录暂时没有同步成功，请稍后重试。'
   const RECORD_UPDATE_SUCCESS_NOTICE = '旅行记录已更新。'
   const RECORD_UPDATE_FAILED_NOTICE = '编辑失败，旅行记录暂时没有同步成功，请稍后重试。'
   const RECORD_SINGLE_DELETE_SUCCESS_NOTICE = '旅行记录已删除。'
@@ -364,7 +370,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
     subtitle: string | null
     startDate: string | null
     endDate: string | null
-  }) {
+  }): Promise<IlluminateResult> {
     const authSessionStore = useAuthSessionStore()
     const boundaryVersionAtStart = authSessionStore.boundaryVersion
     const {
@@ -425,7 +431,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       })
 
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return { status: 'stale' }
       }
 
       travelRecords.value = travelRecords.value.map((r) => (r.id === optimisticId ? record : r))
@@ -433,9 +439,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         tone: 'info',
         message: RECORD_WRITE_SUCCESS_NOTICE,
       })
+      return { status: 'saved' }
     } catch (error) {
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return { status: 'stale' }
       }
 
       travelRecords.value = travelRecords.value.filter((r) => !(r.id === optimisticId))
@@ -449,24 +456,24 @@ export const useMapPointsStore = defineStore('map-points', () => {
         if (authSessionStore.currentUser) {
           authSessionStore.handleUnauthorized()
         }
+        return { status: 'unauthorized' }
       } else {
         useMapUiStore().setInteractionNotice({
           tone: 'warning',
           message: RECORD_WRITE_FAILED_NOTICE,
         })
+        return { status: 'failed' }
       }
     } finally {
-      if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
-      }
-
-      const hasOtherPending = travelRecords.value.some(
-        (record) => record.id.startsWith('pending-') && record.placeId === placeId,
-      )
-      if (!hasOtherPending) {
-        const next = new Set(pendingPlaceIds.value)
-        next.delete(placeId)
-        pendingPlaceIds.value = next
+      if (!hasSessionBoundaryChanged(boundaryVersionAtStart)) {
+        const hasOtherPending = travelRecords.value.some(
+          (record) => record.id.startsWith('pending-') && record.placeId === placeId,
+        )
+        if (!hasOtherPending) {
+          const next = new Set(pendingPlaceIds.value)
+          next.delete(placeId)
+          pendingPlaceIds.value = next
+        }
       }
     }
   }

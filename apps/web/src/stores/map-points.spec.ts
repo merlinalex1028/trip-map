@@ -296,10 +296,11 @@ describe('map-points store', () => {
       })
       createMock.mockResolvedValueOnce(serverRecord)
 
-      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      const result = await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
       expect(store.travelRecords).toEqual([serverRecord])
       expect(store.pendingPlaceIds.has(PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
+      expect(result).toEqual({ status: 'saved' })
       expect(createMock).toHaveBeenCalledWith(
         expect.objectContaining({
           regionSystem: PHASE12_RESOLVED_BEIJING.regionSystem,
@@ -311,7 +312,7 @@ describe('map-points store', () => {
       )
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'info',
-        message: '已同步到当前账号。',
+        message: '足迹已保存。',
       })
     })
 
@@ -338,14 +339,15 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       const mapUiStore = useMapUiStore()
 
-      await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
+      const result = await store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
 
       expect(store.travelRecords.some((r) => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(false)
       expect(store.selectedPointId).toBeNull()
       expect(store.summaryMode).toBeNull()
+      expect(result).toEqual({ status: 'failed' })
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
-        message: '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+        message: '足迹暂时没有保存成功，请检查网络后重试。',
       })
     })
 
@@ -402,7 +404,7 @@ describe('map-points store', () => {
       expect(handleUnauthorizedSpy).not.toHaveBeenCalled()
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
-        message: '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+        message: '足迹暂时没有保存成功，请检查网络后重试。',
       })
     })
 
@@ -428,11 +430,11 @@ describe('map-points store', () => {
 
       const illuminatePromise = store.illuminate(makeResolvedPlace(PHASE12_RESOLVED_BEIJING))
       store.applyAuthoritativeTravelRecords([])
-      await illuminatePromise
+      await expect(illuminatePromise).resolves.toEqual({ status: 'unauthorized' })
 
       expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
       expect(mapUiStore.interactionNotice?.message).not.toBe(
-        '点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+        '足迹暂时没有保存成功，请检查网络后重试。',
       )
     })
 
@@ -459,7 +461,7 @@ describe('map-points store', () => {
 
       authSessionStore.handleUnauthorized()
       resolveCreate(makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'stale-session-record' }))
-      await illuminatePromise
+      await expect(illuminatePromise).resolves.toEqual({ status: 'stale' })
 
       expect(authSessionStore.status).toBe('anonymous')
       expect(store.travelRecords).toEqual([])
@@ -509,7 +511,7 @@ describe('map-points store', () => {
       expect(store.travelRecords.some(r => r.placeId === PHASE12_RESOLVED_BEIJING.placeId)).toBe(true)
       expect(mapUiStore.interactionNotice).toMatchObject({
         tone: 'warning',
-        message: '取消点亮失败，旅行记录暂时没有同步成功，请稍后重试。',
+        message: '移除足迹失败，旅行记录暂时没有同步成功，请稍后重试。',
       })
     })
 
