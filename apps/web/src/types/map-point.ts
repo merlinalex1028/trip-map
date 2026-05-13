@@ -44,6 +44,19 @@ export interface DraftMapPoint extends BaseMapPoint {
   source: 'detected'
 }
 
+export interface FootprintPlaceSnapshot {
+  placeId: string
+  boundaryId: string | null
+  placeKind: PlaceKind
+  datasetVersion: string
+  displayName: string
+  regionSystem: 'CN' | 'OVERSEAS'
+  adminType: ChinaAdminType | 'ADMIN1' | null
+  typeLabel: string | null
+  parentLabel: string | null
+  subtitle: string | null
+}
+
 export type SummaryMode = 'candidate-select' | 'detected-preview' | 'view'
 
 export type SummarySurfaceState =
