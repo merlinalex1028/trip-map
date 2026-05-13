@@ -5,13 +5,11 @@ import {
   PHASE28_RESOLVED_CALIFORNIA,
   type ResolvedCanonicalPlace,
 } from '@trip-map/contracts'
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { vi } from 'vitest'
 
 import { buildUnsupportedOverseasNotice } from '../../constants/overseas-support'
-import PopupTripRecord from './PopupTripRecord.vue'
 import PointSummaryCard from './PointSummaryCard.vue'
-import TripDateForm from './TripDateForm.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 const mockTripsByPlaceId = vi.hoisted(() => new Map<string, any[]>())
@@ -130,48 +128,34 @@ function makeCandidateSurface(): SummarySurfaceState {
   }
 }
 
-describe('PointSummaryCard — illuminate button', () => {
-  it('renders "点亮" button when isSaved=false in view mode', () => {
+describe('PointSummaryCard — footprint CTA', () => {
+  it('renders unified footprint CTA when isSaved=false in view mode', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
     })
-    const btn = wrapper.find('[data-illuminate-state]')
+    const btn = wrapper.find('[data-footprint-cta="true"]')
     expect(btn.exists()).toBe(true)
-    expect(btn.text()).toBe('点亮')
+    expect(btn.text()).toBe('留下足迹')
   })
 
-  it('renders "已点亮" button when isSaved=true in view mode', () => {
+  it('saved isSaved=true surfaces the saved hint and one unified leave-footprint CTA', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: true },
     })
-    const btn = wrapper.find('[data-illuminate-state]')
-    expect(btn.exists()).toBe(true)
-    expect(btn.text()).toBe('已点亮')
+
+    expect(wrapper.text()).toContain('这里已经留下过足迹')
+    expect(wrapper.get('[data-footprint-cta="true"]').text()).toBe('留下足迹')
   })
 
-  it('button has data-illuminate-state="off" when not saved', () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: { surface: makeViewSurface(), isSaved: false },
-    })
-    expect(wrapper.find('[data-illuminate-state]').attributes('data-illuminate-state')).toBe('off')
-  })
-
-  it('button has data-illuminate-state="on" when saved', () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: { surface: makeViewSurface(), isSaved: true },
-    })
-    expect(wrapper.find('[data-illuminate-state]').attributes('data-illuminate-state')).toBe('on')
-  })
-
-  it('button is disabled when isPending=true', () => {
+  it('footprint CTA is disabled when isPending=true', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false, isPending: true },
     })
-    const btn = wrapper.find('[data-illuminate-state]')
+    const btn = wrapper.find('[data-footprint-cta="true"]')
     expect(btn.attributes('disabled')).toBeDefined()
   })
 
-  it('renders a disabled illuminate affordance for non-illuminatable points', async () => {
+  it('renders a disabled footprint CTA and data-footprint-unavailable-reason for non-saveable points', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
@@ -180,90 +164,59 @@ describe('PointSummaryCard — illuminate button', () => {
       },
     })
 
-    const btn = wrapper.find('[data-illuminate-state]')
+    const btn = wrapper.find('[data-footprint-cta="true"]')
 
     expect(btn.attributes('disabled')).toBeDefined()
-    expect(btn.attributes('data-illuminatable')).toBe('false')
-    expect(btn.attributes('title')).toBe('该地点暂不支持点亮')
-    expect(btn.attributes('aria-label')).toBe('该地点暂不支持点亮')
+    expect(wrapper.get('[data-footprint-unavailable-reason]').text()).toContain(
+      '已识别到这个地点，但当前数据还不满足保存足迹的条件。',
+    )
     await btn.trigger('click')
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
+    expect(wrapper.emitted('leaveFootprint')).toBeFalsy()
   })
 
-  it('click on "点亮" opens TripDateForm instead of emitting illuminate directly', async () => {
+  it('emits leaveFootprint after clicking the CTA', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
     })
 
-    await wrapper.find('[data-illuminate-state]').trigger('click')
+    await wrapper.find('[data-footprint-cta="true"]').trigger('click')
 
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
-    expect(wrapper.emitted('unilluminate')).toBeFalsy()
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
+    expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
-  it('click on "已点亮" emits unilluminate event', async () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: { surface: makeViewSurface(), isSaved: true },
-    })
-    await wrapper.find('[data-illuminate-state]').trigger('click')
-    expect(wrapper.emitted('unilluminate')).toBeTruthy()
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
-  })
-
-  it('candidate-select mode does NOT render illuminate button', () => {
+  it('candidate-select mode does NOT render footprint CTA', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeCandidateSurface(), isSaved: false },
     })
-    expect(wrapper.find('[data-illuminate-state]').exists()).toBe(false)
+    expect(wrapper.find('[data-footprint-cta="true"]').exists()).toBe(false)
   })
 
-  it('detected-preview mode renders "点亮" button', () => {
+  it('detected-preview mode renders the unified footprint CTA', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeDetectedPreviewSurface(), isSaved: false },
     })
-    const btn = wrapper.find('[data-illuminate-state]')
+    const btn = wrapper.find('[data-footprint-cta="true"]')
     expect(btn.exists()).toBe(true)
-    expect(btn.text()).toBe('点亮')
+    expect(btn.text()).toBe('留下足迹')
   })
 })
 
 describe('PointSummaryCard — multi-visit Phase 27', () => {
-  it('expands TripDateForm for unsaved points before emitting illuminate', async () => {
+  it('keeps the popup free of inline date form after clicking the CTA', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
     })
 
-    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+    await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
-  it('emits illuminate with date payload after the TripDateForm submits', async () => {
-    const wrapper = mount(PointSummaryCard, {
-      props: { surface: makeViewSurface(), isSaved: false },
-    })
-
-    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
-    await wrapper.vm.$nextTick()
-    await wrapper.findComponent(TripDateForm).vm.$emit('submit', {
-      startDate: '2025-10-01',
-      endDate: null,
-    })
-
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.emitted('illuminate')?.[0]?.[0]).toEqual({
-      startDate: '2025-10-01',
-      endDate: null,
-    })
-  })
-
-  it('renders per-record PopupTripRecord list when isSaved=true and records exist', () => {
+  it('does not render saved trip history when isSaved=true and records exist', () => {
     mockTripsByPlaceId.set('cn-beijing', [
       {
         id: 'record-1',
@@ -312,9 +265,8 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
       },
     })
 
-    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(true)
-    const records = wrapper.findAllComponents(PopupTripRecord)
-    expect(records.length).toBe(2)
+    expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="popup-trip-record"]').exists()).toBe(false)
   })
 
   it('hides per-record list when no records in store', () => {
@@ -329,7 +281,7 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     expect(wrapper.find('[data-region="popup-records"]').exists()).toBe(false)
   })
 
-  it('expands TripDateForm from the re-record CTA on saved points', async () => {
+  it('does not render the old saved-place repeat branch on saved points', () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
@@ -338,13 +290,12 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
       },
     })
 
-    await wrapper.get('[data-record-again]').trigger('click')
-    await wrapper.vm.$nextTick()
-
-    expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(true)
+    expect(wrapper.find('[data-record-again]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('再留一次足迹')
+    expect(wrapper.text()).not.toContain('再记一次去访')
   })
 
-  it('collapses the form on cancel without emitting illuminate', async () => {
+  it('saved point CTA still emits leaveFootprint without showing inline details', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
@@ -353,17 +304,14 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
       },
     })
 
-    await wrapper.get('[data-record-again]').trigger('click')
-    await wrapper.vm.$nextTick()
-    await wrapper.findComponent(TripDateForm).vm.$emit('cancel')
-
+    await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
+    expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
-  it('does not expand the form when the point is not illuminatable', async () => {
+  it('does not emit leaveFootprint when the point is not saveable', async () => {
     const wrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface(),
@@ -372,11 +320,11 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
       },
     })
 
-    await wrapper.get('[data-illuminate-state="off"]').trigger('click')
+    await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
     expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
-    expect(wrapper.emitted('illuminate')).toBeFalsy()
+    expect(wrapper.emitted('leaveFootprint')).toBeFalsy()
   })
 
   it('does not render popup-records when isSaved=false', () => {

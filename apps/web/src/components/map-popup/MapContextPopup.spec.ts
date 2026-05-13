@@ -3,6 +3,7 @@ import { nextTick } from 'vue'
 import { vi } from 'vitest'
 
 import MapContextPopup from './MapContextPopup.vue'
+import PointSummaryCard from './PointSummaryCard.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
 vi.mock('../../stores/map-points', () => ({
@@ -67,6 +68,27 @@ describe('MapContextPopup', () => {
     expect(wrapper.get('.map-context-popup').attributes('aria-modal')).toBe('false')
     expect(wrapper.get('.map-context-popup').attributes('data-popup-anchor-source')).toBe('marker')
     expect(wrapper.find('.map-context-popup__arrow').exists()).toBe(true)
+  })
+
+  it('propagates leaveFootprint and keeps role="dialog" plus aria-modal="false"', async () => {
+    const wrapper = mount(MapContextPopup, {
+      attachTo: document.body,
+      props: {
+        surface: {
+          mode: 'view',
+          point: createViewPoint(),
+          boundarySupportState: 'supported'
+        } satisfies SummarySurfaceState,
+        anchorSource: 'boundary'
+      }
+    })
+
+    wrapper.findComponent(PointSummaryCard).vm.$emit('leaveFootprint')
+    await nextTick()
+
+    expect(wrapper.get('.map-context-popup').attributes('role')).toBe('dialog')
+    expect(wrapper.get('.map-context-popup').attributes('aria-modal')).toBe('false')
+    expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
   it('moves focus to the popup title when opened', async () => {
