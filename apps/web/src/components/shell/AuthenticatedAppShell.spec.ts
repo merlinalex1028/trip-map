@@ -89,10 +89,24 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('[data-shell-sidebar]').attributes('data-shell-visual-mode')).toBe(
       'world-footprints',
     )
+    expect(wrapper.get('[data-shell-illustration]').attributes('src')).toContain(
+      'sidebar-camera-girl.webp',
+    )
     expect(wrapper.findAll('[data-shell-nav-item]').map((item) =>
       item.attributes('data-shell-nav-item'),
     )).toEqual(['map', 'journal', 'memories'])
     expect(wrapper.text()).not.toContain('我的收藏')
+  })
+
+  it('keeps the default shell visual mode on non-map routes', async () => {
+    const { wrapper } = await mountShell('/journal')
+
+    expect(wrapper.get('[data-shell-sidebar]').attributes('data-shell-visual-mode')).toBe(
+      'default',
+    )
+    expect(wrapper.get('[data-shell-illustration]').attributes('src')).toContain(
+      'sidebar-illustration.png',
+    )
   })
 
   // TODO: re-enable logout test when design finalizes the logout placement (43-UAT.md test 10)
