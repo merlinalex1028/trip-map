@@ -83,6 +83,18 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('[data-shell-nav-item="map"]').attributes('aria-current')).toBeUndefined()
   })
 
+  it('uses world-footprints visual mode on map route without adding 我的收藏', async () => {
+    const { wrapper } = await mountShell('/map')
+
+    expect(wrapper.get('[data-shell-sidebar]').attributes('data-shell-visual-mode')).toBe(
+      'world-footprints',
+    )
+    expect(wrapper.findAll('[data-shell-nav-item]').map((item) =>
+      item.attributes('data-shell-nav-item'),
+    )).toEqual(['map', 'journal', 'memories'])
+    expect(wrapper.text()).not.toContain('我的收藏')
+  })
+
   // TODO: re-enable logout test when design finalizes the logout placement (43-UAT.md test 10)
   it.skip('logs out and routes back to landing', async () => {
     let logoutSpy: ReturnType<typeof vi.spyOn>

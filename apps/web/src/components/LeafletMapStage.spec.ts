@@ -764,6 +764,109 @@ describe('LeafletMapStage', () => {
   // -------------------------------------------------------------------------
 
   describe('illuminate actions', () => {
+    it('opens the footprint date dialog from the unified popup CTA', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
+
+      expect(wrapper.find('[data-region="footprint-date-dialog"]').exists()).toBe(true)
+      expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    })
+
+    it('saves against the dialog snapshot after active map point changes', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = {
+        id: 'user-1',
+        username: 'Alice',
+        email: 'alice@example.com',
+        createdAt: '2026-04-12T00:00:00.000Z',
+      }
+      recordsApiMock.createTravelRecord.mockResolvedValueOnce(makeRecord(PHASE12_RESOLVED_BEIJING))
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint(PHASE12_RESOLVED_BEIJING))
+      await nextTick()
+      await flushPromises()
+
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
+
+      mapPointsStore.startDraftFromDetection(
+        makeDraftPoint(PHASE28_RESOLVED_CALIFORNIA, {
+          lat: 36.7783,
+          lng: -119.4179,
+          x: 0.15,
+          y: 0.44,
+          coordinatesLabel: '36.7783°N, 119.4179°W',
+        }),
+      )
+      await nextTick()
+
+      const dialog = wrapper.getComponent({ name: 'FootprintDateDialog' })
+      expect(dialog.get('[data-footprint-place-name]').text()).toContain('北京')
+      dialog.vm.$emit('submit', { startDate: '2026-05-13', endDate: null })
+      await flushPromises()
+
+      expect(recordsApiMock.createTravelRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          placeId: PHASE12_RESOLVED_BEIJING.placeId,
+          startDate: '2026-05-13',
+          endDate: null,
+        }),
+      )
+      expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          placeId: PHASE28_RESOLVED_CALIFORNIA.placeId,
+        }),
+      )
+    })
+
+    it('opens the login modal instead of writing records when anonymous user submits a footprint', async () => {
+      const authSessionStore = useAuthSessionStore()
+      const mapPointsStore = useMapPointsStore()
+      const openAuthModalSpy = vi.spyOn(authSessionStore, 'openAuthModal')
+      authSessionStore.status = 'anonymous'
+      authSessionStore.currentUser = null
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      wrapper.getComponent(MapContextPopup).vm.$emit('leaveFootprint')
+      await nextTick()
+      wrapper
+        .getComponent({ name: 'FootprintDateDialog' })
+        .vm.$emit('submit', { startDate: '2026-05-13', endDate: null })
+      await flushPromises()
+
+      expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
+      expect(openAuthModalSpy).toHaveBeenCalledWith('login')
+      expect(mapPointsStore.summarySurfaceState?.mode).toBe('detected-preview')
+    })
+
     it('opens the login modal instead of writing records when the user is anonymous', async () => {
       const authSessionStore = useAuthSessionStore()
       const mapPointsStore = useMapPointsStore()

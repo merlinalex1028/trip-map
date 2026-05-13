@@ -82,4 +82,20 @@ describe('SeedMarkerLayer', () => {
     expect(seedMarkerLayerSource).toContain('height: 44px;')
     expect(seedMarkerLayerSource).toContain('@media (prefers-reduced-motion: reduce)')
   })
+
+  it('locks the star-footprint visual contract in DOM and source styles', () => {
+    const wrapper = mount(SeedMarkerLayer, {
+      props: {
+        points: [createPoint()],
+        selectedPointId: null,
+      },
+    })
+
+    expect(wrapper.get('[data-marker-visual="star-footprint"]').exists()).toBe(true)
+    expect(seedMarkerLayerSource).toContain('data-marker-visual="star-footprint"')
+    expect(seedMarkerLayerSource).toContain('.seed-marker__star')
+    expect(seedMarkerLayerSource).toContain('width: 44px;')
+    expect(seedMarkerLayerSource).toContain('height: 44px;')
+    expect(seedMarkerLayerSource).toContain('@media (prefers-reduced-motion: reduce)')
+  })
 })
