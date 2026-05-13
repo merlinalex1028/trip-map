@@ -96,7 +96,21 @@ Plans:
 4. 日期提交符合后端 `YYYY-MM-DD` 契约，并在打开弹窗时锁定当前地点 payload，避免切换地图地点后保存错位。
 5. 未登录、不可用地点、保存中、保存失败和保存成功状态都有清晰反馈与可访问焦点管理。
 
-**Plans:** 0 plans yet
+**Plans:** 5 plans
+
+Plans:
+**Wave 0**
+- [ ] 44-01-PLAN.md — Lock Phase 44 popup, dialog, marker, sidebar, and snapshot regression contracts.
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 44-02-PLAN.md — Prepare P0 assets and restore world-footprints map stage, marker, and map-route sidebar visuals.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 44-03-PLAN.md — Refactor the map popup into a unified factual place card with one `留下足迹` entry.
+- [ ] 44-04-PLAN.md — Build the standalone shadcn-vue footprint date Dialog and date payload contract.
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 44-05-PLAN.md — Wire snapshot-safe Dialog submission, store feedback, and the full Phase 44 verification gate.
 
 ---
 
