@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
-import { buildTimelineEntries } from '../../services/timeline'
-import { useMapPointsStore } from '../../stores/map-points'
-import PopupTripRecord from './PopupTripRecord.vue'
-import TripDateForm from './TripDateForm.vue'
 
 interface CandidateListItem {
   candidate: GeoCityCandidate
@@ -45,8 +41,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueWithFallback: []
-  illuminate: [payload: { startDate: string | null; endDate: string | null }]
-  unilluminate: []
+  leaveFootprint: []
 }>()
 
 const isCandidateMode = computed(() => props.surface.mode === 'candidate-select')
@@ -142,13 +137,10 @@ function getCandidateStatus(statusHint: string) {
   return statusHint === '已存在记录' ? 'saved' : 'available'
 }
 
-const illuminateLabel = computed(() => (props.isSaved ? '已点亮' : '点亮'))
-const illuminateState = computed(() => (props.isSaved ? 'on' : 'off'))
 const showIlluminateButton = computed(() => !isCandidateMode.value)
 const illuminateHint = computed(() =>
-  props.isIlluminatable ? null : '该地点暂不支持点亮',
+  props.isIlluminatable ? null : '已识别到这个地点，但当前数据还不满足保存足迹的条件。',
 )
-const illuminateAriaLabel = computed(() => illuminateHint.value ?? illuminateLabel.value)
 const cloudCardClass =
   'point-summary-card grid flex-1 min-h-0 grid-rows-[auto_minmax(0,1fr)] overflow-hidden relative rounded-3xl border-4 border-white p-6 gap-4 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(253,245,255,0.94))] shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1'
 const badgeClass =
@@ -176,27 +168,6 @@ const illuminateButtonClass = computed(() => [
   primaryCtaBaseClass,
   props.isSaved ? primaryCtaOnClass : primaryCtaOffClass,
 ])
-const isFormExpanded = ref(false)
-
-const mapPointsStore = useMapPointsStore()
-const currentPlaceId = computed(() =>
-  props.surface.mode === 'candidate-select' ? null : props.surface.point?.placeId ?? null,
-)
-const placeRecords = computed(() =>
-  currentPlaceId.value ? (mapPointsStore.tripsByPlaceId.get(currentPlaceId.value) ?? []) : [],
-)
-const placeTimelineEntries = computed(() => buildTimelineEntries(placeRecords.value))
-
-const tripCountDisplay = computed(() => {
-  if (!props.isSaved) return null
-
-  return (props.tripCount ?? 0) > 0 ? `已去过 ${props.tripCount} 次` : '尚未记录过去访日期'
-})
-const latestTripDisplay = computed(() => {
-  if (!props.isSaved) return null
-
-  return `最近一次: ${props.latestTripLabel ?? '日期未知'}`
-})
 
 function getCandidateActionClass(item: CandidateListItem) {
   return [
@@ -209,28 +180,9 @@ function getCandidateActionClass(item: CandidateListItem) {
   ]
 }
 
-function openTripDateForm() {
-  if (props.isPending || !props.isIlluminatable) return
-
-  isFormExpanded.value = true
-}
-
-function handleTripFormSubmit(payload: { startDate: string | null; endDate: string | null }) {
-  isFormExpanded.value = false
-  emit('illuminate', payload)
-}
-
-function handleTripFormCancel() {
-  isFormExpanded.value = false
-}
-
 function handleIlluminateToggle() {
   if (props.isPending || !props.isIlluminatable) return
-  if (props.isSaved) {
-    emit('unilluminate')
-  } else {
-    openTripDateForm()
-  }
+  emit('leaveFootprint')
 }
 
 function handleCandidateConfirm(candidate: GeoCityCandidate) {
@@ -279,16 +231,15 @@ function handleContinueWithFallback() {
         <button
           v-if="showIlluminateButton"
           :class="illuminateButtonClass"
-          :data-illuminate-state="illuminateState"
-          :data-illuminatable="String(isIlluminatable)"
+          data-footprint-cta="true"
           data-kawaii-role="primary-cta"
           :disabled="isPending || !isIlluminatable"
-          :aria-label="illuminateAriaLabel"
+          :aria-label="illuminateHint ?? '留下足迹'"
           :title="illuminateHint ?? undefined"
           type="button"
           @click="handleIlluminateToggle"
         >
-          {{ illuminateLabel }}
+          留下足迹
         </button>
       </div>
       <p
@@ -369,43 +320,22 @@ function handleContinueWithFallback() {
           </p>
         </div>
 
-        <!-- Per-record edit/delete list (replaces static trip-summary) -->
-        <div
-          v-if="!isCandidateMode && isSaved && placeTimelineEntries.length > 0"
-          class="point-summary-card__records gap-2"
-          data-region="popup-records"
+        <p
+          v-if="!isCandidateMode && isSaved"
+          class="point-summary-card__saved-hint rounded-2xl border border-[#cae8ef] bg-[linear-gradient(180deg,rgba(235,249,253,0.78),rgba(255,255,255,0.92))] p-4"
+          data-saved-footprint-hint="true"
         >
-          <PopupTripRecord
-            v-for="entry in placeTimelineEntries"
-            :key="entry.recordId"
-            :entry="entry"
-          />
-        </div>
+          这里已经留下过足迹
+        </p>
 
-        <!-- 再记一次去访按钮 -->
-        <button
-          v-if="!isCandidateMode && isSaved && !isFormExpanded"
-          type="button"
-          class="point-summary-card__record-again min-h-11 rounded-full border border-[#f4d7e4] bg-[linear-gradient(135deg,rgba(255,232,242,0.96),rgba(255,246,250,0.96))] px-4 py-2 text-[var(--font-label-size)] font-bold text-[var(--color-accent-strong)] shadow-[0_14px_28px_rgba(244,143,177,0.34)] transition-all duration-300 ease-out hover:scale-105 hover:-translate-y-1 active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
-          :disabled="isPending || !isIlluminatable"
-          data-record-again="true"
-          aria-label="再记一次这次旅行"
-          @click="openTripDateForm"
+        <p
+          v-if="!isCandidateMode && !isIlluminatable"
+          :class="noticeClass"
+          data-footprint-unavailable-reason
+          role="note"
         >
-          再记一次去访
-        </button>
-
-        <div
-          v-if="!isCandidateMode && isFormExpanded"
-          class="point-summary-card__trip-form"
-          data-region="trip-date-form-wrapper"
-        >
-          <TripDateForm
-            :is-submitting="isPending"
-            @submit="handleTripFormSubmit"
-            @cancel="handleTripFormCancel"
-          />
-        </div>
+          已识别到这个地点，但当前数据还不满足保存足迹的条件。
+        </p>
       </div>
     </div>
   </article>
@@ -465,14 +395,6 @@ function handleContinueWithFallback() {
   font-size: var(--font-label-size);
   font-weight: var(--font-weight-label);
   line-height: var(--font-label-line-height);
-}
-
-.point-summary-card__records {
-  display: grid;
-  max-height: 200px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
 }
 
 .point-summary-card__content {
