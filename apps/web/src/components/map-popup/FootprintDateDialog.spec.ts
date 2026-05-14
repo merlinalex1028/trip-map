@@ -124,7 +124,7 @@ describe('FootprintDateDialog', () => {
     expect(document.body.textContent).toContain('中国 · 直辖市')
     expect(getElement<HTMLElement>('[data-footprint-calendar="true"]')).toBeTruthy()
     expect(getElement<HTMLButtonElement>('[data-footprint-submit="true"]').textContent).toContain(
-      '保存足迹',
+      '留下足迹',
     )
   })
 
@@ -143,7 +143,7 @@ describe('FootprintDateDialog', () => {
       '今天',
       '明天',
       '本周末',
-      '其他日期',
+      '选择其他日期',
     ])
   })
 

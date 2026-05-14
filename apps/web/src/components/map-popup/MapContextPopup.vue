@@ -31,6 +31,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   confirmCandidate: [candidate: GeoCityCandidate]
   continueFallback: []
+  dismiss: []
   leaveFootprint: []
 }>()
 
@@ -47,8 +48,8 @@ const popupTitle = computed(() => {
 })
 
 const popupStyles = computed(() => ({
-  '--map-context-popup-min-width': '280px',
-  '--map-context-popup-max-width': '360px',
+  '--map-context-popup-min-width': '420px',
+  '--map-context-popup-max-width': '420px',
   ...(props.floatingStyles ?? {})
 }))
 
@@ -82,7 +83,7 @@ defineExpose({ getPopupElement })
 <template>
   <aside
     ref="popup"
-    class="map-context-popup absolute z-[4] flex min-h-0 min-w-[var(--map-context-popup-min-width)] max-w-[var(--map-context-popup-max-width)] flex-col overflow-visible rounded-[32px] border border-white/70 bg-white/75 p-1 shadow-[0_16px_34px_rgba(155,116,160,0.12)] backdrop-blur-xl"
+    class="map-context-popup absolute z-[4] flex min-h-0 min-w-[var(--map-context-popup-min-width)] max-w-[var(--map-context-popup-max-width)] flex-col overflow-visible rounded-[32px] bg-transparent p-0 shadow-none"
     role="dialog"
     aria-modal="false"
     :aria-labelledby="popupTitleId"
@@ -92,7 +93,7 @@ defineExpose({ getPopupElement })
     @click.stop
   >
     <div
-      class="map-context-popup__arrow pointer-events-none absolute left-6 top-full h-[1.08rem] w-[1.08rem] -translate-y-1/2 rotate-45 rounded-[0.18rem] border-b border-r border-white/70 bg-white/75 shadow-[4px_8px_16px_rgba(155,116,160,0.1)] backdrop-blur-xl"
+      class="map-context-popup__arrow pointer-events-none absolute left-8 top-full h-[1.12rem] w-[1.12rem] -translate-y-1/2 rotate-45 rounded-[0.2rem] border-b border-r border-[#f0d6e7] bg-[rgba(255,248,253,0.98)] shadow-[4px_8px_16px_rgba(155,116,160,0.1)]"
       data-kawaii-arrow="light"
       aria-hidden="true"
     ></div>
@@ -105,7 +106,7 @@ defineExpose({ getPopupElement })
       {{ popupTitle }}
     </h2>
     <div
-      class="map-context-popup__body flex min-h-0 max-h-full flex-1 overflow-hidden rounded-[28px]"
+      class="map-context-popup__body flex min-h-0 max-h-full flex-1 overflow-visible rounded-[32px]"
       data-kawaii-body="card-slot"
     >
       <PointSummaryCard
@@ -118,6 +119,7 @@ defineExpose({ getPopupElement })
         :latest-trip-label="latestTripLabel"
         @confirm-candidate="emit('confirmCandidate', $event)"
         @continue-with-fallback="emit('continueFallback')"
+        @dismiss="emit('dismiss')"
         @leave-footprint="emit('leaveFootprint')"
       />
     </div>

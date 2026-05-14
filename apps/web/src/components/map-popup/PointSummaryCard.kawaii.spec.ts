@@ -134,7 +134,7 @@ function makeCandidateSurface(): Extract<SummarySurfaceState, { mode: 'candidate
 }
 
 describe('PointSummaryCard kawaii contracts', () => {
-  it('locks the inner cloud card surface and roomy spacing classes', () => {
+  it('locks the high-fidelity result card surface to 420 by 260', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface() },
     })
@@ -143,17 +143,14 @@ describe('PointSummaryCard kawaii contracts', () => {
     const className = card.attributes('class') ?? ''
 
     expect(card.attributes('data-kawaii-surface')).toBe('cloud')
-    expect(className).toContain('rounded-3xl')
-    expect(className).toContain('border-4')
-    expect(className).toContain('border-white')
-    expect(className).toContain('p-6')
-    expect(className).toContain('gap-4')
-    expect(className).toContain(
-      'shadow-[0_24px_48px_rgba(168,121,165,0.18),0_10px_24px_rgba(104,159,192,0.12)]',
-    )
+    expect(className).toContain('point-summary-card')
+    expect(pointSummaryCardSource).toContain('width: 420px;')
+    expect(pointSummaryCardSource).toContain('height: 260px;')
+    expect(pointSummaryCardSource).toContain('grid-template-columns: minmax(0, 240px) 180px;')
+    expect(pointSummaryCardSource).toContain('border: 1px solid rgba(242, 214, 232, 0.88);')
   })
 
-  it('exposes badge, type pill, primary CTA, and secondary CTA kawaii role attrs', () => {
+  it('exposes badge, type pill, close, visual, primary CTA, and secondary CTA attrs', () => {
     const viewWrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface() },
     })
@@ -166,17 +163,15 @@ describe('PointSummaryCard kawaii contracts', () => {
     const primaryCta = viewWrapper.get('[data-kawaii-role="primary-cta"]')
     const secondaryCta = candidateWrapper.get('[data-kawaii-role="secondary-cta"]')
 
-    expect(badge.attributes('class')).toContain('rounded-full')
-    expect(badge.attributes('class')).toContain('px-3')
-    expect(badge.attributes('class')).toContain('py-1')
-    expect(typePill.attributes('class')).toContain('rounded-full')
-    expect(typePill.attributes('class')).toContain('px-3')
-    expect(typePill.attributes('class')).toContain('py-1')
+    expect(badge.attributes('class')).toContain('point-summary-card__eyebrow')
+    expect(typePill.attributes('class')).toContain('point-summary-card__type-label')
+    expect(viewWrapper.find('button[aria-label="关闭识别结果"]').exists()).toBe(true)
+    expect(viewWrapper.find('.point-summary-card__visual img').exists()).toBe(true)
     expect(primaryCta.attributes('data-kawaii-role')).toBe('primary-cta')
     expect(secondaryCta.attributes('data-kawaii-role')).toBe('secondary-cta')
   })
 
-  it('keeps primary hit areas tall and candidate / notice spacing roomy', () => {
+  it('keeps compact high-fidelity primary hit areas and candidate / notice spacing', () => {
     const viewWrapper = mount(PointSummaryCard, {
       props: {
         surface: makeViewSurface({
@@ -194,10 +189,12 @@ describe('PointSummaryCard kawaii contracts', () => {
       .get('[data-kawaii-role="secondary-cta"]')
       .attributes('class')
 
-    expect(primaryCtaClass).toMatch(/min-h-(11|\[44px\])/)
-    expect(noticeClass).toContain('p-4')
-    expect(secondaryCtaClass).toContain('gap-4')
-    expect(secondaryCtaClass).toContain('p-4')
+    expect(primaryCtaClass).toContain('point-summary-card__illuminate-btn')
+    expect(noticeClass).toContain('point-summary-card__notice')
+    expect(secondaryCtaClass).toContain('point-summary-card__candidate-action')
+    expect(pointSummaryCardSource).toContain('min-height: 50px;')
+    expect(pointSummaryCardSource).toContain('gap: 3px;')
+    expect(pointSummaryCardSource).toContain('padding: 9px 12px;')
   })
 
   it('renders title, badge, notice, and candidate hint as escaped text without html injection', () => {
@@ -229,8 +226,10 @@ describe('PointSummaryCard kawaii contracts', () => {
     expect(viewWrapper.text()).toContain(unsafeNotice)
     expect(candidateWrapper.text()).toContain(unsafeHint)
     expect(viewWrapper.find('b').exists()).toBe(false)
-    expect(viewWrapper.find('img').exists()).toBe(false)
     expect(candidateWrapper.find('script').exists()).toBe(false)
+    expect(viewWrapper.get('[data-display="true"]').attributes('title')).toBeUndefined()
+    expect(pointSummaryCardSource).toContain('{{ summaryTitle }}')
+    expect(viewWrapper.html()).not.toContain('<img src=x onerror=alert(1)>')
   })
 
   it('keeps long titles shrinkable so type pill and primary action do not overlap them', () => {
@@ -244,16 +243,30 @@ describe('PointSummaryCard kawaii contracts', () => {
 
     const titleRowClass =
       wrapper.get('.point-summary-card__title-row').attributes('class') ?? ''
-    const titleClass = wrapper.get('[data-display="true"]').attributes('class') ?? ''
+    const title = wrapper.get('[data-display="true"]')
+    const titleClass = title.attributes('class') ?? ''
     const typePillClass = wrapper.get('[data-kawaii-role="type-pill"]').attributes('class') ?? ''
 
-    expect(titleRowClass).toContain('min-w-0')
-    expect(titleClass).toContain('min-w-0')
-    expect(titleClass).toContain('break-words')
-    expect(typePillClass).toContain('self-start')
+    expect(titleRowClass).toContain('point-summary-card__title-row')
+    expect(titleClass).toContain('point-summary-card__title')
+    expect(title.attributes('title')).toBeUndefined()
+    expect(typePillClass).toContain('point-summary-card__type-label')
+    expect(pointSummaryCardSource).toContain('<Tooltip>')
+    expect(pointSummaryCardSource).toContain('<TooltipTrigger as-child>')
+    expect(pointSummaryCardSource).toContain('hide-arrow')
+    expect(pointSummaryCardSource).toContain('class="point-summary-card__title-tooltip"')
+    expect(pointSummaryCardSource).toMatch(/\.point-summary-card__title-row[\s\S]*min-width:\s*0;/)
+    expect(pointSummaryCardSource).toMatch(/\.point-summary-card__title[\s\S]*min-width:\s*0;/)
+    expect(pointSummaryCardSource).toMatch(/\.point-summary-card__title[\s\S]*overflow:\s*hidden;/)
+    expect(pointSummaryCardSource).toMatch(/\.point-summary-card__title[\s\S]*text-overflow:\s*ellipsis;/)
+    expect(pointSummaryCardSource).toMatch(/\.point-summary-card__title[\s\S]*white-space:\s*nowrap;/)
+    expect(pointSummaryCardSource).toMatch(/:global\(\.point-summary-card__title-tooltip\)[\s\S]*max-width:\s*280px;/)
+    expect(pointSummaryCardSource).not.toContain(":global(.point-summary-card__title-tooltip [data-slot='tooltip-arrow'])")
+    expect(pointSummaryCardSource).not.toContain(":global(.point-summary-card__title-tooltip > :last-child:not(:first-child))")
+    expect(pointSummaryCardSource).not.toContain(":global(.point-summary-card__title-tooltip svg)")
   })
 
-  it('locks the cloud card and ctas to the 300ms ease-out motion family', () => {
+  it('locks the card and ctas to the scoped 180ms motion family without scale classes', () => {
     const viewWrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface() },
     })
@@ -266,20 +279,15 @@ describe('PointSummaryCard kawaii contracts', () => {
     const secondaryCtaClass =
       candidateWrapper.get('[data-kawaii-role="secondary-cta"]').attributes('class') ?? ''
 
-    expect(cloudClass).toContain('transition-all')
-    expect(cloudClass).toContain('duration-300')
-    expect(cloudClass).toContain('ease-out')
-    expect(cloudClass).toContain('hover:scale-105')
-    expect(cloudClass).toContain('hover:-translate-y-1')
+    expect(cloudClass).toContain('point-summary-card')
     expect(cloudClass).not.toContain('active:scale-95')
+    expect(pointSummaryCardSource).toContain('transition: transform 180ms ease')
+    expect(pointSummaryCardSource).toContain('transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;')
+    expect(pointSummaryCardSource).not.toContain('hover:scale-105')
 
     for (const className of [primaryCtaClass, secondaryCtaClass]) {
-      expect(className).toContain('transition-all')
-      expect(className).toContain('duration-300')
-      expect(className).toContain('ease-out')
-      expect(className).toContain('hover:scale-105')
-      expect(className).toContain('hover:-translate-y-1')
-      expect(className).toContain('active:scale-95')
+      expect(className).not.toContain('hover:scale-105')
+      expect(className).not.toContain('active:scale-95')
     }
   })
 
@@ -317,6 +325,6 @@ describe('PointSummaryCard kawaii contracts', () => {
       /\[data-kawaii-role="secondary-cta"\][\s\S]*transform:\s*none !important;/,
     )
     expect(pointSummaryCardSource).not.toContain('var(--motion-emphasis) ease')
-    expect(pointSummaryCardSource).not.toContain('translateY(-1px)')
+    expect(pointSummaryCardSource).not.toContain('hover:scale-105')
   })
 })

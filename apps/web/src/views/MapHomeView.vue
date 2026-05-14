@@ -11,7 +11,7 @@ const { status } = storeToRefs(authSessionStore)
 
 <template>
   <section
-    class="relative flex min-h-0 flex-col gap-4 overflow-hidden rounded-[32px] border border-white/80 bg-white/65 p-4 shadow-[var(--shadow-stage)] md:p-6"
+    class="relative flex min-h-[calc(100svh_-_2rem)] flex-1 flex-col overflow-visible rounded-[28px] bg-transparent p-0 md:min-h-[calc(100svh_-_3rem)]"
     data-region="map-shell"
     data-route-view="map"
     aria-label="世界足迹"

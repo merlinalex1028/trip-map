@@ -4,6 +4,7 @@ import L from 'leaflet'
 import { storeToRefs } from 'pinia'
 import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
 
+import pinStarPink from '@/assets/v8/pins/pin-star-pink.png'
 import { useGeoJsonLayers } from '../composables/useGeoJsonLayers'
 import { useLeafletMap } from '../composables/useLeafletMap'
 import { useLeafletPopupAnchor } from '../composables/useLeafletPopupAnchor'
@@ -528,15 +529,21 @@ const isActivePointIlluminatable = computed(() => {
 
 async function focusFootprintReturnTarget() {
   await nextTick()
+  await nextAnimationFrame()
   const popupElement = popupRef.value?.getPopupElement()
 
-  const trigger = popupElement?.querySelector<HTMLElement>('[data-footprint-cta="true"]:not([disabled])')
+  const trigger =
+    popupElement?.querySelector<HTMLElement>('[data-footprint-cta="true"]:not([disabled])') ??
+    document.querySelector<HTMLElement>('[data-footprint-cta="true"]:not([disabled])')
   if (trigger) {
     trigger.focus()
     return
   }
 
-  popupElement?.querySelector<HTMLElement>('.map-context-popup__title')?.focus()
+  const title =
+    popupElement?.querySelector<HTMLElement>('.map-context-popup__title') ??
+    document.querySelector<HTMLElement>('.map-context-popup__title')
+  title?.focus()
 }
 
 function resetFootprintDialogState() {
@@ -704,19 +711,59 @@ function handleBoundaryClick(boundaryId: string, latlng: L.LatLng) {
       description: savedPoint.description,
     })
     popupLatLng.value = latlng
+    setActiveFootprintMarker(latlng)
     return
   }
 }
 
-// --- Pending circle marker ---
+// --- Footprint markers ---
 
-let pendingMarker: L.CircleMarker | null = null
+let pendingMarker: L.Marker | null = null
+let activeFootprintMarker: L.Marker | null = null
+
+const footprintMarkerIcon = L.icon({
+  iconUrl: pinStarPink,
+  iconSize: [46, 46],
+  iconAnchor: [23, 39],
+  popupAnchor: [0, -34],
+  className: 'footprint-star-marker',
+})
 
 function removePendingMarker() {
   if (pendingMarker && map.value) {
     map.value.removeLayer(pendingMarker)
     pendingMarker = null
   }
+}
+
+function removeActiveFootprintMarker() {
+  if (activeFootprintMarker && map.value) {
+    map.value.removeLayer(activeFootprintMarker)
+    activeFootprintMarker = null
+  }
+}
+
+function setActiveFootprintMarker(latlng: L.LatLng) {
+  if (!map.value) {
+    return
+  }
+
+  removeActiveFootprintMarker()
+  activeFootprintMarker = L.marker(latlng, {
+    icon: footprintMarkerIcon,
+    keyboard: false,
+    interactive: false,
+    zIndexOffset: 420,
+  }).addTo(map.value)
+}
+
+function closeMapContextPopup() {
+  clearActivePoint()
+  popupLatLng.value = null
+  popupAnchor.value = null
+  removePendingMarker()
+  removeActiveFootprintMarker()
+  clearPendingGeoHit()
 }
 
 // --- handleConfirmCandidate (ported from WorldMapStage) ---
@@ -737,16 +784,13 @@ async function handleConfirmCandidate(candidate: GeoCityCandidate) {
 
     if (response.status === 'resolved') {
       applyResolvedPlace(response.place, response.click)
+      popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
+      setActiveFootprintMarker(popupLatLng.value)
 
       // On-demand shard load after confirm (D-06)
       if (response.place.boundaryId) {
-        const entry = getGeometryManifestEntry(response.place.boundaryId)
         const layer = response.place.regionSystem ?? 'CN'
         void loadShardIfNeeded(response.place.boundaryId, layer as 'CN' | 'OVERSEAS')
-
-        if (entry) {
-          popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
-        }
       }
 
       return
@@ -783,6 +827,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
 
   // Remove any previous pending marker
   removePendingMarker()
+  removeActiveFootprintMarker()
 
   // Set pending geo hit for aria status (x/y from container point for compat)
   const containerPoint = map.value?.latLngToContainerPoint(latlng)
@@ -794,16 +839,16 @@ async function recognizeMapLocation(latlng: L.LatLng) {
   })
   startRecognition()
 
-  // Create pending circle marker
+  // Create pending star marker
   if (map.value) {
-    pendingMarker = L.circleMarker([lat, lng], {
-      radius: 8,
-      color: 'rgba(244, 143, 177, 0.96)',
-      fillColor: 'rgba(244, 143, 177, 0.94)',
-      fillOpacity: 0.94,
-      weight: 1.5,
-      className: 'pending-marker--recognizing',
+    pendingMarker = L.marker([lat, lng], {
+      icon: footprintMarkerIcon,
+      keyboard: false,
+      interactive: false,
+      zIndexOffset: 520,
+      opacity: 0.96,
     }).addTo(map.value)
+    pendingMarker.getElement()?.classList.add('pending-marker--recognizing')
   }
 
   // Set popup anchor to pending location
@@ -825,6 +870,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
 
       // Set popup anchor to resolved location
       popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
+      setActiveFootprintMarker(popupLatLng.value)
 
       // On-demand shard load (D-06)
       if (response.place.boundaryId) {
@@ -847,6 +893,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
       })
 
       popupLatLng.value = L.latLng(response.click.lat, response.click.lng)
+      setActiveFootprintMarker(popupLatLng.value)
 
       clearInteractionNotice()
 
@@ -873,6 +920,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
           ),
         )
         popupLatLng.value = L.latLng(lat, lng)
+        setActiveFootprintMarker(popupLatLng.value)
         clearInteractionNotice()
         finishRecognition()
         clearPendingGeoHit()
@@ -881,6 +929,7 @@ async function recognizeMapLocation(latlng: L.LatLng) {
 
       clearActivePoint()
       popupLatLng.value = null
+      removeActiveFootprintMarker()
       clearInteractionNotice()
       finishRecognition()
       clearPendingGeoHit()
@@ -946,6 +995,7 @@ onMounted(() => {
       :trip-count="activePointTripCount"
       :latest-trip-label="activePointLatestTripLabel"
       @confirm-candidate="handleConfirmCandidate"
+      @dismiss="closeMapContextPopup"
       @leave-footprint="openFootprintDateDialog"
     />
     <FootprintDateDialog
@@ -970,59 +1020,26 @@ onMounted(() => {
 .leaflet-map-stage {
   position: relative;
   height: 100%;
+  min-height: 520px;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.78);
-  border-radius: 36px;
-  background: #FFF8FD;
-  box-shadow:
-    0 24px 54px rgba(139, 111, 239, 0.14),
-    0 18px 40px rgba(247, 90, 155, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-}
-
-.world-footprints-stage::before,
-.world-footprints-stage::after {
-  content: '';
-  position: absolute;
-  pointer-events: none;
-}
-
-.world-footprints-stage::before {
-  inset: 10px;
-  border-radius: 30px;
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(242, 232, 255, 0.62);
-  z-index: 0;
-}
-
-.world-footprints-stage::after {
-  right: 28px;
-  bottom: 24px;
-  width: 144px;
-  height: 72px;
-  border-radius: 999px;
-  background: #EAF6FF;
-  opacity: 0.46;
-  box-shadow:
-    -96px -54px 0 #F2E8FF,
-    -184px 10px 0 rgba(255, 240, 247, 0.72);
-  z-index: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 28px;
+  background: transparent;
+  box-shadow: none;
 }
 
 .leaflet-map-stage__map {
   width: 100%;
   flex: 1 1 0;
-  min-height: 0;
+  min-height: 420px;
   border-radius: 28px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(218, 202, 247, 0.94);
   background: #F2E8FF;
-  box-shadow:
-    0 18px 34px rgba(139, 111, 239, 0.12),
-    inset 0 0 0 1px rgba(234, 246, 255, 0.8);
+  box-shadow: none;
   z-index: 1;
 }
 
@@ -1041,9 +1058,28 @@ onMounted(() => {
   white-space: nowrap;
   border: 0;
 }
+
+@media (max-width: 768px) {
+  .leaflet-map-stage {
+    min-height: calc(100svh - 2rem);
+    border-radius: 28px;
+  }
+
+  .leaflet-map-stage__map {
+    min-height: 520px;
+    border-radius: 22px;
+  }
+}
 </style>
 
 <style>
+.footprint-star-marker {
+  transform-origin: 50% 86%;
+  filter:
+    drop-shadow(0 12px 16px rgba(139, 111, 239, 0.2))
+    drop-shadow(0 3px 8px rgba(247, 90, 155, 0.24));
+}
+
 .pending-marker--recognizing {
   animation: leaflet-pending-pulse 1.1s ease-out infinite;
 }

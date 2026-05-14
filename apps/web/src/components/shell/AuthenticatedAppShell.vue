@@ -10,17 +10,17 @@ import ShellSidebar from './ShellSidebar.vue'
 
 <template>
   <SidebarProvider
-    class="min-h-svh items-stretch bg-cream-100"
+    class="h-svh min-h-0 items-stretch overflow-hidden bg-white"
     data-app-shell
-    style="--sidebar-width: 280px"
+    style="--sidebar-width: 260px"
   >
     <Sidebar
-      class="border-r border-[#e8ddf6] bg-white/82 backdrop-blur-xl"
+      class="z-20 h-svh overflow-visible border-r-0 bg-white shadow-none"
       collapsible="none"
     >
       <ShellSidebar />
     </Sidebar>
-    <SidebarInset class="min-w-0 bg-transparent p-6">
+    <SidebarInset class="min-h-0 min-w-0 overflow-hidden bg-transparent p-3 sm:p-4 md:h-svh md:p-6">
       <slot />
     </SidebarInset>
   </SidebarProvider>

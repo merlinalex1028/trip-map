@@ -765,6 +765,25 @@ describe('LeafletMapStage', () => {
   // -------------------------------------------------------------------------
 
   describe('illuminate actions', () => {
+    it('keeps the footprint date dialog closed until the popup CTA is used', async () => {
+      const mapPointsStore = useMapPointsStore()
+
+      mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
+      await nextTick()
+
+      expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).toBeNull()
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).toBeNull()
+    })
+
     it('opens the footprint date dialog from the unified popup CTA', async () => {
       const authSessionStore = useAuthSessionStore()
       const mapPointsStore = useMapPointsStore()

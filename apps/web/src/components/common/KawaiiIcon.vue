@@ -27,9 +27,10 @@ const entry = computed(() => semanticIconMap[props.name])
       <img
         :src="entry.src"
         :alt="decorative ? '' : label"
+        :aria-hidden="decorative ? 'true' : undefined"
         :width="size"
         :height="size"
-        style="display: block;"
+        style="display: block; width: 100%; height: 100%; object-fit: contain;"
       >
     </template>
     <template v-else>
