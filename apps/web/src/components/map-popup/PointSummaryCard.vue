@@ -161,6 +161,7 @@ const resultHeaderLabel = computed(() => {
 const illuminateHint = computed(() =>
   props.isIlluminatable ? null : '已识别到这个地点，但当前数据还不满足保存足迹的条件。',
 )
+const illuminateButtonLabel = computed(() => (props.isSaved ? '再留一枚足迹' : '留下足迹'))
 
 function getCandidateActionClass(item: CandidateListItem) {
   return [
@@ -288,14 +289,6 @@ function handleCandidateConfirm(candidate: GeoCityCandidate) {
           </p>
 
           <p
-            v-if="isSaved"
-            class="point-summary-card__saved-hint"
-            data-saved-footprint-hint="true"
-          >
-            这里已经留下过足迹
-          </p>
-
-          <p
             v-if="!isIlluminatable"
             class="point-summary-card__notice"
             data-footprint-unavailable-reason
@@ -313,12 +306,12 @@ function handleCandidateConfirm(candidate: GeoCityCandidate) {
         data-footprint-cta="true"
         data-kawaii-role="primary-cta"
         :disabled="isPending || !isIlluminatable"
-        :aria-label="illuminateHint ?? '留下足迹'"
+        :aria-label="illuminateHint ?? illuminateButtonLabel"
         :title="illuminateHint ?? undefined"
         type="button"
         @click="handleIlluminateToggle"
       >
-        留下足迹
+        {{ illuminateButtonLabel }}
       </button>
     </div>
 
@@ -544,8 +537,7 @@ function handleCandidateConfirm(candidate: GeoCityCandidate) {
   scrollbar-width: thin;
 }
 
-.point-summary-card__notice,
-.point-summary-card__saved-hint {
+.point-summary-card__notice {
   border: 1px solid rgba(232, 219, 247, 0.88);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.7);
@@ -554,11 +546,6 @@ function handleCandidateConfirm(candidate: GeoCityCandidate) {
   font-weight: 700;
   line-height: 1.45;
   padding: 9px 12px;
-}
-
-.point-summary-card__saved-hint {
-  border-color: rgba(177, 222, 232, 0.78);
-  background: rgba(235, 249, 253, 0.72);
 }
 
 .point-summary-card__candidate-list {
