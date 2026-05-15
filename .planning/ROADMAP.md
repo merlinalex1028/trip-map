@@ -126,7 +126,18 @@ Plans:
 3. 仍不具备 authoritative 保存条件的地点不会出现可提交的假入口，界面会解释不可用原因。
 4. 扩展后的地点在地图高亮、旅途手账、旅途回忆中的标题和归类一致。
 
-**Plans:** 0 plans yet
+**Plans:** 4 plans
+
+Plans:
+**Wave 0**
+- [ ] 45-01-PLAN.md — Build the server runtime breakpoint matrix and canonical resolve coverage assertions.
+- [ ] 45-02-PLAN.md — Add frontend footprint availability classification and popup friendly reason rendering.
+
+**Wave 1** *(blocked on Wave 0 completion)*
+- [ ] 45-03-PLAN.md — Wire availability through the real map popup, date-dialog guard, and manifest highlight checks.
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 45-04-PLAN.md — Close record API, bootstrap replay, journal, memories, and final Phase 45 verification gates.
 
 ---
 
