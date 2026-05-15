@@ -438,22 +438,25 @@ All claims in this research were verified against local code, local planning doc
 |---|-------|---------|---------------|
 | — | No assumed claims. | — | — |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should Phase 45 harden CN record validation to use the same metadata catalog as overseas?**  
    - What we know: `assertAuthoritativeOverseasRecord()` returns early for non-overseas payloads, so current CN payloads are DTO-validated but not catalog-verified at the same level. [VERIFIED: `apps/server/src/modules/records/records.service.ts`]  
    - What's unclear: The Phase 45 context prioritizes coverage expansion, not broader record API security hardening. [VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-CONTEXT.md`]  
    - Recommendation: Do not make CN hardening a Phase 45 prerequisite unless the coverage matrix finds a resolved CN sample that can be saved with mismatched identity. [VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-CONTEXT.md`]
+   - RESOLVED: Phase 45 will not harden CN record validation as a standalone task. The plans keep existing record validation intact and only escalate CN catalog hardening if the Phase 45 runtime matrix proves a concrete CN mismatch that blocks or corrupts save/highlight/replay behavior. [VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-01-PLAN.md`; VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-04-PLAN.md`]
 
 2. **Where should the shared Phase 45 matrix live?**  
    - What we know: Server already has `apps/server/test/phase28-overseas-cases.ts`, while web tests import fixtures from `@trip-map/contracts`. [VERIFIED: `apps/server/test/phase28-overseas-cases.ts`; VERIFIED: `apps/web/src/components/LeafletMapStage.spec.ts`]  
    - What's unclear: A matrix used by both apps may belong in `packages/contracts/src/fixtures.ts` or duplicated in app-specific tests. [VERIFIED: codebase grep]  
    - Recommendation: Start with app-local test matrices unless a sample must be shared across package boundaries, then promote only stable contract fixtures to `packages/contracts`. [VERIFIED: existing fixture layout]
+   - RESOLVED: Phase 45 starts with app-local matrices. Server coverage lives in `apps/server/test/phase45-coverage-cases.ts`; web availability coverage lives in `apps/web/src/services/footprint-availability.spec.ts` and related component specs. No `packages/contracts` fixture promotion is planned unless execution discovers a cross-package duplication that cannot be tested cleanly in app-local specs. [VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-01-PLAN.md`; VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-02-PLAN.md`; VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-PATTERNS.md`]
 
 3. **Can records e2e be relied on in the current environment?**  
    - What we know: `canonical-resolve.e2e-spec.ts` passed 25 tests locally, but `records-travel.e2e-spec.ts` failed in `beforeAll` with Prisma `Response from the Engine was empty` and hook timeout. [VERIFIED: command run 2026-05-15]  
    - What's unclear: Whether the failure is transient database connectivity, Prisma engine state, or environment-specific. [VERIFIED: command run 2026-05-15]  
    - Recommendation: Planner should include server records e2e as a required phase gate but keep a fast non-DB unit path for early feedback. [VERIFIED: `apps/server/src/modules/records/records.service.spec.ts`; VERIFIED: failed focused e2e run]
+   - RESOLVED: DB-backed records/auth-bootstrap e2e remains part of the Phase 45 gate, but execution must report Prisma/database environment failures separately from behavior failures. Fast non-DB feedback remains available through canonical resolve, frontend availability, popup, LeafletMapStage, timeline, and StatisticsPageView focused specs so implementation is not blocked on every task by a transient database engine issue. [VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-VALIDATION.md`; VERIFIED: `.planning/phases/45-map-authoritative-coverage-expansion/45-04-PLAN.md`]
 
 ## Environment Availability
 
