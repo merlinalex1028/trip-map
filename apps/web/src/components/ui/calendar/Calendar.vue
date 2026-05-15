@@ -98,12 +98,14 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
   >
     <CalendarHeader class="pt-0">
       <nav class="flex items-center gap-1 absolute top-0 inset-x-0 justify-between">
-        <CalendarPrevButton>
-          <slot name="calendar-prev-icon" />
+        <CalendarPrevButton v-if="$slots['calendar-prev-icon']">
+          <slot v-if="$slots['calendar-prev-icon']" name="calendar-prev-icon" />
         </CalendarPrevButton>
-        <CalendarNextButton>
-          <slot name="calendar-next-icon" />
+        <CalendarPrevButton v-else />
+        <CalendarNextButton v-if="$slots['calendar-next-icon']">
+          <slot v-if="$slots['calendar-next-icon']" name="calendar-next-icon" />
         </CalendarNextButton>
+        <CalendarNextButton v-else />
       </nav>
 
       <slot name="calendar-heading" :date="date" :month="ReuseMonthTemplate" :year="ReuseYearTemplate">

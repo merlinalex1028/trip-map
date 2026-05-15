@@ -9,9 +9,10 @@ import {
   parseDate,
   today,
 } from '@internationalized/date'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, shallowRef } from 'vue'
 
 import footprintDialogGirl from '@/assets/v8/characters/footprint-dialog-girl.webp'
+import arrivalDateIcon from '@/assets/v8/map-popup/arrival-date-icon.png'
 import logoCat from '@/assets/v8/mascots/logo-cat-outline.png'
 import KawaiiIcon from '@/components/common/KawaiiIcon.vue'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 defineOptions({
   name: 'FootprintDateDialog',
@@ -47,13 +54,12 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-type ShortcutKey = 'today' | 'tomorrow' | 'weekend' | 'custom'
+type ShortcutKey = 'today' | 'tomorrow' | 'weekend'
 
 const timeZone = getLocalTimeZone()
 const todayValue = today(timeZone)
 const selectedDate = shallowRef<CalendarDate | undefined>(todayValue)
-const selectedShortcut = ref<ShortcutKey>('today')
-const endDateInput = ref('')
+const selectedShortcut = shallowRef<ShortcutKey | null>('today')
 
 const failureMessage = '足迹暂时没有保存成功，请检查网络后重试。'
 
@@ -65,28 +71,8 @@ const dialogDescription = computed(() => {
   return `为 ${props.place.displayName} 记录这次旅行日期。`
 })
 
-const parsedEndDate = computed<CalendarDate | null>(() => {
-  if (!endDateInput.value) {
-    return null
-  }
-
-  try {
-    return parseDate(endDateInput.value)
-  } catch {
-    return null
-  }
-})
-
-const hasRangeError = computed(() => {
-  if (!selectedDate.value || !parsedEndDate.value) {
-    return false
-  }
-
-  return parsedEndDate.value.compare(selectedDate.value) < 0
-})
-
 const isSubmitDisabled = computed(() => {
-  return !props.place || !selectedDate.value || hasRangeError.value || props.isSubmitting
+  return !props.place || !selectedDate.value || props.isSubmitting
 })
 
 function setSelectedDate(date: CalendarDate, shortcut: ShortcutKey) {
@@ -113,15 +99,10 @@ function handleCancel() {
 
 function handleCalendarChange(value: DateValue | undefined) {
   selectedDate.value = value ? parseDate(value.toString()) : undefined
-  selectedShortcut.value = 'custom'
+  selectedShortcut.value = null
 }
 
 function handleShortcutClick(shortcut: ShortcutKey) {
-  if (shortcut === 'custom') {
-    selectedShortcut.value = 'custom'
-    return
-  }
-
   if (shortcut === 'today') {
     setSelectedDate(todayValue, 'today')
     return
@@ -143,7 +124,7 @@ function handleSubmit() {
 
   emit('submit', {
     startDate: selectedDate.value.toString(),
-    endDate: parsedEndDate.value?.toString() ?? null,
+    endDate: null,
   })
 }
 </script>
@@ -152,7 +133,7 @@ function handleSubmit() {
   <Dialog :open="open" @update:open="handleOpenChange">
     <DialogContent
       :show-close-button="false"
-      class="footprint-date-dialog max-h-[calc(100dvh_-_48px)] w-[min(1120px,calc(100vw_-_48px))] max-w-[1120px] overflow-hidden border-[#f0d6e7] bg-[linear-gradient(180deg,rgba(255,251,254,0.99),rgba(255,247,252,0.98))] p-0 shadow-[0_34px_86px_rgba(108,79,156,0.2)]"
+      class="footprint-date-dialog max-h-[calc(100dvh_-_40px)] w-[min(1120px,calc(100vw_-_40px))] max-w-[calc(100vw_-_40px)] overflow-visible border-[#f0d6e7] bg-[linear-gradient(180deg,rgba(255,251,254,0.99),rgba(255,247,252,0.98))] p-0 shadow-[0_34px_86px_rgba(108,79,156,0.2)] sm:max-w-[calc(100vw_-_40px)] xl:max-w-[1120px]"
       @close-auto-focus.prevent
     >
       <div
@@ -189,12 +170,28 @@ function handleSubmit() {
 
           <div class="footprint-date-dialog__place-copy">
             <div class="footprint-date-dialog__place-title-row">
-              <h2
-                class="footprint-date-dialog__place-title"
-                data-footprint-place-name
-              >
-                {{ place?.displayName ?? '未选择地点' }}
-              </h2>
+              <TooltipProvider :delay-duration="120">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <h2
+                      class="footprint-date-dialog__place-title"
+                      data-footprint-place-name
+                      tabindex="-1"
+                    >
+                      {{ place?.displayName ?? '未选择地点' }}
+                    </h2>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    :side-offset="8"
+                    hide-arrow
+                    class="footprint-date-dialog__place-tooltip"
+                  >
+                    {{ place?.displayName ?? '未选择地点' }}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <span
                 class="footprint-date-dialog__type-pill"
                 data-place-type-label="true"
@@ -210,11 +207,6 @@ function handleSubmit() {
             </p>
           </div>
 
-          <p class="footprint-date-dialog__speech">
-            <span aria-hidden="true">✦</span>
-            每一次抵达，都是与世界的温柔相遇
-          </p>
-
           <div class="footprint-date-dialog__visual" aria-hidden="true">
             <img
               :src="footprintDialogGirl"
@@ -225,12 +217,11 @@ function handleSubmit() {
 
         <section class="footprint-date-dialog__date-pane">
           <div class="footprint-date-dialog__date-title">
-            <KawaiiIcon
-              label="日期"
-              name="calendar"
-              :decorative="false"
-              :size="32"
-            />
+            <img
+              :src="arrivalDateIcon"
+              alt=""
+              aria-hidden="true"
+            >
             <span>选择到达日期</span>
           </div>
 
@@ -275,43 +266,10 @@ function handleSubmit() {
                 />
                 {{ shortcut.label }}
               </Button>
-
-              <span class="footprint-date-dialog__quick-divider" aria-hidden="true"></span>
-
-              <label
-                class="footprint-date-dialog__shortcut footprint-date-dialog__custom-date"
-                :aria-pressed="selectedShortcut === 'custom'"
-                data-footprint-shortcut="custom"
-                @click="handleShortcutClick('custom')"
-              >
-                <span>选择其他日期</span>
-                <KawaiiIcon
-                  label="选择旅行结束日期"
-                  name="calendar"
-                  :decorative="true"
-                  :size="17"
-                />
-                <input
-                  v-model="endDateInput"
-                  type="date"
-                  :min="selectedDate?.toString() || undefined"
-                  aria-label="选择旅行结束日期（可选）"
-                  data-footprint-end-date="true"
-                >
-              </label>
             </div>
           </div>
 
           <div class="footprint-date-dialog__feedback" aria-live="polite">
-            <p
-              v-if="hasRangeError"
-              class="footprint-date-dialog__error"
-              data-footprint-range-error="true"
-              role="alert"
-            >
-              结束日期不能早于开始日期。
-            </p>
-
             <p
               v-if="errorMessage"
               class="footprint-date-dialog__error"
@@ -348,12 +306,6 @@ function handleSubmit() {
             </Button>
           </div>
         </section>
-
-        <p class="footprint-date-dialog__footnote">
-          <span aria-hidden="true">☆</span>
-          足迹会记录在你的旅行时间轴中
-          <span aria-hidden="true">☆</span>
-        </p>
       </div>
     </DialogContent>
   </Dialog>
@@ -363,11 +315,12 @@ function handleSubmit() {
 .footprint-date-dialog__surface {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(300px, 0.8fr) minmax(520px, 1.35fr);
-  column-gap: 28px;
-  max-height: calc(100dvh - 48px);
-  overflow: hidden;
-  padding: 42px 42px 58px;
+  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+  column-gap: 18px;
+  max-height: calc(100dvh - 40px);
+  border-radius: 32px;
+  overflow: visible;
+  padding: 34px 34px 46px;
   color: #2f1d72;
 }
 
@@ -380,6 +333,7 @@ function handleSubmit() {
 
 .footprint-date-dialog__surface::before {
   inset: 0;
+  border-radius: inherit;
   background:
     radial-gradient(circle at 25% 8%, rgba(255, 199, 137, 0.22), transparent 10%),
     radial-gradient(circle at 64% 8%, rgba(255, 155, 192, 0.22), transparent 10%),
@@ -431,20 +385,22 @@ function handleSubmit() {
 }
 
 .footprint-date-dialog__place-pane,
-.footprint-date-dialog__date-pane,
-.footprint-date-dialog__footnote {
+.footprint-date-dialog__date-pane {
   position: relative;
   z-index: 1;
+  min-width: 0;
 }
 
 .footprint-date-dialog__place-pane {
   display: flex;
   min-height: 640px;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .footprint-date-dialog__header {
+  position: relative;
+  z-index: 1;
   display: block;
   text-align: left;
 }
@@ -454,6 +410,7 @@ function handleSubmit() {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .footprint-date-dialog__brand-row img {
@@ -476,32 +433,60 @@ function handleSubmit() {
   padding-right: 56px;
 }
 
-.footprint-date-dialog__date-title [data-kawaii-icon] {
-  color: #c199f3;
+.footprint-date-dialog__date-title img {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
 .footprint-date-dialog__place-copy {
+  position: relative;
+  z-index: 1;
   padding-top: 54px;
 }
 
 .footprint-date-dialog__place-title-row {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 16px;
+  min-width: 0;
+}
+
+.footprint-date-dialog__place-title-row [data-slot='tooltip-trigger'] {
+  min-width: 0;
 }
 
 .footprint-date-dialog__place-title {
   margin: 0;
+  max-width: 100%;
   color: #2f1d72;
+  min-width: 0;
   font-size: 50px;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1.08;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footprint-date-dialog__place-tooltip {
+  border: 1px solid #efd3f4;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 28px rgba(108, 79, 156, 0.14);
+  color: #2f1d72;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.2;
+  max-width: 360px;
+  padding: 10px 16px;
 }
 
 .footprint-date-dialog__type-pill {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   border: 1px solid #e6d9fb;
@@ -522,50 +507,20 @@ function handleSubmit() {
   line-height: 1.5;
 }
 
-.footprint-date-dialog__speech {
-  position: relative;
-  width: min(100%, 275px);
-  margin: 32px 0 0 0;
-  border: 1px solid rgba(246, 199, 221, 0.74);
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.52);
-  box-shadow: 0 18px 38px rgba(247, 90, 155, 0.06);
-  color: #8a77cc;
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.55;
-  padding: 20px 24px;
-}
-
-.footprint-date-dialog__speech::after {
-  content: '';
-  position: absolute;
-  left: 44px;
-  bottom: -15px;
-  width: 28px;
-  height: 28px;
-  border-right: 1px solid rgba(246, 199, 221, 0.74);
-  border-bottom: 1px solid rgba(246, 199, 221, 0.74);
-  background: rgba(255, 255, 255, 0.52);
-  transform: rotate(45deg);
-}
-
-.footprint-date-dialog__speech span {
-  color: #ffc28a;
-  margin-right: 10px;
-}
-
 .footprint-date-dialog__visual {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: hidden;
-  margin: 18px -36px -64px -60px;
+  position: absolute;
+  z-index: 0;
+  left: -58px;
+  bottom: -54px;
+  width: min(366px, calc(100% + 88px));
+  overflow: visible;
+  pointer-events: none;
 }
 
 .footprint-date-dialog__visual img {
-  width: min(455px, 118%);
+  display: block;
+  width: 100%;
   max-width: none;
-  transform: translate(-8px, 10px);
   filter: drop-shadow(0 24px 32px rgba(143, 120, 189, 0.13));
 }
 
@@ -574,9 +529,11 @@ function handleSubmit() {
   grid-template-rows: auto minmax(0, 1fr) auto minmax(22px, auto) auto;
   min-height: 640px;
   gap: 22px;
+  min-width: 0;
 }
 
 .footprint-date-dialog__calendar-shell {
+  min-width: 0;
   min-height: 0;
   border: 1px solid rgba(232, 217, 247, 0.92);
   border-radius: 30px;
@@ -593,6 +550,7 @@ function handleSubmit() {
 .footprint-date-dialog__quick-row {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .footprint-date-dialog__quick-label {
@@ -608,6 +566,7 @@ function handleSubmit() {
   flex-wrap: wrap;
   align-items: center;
   gap: 14px;
+  min-width: 0;
 }
 
 .footprint-date-dialog__shortcut {
@@ -643,24 +602,6 @@ function handleSubmit() {
   transform: translateY(-1px);
 }
 
-.footprint-date-dialog__quick-divider {
-  width: 1px;
-  height: 34px;
-  background: #eadcf4;
-}
-
-.footprint-date-dialog__custom-date {
-  min-width: 208px;
-  overflow: hidden;
-}
-
-.footprint-date-dialog__custom-date input {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  opacity: 0;
-}
-
 .footprint-date-dialog__feedback {
   min-height: 22px;
 }
@@ -679,13 +620,17 @@ function handleSubmit() {
 
 .footprint-date-dialog__actions {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) minmax(260px, 1.35fr);
+  grid-template-columns: minmax(150px, 0.82fr) minmax(220px, 1.18fr);
   gap: 22px;
+  min-width: 0;
   padding-top: 2px;
 }
 
 .footprint-date-dialog__cancel,
 .footprint-date-dialog__submit {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
   min-height: 76px;
   border-radius: 999px;
   font-size: 26px;
@@ -712,26 +657,6 @@ function handleSubmit() {
   font-size: 32px;
 }
 
-.footprint-date-dialog__footnote {
-  position: absolute;
-  left: 50%;
-  bottom: 18px;
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin: 0;
-  color: #a48ddd;
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1;
-  transform: translateX(-50%);
-  white-space: nowrap;
-}
-
-.footprint-date-dialog__footnote span {
-  color: #b99bf0;
-}
-
 .footprint-date-dialog :deep([data-slot='calendar']) {
   display: grid;
   height: 100%;
@@ -756,7 +681,43 @@ function handleSubmit() {
 
 .footprint-date-dialog :deep([data-slot='calendar-prev-button']),
 .footprint-date-dialog :deep([data-slot='calendar-next-button']) {
-  color: #a98adf;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #7d62bd;
+  opacity: 1;
+}
+
+.footprint-date-dialog :deep([data-slot='calendar-prev-button'])::before,
+.footprint-date-dialog :deep([data-slot='calendar-next-button'])::before {
+  content: '';
+  display: block;
+  width: 11px;
+  height: 11px;
+  border-color: currentColor;
+  border-style: solid;
+  opacity: 1;
+}
+
+.footprint-date-dialog :deep([data-slot='calendar-prev-button'])::before {
+  margin-left: 4px;
+  border-width: 0 0 3px 3px;
+  transform: rotate(45deg);
+}
+
+.footprint-date-dialog :deep([data-slot='calendar-next-button'])::before {
+  margin-right: 4px;
+  border-width: 0 3px 3px 0;
+  transform: rotate(-45deg);
+}
+
+.footprint-date-dialog :deep([data-slot='calendar-prev-button'] svg),
+.footprint-date-dialog :deep([data-slot='calendar-next-button'] svg) {
+  width: 22px;
+  height: 22px;
+  color: #7d62bd;
+  opacity: 1;
+  stroke-width: 2.5;
 }
 
 .footprint-date-dialog :deep([data-slot='calendar-grid']) {
@@ -808,12 +769,13 @@ function handleSubmit() {
   color: #c9bed9;
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 1180px) {
   .footprint-date-dialog__surface {
     grid-template-columns: 1fr;
-    max-height: calc(100dvh - 48px);
-    overflow: auto;
-    padding: 32px 24px 72px;
+    max-height: calc(100dvh - 40px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 28px 20px 56px;
   }
 
   .footprint-date-dialog__place-pane,
@@ -832,7 +794,7 @@ function handleSubmit() {
 
 @media (max-width: 720px) {
   .footprint-date-dialog__surface {
-    padding-inline: 18px;
+    padding-inline: 16px;
   }
 
   .footprint-date-dialog__place-title {

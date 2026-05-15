@@ -2,7 +2,6 @@
 import type { CalendarNextProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { ChevronRightIcon } from '@radix-icons/vue'
 import { CalendarNext, useForwardProps } from "reka-ui"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from '@/components/ui/button'
@@ -25,7 +24,11 @@ const forwardedProps = useForwardProps(delegatedProps)
     v-bind="forwardedProps"
   >
     <slot>
-      <ChevronRightIcon class="size-4" />
+      <span
+        class="pointer-events-none text-2xl font-black leading-none text-current"
+        aria-hidden="true"
+      >&rsaquo;</span>
+      <span class="sr-only">下个月</span>
     </slot>
   </CalendarNext>
 </template>
