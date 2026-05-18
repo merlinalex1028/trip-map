@@ -251,6 +251,57 @@ describe('StatisticsPageView', () => {
     )
   })
 
+  it('refreshes memories when Phase 45 canonical grouping fields change', async () => {
+    fetchStatsMock
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      })
+      .mockResolvedValueOnce({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedCountries: 2,
+        totalSupportedCountries: 21,
+      })
+
+    const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+      id: 'phase45-memories-record',
+      createdAt: '2025-10-01T00:00:00.000Z',
+    })
+    const refreshedRecord = {
+      ...baseRecord,
+      parentLabel: 'Canada',
+      displayName: 'British Columbia',
+      typeLabel: 'Province',
+      subtitle: 'Canada · Province',
+    }
+
+    const { mapPointsStore, wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([baseRecord])
+    })
+
+    await flushPromises()
+    await nextTick()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+    expect(wrapper.get('[data-state="populated"]').text()).toContain('旅途回忆概览')
+
+    mapPointsStore.replaceTravelRecords([refreshedRecord])
+    await nextTick()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+
+    await flushPromises()
+    await nextTick()
+
+    const populatedText = wrapper.get('[data-state="populated"]').text()
+    expect(populatedText).toContain('1 次旅行 · 1 个地点 · 2 个国家/地区')
+    expect(populatedText).toContain('当前支持覆盖 21 个国家/地区。')
+    expect(populatedText).not.toContain('这里暂时只能用于查看位置，还不能留下足迹。')
+  })
+
   it('queues one follow-up refresh for in-flight metadata-only authoritative updates', async () => {
     let resolveFirst!: (value: {
       totalTrips: number

@@ -191,4 +191,22 @@ describe('buildTimelineEntries', () => {
       }),
     ])
   })
+
+  it('preserves Phase 45 canonical labels in journal-derived entries', () => {
+    const record = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+      id: 'phase45-journal-record',
+      startDate: '2025-10-01',
+      createdAt: '2025-10-02T00:00:00.000Z',
+    })
+
+    const [entry] = buildTimelineEntries([record])
+
+    expect(entry).toMatchObject({
+      recordId: 'phase45-journal-record',
+      displayName: record.displayName,
+      typeLabel: record.typeLabel,
+      parentLabel: record.parentLabel,
+      subtitle: record.subtitle,
+    })
+  })
 })
