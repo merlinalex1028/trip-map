@@ -49,10 +49,10 @@
 
 ### Coverage Expansion
 
-- [ ] **COV-01**: 开发者可以识别当前“server 已识别但前端不可留下足迹”的地点类别和原因。
-- [ ] **COV-02**: 当前 canonical resolve 能返回完整 canonical identity 的地点应尽量拥有可保存所需的 boundaryId / geometry / metadata。
-- [ ] **COV-03**: 对仍不具备 authoritative 保存条件的地点，界面解释原因并避免展示可提交的“留下足迹”假入口。
-- [ ] **COV-04**: 扩展后的可用地点在地图高亮、旅途手账、旅途回忆统计中的标题和归类保持一致。
+- [x] **COV-01**: 开发者可以识别当前“server 已识别但前端不可留下足迹”的地点类别和原因。
+- [x] **COV-02**: 当前 canonical resolve 能返回完整 canonical identity 的地点应尽量拥有可保存所需的 boundaryId / geometry / metadata。
+- [x] **COV-03**: 对仍不具备 authoritative 保存条件的地点，界面解释原因并避免展示可提交的“留下足迹”假入口。
+- [x] **COV-04**: 扩展后的可用地点在地图高亮、旅途手账、旅途回忆统计中的标题和归类保持一致。
 
 ### Travel Journal
 
@@ -142,10 +142,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DATE-04 | Phase 44 | Pending |
 | DATE-05 | Phase 44 | Complete |
 | DATE-06 | Phase 44 | Complete |
-| COV-01 | Phase 45 | Pending |
-| COV-02 | Phase 45 | Pending |
-| COV-03 | Phase 45 | Pending |
-| COV-04 | Phase 45 | Pending |
+| COV-01 | Phase 45 | Complete |
+| COV-02 | Phase 45 | Complete |
+| COV-03 | Phase 45 | Complete |
+| COV-04 | Phase 45 | Complete |
 | JOURNAL-01 | Phase 46 | Pending |
 | JOURNAL-02 | Phase 46 | Pending |
 | JOURNAL-03 | Phase 46 | Pending |

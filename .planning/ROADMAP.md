@@ -254,7 +254,7 @@ Plans:
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
-| 45. 可用地点覆盖扩展 | 4/4 | Complete   | 2026-05-18 |
+| 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
