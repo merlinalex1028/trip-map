@@ -1,11 +1,21 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { GEOMETRY_MANIFEST } from '@trip-map/contracts'
+import type { CanonicalResolveResponse } from '@trip-map/contracts'
 import type { NestFastifyApplication } from '@nestjs/platform-fastify'
 
 import { createApp } from '../src/main.js'
 import {
+  getCanonicalPlaceSummaryByBoundaryId,
+  getCanonicalPlaceSummaryById,
+} from '../src/modules/canonical-places/place-metadata-catalog.js'
+import {
   PHASE28_IDENTITY_COLLISION_CASES,
   PHASE28_NEW_COUNTRY_CASES,
 } from './phase28-overseas-cases.ts'
+import {
+  getPhase45CoverageSummary,
+  PHASE45_RESOLVE_COVERAGE_CASES,
+} from './phase45-coverage-cases.ts'
 
 const CANONICAL_DATASET_VERSION = 'canonical-authoritative-2026-04-21'
 
@@ -350,6 +360,92 @@ describe('POST /places canonical resolve', () => {
         },
       })
     }
+  })
+
+  describe('Phase 45 runtime coverage breakpoints', () => {
+    const resolvedCoverageCases = PHASE45_RESOLVE_COVERAGE_CASES.filter(
+      phase45Case => phase45Case.expectedStatus === 'resolved',
+    )
+    const failedCoverageCases = PHASE45_RESOLVE_COVERAGE_CASES.filter(
+      phase45Case => phase45Case.expectedStatus === 'failed',
+    )
+
+    for (const phase45Case of resolvedCoverageCases) {
+      it(`resolves ${phase45Case.id} with manifest and metadata catalog coverage`, async () => {
+        const assertionMessage = `${phase45Case.id} ${phase45Case.expectedBlockingReason}`
+        const response = await app.inject({
+          method: 'POST',
+          url: '/places/resolve',
+          payload: {
+            lat: phase45Case.lat,
+            lng: phase45Case.lng,
+          },
+        })
+        const responseJson = response.json() as CanonicalResolveResponse
+
+        expect(response.statusCode, assertionMessage).toBe(201)
+        if (responseJson.status !== 'resolved') {
+          throw new Error(`${assertionMessage} expected resolved response, received ${responseJson.status}.`)
+        }
+
+        const { place } = responseJson
+        const manifestEntry = GEOMETRY_MANIFEST.find(entry => entry.boundaryId === phase45Case.expectedBoundaryId)
+        const placeSummary = getCanonicalPlaceSummaryById(place.placeId)
+        const boundarySummary = getCanonicalPlaceSummaryByBoundaryId(place.boundaryId)
+
+        expect(place.placeId, assertionMessage).toBe(phase45Case.expectedPlaceId)
+        expect(place.boundaryId, assertionMessage).toBe(phase45Case.expectedBoundaryId)
+        expect(place.datasetVersion, assertionMessage).toBe(CANONICAL_DATASET_VERSION)
+        expect(place.typeLabel, assertionMessage).toBe(phase45Case.expectedTypeLabel)
+        expect(place.parentLabel, assertionMessage).toBe(phase45Case.expectedParentLabel)
+        expect(place.geometryRef.boundaryId, assertionMessage).toBe(phase45Case.expectedBoundaryId)
+        expect(place.geometryRef.geometryDatasetVersion, assertionMessage).toBe('2026-04-21-geo-v3')
+        expect(manifestEntry, assertionMessage).toBeTruthy()
+        expect(placeSummary, assertionMessage).toBeTruthy()
+        expect(boundarySummary, assertionMessage).toBeTruthy()
+
+        if (!manifestEntry || !placeSummary || !boundarySummary) {
+          throw new Error(`${assertionMessage} missing geometry manifest or metadata catalog entry.`)
+        }
+
+        expect(manifestEntry.boundaryId, assertionMessage).toBe(place.geometryRef.boundaryId)
+        expect(manifestEntry.geometryDatasetVersion, assertionMessage).toBe('2026-04-21-geo-v3')
+        expect(placeSummary.placeId, assertionMessage).toBe(boundarySummary.placeId)
+        expect(boundarySummary.placeId, assertionMessage).toBe(place.placeId)
+      })
+    }
+
+    for (const phase45Case of failedCoverageCases) {
+      it(`keeps ${phase45Case.id} explanatory-only without a place payload`, async () => {
+        const assertionMessage = `${phase45Case.id} ${phase45Case.expectedBlockingReason}`
+        const response = await app.inject({
+          method: 'POST',
+          url: '/places/resolve',
+          payload: {
+            lat: phase45Case.lat,
+            lng: phase45Case.lng,
+          },
+        })
+        const responseJson = response.json() as CanonicalResolveResponse
+
+        expect(response.statusCode, assertionMessage).toBe(201)
+        if (responseJson.status !== 'failed') {
+          throw new Error(`${assertionMessage} expected failed response, received ${responseJson.status}.`)
+        }
+
+        expect(responseJson.reason, assertionMessage).toBe(phase45Case.expectedFailedReason)
+        expect(responseJson, assertionMessage).not.toHaveProperty('place')
+      })
+    }
+
+    it('reports Phase 45 coverage counts by blocking reason and breakpoint', () => {
+      const summary = getPhase45CoverageSummary()
+
+      expect(summary.byBlockingReason.saveable).toBeGreaterThanOrEqual(2)
+      expect(summary.byBlockingReason.fallback_explanatory_only).toBeGreaterThanOrEqual(1)
+      expect(summary.byCategory.outside_supported_map).toBeGreaterThanOrEqual(1)
+      expect(summary.byBreakpoint.canonical_resolve).toBeGreaterThanOrEqual(3)
+    })
   })
 
   it('rejects filtered AU noise clicks outside the supported admin1 catalog', async () => {
