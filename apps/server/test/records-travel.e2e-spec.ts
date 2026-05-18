@@ -10,6 +10,7 @@ import {
   PHASE28_IDENTITY_COLLISION_CASES,
   PHASE28_NEW_COUNTRY_CASES,
 } from './phase28-overseas-cases.ts'
+import { PHASE45_RECORD_API_COVERAGE_CASES } from './phase45-coverage-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -111,6 +112,41 @@ function createAuthoritativeOverseasRecord(
     parentLabel: canonicalSummary.parentLabel,
     subtitle: canonicalSummary.subtitle,
     ...overrides,
+  }
+}
+
+function getPhase45RecordCase(id: string) {
+  const phase45Case = PHASE45_RECORD_API_COVERAGE_CASES.find(coverageCase => coverageCase.id === id)
+
+  if (!phase45Case) {
+    throw new Error(`Missing Phase45 record API coverage case ${id}.`)
+  }
+
+  return phase45Case
+}
+
+function createPhase45RecordPayload(phase45Case: ReturnType<typeof getPhase45RecordCase>) {
+  if (!phase45Case.expectedPlaceId) {
+    throw new Error(`Phase45 record API coverage case ${phase45Case.id} is missing expectedPlaceId.`)
+  }
+
+  const canonicalSummary = getCanonicalPlaceSummaryById(phase45Case.expectedPlaceId)
+
+  if (!canonicalSummary) {
+    throw new Error(`Missing canonical summary for Phase45 case ${phase45Case.id}.`)
+  }
+
+  return {
+    placeId: canonicalSummary.placeId,
+    boundaryId: canonicalSummary.boundaryId,
+    placeKind: canonicalSummary.placeKind,
+    datasetVersion: canonicalSummary.datasetVersion,
+    displayName: canonicalSummary.displayName,
+    regionSystem: canonicalSummary.regionSystem,
+    adminType: canonicalSummary.adminType,
+    typeLabel: canonicalSummary.typeLabel,
+    parentLabel: canonicalSummary.parentLabel,
+    subtitle: canonicalSummary.subtitle,
   }
 }
 
@@ -400,6 +436,75 @@ describe('Current-user travel records API', () => {
     expect(response.json()).toMatchObject({
       message: 'Overseas travel record metadata must match authoritative catalog: typeLabel, subtitle.',
     })
+  })
+
+  it('POST /records saves Phase 45 complete canonical identity samples', async () => {
+    const saveableCases = [
+      getPhase45RecordCase('record_us_california_authoritative_saveable'),
+      getPhase45RecordCase('record_ca_british_columbia_authoritative_saveable'),
+    ]
+
+    for (const phase45Case of saveableCases) {
+      const payload = createPhase45RecordPayload(phase45Case)
+      const response = await app.inject({
+        method: 'POST',
+        url: '/records',
+        headers: {
+          cookie: sidCookie,
+        },
+        payload,
+      })
+
+      expect(response.statusCode, phase45Case.id).toBe(201)
+      expect(response.json()).toMatchObject({
+        placeId: payload.placeId,
+        boundaryId: payload.boundaryId,
+        datasetVersion: payload.datasetVersion,
+        displayName: payload.displayName,
+        typeLabel: payload.typeLabel,
+        parentLabel: payload.parentLabel,
+        subtitle: payload.subtitle,
+      })
+    }
+  })
+
+  it('POST /records rejects Phase 45 authoritative breakpoints with exact reasons', async () => {
+    const rejectedJaliscoCase = getPhase45RecordCase('record_mx_jalisco_authoritative_rejected')
+    const rejectedJaliscoResponse = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: {
+        ...unsupportedOverseasRecord,
+        placeId: rejectedJaliscoCase.expectedPlaceId,
+        boundaryId: rejectedJaliscoCase.expectedBoundaryId,
+      },
+    })
+
+    expect(rejectedJaliscoResponse.statusCode, rejectedJaliscoCase.id).toBe(400)
+    expect(rejectedJaliscoResponse.json()).toMatchObject({
+      message: 'Overseas travel record is outside the current authoritative overseas support catalog.',
+    })
+
+    const forgedCaliforniaCase = getPhase45RecordCase('record_us_california_forged_metadata_rejected')
+    const forgedCaliforniaResponse = await app.inject({
+      method: 'POST',
+      url: '/records',
+      headers: {
+        cookie: sidCookie,
+      },
+      payload: {
+        ...createPhase45RecordPayload(forgedCaliforniaCase),
+        displayName: 'Forged California',
+      },
+    })
+
+    expect(forgedCaliforniaResponse.statusCode, forgedCaliforniaCase.id).toBe(400)
+    expect(forgedCaliforniaResponse.json().message).toContain(
+      'Overseas travel record metadata must match authoritative catalog: displayName.',
+    )
   })
 
   it('POST /records persists distinct authoritative records for every Phase 28 identity collision case', async () => {

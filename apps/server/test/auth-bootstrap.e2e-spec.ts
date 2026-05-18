@@ -78,6 +78,7 @@ import {
   PHASE28_LEGACY_OVERSEAS_USER_TRAVEL_ROWS,
   PHASE28_NEW_COUNTRY_CASES,
 } from './phase28-overseas-cases.ts'
+import { PHASE45_RECORD_API_COVERAGE_CASES } from './phase45-coverage-cases.ts'
 
 try {
   process.loadEnvFile(fileURLToPath(new URL('../.env', import.meta.url)))
@@ -170,6 +171,16 @@ function createAuthoritativeOverseasRecord(placeId: string) {
     parentLabel: canonicalSummary.parentLabel,
     subtitle: canonicalSummary.subtitle,
   }
+}
+
+function getPhase45RecordCase(id: string) {
+  const phase45Case = PHASE45_RECORD_API_COVERAGE_CASES.find(coverageCase => coverageCase.id === id)
+
+  if (!phase45Case?.expectedPlaceId) {
+    throw new Error(`Missing Phase45 record API coverage case ${id}.`)
+  }
+
+  return phase45Case
 }
 
 describe('Auth bootstrap API', () => {
@@ -475,6 +486,67 @@ describe('Auth bootstrap API', () => {
         record.subtitle.includes('一级行政区') || record.typeLabel.includes('一级行政区')
       ),
     ).toBe(false)
+  })
+
+  it('GET /auth/bootstrap replays Phase 45 fixed coverage labels without recomputing fallback text', async () => {
+    const payload = createRegisterPayload('phase45-fixed-coverage')
+    const registerResponse = await app.inject({
+      method: 'POST',
+      url: '/auth/register',
+      payload,
+    })
+
+    expect(registerResponse.statusCode).toBe(201)
+    const sidCookie = extractSidCookie(readSetCookie(registerResponse))
+    expect(sidCookie).toBeTruthy()
+
+    const user = await prisma.user.findUnique({
+      where: { email: payload.email },
+    })
+
+    expect(user).toBeTruthy()
+
+    const saveableCases = [
+      getPhase45RecordCase('record_us_california_authoritative_saveable'),
+      getPhase45RecordCase('record_ca_british_columbia_authoritative_saveable'),
+    ]
+
+    await prisma.userTravelRecord.createMany({
+      data: saveableCases.map(phase45Case => ({
+        userId: user!.id,
+        ...createAuthoritativeOverseasRecord(phase45Case.expectedPlaceId),
+      })),
+    })
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/auth/bootstrap',
+      headers: {
+        cookie: sidCookie!,
+      },
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.json().authenticated).toBe(true)
+
+    for (const phase45Case of saveableCases) {
+      const canonicalSummary = getCanonicalPlaceSummaryById(phase45Case.expectedPlaceId)
+
+      expect(canonicalSummary).toBeTruthy()
+      expect(response.json().records).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            placeId: canonicalSummary!.placeId,
+            boundaryId: canonicalSummary!.boundaryId,
+            datasetVersion: canonicalSummary!.datasetVersion,
+            displayName: canonicalSummary!.displayName,
+            typeLabel: canonicalSummary!.typeLabel,
+            parentLabel: canonicalSummary!.parentLabel,
+            subtitle: canonicalSummary!.subtitle,
+          }),
+        ]),
+      )
+    }
   })
 
   it('GET /auth/bootstrap clear invalid sid cookie and returns authenticated: false for expired or missing session', async () => {
