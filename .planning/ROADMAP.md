@@ -25,7 +25,7 @@
 - [x] **Phase 42: UI Primitives 与 Yume Kawaii Theme Bridge** — 引入 shadcn-vue、ECharts/Iconify 等依赖，并建立可复用的 Soft Pastel Glassmorphism 组件与 token 基线 (completed 2026-05-11)
 - [x] **Phase 43: Landing、登录门禁与应用壳** — 新增未登录落地页、全应用登录守卫、登录后左侧导航壳和全局文案替换 (completed 2026-05-12)
 - [x] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈 (completed 2026-05-13)
-- [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18)
+- [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18, UAT passed)
 - [ ] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口
 - [ ] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区
 - [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面/移动、地图、图表、弹窗、动效和现有回归测试做收口验证
