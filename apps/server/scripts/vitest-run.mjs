@@ -103,6 +103,7 @@ async function isDatabaseReachable() {
 
 const hasExplicitTestSelection = normalizedArgs.some(arg => !arg.startsWith('-'))
 const vitestArgs = ['run', ...normalizedArgs]
+const transientDatabaseErrorPattern = /P1001|PrismaClientInitializationError|Can't reach database server/
 
 if (!hasExplicitTestSelection && !(await isDatabaseReachable())) {
   const runnableTests = listE2eTests(testRoot).filter(testFile => !dbRequiredTests.has(testFile))
@@ -114,15 +115,48 @@ if (!hasExplicitTestSelection && !(await isDatabaseReachable())) {
   vitestArgs.push(...runnableTests)
 }
 
-const child = spawn(process.execPath, [vitestCliPath, ...vitestArgs], {
-  stdio: 'inherit',
-})
+async function runVitestOnce() {
+  return await new Promise((resolveRun) => {
+    let output = ''
+    const child = spawn(process.execPath, [vitestCliPath, ...vitestArgs], {
+      stdio: ['inherit', 'pipe', 'pipe'],
+    })
 
-child.on('exit', (code, signal) => {
-  if (signal) {
-    process.kill(process.pid, signal)
-    return
+    const capture = (chunk, target) => {
+      output += chunk.toString()
+      target.write(chunk)
+    }
+
+    child.stdout.on('data', chunk => capture(chunk, process.stdout))
+    child.stderr.on('data', chunk => capture(chunk, process.stderr))
+
+    child.on('exit', (code, signal) => {
+      resolveRun({ code: code ?? 0, output, signal })
+    })
+  })
+}
+
+const firstRun = await runVitestOnce()
+
+if (firstRun.signal) {
+  process.kill(process.pid, firstRun.signal)
+}
+
+if (
+  firstRun.code !== 0
+  && !hasExplicitTestSelection
+  && transientDatabaseErrorPattern.test(firstRun.output)
+) {
+  console.warn('[server:test] Detected transient database connectivity failure; retrying full server suite once.')
+  await new Promise(resolveRetry => setTimeout(resolveRetry, 2000))
+
+  const retryRun = await runVitestOnce()
+
+  if (retryRun.signal) {
+    process.kill(process.pid, retryRun.signal)
   }
 
-  process.exit(code ?? 0)
-})
+  process.exit(retryRun.code)
+}
+
+process.exit(firstRun.code)
