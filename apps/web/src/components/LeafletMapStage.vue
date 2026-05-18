@@ -20,6 +20,7 @@ import {
   getGeometryManifestEntry,
   listGeometryManifestEntriesByLayer,
 } from '../services/geometry-manifest'
+import { getFootprintAvailability } from '../services/footprint-availability'
 import { lookupCountryRegionByCoordinates, prefetchCountryRegions } from '../services/geo-lookup'
 import { formatCoordinatesLabel } from '../services/map-projection'
 import { useMapPointsStore } from '../stores/map-points'
@@ -510,22 +511,23 @@ const activePointLatestTripLabel = computed<string | null>(() => {
   return latest.endDate ? `${latest.startDate} - ${latest.endDate}` : latest.startDate
 })
 
-const isActivePointIlluminatable = computed(() => {
-  const surface = summarySurfaceState.value
+const activeFootprintAvailability = computed(() =>
+  getFootprintAvailability(summarySurfaceState.value),
+)
 
-  if (!surface || surface.mode === 'candidate-select') {
-    return false
-  }
+const isActivePointIlluminatable = computed(() => activeFootprintAvailability.value.saveable)
 
-  const point = surface.point
+const activeFootprintUnavailableCategory = computed(() =>
+  activeFootprintAvailability.value.saveable
+    ? null
+    : activeFootprintAvailability.value.category,
+)
 
-  return Boolean(
-    point.placeId &&
-    point.placeKind &&
-    point.datasetVersion &&
-    point.boundaryId,
-  )
-})
+const activeFootprintUnavailableCopy = computed(() =>
+  activeFootprintAvailability.value.saveable
+    ? null
+    : activeFootprintAvailability.value.copy,
+)
 
 async function focusFootprintReturnTarget() {
   await nextTick()
@@ -561,36 +563,13 @@ function closeFootprintDateDialog() {
 }
 
 function openFootprintDateDialog() {
-  const surface = summarySurfaceState.value
-  if (!surface || surface.mode === 'candidate-select') return
-  const point = surface.point
+  const availability = activeFootprintAvailability.value
 
-  if (
-    !isActivePointIlluminatable.value ||
-    !point.placeId ||
-    !point.placeKind ||
-    !point.datasetVersion ||
-    !point.boundaryId ||
-    !point.regionSystem ||
-    !point.adminType ||
-    !point.typeLabel ||
-    !point.parentLabel
-  ) {
+  if (!availability.saveable) {
     return
   }
 
-  footprintPlaceSnapshot.value = {
-    placeId: point.placeId,
-    boundaryId: point.boundaryId,
-    placeKind: point.placeKind,
-    datasetVersion: point.datasetVersion,
-    displayName: point.name,
-    regionSystem: point.regionSystem,
-    adminType: point.adminType,
-    typeLabel: point.typeLabel,
-    parentLabel: point.parentLabel,
-    subtitle: point.subtitle ?? point.cityContextLabel ?? null,
-  }
+  footprintPlaceSnapshot.value = { ...availability.snapshot }
   footprintDialogError.value = null
   isFootprintDialogOpen.value = true
 }
@@ -992,6 +971,8 @@ onMounted(() => {
       :is-saved="isActivePointSaved"
       :is-pending="isActivePointPending"
       :is-illuminatable="isActivePointIlluminatable"
+      :footprint-unavailable-category="activeFootprintUnavailableCategory"
+      :footprint-unavailable-copy="activeFootprintUnavailableCopy"
       :trip-count="activePointTripCount"
       :latest-trip-label="activePointLatestTripLabel"
       @confirm-candidate="handleConfirmCandidate"

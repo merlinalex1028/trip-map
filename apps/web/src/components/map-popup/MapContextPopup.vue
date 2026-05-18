@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef, watch, type CSSProperties } from 'vue'
 
+import type { FootprintUnavailableCategory } from '../../services/footprint-availability'
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 import PointSummaryCard from './PointSummaryCard.vue'
@@ -14,6 +15,8 @@ const props = withDefaults(
     isSaved?: boolean
     isPending?: boolean
     isIlluminatable?: boolean
+    footprintUnavailableCategory?: FootprintUnavailableCategory | null
+    footprintUnavailableCopy?: string | null
     tripCount?: number
     latestTripLabel?: string | null
   }>(),
@@ -23,6 +26,8 @@ const props = withDefaults(
     isSaved: false,
     isPending: false,
     isIlluminatable: true,
+    footprintUnavailableCategory: null,
+    footprintUnavailableCopy: null,
     tripCount: 0,
     latestTripLabel: null,
   }
@@ -115,6 +120,8 @@ defineExpose({ getPopupElement })
         :is-saved="isSaved"
         :is-pending="isPending"
         :is-illuminatable="isIlluminatable"
+        :footprint-unavailable-category="footprintUnavailableCategory"
+        :footprint-unavailable-copy="footprintUnavailableCopy"
         :trip-count="tripCount"
         :latest-trip-label="latestTripLabel"
         @confirm-candidate="emit('confirmCandidate', $event)"

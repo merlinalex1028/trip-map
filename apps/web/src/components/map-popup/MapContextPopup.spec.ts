@@ -94,6 +94,33 @@ describe('MapContextPopup', () => {
     expect(wrapper.emitted('leaveFootprint')).toHaveLength(1)
   })
 
+  it('passes footprint unavailable category and copy to PointSummaryCard for blocked detail surfaces', () => {
+    const unavailableCopy = '已识别到这个地点，但地图数据还不够完整，暂时不能保存足迹。'
+    const wrapper = mount(MapContextPopup, {
+      attachTo: document.body,
+      props: {
+        surface: {
+          mode: 'detected-preview',
+          point: createDraftPoint({
+            boundaryId: null,
+            boundaryDatasetVersion: null,
+          }),
+          boundarySupportState: 'missing'
+        } satisfies SummarySurfaceState,
+        anchorSource: 'boundary',
+        isIlluminatable: false,
+        footprintUnavailableCategory: 'map_data_unavailable',
+        footprintUnavailableCopy: unavailableCopy,
+      }
+    })
+
+    const summaryCard = wrapper.getComponent(PointSummaryCard)
+
+    expect(summaryCard.props('footprintUnavailableCategory')).toBe('map_data_unavailable')
+    expect(summaryCard.props('footprintUnavailableCopy')).toBe(unavailableCopy)
+    expect(summaryCard.get('[data-footprint-unavailable-reason]').text()).toBe(unavailableCopy)
+  })
+
   it('moves focus to the popup title when opened', async () => {
     const wrapper = mount(MapContextPopup, {
       attachTo: document.body,
