@@ -126,12 +126,12 @@ Plans:
 3. 仍不具备 authoritative 保存条件的地点不会出现可提交的假入口，界面会解释不可用原因。
 4. 扩展后的地点在地图高亮、旅途手账、旅途回忆中的标题和归类一致。
 
-**Plans:** 4 plans
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 0**
-- [ ] 45-01-PLAN.md — Build the server runtime breakpoint matrix and canonical resolve coverage assertions.
-- [ ] 45-02-PLAN.md — Add frontend footprint availability classification and popup friendly reason rendering.
+- [x] 45-01-PLAN.md — Build the server runtime breakpoint matrix and canonical resolve coverage assertions.
+- [x] 45-02-PLAN.md — Add frontend footprint availability classification and popup friendly reason rendering.
 
 **Wave 1** *(blocked on Wave 0 completion)*
 - [ ] 45-03-PLAN.md — Wire availability through the real map popup, date-dialog guard, and manifest highlight checks.
@@ -254,7 +254,7 @@ Plans:
 | 42. UI Primitives 与 Yume Kawaii Theme Bridge | 5/5 | Complete   | 2026-05-11 |
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
-| 45. 可用地点覆盖扩展 | 0/0 | Not Started | — |
+| 45. 可用地点覆盖扩展 | 2/4 | In Progress|  |
 | 46. 旅途手账重构 | 0/0 | Not Started | — |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
