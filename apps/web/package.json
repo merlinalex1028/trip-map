@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "test": "vitest run",
+    "test": "NODE_OPTIONS='--localstorage-file=/tmp/trip-map-localstorage' vitest run",
     "typecheck": "vue-tsc --noEmit",
     "geo:verify-sources": "node ./scripts/geo/verify-source-catalog.mjs",
     "geo:build": "node ./scripts/geo/build-geometry-manifest.mjs",
