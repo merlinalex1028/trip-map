@@ -15,6 +15,7 @@ import MapContextPopup from './map-popup/MapContextPopup.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useMapUiStore } from '../stores/map-ui'
+import { getGeometryManifestEntry } from '../services/geometry-manifest'
 
 // ---------------------------------------------------------------------------
 // Hoisted mocks
@@ -44,6 +45,14 @@ const recordsApiMock = vi.hoisted(() => ({
   createTravelRecord: vi.fn(),
   deleteTravelRecord: vi.fn(),
 }))
+
+const phase45CaliforniaManifestEntry = {
+  boundaryId: 'ne-admin1-us-california',
+  layer: 'OVERSEAS',
+  geometryDatasetVersion: '2026-04-21-geo-v3',
+  assetKey: 'overseas/layer.json',
+  renderableId: 'ne-admin1-us-california',
+} as const
 
 // Capture the click handler registered via map.on('click', handler)
 let capturedMapClickHandler: ((e: { latlng: { lat: number; lng: number } }) => void) | null = null
@@ -245,6 +254,17 @@ function makeFakeFeatureCollection() {
   }
 }
 
+function authenticateTestUser() {
+  const authSessionStore = useAuthSessionStore()
+  authSessionStore.status = 'authenticated'
+  authSessionStore.currentUser = {
+    id: 'user-1',
+    username: 'Alice',
+    email: 'alice@example.com',
+    createdAt: '2026-04-12T00:00:00.000Z',
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Test suite
 // ---------------------------------------------------------------------------
@@ -262,7 +282,11 @@ describe('LeafletMapStage', () => {
     canonicalPlacesMock.resolveCanonicalPlace.mockReset()
     canonicalPlacesMock.confirmCanonicalPlace.mockReset()
     geometryLoaderMock.loadGeometryShard.mockReset()
-    geometryManifestMock.getGeometryManifestEntry.mockReset().mockReturnValue(null)
+    geometryManifestMock.getGeometryManifestEntry.mockReset().mockImplementation((boundaryId: string) =>
+      boundaryId === phase45CaliforniaManifestEntry.boundaryId
+        ? phase45CaliforniaManifestEntry
+        : null,
+    )
     geoLookupMock.lookupCountryRegionByCoordinates.mockReset().mockResolvedValue(null)
     recordsApiMock.createTravelRecord.mockReset().mockResolvedValue(
       makeRecord(PHASE12_RESOLVED_BEIJING),
@@ -785,15 +809,8 @@ describe('LeafletMapStage', () => {
     })
 
     it('opens the footprint date dialog from the unified popup CTA', async () => {
-      const authSessionStore = useAuthSessionStore()
+      authenticateTestUser()
       const mapPointsStore = useMapPointsStore()
-      authSessionStore.status = 'authenticated'
-      authSessionStore.currentUser = {
-        id: 'user-1',
-        username: 'Alice',
-        email: 'alice@example.com',
-        createdAt: '2026-04-12T00:00:00.000Z',
-      }
 
       const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
 
@@ -807,6 +824,37 @@ describe('LeafletMapStage', () => {
 
       expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).not.toBeNull()
       expect(wrapper.find('[data-region="trip-date-form-wrapper"]').exists()).toBe(false)
+    })
+
+    it('uses footprint availability for enabled CTA and dialog entry', async () => {
+      authenticateTestUser()
+      const mapPointsStore = useMapPointsStore()
+
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(
+        makeDraftPoint(PHASE28_RESOLVED_CALIFORNIA, {
+          lat: 36.7783,
+          lng: -119.4179,
+          clickLat: 36.7783,
+          clickLng: -119.4179,
+          coordinatesLabel: '36.7783°N, 119.4179°W',
+        }),
+      )
+      await nextTick()
+      await flushPromises()
+
+      const cta = wrapper.get('[data-footprint-cta="true"]')
+      expect(cta.attributes('disabled')).toBeUndefined()
+
+      await cta.trigger('click')
+      await nextTick()
+
+      expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).not.toBeNull()
+      expect(document.body.querySelector('[data-footprint-place-name]')?.textContent?.trim()).toBe(
+        'California',
+      )
     })
 
     it('saves against the dialog snapshot after active map point changes', async () => {
@@ -895,15 +943,8 @@ describe('LeafletMapStage', () => {
     })
 
     it('loads the geometry shard after a successful canonical illuminate', async () => {
-      const authSessionStore = useAuthSessionStore()
+      authenticateTestUser()
       const mapUiStore = useMapUiStore()
-      authSessionStore.status = 'authenticated'
-      authSessionStore.currentUser = {
-        id: 'user-1',
-        username: 'Alice',
-        email: 'alice@example.com',
-        createdAt: '2026-04-12T00:00:00.000Z',
-      }
       const fc = makeFakeFeatureCollection()
       geometryManifestMock.getGeometryManifestEntry.mockReturnValue({
         boundaryId: PHASE12_RESOLVED_BEIJING.boundaryId,
@@ -952,6 +993,69 @@ describe('LeafletMapStage', () => {
         tone: 'info',
         message: '足迹已保存。',
       })
+    })
+
+    it('loads manifest-backed highlight for Phase 45 saveable samples', async () => {
+      authenticateTestUser()
+      const manifestEntry = {
+        boundaryId: 'ne-admin1-us-california',
+        layer: 'OVERSEAS',
+        geometryDatasetVersion: '2026-04-21-geo-v3',
+        assetKey: 'overseas/layer.json',
+        renderableId: 'ne-admin1-us-california',
+      }
+      const fc = makeFakeFeatureCollection()
+      geometryManifestMock.getGeometryManifestEntry.mockImplementation((boundaryId: string) =>
+        boundaryId === manifestEntry.boundaryId ? manifestEntry : null,
+      )
+      geometryLoaderMock.loadGeometryShard.mockResolvedValue(fc)
+      recordsApiMock.createTravelRecord.mockResolvedValueOnce(
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA),
+      )
+
+      expect(getGeometryManifestEntry('ne-admin1-us-california')).toEqual(manifestEntry)
+
+      const mapPointsStore = useMapPointsStore()
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(
+        makeDraftPoint(PHASE28_RESOLVED_CALIFORNIA, {
+          boundaryId: 'ne-admin1-us-california',
+          lat: 36.7783,
+          lng: -119.4179,
+          coordinatesLabel: '36.7783°N, 119.4179°W',
+        }),
+      )
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.get('[data-footprint-cta="true"]').trigger('click')
+      await nextTick()
+
+      expect(document.body.querySelector('[data-footprint-place-name]')?.textContent?.trim()).toBe(
+        'California',
+      )
+
+      wrapper
+        .getComponent({ name: 'FootprintDateDialog' })
+        .vm.$emit('submit', { startDate: '2025-10-01', endDate: null })
+      await flushPromises()
+
+      expect(recordsApiMock.createTravelRecord).toHaveBeenCalledWith(
+        expect.objectContaining({
+          placeId: PHASE28_RESOLVED_CALIFORNIA.placeId,
+          boundaryId: 'ne-admin1-us-california',
+        }),
+      )
+      expect(geometryLoaderMock.loadGeometryShard).toHaveBeenCalledWith(
+        manifestEntry.geometryDatasetVersion,
+        manifestEntry.assetKey,
+      )
+      expect(addFeaturesMock).toHaveBeenCalledWith('OVERSEAS', fc)
     })
 
     it('keeps the dialog open and shows inline error copy when save fails', async () => {
@@ -1029,15 +1133,8 @@ describe('LeafletMapStage', () => {
       expect(document.activeElement?.getAttribute('data-footprint-cta')).toBe('true')
     })
 
-    it('renders fallback illuminate affordance as disabled and keeps unsupported feedback inside the popup', async () => {
-      const authSessionStore = useAuthSessionStore()
-      authSessionStore.status = 'authenticated'
-      authSessionStore.currentUser = {
-        id: 'user-1',
-        username: 'Alice',
-        email: 'alice@example.com',
-        createdAt: '2026-04-12T00:00:00.000Z',
-      }
+    it('keeps the date dialog closed for fallback explanatory-only points', async () => {
+      authenticateTestUser()
       const mapPointsStore = useMapPointsStore()
       const mapUiStore = useMapUiStore()
       geoLookupMock.lookupCountryRegionByCoordinates.mockResolvedValue({
@@ -1087,7 +1184,12 @@ describe('LeafletMapStage', () => {
       await flushPromises()
 
       const button = wrapper.get('[data-footprint-cta="true"]')
+      const reason = wrapper.get('[data-footprint-unavailable-reason]')
       expect(button.attributes('disabled')).toBeDefined()
+      expect(reason.attributes('data-footprint-unavailable-category')).toBe(
+        'outside_supported_map',
+      )
+      expect(reason.text()).toContain('这里暂时只能用于查看位置，还不能留下足迹。')
       expect(mapPointsStore.summaryMode).toBe('detected-preview')
       expect(mapPointsStore.pendingCanonicalSelection).toBeNull()
       expect(mapPointsStore.draftPoint).toEqual(
@@ -1103,7 +1205,62 @@ describe('LeafletMapStage', () => {
 
       await button.trigger('click')
       expect(mapUiStore.interactionNotice).toBeNull()
+      expect(recordsApiMock.createTravelRecord).not.toHaveBeenCalled()
+      expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).toBeNull()
       expect(wrapper.getComponent({ name: 'FootprintDateDialog' }).props('open')).toBe(false)
+    })
+
+    it('keeps the date dialog closed for missing map data points', async () => {
+      authenticateTestUser()
+      const mapPointsStore = useMapPointsStore()
+      const cases = [
+        {
+          label: 'missing_boundary_id',
+          point: makeDraftPoint(PHASE28_RESOLVED_CALIFORNIA, {
+            id: 'detected-us-california-missing-boundary',
+            boundaryId: null,
+            boundaryDatasetVersion: null,
+          }),
+        },
+        {
+          label: 'missing_geometry_manifest',
+          point: makeDraftPoint(PHASE28_RESOLVED_CALIFORNIA, {
+            id: 'detected-us-california-missing-manifest',
+            boundaryId: 'unknown-boundary',
+          }),
+        },
+      ]
+
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+
+      for (const testCase of cases) {
+        mapPointsStore.startDraftFromDetection(testCase.point)
+        await nextTick()
+        await flushPromises()
+
+        const button = wrapper.get('[data-footprint-cta="true"]')
+        const reason = wrapper.get('[data-footprint-unavailable-reason]')
+
+        expect(button.attributes('disabled'), testCase.label).toBeDefined()
+        expect(reason.attributes('data-footprint-unavailable-category'), testCase.label).toBe(
+          'map_data_unavailable',
+        )
+        expect(reason.text(), testCase.label).toContain(
+          '已识别到这个地点，但地图数据还不够完整，暂时不能保存足迹。',
+        )
+
+        await button.trigger('click')
+        await nextTick()
+
+        expect(recordsApiMock.createTravelRecord, testCase.label).not.toHaveBeenCalled()
+        expect(document.body.querySelector('[data-region="footprint-date-dialog"]')).toBeNull()
+        expect(wrapper.getComponent({ name: 'FootprintDateDialog' }).props('open')).toBe(false)
+      }
     })
   })
 

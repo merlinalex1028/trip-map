@@ -38,6 +38,24 @@ describe('geometry-manifest service', () => {
     expect(entry?.renderableId).toBe('ne-admin1-us-california')
   })
 
+  it('covers Phase 45 saveable boundary ids used by the runtime matrix', () => {
+    const boundaryIds = [
+      'ne-admin1-us-california',
+      'ne-admin1-ca-british-columbia',
+    ]
+
+    for (const boundaryId of boundaryIds) {
+      const entry = getGeometryManifestEntry(boundaryId)
+
+      expect(entry).not.toBeNull()
+      expect(entry?.boundaryId).toBe(boundaryId)
+      expect(entry?.layer).toBe('OVERSEAS')
+      expect(entry?.assetKey).toBe('overseas/layer.json')
+      expect(entry?.geometryDatasetVersion).toBe('2026-04-21-geo-v3')
+      expect(entry?.renderableId).toBe(boundaryId)
+    }
+  })
+
   it('can look up representative newly supported overseas admin1 entries', () => {
     const representativeBoundaryIds = [
       'ne-admin1-ca-british-columbia',
