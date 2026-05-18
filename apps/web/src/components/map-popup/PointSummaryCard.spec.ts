@@ -9,6 +9,10 @@ import { mount } from '@vue/test-utils'
 import { vi } from 'vitest'
 
 import { buildUnsupportedOverseasNotice } from '../../constants/overseas-support'
+import {
+  FOOTPRINT_UNAVAILABLE_CATEGORY_COPY,
+  type FootprintUnavailableCategory,
+} from '../../services/footprint-availability'
 import PointSummaryCard from './PointSummaryCard.vue'
 import type { DraftMapPoint, MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
@@ -129,6 +133,25 @@ function makeCandidateSurface(): SummarySurfaceState {
 }
 
 describe('PointSummaryCard — footprint CTA', () => {
+  const unavailableCopyCases = [
+    {
+      category: 'map_data_unavailable',
+      copy: '已识别到这个地点，但地图数据还不够完整，暂时不能保存足迹。',
+    },
+    {
+      category: 'place_not_precise_enough',
+      copy: '已识别到这个地点，但还需要更稳定的地点信息才能保存足迹。',
+    },
+    {
+      category: 'outside_supported_map',
+      copy: '这里暂时只能用于查看位置，还不能留下足迹。',
+    },
+    {
+      category: 'temporarily_unavailable',
+      copy: '这个地点暂时还不能保存足迹，请稍后再试。',
+    },
+  ] satisfies Array<{ category: FootprintUnavailableCategory, copy: string }>
+
   it('renders unified footprint CTA when isSaved=false in view mode', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: false },
@@ -138,7 +161,7 @@ describe('PointSummaryCard — footprint CTA', () => {
     expect(btn.text()).toBe('留下足迹')
   })
 
-  it('saved isSaved=true removes the saved hint and shows a repeat footprint CTA', () => {
+  it('saved isSaved=true removes the saved hint and keeps the unified footprint CTA', () => {
     const wrapper = mount(PointSummaryCard, {
       props: { surface: makeViewSurface(), isSaved: true },
     })
@@ -147,8 +170,11 @@ describe('PointSummaryCard — footprint CTA', () => {
 
     expect(wrapper.text()).not.toContain('这里已经留下过足迹')
     expect(wrapper.find('[data-saved-footprint-hint="true"]').exists()).toBe(false)
-    expect(btn.text()).toBe('再留一枚足迹')
-    expect(btn.attributes('aria-label')).toBe('再留一枚足迹')
+    expect(btn.text()).toBe('留下足迹')
+    expect(btn.attributes('aria-label')).toBe('留下足迹')
+    expect(wrapper.text()).not.toContain('再留一枚足迹')
+    expect(wrapper.text()).not.toContain('再留一次足迹')
+    expect(wrapper.text()).not.toContain('再记一次')
   })
 
   it('footprint CTA is disabled when isPending=true', () => {
@@ -172,10 +198,74 @@ describe('PointSummaryCard — footprint CTA', () => {
 
     expect(btn.attributes('disabled')).toBeDefined()
     expect(wrapper.get('[data-footprint-unavailable-reason]').text()).toContain(
-      '已识别到这个地点，但当前数据还不满足保存足迹的条件。',
+      FOOTPRINT_UNAVAILABLE_CATEGORY_COPY.temporarily_unavailable,
     )
     await btn.trigger('click')
     expect(wrapper.emitted('leaveFootprint')).toBeFalsy()
+  })
+
+  it.each(unavailableCopyCases)(
+    'renders friendly footprint unavailable copy for $category',
+    ({ category, copy }) => {
+      const wrapper = mount(PointSummaryCard, {
+        props: {
+          surface: makeViewSurface(),
+          isSaved: false,
+          isIlluminatable: false,
+          footprintUnavailableCategory: category,
+        },
+      })
+
+      const reason = wrapper.get('[data-footprint-unavailable-reason]')
+
+      expect(reason.text()).toBe(copy)
+      expect(reason.attributes('data-footprint-unavailable-category')).toBe(category)
+      expect(wrapper.get('[data-footprint-cta="true"]').attributes('disabled')).toBeDefined()
+    },
+  )
+
+  it('prefers explicit unavailable copy over category fallback', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: false,
+        isIlluminatable: false,
+        footprintUnavailableCategory: 'map_data_unavailable',
+        footprintUnavailableCopy: FOOTPRINT_UNAVAILABLE_CATEGORY_COPY.outside_supported_map,
+      },
+    })
+
+    expect(wrapper.get('[data-footprint-unavailable-reason]').text()).toBe(
+      FOOTPRINT_UNAVAILABLE_CATEGORY_COPY.outside_supported_map,
+    )
+    expect(wrapper.get('[data-footprint-unavailable-reason]').attributes(
+      'data-footprint-unavailable-category',
+    )).toBe('map_data_unavailable')
+  })
+
+  it('keeps blocked card wrapper text free of internal implementation terms', () => {
+    const wrapper = mount(PointSummaryCard, {
+      props: {
+        surface: makeViewSurface(),
+        isSaved: false,
+        isIlluminatable: false,
+        footprintUnavailableCategory: 'temporarily_unavailable',
+      },
+    })
+
+    for (const forbidden of [
+      'boundaryId',
+      'metadata',
+      'manifest',
+      'geometry',
+      'canonical',
+      'datasetVersion',
+      'authoritative',
+      'frontend_guard',
+      'record_authoritative_rejected',
+    ]) {
+      expect(wrapper.text()).not.toContain(forbidden)
+    }
   })
 
   it('emits leaveFootprint after clicking the CTA', async () => {
@@ -316,7 +406,8 @@ describe('PointSummaryCard — multi-visit Phase 27', () => {
     await wrapper.get('[data-footprint-cta="true"]').trigger('click')
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.get('[data-footprint-cta="true"]').text()).toBe('再留一枚足迹')
+    expect(wrapper.get('[data-footprint-cta="true"]').text()).toBe('留下足迹')
+    expect(wrapper.text()).not.toContain('再留一枚足迹')
     expect(wrapper.text()).not.toContain('这里已经留下过足迹')
     expect(wrapper.find('[data-saved-footprint-hint="true"]').exists()).toBe(false)
     expect(wrapper.find(`[data-region="${legacyInlineFormRegion}"]`).exists()).toBe(false)

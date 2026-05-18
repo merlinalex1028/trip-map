@@ -9,6 +9,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import {
+  FOOTPRINT_UNAVAILABLE_CATEGORY_COPY,
+  type FootprintUnavailableCategory,
+} from '../../services/footprint-availability'
 import type { GeoCityCandidate } from '../../types/geo'
 import type { MapPointDisplay, SummarySurfaceState } from '../../types/map-point'
 
@@ -32,6 +36,8 @@ const props = withDefaults(
     isSaved?: boolean
     isPending?: boolean
     isIlluminatable?: boolean
+    footprintUnavailableCategory?: FootprintUnavailableCategory | null
+    footprintUnavailableCopy?: string | null
     tripCount?: number
     latestTripLabel?: string | null
   }>(),
@@ -41,6 +47,8 @@ const props = withDefaults(
     isSaved: false,
     isPending: false,
     isIlluminatable: true,
+    footprintUnavailableCategory: null,
+    footprintUnavailableCopy: null,
     tripCount: 0,
     latestTripLabel: null,
   },
@@ -158,10 +166,18 @@ const resultHeaderLabel = computed(() => {
 
   return '查看地点'
 })
-const illuminateHint = computed(() =>
-  props.isIlluminatable ? null : '已识别到这个地点，但当前数据还不满足保存足迹的条件。',
+const displayedUnavailableCategory = computed<FootprintUnavailableCategory>(
+  () => props.footprintUnavailableCategory ?? 'temporarily_unavailable',
 )
-const illuminateButtonLabel = computed(() => (props.isSaved ? '再留一枚足迹' : '留下足迹'))
+const displayedUnavailableCopy = computed(
+  () =>
+    props.footprintUnavailableCopy ??
+    FOOTPRINT_UNAVAILABLE_CATEGORY_COPY[displayedUnavailableCategory.value],
+)
+const illuminateHint = computed(() =>
+  props.isIlluminatable ? null : displayedUnavailableCopy.value,
+)
+const illuminateButtonLabel = computed(() => '留下足迹')
 
 function getCandidateActionClass(item: CandidateListItem) {
   return [
@@ -292,9 +308,10 @@ function handleCandidateConfirm(candidate: GeoCityCandidate) {
             v-if="!isIlluminatable"
             class="point-summary-card__notice"
             data-footprint-unavailable-reason
+            :data-footprint-unavailable-category="displayedUnavailableCategory"
             role="note"
           >
-            已识别到这个地点，但当前数据还不满足保存足迹的条件。
+            {{ displayedUnavailableCopy }}
           </p>
         </div>
       </div>
