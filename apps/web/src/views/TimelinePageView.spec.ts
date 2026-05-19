@@ -198,6 +198,9 @@ describe('TimelinePageView', () => {
     expect(wrapper.get('[data-state="populated"]').find('[data-journal-stream]').exists()).toBe(true)
     expect(wrapper.findAll('[data-journal-line]')).toHaveLength(1)
     expect(wrapper.findAll('[data-journal-node]')).toHaveLength(2)
+    expect(wrapper.findAll('[data-journal-node]')).toHaveLength(
+      wrapper.findAll('[data-region="timeline-entry"]').length,
+    )
   })
 
   it('renders restoring state as journal-aligned skeletons with polite live region', () => {
