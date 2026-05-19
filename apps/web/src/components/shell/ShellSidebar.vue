@@ -22,16 +22,12 @@ interface NavItem {
   to?: string
   label: string
   icon: KawaiiIconName
-  disabled?: boolean
 }
 
 const navItems = [
   { key: 'map', to: '/map', label: '世界足迹', icon: 'map' as const },
   { key: 'journal', to: '/journal', label: '旅途手账', icon: 'journal' as const },
-  { key: 'atlas', to: '/memories', label: '旅行图鉴', icon: 'memories' as const },
-  { key: 'collections', label: '我的收藏', icon: 'star' as const, disabled: true },
-  { key: 'illuminate', label: '点亮足迹', icon: 'pin' as const, disabled: true },
-  { key: 'settings', label: '设置', icon: 'settings' as const, disabled: true },
+  { key: 'memories', to: '/memories', label: '旅途回忆', icon: 'memories' as const },
 ] satisfies NavItem[]
 
 const authSessionStore = useAuthSessionStore()
@@ -39,7 +35,7 @@ const { currentUser } = storeToRefs(authSessionStore)
 const route = useRoute()
 
 const displayUsername = computed(() => currentUser.value?.username ?? '旅行家')
-const displayLevel = computed(() => (currentUser.value ? 'Lv.5 旅行收藏家' : 'Lv.1 新手旅行家'))
+const displayLevel = computed(() => (currentUser.value ? 'Lv.5 资深旅行家' : 'Lv.1 新手旅行家'))
 const displayPoints = computed(() => (currentUser.value ? 28 : 0))
 function isActiveRoute(item: NavItem) {
   return item.to ? route.path === item.to : false
@@ -50,9 +46,7 @@ function getNavButtonClass(item: NavItem) {
     'sidebar-nav-button h-11 rounded-[16px] px-3.5 text-[#8a77cc] transition duration-[var(--motion-quick)] focus-visible:ring-2 focus-visible:ring-[rgba(247,90,155,0.32)]',
     isActiveRoute(item)
       ? 'bg-[linear-gradient(135deg,rgba(255,224,241,0.98),rgba(255,241,249,0.98))] text-[#2f1d72] shadow-[0_12px_24px_rgba(244,143,177,0.18)]'
-      : item.disabled
-        ? 'bg-transparent opacity-80 hover:bg-white/46'
-        : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
+      : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
   ]
 }
 </script>
@@ -160,22 +154,6 @@ function getNavButtonClass(item: NavItem) {
                   </a>
                 </SidebarMenuButton>
               </RouterLink>
-              <SidebarMenuButton
-                v-else
-                :class="getNavButtonClass(item)"
-                :data-shell-nav-item="item.key"
-                :is-active="false"
-                aria-disabled="true"
-                disabled
-              >
-                <KawaiiIcon
-                  :label="item.label"
-                  :name="item.icon"
-                  :decorative="false"
-                  :size="24"
-                />
-                <span class="text-sm font-semibold">{{ item.label }}</span>
-              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </nav>
