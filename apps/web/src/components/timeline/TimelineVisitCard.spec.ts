@@ -1,7 +1,7 @@
-import { mount } from '@vue/test-utils'
+import { mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { readFileSync } from 'node:fs'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import TimelineVisitCard from './TimelineVisitCard.vue'
 import type { TimelineEntry } from '../../services/timeline'
@@ -36,12 +36,27 @@ function mountCard(entry: TimelineEntry) {
   const wrapper = mount(TimelineVisitCard, {
     props: { entry },
     global: { plugins: [pinia] },
+    attachTo: document.body,
   })
 
   return { mapPointsStore, wrapper }
 }
 
+async function openManagementMenu(wrapper: VueWrapper) {
+  await wrapper.get('[data-card-management]').trigger('click')
+}
+
+function getManagementActions() {
+  return Array.from(
+    document.body.querySelectorAll<HTMLElement>('[data-card-edit], [data-card-delete]'),
+  )
+}
+
 describe('TimelineVisitCard', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('renders the readonly journal card hierarchy with summary fallback, limited tags, repeat badge, and postcard', () => {
     const entry = makeTimelineEntry({
       displayName: '京都',
@@ -120,14 +135,18 @@ describe('TimelineVisitCard', () => {
     expect(wrapper.text()).toContain('美国')
   })
 
-  it('shows action bar with edit and delete buttons', () => {
+  it('shows a quiet management menu with only edit and delete actions', async () => {
     const entry = makeTimelineEntry()
     const { wrapper } = mountCard(entry)
 
-    expect(wrapper.find('[data-card-edit]').exists()).toBe(true)
-    expect(wrapper.find('[data-card-delete]').exists()).toBe(true)
-    expect(wrapper.get('[data-card-edit]').text()).toBe('编辑')
-    expect(wrapper.get('[data-card-delete]').text()).toBe('删除')
+    const trigger = wrapper.get('[data-card-management]')
+    expect(trigger.attributes('aria-label')).toBe('管理这条旅行记录')
+
+    await openManagementMenu(wrapper)
+
+    const actions = getManagementActions()
+    expect(actions).toHaveLength(2)
+    expect(actions.map((action) => action.textContent?.trim())).toEqual(['编辑', '删除'])
   })
 
   it('enters edit mode when edit button is clicked', async () => {
@@ -137,8 +156,9 @@ describe('TimelineVisitCard', () => {
     // Initially in readonly mode — no edit form
     expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(false)
 
-    // Click edit button
-    await wrapper.get('[data-card-edit]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[0]?.click()
+    await wrapper.vm.$nextTick()
 
     // Edit form should appear
     expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
@@ -149,7 +169,9 @@ describe('TimelineVisitCard', () => {
     const { wrapper } = mountCard(entry)
 
     // Enter edit mode
-    await wrapper.get('[data-card-edit]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[0]?.click()
+    await wrapper.vm.$nextTick()
     expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
 
     // Click cancel in edit form
@@ -158,7 +180,7 @@ describe('TimelineVisitCard', () => {
     // Should return to readonly mode
     expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(false)
     // Readonly content should be visible again
-    expect(wrapper.find('[data-card-edit]').exists()).toBe(true)
+    expect(wrapper.find('[data-card-management]').exists()).toBe(true)
   })
 
   it('submits edit and calls store.updateRecord', async () => {
@@ -170,8 +192,9 @@ describe('TimelineVisitCard', () => {
 
     const updateRecordSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(undefined)
 
-    // Enter edit mode
-    await wrapper.get('[data-card-edit]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[0]?.click()
+    await wrapper.vm.$nextTick()
 
     // Submit the form
     await wrapper.get('form').trigger('submit')
@@ -191,8 +214,9 @@ describe('TimelineVisitCard', () => {
     // No dialog initially
     expect(wrapper.find('[data-confirm-dialog-backdrop]').exists()).toBe(false)
 
-    // Click delete button
-    await wrapper.get('[data-card-delete]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
 
     // Dialog should appear
     expect(wrapper.find('[data-confirm-dialog-backdrop]').exists()).toBe(true)
@@ -204,8 +228,9 @@ describe('TimelineVisitCard', () => {
 
     const deleteSpy = vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(undefined)
 
-    // Click delete
-    await wrapper.get('[data-card-delete]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
 
     // Confirm deletion
     await wrapper.get('[data-confirm-dialog-confirm]').trigger('click')
@@ -217,8 +242,9 @@ describe('TimelineVisitCard', () => {
     const entry = makeTimelineEntry()
     const { wrapper } = mountCard(entry)
 
-    // Click delete
-    await wrapper.get('[data-card-delete]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
     expect(wrapper.find('[data-confirm-dialog-backdrop]').exists()).toBe(true)
 
     // Cancel deletion
@@ -232,7 +258,9 @@ describe('TimelineVisitCard', () => {
     const entry = makeTimelineEntry({ visitCount: 1 })
     const { wrapper } = mountCard(entry)
 
-    await wrapper.get('[data-card-delete]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.get('[data-confirm-dialog-title]').text()).toBe('删除该地点最后一条记录')
     expect(wrapper.get('[data-confirm-dialog-confirm]').classes()).toContain('text-[var(--color-destructive)]')
@@ -242,7 +270,9 @@ describe('TimelineVisitCard', () => {
     const entry = makeTimelineEntry({ visitCount: 3, visitOrdinal: 2 })
     const { wrapper } = mountCard(entry)
 
-    await wrapper.get('[data-card-delete]').trigger('click')
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.get('[data-confirm-dialog-title]').text()).toBe('删除旅行记录')
   })
