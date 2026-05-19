@@ -66,6 +66,7 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.find('[data-shell-logo]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-sidebar]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-sidebar-frame]').exists()).toBe(true)
+    expect(wrapper.find('[data-shell-mobile-trigger]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-avatar]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-illustration]').exists()).toBe(true)
 
