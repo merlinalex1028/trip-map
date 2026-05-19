@@ -120,6 +120,55 @@ describe('TimelinePageView', () => {
     expectNoMapStage(wrapper)
   })
 
+  it('links empty journal state only back to world footprints', () => {
+    const { wrapper } = mountTimelinePage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    const links = wrapper.findAllComponents(RouterLinkStub)
+    const mapLinks = links.filter((link) => {
+      const props = link.props() as { to?: string }
+      return props.to === '/map'
+    })
+    const props = mapLinks[0]?.props() as { to?: string } | undefined
+
+    expect(links).toHaveLength(1)
+    expect(mapLinks).toHaveLength(1)
+    expect(props?.to).toBe('/map')
+    expect(mapLinks[0].text()).toBe('去世界足迹留下足迹')
+  })
+
+  it('does not expose add, collection, favorite, upload, or photo affordances when populated', () => {
+    const { wrapper } = mountTimelinePage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+          id: 'california-journal-contract',
+          startDate: '2025-04-20',
+          endDate: null,
+          createdAt: '2025-04-20T00:00:00.000Z',
+          notes: '沿着海岸线散步',
+          tags: ['海边'],
+        }),
+      ])
+    })
+    const text = wrapper.text()
+
+    expect(text).not.toContain('添加新旅行')
+    expect(text).not.toContain('我的收藏')
+    expect(text).not.toContain('收藏')
+    expect(text).not.toContain('上传')
+    expect(text).not.toContain('照片')
+    expect(text).not.toContain('旅行照片')
+    expect(wrapper.find('[data-card-favorite]').exists()).toBe(false)
+    expect(wrapper.find('[data-journal-add-trip]').exists()).toBe(false)
+    expect(wrapper.find('[data-journal-create]').exists()).toBe(false)
+    expect(wrapper.find('[data-journal-favorite]').exists()).toBe(false)
+    expectNoMapStage(wrapper)
+  })
+
   it('renders multiple visits for the same place as separate cards', () => {
     const beijingFirstVisit = makeRecord(PHASE12_RESOLVED_BEIJING, {
       id: 'beijing-visit-1',

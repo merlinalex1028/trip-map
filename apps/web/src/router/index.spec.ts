@@ -140,6 +140,28 @@ describe('router auth guard', () => {
     expect(router.currentRoute.value.name).toBe('travel-journal')
   })
 
+  it('keeps /journal as the protected travel journal route while the legacy timeline path falls through', async () => {
+    const journalRoute = router.resolve('/journal')
+    const legacyTimelineRoute = router.resolve(legacyTimelinePath)
+
+    expect(journalRoute.name).toBe('travel-journal')
+    expect(journalRoute.meta.requiresAuth).toBe(true)
+    expect(legacyTimelineRoute.name).toBeUndefined()
+    expect(
+      legacyTimelineRoute.matched[legacyTimelineRoute.matched.length - 1]?.path,
+    ).toBe('/:pathMatch(.*)*')
+
+    const authSessionStore = useAuthSessionStore()
+    authSessionStore.status = 'anonymous'
+    authSessionStore.currentUser = null
+    vi.spyOn(authSessionStore, 'restoreSession').mockResolvedValue(undefined)
+
+    await router.push(legacyTimelinePath)
+    await router.isReady()
+
+    expect(router.currentRoute.value.fullPath).toBe('/')
+  })
+
   it('allows authenticated user to stay on /memories', async () => {
     const authSessionStore = useAuthSessionStore()
     authSessionStore.status = 'authenticated'
