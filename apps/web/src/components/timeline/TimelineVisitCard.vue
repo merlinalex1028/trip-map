@@ -3,6 +3,12 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import type { UpdateTravelRecordRequest } from '@trip-map/contracts'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
 import { checkDateConflict } from '../../services/date-conflict'
@@ -120,16 +126,49 @@ async function handleDeleteConfirm() {
       <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_minmax(180px,240px)] md:items-start">
         <div class="min-w-0 space-y-4">
           <header class="space-y-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="text-[var(--font-label-size)] font-semibold leading-[1.4] text-[var(--color-ink-soft)]">
-                {{ dateLabel }}
-              </p>
-              <p
-                v-if="entry.visitCount > 1"
-                class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[var(--font-label-size)] font-semibold leading-[1.4] text-[var(--color-ink-soft)]"
-              >
-                第 {{ entry.visitOrdinal }} 次 / 共 {{ entry.visitCount }} 次
-              </p>
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex min-w-0 flex-wrap items-center gap-2">
+                <p class="text-[var(--font-label-size)] font-semibold leading-[1.4] text-[var(--color-ink-soft)]">
+                  {{ dateLabel }}
+                </p>
+                <p
+                  v-if="entry.visitCount > 1"
+                  class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[var(--font-label-size)] font-semibold leading-[1.4] text-[var(--color-ink-soft)]"
+                >
+                  第 {{ entry.visitOrdinal }} 次 / 共 {{ entry.visitCount }} 次
+                </p>
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <button
+                    type="button"
+                    class="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-white/85 bg-white/80 text-[18px] font-semibold leading-none text-[var(--color-ink-soft)] shadow-[0_10px_24px_rgba(160,130,190,0.12)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] active:scale-95"
+                    data-card-management
+                    aria-label="管理这条旅行记录"
+                  >
+                    <span aria-hidden="true">...</span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  class="min-w-[7rem] rounded-[20px]"
+                >
+                  <DropdownMenuItem
+                    data-card-edit
+                    @click="handleEditClick"
+                  >
+                    编辑
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    data-card-delete
+                    variant="destructive"
+                    @click="handleDeleteClick"
+                  >
+                    删除
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <h3 class="text-[24px] font-semibold leading-[1.2] text-[var(--color-ink-strong)]">
@@ -173,25 +212,6 @@ async function handleDeleteConfirm() {
         </div>
 
         <JournalPostcardThumb :variant="journalPostcardVariant" />
-      </div>
-
-      <div class="flex gap-3 pt-1">
-        <button
-          type="button"
-          class="min-h-9 rounded-full border border-[#d6ebf2] bg-[#effafc] px-4 text-xs font-semibold text-[var(--color-ink-strong)] transition-all duration-300 ease-out hover:scale-105 active:scale-95"
-          data-card-edit
-          @click="handleEditClick"
-        >
-          编辑
-        </button>
-        <button
-          type="button"
-          class="min-h-9 rounded-full border border-[#e8c4c4] bg-[#fef2f2] px-4 text-xs font-semibold text-[var(--color-destructive)] transition-all duration-300 ease-out hover:scale-105 active:scale-95"
-          data-card-delete
-          @click="handleDeleteClick"
-        >
-          删除
-        </button>
       </div>
     </template>
   </article>
