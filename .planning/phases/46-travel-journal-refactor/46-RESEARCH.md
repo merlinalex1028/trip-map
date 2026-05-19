@@ -389,13 +389,13 @@ it('does not expose add-trip or collection affordances on the journal page', () 
 
 1. **Should Phase 46 clean `ShellSidebar.vue` disabled future entries?**
    - What we know: JOURNAL-05 says the page must not show favorite/collection buttons, state, or `我的收藏` related entry; `ShellSidebar.vue` currently renders disabled `我的收藏`, `点亮足迹`, and `设置` items. [VERIFIED: `.planning/REQUIREMENTS.md`; `apps/web/src/components/shell/ShellSidebar.vue:28`]
-   - What's unclear: CONTEXT focuses mostly on journal card/page content, but the shell is visible on the page and likely part of user-observable acceptance. [VERIFIED: `App.vue`; `ShellSidebar.vue`]
-   - Recommendation: Include a small prerequisite task to remove or hide disabled future shell entries at least for v8.0 acceptance, and update shell tests accordingly. [VERIFIED: Phase 43 CONTEXT D-13/D-17]
+   - RESOLVED: Phase 46 will clean `ShellSidebar.vue` as part of Plan 46-01. The chosen path is to remove the disabled future shell entries from the rendered nav model rather than hide them with CSS, leaving exactly `世界足迹`, `旅途手账`, and `旅途回忆` visible in the authenticated shell. [VERIFIED: `.planning/phases/46-travel-journal-refactor/46-01-PLAN.md`]
+   - RESOLVED verification path: Plan 46-01 updates `AuthenticatedAppShell.spec.ts` and `TimelinePageView.spec.ts` so page/shell acceptance covers absence of `我的收藏`, collection/favorite language, and local creation affordances. [VERIFIED: `.planning/phases/46-travel-journal-refactor/46-01-PLAN.md`]
 
 2. **Is a journal-specific error state reachable today?**
    - What we know: `TimelinePageView.vue` has restoring, anonymous, empty, and populated branches; no journal-local error branch was found. [VERIFIED: `TimelinePageView.vue`]
-   - What's unclear: Store/bootstrap errors may surface elsewhere in App-level notifications instead of this view. [VERIFIED: `App.vue`; codebase scan]
-   - Recommendation: Planner should add a verification task that identifies the existing error path before adding new UI; only add a local error state if an actual reachable journal error condition exists. [VERIFIED: codebase scan]
+   - RESOLVED: Phase 46 will use the existing `useMapUiStore().interactionNotice` warning path as the reachable journal warning/error surface instead of introducing a new backend or route-local error source. Plan 46-04 adds a non-blocking warning panel in `TimelinePageView.vue` when `interactionNotice?.tone === 'warning'`, using the UI-SPEC copy `旅途手账暂时加载失败，请稍后重试，或返回世界足迹确认旅行记录是否已同步。`. [VERIFIED: `.planning/phases/46-travel-journal-refactor/46-04-PLAN.md`; `.planning/phases/46-travel-journal-refactor/46-UI-SPEC.md`]
+   - RESOLVED verification path: Plan 46-04 adds a page spec that seeds `useMapUiStore().interactionNotice` and asserts the warning/error panel copy and `/map` recovery link, while keeping app-level bootstrap errors outside Phase 46 scope. [VERIFIED: `.planning/phases/46-travel-journal-refactor/46-04-PLAN.md`]
 
 ## Environment Availability
 
