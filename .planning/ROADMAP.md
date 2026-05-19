@@ -154,7 +154,18 @@ Plans:
 4. 页面不显示收藏按钮、收藏状态或“我的收藏”相关入口。
 5. 空状态、登录恢复和错误状态符合 Yume Kawaii 视觉语言。
 
-**Plans:** 0 plans yet
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+- [ ] 46-01-PLAN.md — Lock `/journal`, shell navigation, and forbidden add/favorite/collection absence contracts.
+- [ ] 46-02-PLAN.md — Add deterministic journal summary, location, tag, and decorative postcard helpers.
+
+**Wave 2** *(blocked on Wave 1 helper completion)*
+- [ ] 46-03-PLAN.md — Refactor journal cards into reading-first postcard cards with quiet edit/delete management.
+
+**Wave 3** *(blocked on Wave 1 contracts and Wave 2 cards)*
+- [ ] 46-04-PLAN.md — Build the glowing journal stream, Yume Kawaii states, and final Phase 46 verification gates.
 
 ---
 
