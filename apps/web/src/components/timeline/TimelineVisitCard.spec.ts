@@ -247,22 +247,24 @@ describe('TimelineVisitCard', () => {
     expect(wrapper.get('[data-confirm-dialog-title]').text()).toBe('删除旅行记录')
   })
 
-  it('renders notes section when entry has notes', () => {
+  it('renders the first meaningful note line as the journal summary', () => {
     const entry = makeTimelineEntry({
-      notes: '和家人一起去的',
+      notes: '\n  和家人一起去的\n第二行',
     })
     const { wrapper } = mountCard(entry)
 
     expect(wrapper.text()).toContain('和家人一起去的')
-    expect(wrapper.text()).toContain('备注')
+    expect(wrapper.text()).toContain('旅行摘记')
+    expect(wrapper.text()).not.toContain('第二行')
   })
 
-  it('renders tags when entry has tags', () => {
+  it('renders visible journal tag stickers when entry has tags', () => {
     const entry = makeTimelineEntry({
       tags: ['美食', '文化', '历史'],
     })
     const { wrapper } = mountCard(entry)
 
+    expect(wrapper.findAll('[data-journal-tag]')).toHaveLength(3)
     expect(wrapper.text()).toContain('美食')
     expect(wrapper.text()).toContain('文化')
     expect(wrapper.text()).toContain('历史')
