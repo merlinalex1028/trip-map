@@ -61,12 +61,6 @@ const shouldShowTimeline = computed(
         >
           {{ currentUser.username }} 的旅途手账
         </p>
-        <RouterLink
-          class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/map"
-        >
-          返回世界足迹
-        </RouterLink>
       </div>
     </header>
 

@@ -131,11 +131,12 @@ describe('TimelinePageView', () => {
       const props = link.props() as { to?: string }
       return props.to === '/map'
     })
-    const props = mapLinks[0]?.props() as { to?: string } | undefined
+    expect(mapLinks[0]).toBeDefined()
+    const props = mapLinks[0].props() as { to?: string }
 
     expect(links).toHaveLength(1)
     expect(mapLinks).toHaveLength(1)
-    expect(props?.to).toBe('/map')
+    expect(props.to).toBe('/map')
     expect(mapLinks[0].text()).toBe('去世界足迹留下足迹')
   })
 
