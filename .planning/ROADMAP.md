@@ -154,7 +154,7 @@ Plans:
 4. 页面不显示收藏按钮、收藏状态或“我的收藏”相关入口。
 5. 空状态、登录恢复和错误状态符合 Yume Kawaii 视觉语言。
 
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 **Wave 1**
@@ -162,7 +162,7 @@ Plans:
 - [x] 46-02-PLAN.md — Add deterministic journal summary, location, tag, and decorative postcard helpers.
 
 **Wave 2** *(blocked on Wave 1 helper completion)*
-- [ ] 46-03-PLAN.md — Refactor journal cards into reading-first postcard cards with quiet edit/delete management.
+- [x] 46-03-PLAN.md — Refactor journal cards into reading-first postcard cards with quiet edit/delete management.
 
 **Wave 3** *(blocked on Wave 1 contracts and Wave 2 cards)*
 - [ ] 46-04-PLAN.md — Build the glowing journal stream, Yume Kawaii states, and final Phase 46 verification gates.
@@ -266,7 +266,7 @@ Plans:
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
-| 46. 旅途手账重构 | 2/4 | In Progress|  |
+| 46. 旅途手账重构 | 3/4 | In Progress|  |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
 
