@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import TimelineVisitCard from './TimelineVisitCard.vue'
@@ -41,6 +42,67 @@ function mountCard(entry: TimelineEntry) {
 }
 
 describe('TimelineVisitCard', () => {
+  it('renders the readonly journal card hierarchy with summary fallback, limited tags, repeat badge, and postcard', () => {
+    const entry = makeTimelineEntry({
+      displayName: '京都',
+      parentLabel: '日本',
+      subtitle: '京都府',
+      typeLabel: '府',
+      startDate: '2025-04-12',
+      visitOrdinal: 2,
+      visitCount: 3,
+      notes: null,
+      tags: ['樱花', '寺院', '散步', '抹茶'],
+    })
+    const { wrapper } = mountCard(entry)
+
+    expect(wrapper.text()).toContain('2025-04-12')
+    expect(wrapper.text()).toContain('京都')
+    expect(wrapper.text()).toContain('日本 · 京都府 · 府')
+    expect(wrapper.text()).toContain('旅行摘记')
+    expect(wrapper.text()).toContain('这段旅途还没有写下摘记')
+    expect(wrapper.text()).toContain('第 2 次 / 共 3 次')
+    expect(wrapper.findAll('[data-journal-tag]')).toHaveLength(3)
+    expect(wrapper.get('[data-journal-tags-more]').text()).toBe('+1')
+    expect(wrapper.find('[data-journal-postcard]').exists()).toBe(true)
+  })
+
+  it('renders the decorative postcard as hidden from assistive technology with a stable variant', () => {
+    const entry = makeTimelineEntry()
+    const { wrapper } = mountCard(entry)
+
+    const postcard = wrapper.get('[data-journal-postcard]')
+    expect(postcard.attributes('aria-hidden')).toBe('true')
+    expect(postcard.attributes('data-variant')).toBeTruthy()
+  })
+
+  it('does not render excluded management-record, creation, collection, upload, or photo copy', () => {
+    const entry = makeTimelineEntry({
+      notes: '第一行手账',
+      tags: ['城市'],
+    })
+    const { wrapper } = mountCard(entry)
+
+    for (const forbiddenCopy of [
+      '备注',
+      '国家 / 地区',
+      '添加新旅行',
+      '收藏',
+      '我的收藏',
+      '上传',
+      '照片',
+      '旅行照片',
+    ]) {
+      expect(wrapper.text()).not.toContain(forbiddenCopy)
+    }
+  })
+
+  it('does not use v-html in the card source', () => {
+    const source = readFileSync('src/components/timeline/TimelineVisitCard.vue', 'utf8')
+
+    expect(source).not.toContain('v-html')
+  })
+
   it('renders readonly mode: display name, date, and type label', () => {
     const entry = makeTimelineEntry({
       displayName: '洛杉矶',
