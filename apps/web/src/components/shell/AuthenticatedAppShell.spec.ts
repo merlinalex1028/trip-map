@@ -57,7 +57,7 @@ async function mountShell(
 }
 
 describe('AuthenticatedAppShell', () => {
-  it('renders the high-fidelity world footprint sidebar contract', async () => {
+  it('renders only the real v8 authenticated navigation entries', async () => {
     const { wrapper } = await mountShell('/map')
     const appShell = wrapper.get('[data-app-shell]')
 
@@ -73,15 +73,16 @@ describe('AuthenticatedAppShell', () => {
       item.attributes('data-shell-nav-item'),
     )
 
-    expect(navItems).toEqual(['map', 'journal', 'atlas', 'collections', 'illuminate', 'settings'])
+    expect(navItems).toEqual(['map', 'journal', 'memories'])
     expect(wrapper.text()).toContain('世界足迹')
     expect(wrapper.text()).toContain('旅途手账')
-    expect(wrapper.text()).toContain('旅行图鉴')
-    expect(wrapper.text()).toContain('我的收藏')
-    expect(wrapper.text()).toContain('点亮足迹')
-    expect(wrapper.text()).toContain('设置')
-    expect(navItems).toHaveLength(6)
-    expect(wrapper.findAll('[data-shell-nav-item] [data-kawaii-icon] img')).toHaveLength(6)
+    expect(wrapper.text()).toContain('旅途回忆')
+    expect(wrapper.text()).not.toContain('我的收藏')
+    expect(wrapper.text()).not.toContain('收藏')
+    expect(wrapper.text()).not.toContain('点亮足迹')
+    expect(wrapper.text()).not.toContain('设置')
+    expect(navItems).toHaveLength(3)
+    expect(wrapper.findAll('[data-shell-nav-item] [data-kawaii-icon] img')).toHaveLength(3)
     expect(wrapper.get('[data-shell-nav-item="map"] [data-kawaii-icon] img').attributes('src')).toContain(
       'nav-world-footprints',
     )
@@ -94,7 +95,7 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('[data-shell-nav-item="map"]').attributes('aria-current')).toBeUndefined()
   })
 
-  it('uses world-footprints visual mode on map route with the high-fidelity menu set', async () => {
+  it('uses world-footprints visual mode on map route with the real navigation set', async () => {
     const { wrapper } = await mountShell('/map')
 
     expect(wrapper.get('[data-shell-sidebar]').attributes('data-shell-visual-mode')).toBe(
@@ -105,8 +106,8 @@ describe('AuthenticatedAppShell', () => {
     )
     expect(wrapper.findAll('[data-shell-nav-item]').map((item) =>
       item.attributes('data-shell-nav-item'),
-    )).toEqual(['map', 'journal', 'atlas', 'collections', 'illuminate', 'settings'])
-    expect(wrapper.text()).toContain('我的收藏')
+    )).toEqual(['map', 'journal', 'memories'])
+    expect(wrapper.text()).not.toContain('我的收藏')
   })
 
   it('uses the same high-fidelity sidebar on non-map authenticated routes', async () => {
