@@ -65,7 +65,7 @@ Each task was committed atomically:
 2. **Task 1 GREEN: glowing journal stream route surface** - `db16fef` (feat)
 3. **Task 2: final journal gate assertions** - `f5756b3` (test)
 
-**Plan metadata:** pending summary/docs commit
+**Plan metadata:** `0003cd3` (docs)
 
 ## Files Created/Modified
 
