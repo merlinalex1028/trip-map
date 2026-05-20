@@ -250,7 +250,7 @@ describe('TimelineVisitCard', () => {
     })
     const { mapPointsStore, wrapper } = mountCard(entry)
 
-    const updateRecordSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(undefined)
+    const updateRecordSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(true)
 
     await openManagementMenu(wrapper)
     getManagementActions()[0]?.click()
@@ -265,6 +265,29 @@ describe('TimelineVisitCard', () => {
       notes: '旅行备注',
       tags: ['美食'],
     })
+  })
+
+  it('keeps edit form open with draft values when update fails', async () => {
+    const entry = makeTimelineEntry({
+      notes: '旅行备注',
+      tags: ['美食'],
+    })
+    const { mapPointsStore, wrapper } = mountCard(entry)
+
+    vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(false)
+
+    await openManagementMenu(wrapper)
+    getManagementActions()[0]?.click()
+    await wrapper.vm.$nextTick()
+    await wrapper.get('[data-edit-input="notes"]').setValue('尚未保存的草稿')
+
+    await wrapper.get('form').trigger('submit')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
+    expect((wrapper.get('[data-edit-input="notes"]').element as HTMLTextAreaElement).value).toBe(
+      '尚未保存的草稿',
+    )
   })
 
   it('shows ConfirmDialog when delete button is clicked', async () => {

@@ -200,7 +200,7 @@ describe('PopupTripRecord', () => {
     })
     const { mapPointsStore, wrapper } = mountCard(entry)
 
-    const updateSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(undefined)
+    const updateSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(true)
 
     // Enter edit mode
     await wrapper.get('[data-popup-edit]').trigger('click')

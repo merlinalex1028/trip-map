@@ -82,8 +82,10 @@ function handleEditCancel() {
 async function handleEditSubmit(payload: UpdateTravelRecordRequest) {
   isSubmitting.value = true
   try {
-    await mapPointsStore.updateRecord(props.entry.recordId, payload)
-    isEditing.value = false
+    const wasUpdated = await mapPointsStore.updateRecord(props.entry.recordId, payload)
+    if (wasUpdated) {
+      isEditing.value = false
+    }
   } finally {
     isSubmitting.value = false
   }

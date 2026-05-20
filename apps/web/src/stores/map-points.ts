@@ -533,13 +533,13 @@ export const useMapPointsStore = defineStore('map-points', () => {
   async function updateRecord(
     recordId: string,
     request: import('@trip-map/contracts').UpdateTravelRecordRequest,
-  ) {
+  ): Promise<boolean> {
     const authSessionStore = useAuthSessionStore()
     const boundaryVersionAtStart = authSessionStore.boundaryVersion
     const previousRecords = [...travelRecords.value]
     const targetRecord = previousRecords.find((r) => r.id === recordId)
     if (!targetRecord) {
-      return
+      return false
     }
 
     // 乐观更新 — PATCH 语义：只覆盖传入字段
@@ -556,7 +556,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       const updatedRecord = await updateTravelRecordApi(recordId, request)
 
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return false
       }
 
       // 用服务端权威数据替换
@@ -567,9 +567,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         tone: 'info',
         message: RECORD_UPDATE_SUCCESS_NOTICE,
       })
+      return true
     } catch (error) {
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return false
       }
 
       // 回滚到原始状态
@@ -585,6 +586,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
           message: RECORD_UPDATE_FAILED_NOTICE,
         })
       }
+      return false
     }
   }
 

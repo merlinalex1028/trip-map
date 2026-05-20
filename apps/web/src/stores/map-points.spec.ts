@@ -655,7 +655,7 @@ describe('map-points store', () => {
         startDate: '2025-01-01',
       })])
 
-      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+      await expect(store.updateRecord('rec-1', { startDate: '2025-06-01' })).resolves.toBe(true)
 
       expect(store.travelRecords[0]?.startDate).toBe('2025-06-01')
       expect(store.travelRecords[0]?.notes).toBe('vacation')
@@ -674,7 +674,7 @@ describe('map-points store', () => {
         startDate: '2025-01-01',
       })])
 
-      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+      await expect(store.updateRecord('rec-1', { startDate: '2025-06-01' })).resolves.toBe(false)
 
       // 回滚到原始状态
       expect(store.travelRecords[0]?.startDate).toBe('2025-01-01')
@@ -705,7 +705,7 @@ describe('map-points store', () => {
         }),
       )
 
-      await store.updateRecord('rec-1', { startDate: '2025-06-01' })
+      await expect(store.updateRecord('rec-1', { startDate: '2025-06-01' })).resolves.toBe(false)
 
       expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
       expect(mapUiStore.interactionNotice?.message).not.toBe(
@@ -743,7 +743,7 @@ describe('map-points store', () => {
         id: 'rec-1',
         startDate: '2025-06-01',
       }))
-      await updatePromise
+      await expect(updatePromise).resolves.toBe(false)
 
       expect(authSessionStore.status).toBe('anonymous')
       expect(store.travelRecords).toEqual([])
@@ -753,7 +753,7 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
 
-      await store.updateRecord('non-existent', { startDate: '2025-06-01' })
+      await expect(store.updateRecord('non-existent', { startDate: '2025-06-01' })).resolves.toBe(false)
 
       expect(updateMock).not.toHaveBeenCalled()
       expect(store.travelRecords[0]?.startDate).toBeNull()
