@@ -18,8 +18,6 @@ const { interactionNotice } = storeToRefs(mapUiStore)
 
 const JOURNAL_REFRESH_WARNING =
   '云端记录刷新失败，当前仍显示上次同步结果，请稍后重试。'
-const JOURNAL_RECOVERY_MESSAGE =
-  '旅途手账暂时加载失败，请稍后重试，或返回世界足迹确认旅行记录是否已同步。'
 
 const isRestoring = computed(() => status.value === 'restoring')
 const shouldShowWarningNotice = computed(
@@ -186,7 +184,7 @@ const restoringSkeletonRows = 3
           </p>
           <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">同步提醒</h3>
           <p class="max-w-3xl text-sm leading-6 text-[var(--color-ink-muted)]">
-            {{ JOURNAL_RECOVERY_MESSAGE }}
+            {{ interactionNotice?.message }}
           </p>
         </div>
         <div class="flex flex-wrap gap-3">

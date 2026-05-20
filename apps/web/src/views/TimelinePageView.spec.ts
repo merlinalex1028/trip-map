@@ -237,9 +237,8 @@ describe('TimelinePageView', () => {
       .findAllComponents(RouterLinkStub)
       .filter((link) => (link.props() as { to?: string }).to === '/map')
 
-    expect(warningPanel.text()).toContain(
-      '旅途手账暂时加载失败，请稍后重试，或返回世界足迹确认旅行记录是否已同步。',
-    )
+    expect(warningPanel.text()).toContain('云端记录刷新失败，当前仍显示上次同步结果，请稍后重试。')
+    expect(warningPanel.text()).not.toContain('旅途手账暂时加载失败')
     expect(warningPanel.attributes('role')).toBe('status')
     expect(mapLinks.some((link) => link.text() === '返回世界足迹')).toBe(true)
   })
@@ -262,9 +261,7 @@ describe('TimelinePageView', () => {
     })
 
     expect(wrapper.find('[data-state="error"]').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain(
-      '旅途手账暂时加载失败，请稍后重试，或返回世界足迹确认旅行记录是否已同步。',
-    )
+    expect(wrapper.text()).not.toContain('旅途手账暂时加载失败')
   })
 
   it('keeps the populated header free of return, add, favorite, and postcard pills', () => {
