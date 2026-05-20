@@ -590,13 +590,13 @@ export const useMapPointsStore = defineStore('map-points', () => {
     }
   }
 
-  async function deleteSingleRecord(recordId: string) {
+  async function deleteSingleRecord(recordId: string): Promise<boolean> {
     const authSessionStore = useAuthSessionStore()
     const boundaryVersionAtStart = authSessionStore.boundaryVersion
     const previousRecords = [...travelRecords.value]
     const targetRecord = previousRecords.find((r) => r.id === recordId)
     if (!targetRecord) {
-      return
+      return false
     }
 
     // 乐观删除
@@ -606,7 +606,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
       await deleteSingleRecordApi(recordId)
 
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return false
       }
 
       // 成功 — 确认删除（已是最新状态）
@@ -614,9 +614,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
         tone: 'info',
         message: RECORD_SINGLE_DELETE_SUCCESS_NOTICE,
       })
+      return true
     } catch (error) {
       if (hasSessionBoundaryChanged(boundaryVersionAtStart)) {
-        return
+        return false
       }
 
       // 回滚
@@ -632,6 +633,7 @@ export const useMapPointsStore = defineStore('map-points', () => {
           message: RECORD_SINGLE_DELETE_FAILED_NOTICE,
         })
       }
+      return false
     }
   }
 

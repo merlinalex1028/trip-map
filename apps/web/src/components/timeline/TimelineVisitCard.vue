@@ -93,8 +93,10 @@ function handleDeleteCancel() {
 }
 
 async function handleDeleteConfirm() {
-  await mapPointsStore.deleteSingleRecord(props.entry.recordId)
-  isDeleteDialogOpen.value = false
+  const wasDeleted = await mapPointsStore.deleteSingleRecord(props.entry.recordId)
+  if (wasDeleted) {
+    isDeleteDialogOpen.value = false
+  }
 }
 </script>
 

@@ -309,7 +309,7 @@ describe('TimelineVisitCard', () => {
     const entry = makeTimelineEntry()
     const { mapPointsStore, wrapper } = mountCard(entry)
 
-    const deleteSpy = vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(undefined)
+    const deleteSpy = vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(true)
 
     await openManagementMenu(wrapper)
     getManagementActions()[1]?.click()
@@ -319,6 +319,22 @@ describe('TimelineVisitCard', () => {
     await wrapper.get('[data-confirm-dialog-confirm]').trigger('click')
 
     expect(deleteSpy).toHaveBeenCalledWith('record-1')
+  })
+
+  it('keeps ConfirmDialog open when delete fails', async () => {
+    const entry = makeTimelineEntry()
+    const { mapPointsStore, wrapper } = mountCard(entry)
+
+    vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(false)
+
+    await openManagementMenu(wrapper)
+    getManagementActions()[1]?.click()
+    await wrapper.vm.$nextTick()
+
+    await wrapper.get('[data-confirm-dialog-confirm]').trigger('click')
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-confirm-dialog-backdrop]').exists()).toBe(true)
   })
 
   it('closes ConfirmDialog when cancel is clicked', async () => {

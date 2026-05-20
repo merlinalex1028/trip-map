@@ -795,7 +795,7 @@ describe('map-points store', () => {
       const mapUiStore = useMapUiStore()
       store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
 
-      await store.deleteSingleRecord('rec-1')
+      await expect(store.deleteSingleRecord('rec-1')).resolves.toBe(true)
 
       expect(store.travelRecords).toHaveLength(0)
       expect(mapUiStore.interactionNotice).toMatchObject({
@@ -810,7 +810,7 @@ describe('map-points store', () => {
       const mapUiStore = useMapUiStore()
       store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
 
-      await store.deleteSingleRecord('rec-1')
+      await expect(store.deleteSingleRecord('rec-1')).resolves.toBe(false)
 
       expect(store.travelRecords).toHaveLength(1)
       expect(store.travelRecords[0]?.id).toBe('rec-1')
@@ -841,7 +841,7 @@ describe('map-points store', () => {
         }),
       )
 
-      await store.deleteSingleRecord('rec-1')
+      await expect(store.deleteSingleRecord('rec-1')).resolves.toBe(false)
 
       expect(handleUnauthorizedSpy).toHaveBeenCalledTimes(1)
       expect(mapUiStore.interactionNotice?.message).not.toBe(
@@ -873,7 +873,7 @@ describe('map-points store', () => {
 
       authSessionStore.handleUnauthorized()
       rejectDelete(new Error('delete failed after logout'))
-      await deletePromise
+      await expect(deletePromise).resolves.toBe(false)
 
       expect(authSessionStore.status).toBe('anonymous')
       expect(store.travelRecords).toEqual([])
@@ -883,7 +883,7 @@ describe('map-points store', () => {
       const store = useMapPointsStore()
       store.replaceTravelRecords([makeRecord(PHASE12_RESOLVED_BEIJING, { id: 'rec-1' })])
 
-      await store.deleteSingleRecord('non-existent')
+      await expect(store.deleteSingleRecord('non-existent')).resolves.toBe(false)
 
       expect(deleteSingleMock).not.toHaveBeenCalled()
       expect(store.travelRecords).toHaveLength(1)
@@ -905,7 +905,7 @@ describe('map-points store', () => {
 
       expect(store.timelineEntries).toHaveLength(2)
 
-      await store.deleteSingleRecord('rec-1')
+      await expect(store.deleteSingleRecord('rec-1')).resolves.toBe(true)
 
       expect(store.timelineEntries).toHaveLength(1)
       expect(store.timelineEntries[0]?.recordId).toBe('rec-2')

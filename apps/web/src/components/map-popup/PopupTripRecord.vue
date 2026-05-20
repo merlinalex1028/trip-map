@@ -5,7 +5,6 @@ import { storeToRefs } from 'pinia'
 import type { UpdateTravelRecordRequest } from '@trip-map/contracts'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
-import { checkDateConflict } from '../../services/date-conflict'
 import ConfirmDialog from '../timeline/ConfirmDialog.vue'
 import TimelineEditForm from '../timeline/TimelineEditForm.vue'
 
@@ -44,17 +43,6 @@ const visibleTags = computed(() => props.entry.tags.slice(0, maxVisibleTags))
 const hiddenTagsCount = computed(() =>
   props.entry.tags.length > maxVisibleTags ? props.entry.tags.length - maxVisibleTags : 0,
 )
-
-const conflictingDates = computed(() => {
-  if (!isEditing.value) return []
-  return checkDateConflict(
-    props.entry.placeId,
-    props.entry.recordId,
-    props.entry.startDate,
-    props.entry.endDate,
-    tripsByPlaceId.value,
-  )
-})
 
 const deleteDialogConfig = computed(() => {
   if (props.entry.visitCount === 1) {
@@ -100,8 +88,10 @@ function handleDeleteCancel() {
 }
 
 async function handleDeleteConfirm() {
-  await mapPointsStore.deleteSingleRecord(props.entry.recordId)
-  isDeleteDialogOpen.value = false
+  const wasDeleted = await mapPointsStore.deleteSingleRecord(props.entry.recordId)
+  if (wasDeleted) {
+    isDeleteDialogOpen.value = false
+  }
 }
 </script>
 
@@ -115,7 +105,7 @@ async function handleDeleteConfirm() {
     <TimelineEditForm
       v-if="isEditing"
       :record="entry"
-      :conflicting-dates="conflictingDates"
+      :trips-by-place-id="tripsByPlaceId"
       :is-submitting="isSubmitting"
       @submit="handleEditSubmit"
       @cancel="handleEditCancel"

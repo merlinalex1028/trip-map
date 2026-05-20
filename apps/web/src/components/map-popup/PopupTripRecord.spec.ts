@@ -170,7 +170,7 @@ describe('PopupTripRecord', () => {
     const entry = makeTimelineEntry()
     const { mapPointsStore, wrapper } = mountCard(entry)
 
-    const deleteSpy = vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(undefined)
+    const deleteSpy = vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(true)
 
     // Click delete
     await wrapper.get('[data-popup-delete]').trigger('click')
@@ -179,6 +179,18 @@ describe('PopupTripRecord', () => {
     await wrapper.get('[data-confirm-dialog-confirm]').trigger('click')
 
     expect(deleteSpy).toHaveBeenCalledWith('record-1')
+  })
+
+  it('keeps ConfirmDialog open when delete fails', async () => {
+    const entry = makeTimelineEntry()
+    const { mapPointsStore, wrapper } = mountCard(entry)
+
+    vi.spyOn(mapPointsStore, 'deleteSingleRecord').mockResolvedValue(false)
+
+    await wrapper.get('[data-popup-delete]').trigger('click')
+    await wrapper.get('[data-confirm-dialog-confirm]').trigger('click')
+
+    expect(wrapper.find('[data-confirm-dialog-backdrop]').exists()).toBe(true)
   })
 
   it('when visitCount=1, delete dialog uses destructive tone with last-record warning', async () => {
@@ -249,5 +261,37 @@ describe('PopupTripRecord', () => {
     // Date conflict warning should appear
     expect(wrapper.find('[data-edit-warning="date-conflict"]').exists()).toBe(true)
     expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain('2025-01-10')
+  })
+
+  it('updates date conflict warning when edited dates change', async () => {
+    const entry = makeTimelineEntry({
+      startDate: '2025-01-15',
+      endDate: null,
+    })
+    const { mapPointsStore, wrapper } = mountCard(entry)
+    mapPointsStore.replaceTravelRecords([
+      makeTravelRecord({
+        id: 'record-1',
+        placeId: 'place-1',
+        startDate: '2025-01-15',
+        endDate: null,
+      }),
+      makeTravelRecord({
+        id: 'record-other',
+        placeId: 'place-1',
+        startDate: '2025-02-01',
+        endDate: '2025-02-03',
+      }),
+    ])
+
+    await wrapper.get('[data-popup-edit]').trigger('click')
+
+    expect(wrapper.find('[data-edit-warning="date-conflict"]').exists()).toBe(false)
+
+    await wrapper.get('[data-edit-input="start-date"]').setValue('2025-02-02')
+
+    expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain(
+      '2025-02-01 ~ 2025-02-03',
+    )
   })
 })
