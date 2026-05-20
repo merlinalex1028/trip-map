@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
-import { checkDateConflict } from '../../services/date-conflict'
 import ConfirmDialog from './ConfirmDialog.vue'
 import JournalPostcardThumb from './JournalPostcardThumb.vue'
 import TimelineEditForm from './TimelineEditForm.vue'
@@ -49,17 +48,6 @@ const journalSummary = computed(() => getJournalSummary(props.entry.notes))
 const journalLocationPath = computed(() => getJournalLocationPath(props.entry))
 const journalPostcardVariant = computed(() => getJournalPostcardVariant(props.entry))
 const visibleTags = computed(() => getVisibleJournalTags(props.entry.tags))
-
-const conflictingDates = computed(() => {
-  if (!isEditing.value) return []
-  return checkDateConflict(
-    props.entry.placeId,
-    props.entry.recordId,
-    props.entry.startDate,
-    props.entry.endDate,
-    tripsByPlaceId.value,
-  )
-})
 
 const deleteDialogConfig = computed(() => {
   if (props.entry.visitCount === 1) {
@@ -116,7 +104,7 @@ async function handleDeleteConfirm() {
     <TimelineEditForm
       v-if="isEditing"
       :record="entry"
-      :conflicting-dates="conflictingDates"
+      :trips-by-place-id="tripsByPlaceId"
       :is-submitting="isSubmitting"
       @submit="handleEditSubmit"
       @cancel="handleEditCancel"

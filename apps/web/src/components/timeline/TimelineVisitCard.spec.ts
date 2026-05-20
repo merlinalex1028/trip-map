@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { TravelRecord } from '@trip-map/contracts'
 import TimelineVisitCard from './TimelineVisitCard.vue'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
@@ -22,6 +23,29 @@ function makeTimelineEntry(overrides: Partial<TimelineEntry> = {}): TimelineEntr
     sortDate: '2025-01-15',
     visitOrdinal: 1,
     visitCount: 1,
+    notes: null,
+    tags: [],
+    ...overrides,
+  }
+}
+
+function makeTravelRecord(overrides: Partial<TravelRecord> = {}): TravelRecord {
+  return {
+    id: 'record-1',
+    placeId: 'place-1',
+    boundaryId: 'boundary-1',
+    placeKind: 'CN_ADMIN',
+    datasetVersion: 'test',
+    displayName: '北京',
+    regionSystem: 'CN',
+    adminType: 'MUNICIPALITY',
+    typeLabel: '市',
+    parentLabel: '中国',
+    subtitle: '北京市',
+    startDate: '2025-01-15',
+    endDate: null,
+    createdAt: '2025-01-16T00:00:00.000Z',
+    updatedAt: '2025-01-16T00:00:00.000Z',
     notes: null,
     tags: [],
     ...overrides,
@@ -181,6 +205,42 @@ describe('TimelineVisitCard', () => {
     expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(false)
     // Readonly content should be visible again
     expect(wrapper.find('[data-card-management]').exists()).toBe(true)
+  })
+
+  it('updates date conflict warning when edited dates change', async () => {
+    const entry = makeTimelineEntry({
+      recordId: 'record-1',
+      placeId: 'place-1',
+      startDate: '2025-01-15',
+      endDate: null,
+    })
+    const { mapPointsStore, wrapper } = mountCard(entry)
+    mapPointsStore.replaceTravelRecords([
+      makeTravelRecord({
+        id: 'record-1',
+        placeId: 'place-1',
+        startDate: '2025-01-15',
+        endDate: null,
+      }),
+      makeTravelRecord({
+        id: 'record-2',
+        placeId: 'place-1',
+        startDate: '2025-02-01',
+        endDate: '2025-02-03',
+      }),
+    ])
+
+    await openManagementMenu(wrapper)
+    getManagementActions()[0]?.click()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('[data-edit-warning="date-conflict"]').exists()).toBe(false)
+
+    await wrapper.get('[data-edit-input="start-date"]').setValue('2025-02-02')
+
+    expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain(
+      '2025-02-01 ~ 2025-02-03',
+    )
   })
 
   it('submits edit and calls store.updateRecord', async () => {

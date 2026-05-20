@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import type { UpdateTravelRecordRequest } from '@trip-map/contracts'
+import type { TravelRecord, UpdateTravelRecordRequest } from '@trip-map/contracts'
+import { checkDateConflict } from '../../services/date-conflict'
 import type { TimelineEntry } from '../../services/timeline'
 
 import TagInput from './TagInput.vue'
@@ -9,6 +10,7 @@ import TagInput from './TagInput.vue'
 interface Props {
   record: TimelineEntry
   conflictingDates?: string[]
+  tripsByPlaceId?: Map<string, TravelRecord[]>
   isSubmitting?: boolean
 }
 
@@ -40,6 +42,19 @@ const rangeErrorMessage = computed(() =>
 const notesErrorMessage = computed(() =>
   notesTooLong.value ? '备注不能超过 1000 字符' : null,
 )
+const visibleConflictingDates = computed(() => {
+  if (!props.tripsByPlaceId) {
+    return props.conflictingDates
+  }
+
+  return checkDateConflict(
+    props.record.placeId,
+    props.record.recordId,
+    startDate.value || null,
+    endDate.value || null,
+    props.tripsByPlaceId,
+  )
+})
 
 function handleSubmit() {
   if (!isValid.value || props.isSubmitting) {
@@ -105,12 +120,12 @@ function handleSubmit() {
     </p>
 
     <p
-      v-if="conflictingDates.length > 0"
+      v-if="visibleConflictingDates.length > 0"
       class="text-[var(--font-label-size)] font-bold text-[var(--color-destructive)]"
       role="alert"
       data-edit-warning="date-conflict"
     >
-      与已有记录 {{ conflictingDates.join('、') }} 存在日期重叠
+      与已有记录 {{ visibleConflictingDates.join('、') }} 存在日期重叠
     </p>
 
     <label class="grid gap-1">
