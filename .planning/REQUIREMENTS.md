@@ -56,12 +56,12 @@
 
 ### Travel Journal
 
-- [ ] **JOURNAL-01**: `/timeline` 页面重命名并视觉升级为“旅途手账”。
-- [ ] **JOURNAL-02**: 旅途手账以发光渐变竖线、星形节点和卡片流展示每条旅行记录。
-- [ ] **JOURNAL-03**: 每张手账卡片展示日期、地点、地区、备注/标签摘要和视觉缩略图/插画位。
-- [ ] **JOURNAL-04**: 旅途手账不提供“添加新旅行”入口，新增旅行仍必须从地图真实地点进入。
-- [ ] **JOURNAL-05**: 旅途手账不展示收藏按钮、收藏状态或“我的收藏”相关入口。
-- [ ] **JOURNAL-06**: 空状态、登录恢复状态和错误状态均符合 Yume Kawaii 视觉语言。
+- [x] **JOURNAL-01**: `/timeline` 页面重命名并视觉升级为“旅途手账”。
+- [x] **JOURNAL-02**: 旅途手账以发光渐变竖线、星形节点和卡片流展示每条旅行记录。
+- [x] **JOURNAL-03**: 每张手账卡片展示日期、地点、地区、备注/标签摘要和视觉缩略图/插画位。
+- [x] **JOURNAL-04**: 旅途手账不提供“添加新旅行”入口，新增旅行仍必须从地图真实地点进入。
+- [x] **JOURNAL-05**: 旅途手账不展示收藏按钮、收藏状态或“我的收藏”相关入口。
+- [x] **JOURNAL-06**: 空状态、登录恢复状态和错误状态均符合 Yume Kawaii 视觉语言。
 
 ### Travel Memories Dashboard
 
@@ -146,12 +146,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COV-02 | Phase 45 | Complete |
 | COV-03 | Phase 45 | Complete |
 | COV-04 | Phase 45 | Complete |
-| JOURNAL-01 | Phase 46 | Pending |
-| JOURNAL-02 | Phase 46 | Pending |
-| JOURNAL-03 | Phase 46 | Pending |
-| JOURNAL-04 | Phase 46 | Pending |
-| JOURNAL-05 | Phase 46 | Pending |
-| JOURNAL-06 | Phase 46 | Pending |
+| JOURNAL-01 | Phase 46 | Complete |
+| JOURNAL-02 | Phase 46 | Complete |
+| JOURNAL-03 | Phase 46 | Complete |
+| JOURNAL-04 | Phase 46 | Complete |
+| JOURNAL-05 | Phase 46 | Complete |
+| JOURNAL-06 | Phase 46 | Complete |
 | MEM-01 | Phase 47 | Pending |
 | MEM-02 | Phase 47 | Pending |
 | MEM-03 | Phase 47 | Pending |

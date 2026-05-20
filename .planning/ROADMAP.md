@@ -237,12 +237,12 @@ Plans:
 | COV-02 | Phase 45 | Pending |
 | COV-03 | Phase 45 | Pending |
 | COV-04 | Phase 45 | Pending |
-| JOURNAL-01 | Phase 46 | Pending |
-| JOURNAL-02 | Phase 46 | Pending |
-| JOURNAL-03 | Phase 46 | Pending |
-| JOURNAL-04 | Phase 46 | Pending |
-| JOURNAL-05 | Phase 46 | Pending |
-| JOURNAL-06 | Phase 46 | Pending |
+| JOURNAL-01 | Phase 46 | Complete |
+| JOURNAL-02 | Phase 46 | Complete |
+| JOURNAL-03 | Phase 46 | Complete |
+| JOURNAL-04 | Phase 46 | Complete |
+| JOURNAL-05 | Phase 46 | Complete |
+| JOURNAL-06 | Phase 46 | Complete |
 | MEM-01 | Phase 47 | Pending |
 | MEM-02 | Phase 47 | Pending |
 | MEM-03 | Phase 47 | Pending |
@@ -266,7 +266,7 @@ Plans:
 | 43. Landing、登录门禁与应用壳 | 4/4 | Complete | 2026-05-12 |
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
-| 46. 旅途手账重构 | 4/4 | Complete   | 2026-05-20 |
+| 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
 | 47. 旅途回忆 Dashboard | 0/0 | Not Started | — |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
 
