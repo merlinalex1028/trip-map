@@ -67,6 +67,7 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.find('[data-shell-sidebar]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-sidebar-frame]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-mobile-trigger]').exists()).toBe(true)
+    expect(wrapper.get('[data-shell-mobile-trigger]').attributes('aria-label')).toBe('打开导航')
     expect(wrapper.find('[data-shell-avatar]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-illustration]').exists()).toBe(true)
 
@@ -122,8 +123,7 @@ describe('AuthenticatedAppShell', () => {
     )
   })
 
-  // TODO: re-enable logout test when design finalizes the logout placement (43-UAT.md test 10)
-  it.skip('logs out and routes back to landing', async () => {
+  it('logs out and routes back to landing', async () => {
     let logoutSpy: ReturnType<typeof vi.spyOn>
     const { router, wrapper } = await mountShell('/memories', (authSessionStore) => {
       logoutSpy = vi.spyOn(authSessionStore, 'logout').mockResolvedValue(undefined)
@@ -137,7 +137,7 @@ describe('AuthenticatedAppShell', () => {
     expect(replaceSpy).toHaveBeenCalledWith('/')
   })
 
-  it.skip('shows the inline logout failure alert when logout throws', async () => {
+  it('shows the inline logout failure alert when logout throws', async () => {
     const { wrapper } = await mountShell('/map', (authSessionStore) => {
       vi.spyOn(authSessionStore, 'logout').mockRejectedValue(new Error('network'))
     })

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, shallowRef } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import sidebarCameraGirl from '@/assets/v8/characters/sidebar-camera-girl.webp'
 import logoCat from '@/assets/v8/mascots/logo-cat-outline.png'
@@ -33,6 +33,8 @@ const navItems = [
 const authSessionStore = useAuthSessionStore()
 const { currentUser } = storeToRefs(authSessionStore)
 const route = useRoute()
+const router = useRouter()
+const hasLogoutError = shallowRef(false)
 
 const displayUsername = computed(() => currentUser.value?.username ?? '旅行家')
 const displayLevel = computed(() => (currentUser.value ? 'Lv.5 资深旅行家' : 'Lv.1 新手旅行家'))
@@ -48,6 +50,18 @@ function getNavButtonClass(item: NavItem) {
       ? 'bg-[linear-gradient(135deg,rgba(255,224,241,0.98),rgba(255,241,249,0.98))] text-[#2f1d72] shadow-[0_12px_24px_rgba(244,143,177,0.18)]'
       : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
   ]
+}
+
+async function handleLogout() {
+  hasLogoutError.value = false
+
+  try {
+    await authSessionStore.logout()
+    await router.replace('/')
+  }
+  catch {
+    hasLogoutError.value = true
+  }
 }
 </script>
 
@@ -174,7 +188,23 @@ function getNavButtonClass(item: NavItem) {
       </SidebarContent>
     </div>
 
-    <!-- Logout removed — pending design review (see 43-UAT.md test 10) -->
+    <div class="mt-4 grid gap-2">
+      <button
+        type="button"
+        class="inline-flex min-h-11 items-center justify-center rounded-full border border-[#f4d7e4] bg-white/88 px-4 py-2 text-sm font-semibold text-[#8a77cc] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(247,90,155,0.32)]"
+        data-shell-logout
+        @click="handleLogout"
+      >
+        退出登录
+      </button>
+      <p
+        v-if="hasLogoutError"
+        class="text-center text-xs font-semibold leading-5 text-[#b94d79]"
+        role="alert"
+      >
+        退出登录失败，请稍后重试。
+      </p>
+    </div>
   </div>
 </template>
 

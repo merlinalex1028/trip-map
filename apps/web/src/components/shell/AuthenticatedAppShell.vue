@@ -24,6 +24,7 @@ import ShellSidebar from './ShellSidebar.vue'
     <SidebarInset class="min-h-0 min-w-0 overflow-hidden bg-transparent p-3 sm:p-4 md:h-svh md:p-6">
       <div class="flex items-center gap-3 pb-3 md:hidden">
         <SidebarTrigger
+          aria-label="打开导航"
           class="h-11 w-11 rounded-full border border-white/80 bg-white/88 text-[#8a77cc] shadow-[var(--shadow-button)]"
           data-shell-mobile-trigger
         />

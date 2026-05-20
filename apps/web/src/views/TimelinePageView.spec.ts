@@ -244,6 +244,29 @@ describe('TimelinePageView', () => {
     expect(mapLinks.some((link) => link.text() === '返回世界足迹')).toBe(true)
   })
 
+  it('does not show journal recovery panel for unrelated warning notices', () => {
+    const { wrapper } = mountTimelinePage(({ authSessionStore, mapPointsStore, mapUiStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([
+        makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+          id: 'california-edit-warning',
+          startDate: '2025-04-20',
+          createdAt: '2025-04-20T00:00:00.000Z',
+        }),
+      ])
+      mapUiStore.setInteractionNotice({
+        tone: 'warning',
+        message: '编辑失败，请稍后重试。',
+      })
+    })
+
+    expect(wrapper.find('[data-state="error"]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain(
+      '旅途手账暂时加载失败，请稍后重试，或返回世界足迹确认旅行记录是否已同步。',
+    )
+  })
+
   it('keeps the populated header free of return, add, favorite, and postcard pills', () => {
     const { wrapper } = mountTimelinePage(({ authSessionStore, mapPointsStore }) => {
       authSessionStore.status = 'authenticated'
