@@ -30,7 +30,16 @@ const shouldShowAnonymousState = computed(
   () => status.value !== 'authenticated' || currentUser.value === null,
 )
 const shouldShowEmptyState = computed(
-  () => status.value === 'authenticated' && timelineEntries.value.length === 0,
+  () =>
+    status.value === 'authenticated' &&
+    timelineEntries.value.length === 0 &&
+    !shouldShowWarningNotice.value,
+)
+const shouldShowWarningRecoveryState = computed(
+  () =>
+    status.value === 'authenticated' &&
+    timelineEntries.value.length === 0 &&
+    shouldShowWarningNotice.value,
 )
 const shouldShowTimeline = computed(
   () => status.value === 'authenticated' && timelineEntries.value.length > 0,
@@ -141,6 +150,33 @@ const restoringSkeletonRows = 3
       >
         立即登录
       </button>
+    </div>
+
+    <div
+      v-else-if="shouldShowWarningRecoveryState"
+      class="journal-state-panel grid gap-3 rounded-[28px] border border-[#f7d8e9] bg-[linear-gradient(180deg,rgba(255,248,251,0.94),rgba(255,240,246,0.98))] p-5 shadow-[var(--shadow-float)]"
+      data-state="error"
+      role="status"
+    >
+      <div class="space-y-2">
+        <p
+          class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-accent-strong)] uppercase"
+        >
+          Sync notice
+        </p>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">同步提醒</h3>
+        <p class="max-w-3xl text-sm leading-6 text-[var(--color-ink-muted)]">
+          {{ interactionNotice?.message }}
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <RouterLink
+          class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
+          to="/map"
+        >
+          返回世界足迹
+        </RouterLink>
+      </div>
     </div>
 
     <div

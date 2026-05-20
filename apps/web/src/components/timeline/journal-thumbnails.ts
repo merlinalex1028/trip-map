@@ -46,6 +46,7 @@ export function getJournalSummary(notes: string | null): string {
 
 export function getJournalLocationPath(entry: TimelineEntry): string {
   const parts = [entry.parentLabel, entry.subtitle, entry.typeLabel]
+    .flatMap((part) => part.split(' · '))
     .map((part) => part.trim())
     .filter((part) => part.length > 0)
 

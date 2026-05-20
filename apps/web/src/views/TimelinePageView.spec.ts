@@ -243,6 +243,22 @@ describe('TimelinePageView', () => {
     expect(mapLinks.some((link) => link.text() === '返回世界足迹')).toBe(true)
   })
 
+  it('renders sync warning instead of empty state when refresh fails without local entries', () => {
+    const { wrapper } = mountTimelinePage(({ authSessionStore, mapUiStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapUiStore.setInteractionNotice({
+        tone: 'warning',
+        message: '云端记录刷新失败，当前仍显示上次同步结果，请稍后重试。',
+      })
+    })
+
+    expect(wrapper.find('[data-state="empty"]').exists()).toBe(false)
+    expect(wrapper.get('[data-state="error"]').text()).toContain(
+      '云端记录刷新失败，当前仍显示上次同步结果，请稍后重试。',
+    )
+  })
+
   it('does not show journal recovery panel for unrelated warning notices', () => {
     const { wrapper } = mountTimelinePage(({ authSessionStore, mapPointsStore, mapUiStore }) => {
       authSessionStore.status = 'authenticated'

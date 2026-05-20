@@ -108,15 +108,15 @@ export const useMapPointsStore = defineStore('map-points', () => {
   })
 
   const displayPoints = computed<MapPointDisplay[]>(() => {
-    const latestByPlaceId = new Map<string, TravelRecord>()
+    const latestRecords = new Map<string, TravelRecord>()
     for (const record of travelRecords.value) {
-      const existing = latestByPlaceId.get(record.placeId)
+      const existing = latestRecords.get(record.placeId)
       if (!existing || record.createdAt > existing.createdAt) {
-        latestByPlaceId.set(record.placeId, record)
+        latestRecords.set(record.placeId, record)
       }
     }
 
-    const points: MapPointDisplay[] = Array.from(latestByPlaceId.values()).map(recordToDisplayPoint)
+    const points: MapPointDisplay[] = Array.from(latestRecords.values()).map(recordToDisplayPoint)
 
     if (draftPoint.value) {
       points.push(draftPoint.value)
@@ -312,7 +312,10 @@ export const useMapPointsStore = defineStore('map-points', () => {
 
   function findSavedPointByPlaceId(placeId: string) {
     const trips = tripsByPlaceId.value.get(placeId)
-    return trips?.[0] ?? null
+    return trips?.reduce<TravelRecord | null>(
+      (latest, record) => (!latest || record.createdAt > latest.createdAt ? record : latest),
+      null,
+    ) ?? null
   }
 
   function findSavedPointByCityId(identifier: string) {

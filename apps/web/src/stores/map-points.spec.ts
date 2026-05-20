@@ -1196,6 +1196,52 @@ describe('map-points store', () => {
       expect(beijingPoints[0]?.cityName).toBe('北京市（晚）')
     })
 
+    it('reuses the latest saved record when opening an already saved place', () => {
+      const store = useMapPointsStore()
+      store.replaceTravelRecords([
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-early',
+          displayName: '北京市（早）',
+          createdAt: '2025-10-01T00:00:00.000Z',
+          startDate: '2025-10-01',
+        }),
+        makeRecord(PHASE12_RESOLVED_BEIJING, {
+          id: 'server-record-beijing-late',
+          displayName: '北京市（晚）',
+          createdAt: '2025-11-05T00:00:00.000Z',
+          startDate: '2025-11-05',
+        }),
+      ])
+
+      const decision = store.openSavedPointForPlaceOrStartDraft({
+        ...makeResolvedPlace(PHASE12_RESOLVED_BEIJING),
+        id: PHASE12_RESOLVED_BEIJING.placeId,
+        name: PHASE12_RESOLVED_BEIJING.displayName,
+        countryName: PHASE12_RESOLVED_BEIJING.parentLabel,
+        countryCode: 'CN',
+        precision: 'city-high',
+        cityId: null,
+        cityName: PHASE12_RESOLVED_BEIJING.displayName,
+        cityContextLabel: PHASE12_RESOLVED_BEIJING.subtitle,
+        boundaryDatasetVersion: PHASE12_RESOLVED_BEIJING.datasetVersion,
+        fallbackNotice: null,
+        x: 0,
+        y: 0,
+        lat: 39.9042,
+        lng: 116.4074,
+        clickLat: 39.9042,
+        clickLng: 116.4074,
+        source: 'detected',
+        isFeatured: false,
+        description: '',
+        coordinatesLabel: '39.9042°N, 116.4074°E',
+      })
+
+      expect(decision.type).toBe('reused')
+      expect(decision.point.name).toBe('北京市（晚）')
+      expect(store.activePoint?.name).toBe('北京市（晚）')
+    })
+
     it('groups all trips under tripsByPlaceId for the same place', () => {
       const store = useMapPointsStore()
       store.replaceTravelRecords([

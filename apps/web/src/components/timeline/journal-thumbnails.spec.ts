@@ -52,6 +52,15 @@ describe('journal thumbnail helpers', () => {
           }),
         ),
       ).toBe('中国 · 地级市')
+      expect(
+        getJournalLocationPath(
+          makeEntry({
+            parentLabel: 'Japan',
+            subtitle: 'Japan · Prefecture',
+            typeLabel: 'Prefecture',
+          }),
+        ),
+      ).toBe('Japan · Prefecture')
     })
   })
 
