@@ -63,7 +63,7 @@ Phase 47 should be planned as a real aggregate dashboard upgrade on the existing
 
 Plan the primary data work in the existing records stats boundary. [VERIFIED: apps/server/src/modules/records/records.controller.ts + apps/server/src/modules/records/records.service.ts + apps/server/src/modules/records/records.repository.ts] Trends, country distribution, ranking, profile inputs, and recent dated postcard seeds all originate from the current user's `UserTravelRecord` rows; date strings are validated as `YYYY-MM-DD`, notes and tags already exist, and the records repository already filters stats by `userId`. [VERIFIED: apps/server/prisma/schema.prisma + apps/server/src/modules/records/dto/create-travel-record.dto.ts + apps/server/src/modules/records/dto/update-travel-record.dto.ts + apps/server/src/modules/records/records.repository.ts] Keeping aggregate derivation behind the guarded stats response gives planner tasks one authority path for MEM-02, MEM-03, MEM-04, MEM-06, and MEM-07. [VERIFIED: apps/server/src/modules/records/records.controller.ts + .planning/REQUIREMENTS.md]
 
-The major unresolved semantics are not library questions. [VERIFIED: codebase grep] Current canonical records represent `CN_ADMIN` or `OVERSEAS_ADMIN1` places; `placeId` and `boundaryId` are both one-summary canonical identities in the metadata catalog, so the requirement split between “去过地点” and “去过城市或行政区” needs an explicit aggregate rule before implementation claims two different numbers. [VERIFIED: packages/contracts/src/place.ts + apps/server/src/modules/canonical-places/place-metadata-catalog.ts + apps/server/src/modules/records/records.repository.ts] The radar also must be renamed to a memories profile unless its dimensions are explainable ratios or counts from real fields such as distinct places, countries, repeat visits, dated-record coverage, notes, and tags. [VERIFIED: .planning/phases/47-dashboard/47-CONTEXT.md + packages/contracts/src/records.ts]
+The formerly open semantics are resolved by the final Phase 47 plan set. [RESOLVED: .planning/phases/47-dashboard/47-01-PLAN.md + .planning/phases/47-dashboard/47-03-PLAN.md] Current canonical records represent `CN_ADMIN` or `OVERSEAS_ADMIN1` places; Plan 47-01 locks “去过地点” to `uniquePlaces = distinct placeId` and “去过城市或行政区” to `visitedAdministrativeAreas = distinct boundaryId`, accepting that current canonical coverage can make those counts equal. [VERIFIED: packages/contracts/src/place.ts + apps/server/src/modules/canonical-places/place-metadata-catalog.ts + apps/server/src/modules/records/records.repository.ts] Plan 47-03 also locks MEM-01 as a user-visible `/memories` / `旅途回忆` dashboard upgrade without renaming the internal `StatisticsPageView` file family. [VERIFIED: apps/web/src/router/index.ts + apps/web/src/views/StatisticsPageView.vue] The radar must be renamed to a memories profile unless its dimensions are explainable ratios or counts from real fields such as distinct places, countries, repeat visits, dated-record coverage, notes, and tags. [VERIFIED: .planning/phases/47-dashboard/47-CONTEXT.md + packages/contracts/src/records.ts]
 
 **Primary recommendation:** Extend the existing guarded `/records/stats` contract with a Phase 47 memories dashboard payload, keep `/memories` view orchestration thin, build each chart from `BaseChart` options over returned real aggregates, and treat postcard visuals as deterministic illustrations attached to recent dated records. [VERIFIED: apps/server/src/modules/records/records.controller.ts + apps/web/src/views/StatisticsPageView.vue + apps/web/src/components/common/BaseChart.vue + apps/web/src/components/timeline/journal-thumbnails.ts]
 
@@ -383,19 +383,19 @@ rankedPlaces
 
 | # | Claim | Section | Risk if Wrong |
 |---|-------|---------|---------------|
-| — | No `[ASSUMED]` factual claims are used in this research. [VERIFIED: research provenance audit] | All sections | Planner still must resolve the explicit overview semantic open question before implementation. [VERIFIED: Open Questions] |
+| — | No `[ASSUMED]` factual claims are used in this research. [VERIFIED: research provenance audit] | All sections | Final plans resolve the overview semantic question and internal rename question; execution should not reopen them. [RESOLVED: Open Questions] |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **What is the contract difference between “去过地点” and “去过城市或行政区”?** [VERIFIED: .planning/REQUIREMENTS.md]
+1. **What is the contract difference between “去过地点” and “去过城市或行政区”?** [RESOLVED: .planning/phases/47-dashboard/47-01-PLAN.md]
    - What we know: Current `TravelStatsResponse` has `uniquePlaces`; persisted travel records carry canonical `placeId`, `boundaryId`, and kinds `CN_ADMIN` or `OVERSEAS_ADMIN1`. [VERIFIED: packages/contracts/src/stats.ts + packages/contracts/src/place.ts + apps/server/prisma/schema.prisma]
-   - What's unclear: The codebase does not yet name a separate city/admin overview metric, and canonical metadata maps both place and boundary identities to the same place summary. [VERIFIED: apps/server/src/modules/canonical-places/place-metadata-catalog.ts + packages/contracts/src/stats.ts]
-   - Recommendation: Before card implementation, choose and test one explicit rule. The conservative rule is `uniquePlaces = distinct placeId` and `visitedAdministrativeAreas = distinct boundaryId`, with copy/tests accepting that current canonical records can make the counts equal. [VERIFIED: packages/contracts/src/place.ts + apps/server/src/modules/canonical-places/place-metadata-catalog.ts]
+   - Final choice: “去过地点” = distinct `placeId`, exposed as `uniquePlaces`; “去过城市或行政区” = distinct `boundaryId`, exposed as `visitedAdministrativeAreas`. [RESOLVED: .planning/phases/47-dashboard/47-01-PLAN.md]
+   - Implementation note: Copy/tests should accept that current canonical records can make the two counts equal, but the contract names and tests must keep the two aggregate rules explicit. [VERIFIED: packages/contracts/src/place.ts + apps/server/src/modules/canonical-places/place-metadata-catalog.ts]
 
-2. **Should the internal `StatisticsPageView` file family be renamed during Phase 47?** [VERIFIED: apps/web/src/router/index.ts + apps/web/src/views/StatisticsPageView.vue]
+2. **Should the internal `StatisticsPageView` file family be renamed during Phase 47?** [RESOLVED: .planning/phases/47-dashboard/47-03-PLAN.md]
    - What we know: User-facing route and copy are already `/memories` and `旅途回忆`; old `/statistics` falls through in router tests. [VERIFIED: apps/web/src/router/index.ts + apps/web/src/router/index.spec.ts]
-   - What's unclear: MEM-01 can be satisfied visually without an internal file rename, but the old symbol names will remain visible to maintainers. [VERIFIED: .planning/REQUIREMENTS.md + codebase grep]
-   - Recommendation: Keep runtime route behavior unchanged; rename internal files only if the plan batches import/test updates in a focused task and avoids mixing that churn with aggregate semantics. [VERIFIED: codebase grep]
+   - Final choice: Phase 47 does not rename the internal `StatisticsPageView` file family. It only upgrades user-visible `/memories` / `旅途回忆` dashboard behavior. [RESOLVED: .planning/phases/47-dashboard/47-03-PLAN.md]
+   - Implementation note: Keep runtime route behavior unchanged, avoid reviving legacy `/statistics`, and do not batch internal file-symbol churn into Phase 47. [VERIFIED: codebase grep]
 
 ## Environment Availability
 
@@ -492,7 +492,7 @@ rankedPlaces
 
 **Confidence breakdown:**
 - Standard stack: HIGH - Chart and Vue stack are already installed, registered, and registry-checked; official ECharts/Vue-ECharts docs align with the current wrapper. [VERIFIED: pnpm list + npm registry + official docs]
-- Architecture: MEDIUM - The current records stats boundary is clear, but planner still must lock the fourth overview metric and exact payload split. [VERIFIED: codebase grep + Open Questions]
+- Architecture: MEDIUM - The current records stats boundary is clear, and final Plan 47-01 locks the fourth overview metric plus exact payload split before implementation. [RESOLVED: codebase grep + Open Questions]
 - Pitfalls: HIGH - Most risks are explicit in Phase 47 decisions or visible in current code/test boundaries. [VERIFIED: 47-CONTEXT.md + codebase grep]
 
 **Research date:** 2026-05-22 [VERIFIED: environment current date]  
