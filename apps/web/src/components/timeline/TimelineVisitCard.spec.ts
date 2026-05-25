@@ -1,12 +1,26 @@
-import { mount, type VueWrapper } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import type { DateValue } from '@internationalized/date'
 import type { TravelRecord } from '@trip-map/contracts'
+import { Calendar } from '@/components/ui/calendar'
 import TimelineVisitCard from './TimelineVisitCard.vue'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
+
+const popoverStubs = {
+  Popover: {
+    template: '<div data-popover><slot /></div>',
+  },
+  PopoverTrigger: {
+    template: '<div data-popover-trigger><slot /></div>',
+  },
+  PopoverContent: {
+    template: '<div data-popover-content><slot /></div>',
+  },
+}
 
 function makeTimelineEntry(overrides: Partial<TimelineEntry> = {}): TimelineEntry {
   return {
@@ -52,6 +66,12 @@ function makeTravelRecord(overrides: Partial<TravelRecord> = {}): TravelRecord {
   }
 }
 
+function makeDateValue(value: string): DateValue {
+  return {
+    toString: () => value,
+  } as DateValue
+}
+
 function mountCard(entry: TimelineEntry) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -59,7 +79,10 @@ function mountCard(entry: TimelineEntry) {
 
   const wrapper = mount(TimelineVisitCard, {
     props: { entry },
-    global: { plugins: [pinia] },
+    global: {
+      plugins: [pinia],
+      stubs: popoverStubs,
+    },
     attachTo: document.body,
   })
 
@@ -76,12 +99,31 @@ function getManagementActions() {
   )
 }
 
+function getEditDialogElement() {
+  const dialog = document.body.querySelector<HTMLElement>('[data-region="timeline-edit-dialog"]')
+  expect(dialog).not.toBeNull()
+  return dialog!
+}
+
+function getEditFormElement() {
+  const form = document.body.querySelector<HTMLFormElement>('[data-region="timeline-edit-form"]')
+  expect(form).not.toBeNull()
+  return form!
+}
+
+async function openEditDialog(wrapper: VueWrapper) {
+  await openManagementMenu(wrapper)
+  getManagementActions()[0]?.click()
+  await wrapper.vm.$nextTick()
+  await flushPromises()
+}
+
 describe('TimelineVisitCard', () => {
   afterEach(() => {
     document.body.innerHTML = ''
   })
 
-  it('renders the readonly journal card hierarchy with summary fallback, limited tags, repeat badge, and postcard', () => {
+  it('renders the readonly journal card hierarchy with summary fallback, repeat badge, and postcard', () => {
     const entry = makeTimelineEntry({
       displayName: '京都',
       parentLabel: '日本',
@@ -98,12 +140,11 @@ describe('TimelineVisitCard', () => {
     expect(wrapper.text()).toContain('2025-04-12')
     expect(wrapper.text()).toContain('京都')
     expect(wrapper.text()).toContain('日本 · 京都府 · 府')
-    expect(wrapper.text()).toContain('旅行摘记')
     expect(wrapper.text()).toContain('这段旅途还没有写下摘记')
     expect(wrapper.text()).toContain('第 2 次 / 共 3 次')
-    expect(wrapper.findAll('[data-journal-tag]')).toHaveLength(3)
-    expect(wrapper.get('[data-journal-tags-more]').text()).toBe('+1')
     expect(wrapper.find('[data-journal-postcard]').exists()).toBe(true)
+    expect(wrapper.find('[data-journal-postcard-image]').exists()).toBe(true)
+    expect(wrapper.find('[data-journal-tag]').exists()).toBe(false)
   })
 
   it('renders the decorative postcard as hidden from assistive technology with a stable variant', () => {
@@ -113,6 +154,7 @@ describe('TimelineVisitCard', () => {
     const postcard = wrapper.get('[data-journal-postcard]')
     expect(postcard.attributes('aria-hidden')).toBe('true')
     expect(postcard.attributes('data-variant')).toBeTruthy()
+    expect(wrapper.get('[data-journal-postcard-image]').attributes('alt')).toBe('')
   })
 
   it('does not render excluded management-record, creation, collection, upload, or photo copy', () => {
@@ -173,37 +215,31 @@ describe('TimelineVisitCard', () => {
     expect(actions.map((action) => action.textContent?.trim())).toEqual(['编辑', '删除'])
   })
 
-  it('enters edit mode when edit button is clicked', async () => {
+  it('opens edit dialog when edit button is clicked', async () => {
     const entry = makeTimelineEntry()
     const { wrapper } = mountCard(entry)
 
-    // Initially in readonly mode — no edit form
-    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(false)
+    expect(document.body.querySelector('[data-region="timeline-edit-form"]')).toBeNull()
 
-    await openManagementMenu(wrapper)
-    getManagementActions()[0]?.click()
-    await wrapper.vm.$nextTick()
+    await openEditDialog(wrapper)
 
-    // Edit form should appear
-    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
+    expect(getEditDialogElement().textContent).toContain('编辑旅行记录')
+    expect(getEditFormElement()).toBeTruthy()
+    expect(wrapper.find('[data-card-management]').exists()).toBe(true)
   })
 
-  it('exits edit mode when cancel is clicked', async () => {
+  it('closes edit dialog when cancel is clicked', async () => {
     const entry = makeTimelineEntry()
     const { wrapper } = mountCard(entry)
 
-    // Enter edit mode
-    await openManagementMenu(wrapper)
-    getManagementActions()[0]?.click()
+    await openEditDialog(wrapper)
+    expect(getEditFormElement()).toBeTruthy()
+
+    document.body.querySelector<HTMLElement>('[data-edit-cancel="true"]')?.click()
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
+    await flushPromises()
 
-    // Click cancel in edit form
-    await wrapper.get('[data-edit-cancel="true"]').trigger('click')
-
-    // Should return to readonly mode
-    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(false)
-    // Readonly content should be visible again
+    expect(document.body.querySelector('[data-region="timeline-edit-form"]')).toBeNull()
     expect(wrapper.find('[data-card-management]').exists()).toBe(true)
   })
 
@@ -230,15 +266,16 @@ describe('TimelineVisitCard', () => {
       }),
     ])
 
-    await openManagementMenu(wrapper)
-    getManagementActions()[0]?.click()
+    await openEditDialog(wrapper)
+
+    expect(document.body.querySelector('[data-edit-warning="date-conflict"]')).toBeNull()
+
+    const calendars = wrapper.findAllComponents(Calendar)
+    expect(calendars).toHaveLength(2)
+    await calendars[0].vm.$emit('update:modelValue', makeDateValue('2025-02-02'))
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('[data-edit-warning="date-conflict"]').exists()).toBe(false)
-
-    await wrapper.get('[data-edit-input="start-date"]').setValue('2025-02-02')
-
-    expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain(
+    expect(document.body.querySelector('[data-edit-warning="date-conflict"]')?.textContent).toContain(
       '2025-02-01 ~ 2025-02-03',
     )
   })
@@ -252,12 +289,10 @@ describe('TimelineVisitCard', () => {
 
     const updateRecordSpy = vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(true)
 
-    await openManagementMenu(wrapper)
-    getManagementActions()[0]?.click()
-    await wrapper.vm.$nextTick()
+    await openEditDialog(wrapper)
 
-    // Submit the form
-    await wrapper.get('form').trigger('submit')
+    getEditFormElement().dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
 
     expect(updateRecordSpy).toHaveBeenCalledWith('record-1', {
       startDate: '2025-01-15',
@@ -276,16 +311,19 @@ describe('TimelineVisitCard', () => {
 
     vi.spyOn(mapPointsStore, 'updateRecord').mockResolvedValue(false)
 
-    await openManagementMenu(wrapper)
-    getManagementActions()[0]?.click()
-    await wrapper.vm.$nextTick()
-    await wrapper.get('[data-edit-input="notes"]').setValue('尚未保存的草稿')
+    await openEditDialog(wrapper)
 
-    await wrapper.get('form').trigger('submit')
+    const notesInput = document.body.querySelector<HTMLTextAreaElement>('[data-edit-input="notes"]')
+    expect(notesInput).not.toBeNull()
+    notesInput!.value = '尚未保存的草稿'
+    notesInput!.dispatchEvent(new Event('input', { bubbles: true }))
     await wrapper.vm.$nextTick()
 
-    expect(wrapper.find('[data-region="timeline-edit-form"]').exists()).toBe(true)
-    expect((wrapper.get('[data-edit-input="notes"]').element as HTMLTextAreaElement).value).toBe(
+    getEditFormElement().dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    await flushPromises()
+
+    expect(document.body.querySelector('[data-region="timeline-edit-form"]')).not.toBeNull()
+    expect(document.body.querySelector<HTMLTextAreaElement>('[data-edit-input="notes"]')?.value).toBe(
       '尚未保存的草稿',
     )
   })
@@ -383,19 +421,18 @@ describe('TimelineVisitCard', () => {
     const { wrapper } = mountCard(entry)
 
     expect(wrapper.text()).toContain('和家人一起去的')
-    expect(wrapper.text()).toContain('旅行摘记')
     expect(wrapper.text()).not.toContain('第二行')
   })
 
-  it('renders visible journal tag stickers when entry has tags', () => {
+  it('keeps tags out of the compact readonly journal card', () => {
     const entry = makeTimelineEntry({
       tags: ['美食', '文化', '历史'],
     })
     const { wrapper } = mountCard(entry)
 
-    expect(wrapper.findAll('[data-journal-tag]')).toHaveLength(3)
-    expect(wrapper.text()).toContain('美食')
-    expect(wrapper.text()).toContain('文化')
-    expect(wrapper.text()).toContain('历史')
+    expect(wrapper.find('[data-journal-tag]').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('美食')
+    expect(wrapper.text()).not.toContain('文化')
+    expect(wrapper.text()).not.toContain('历史')
   })
 })

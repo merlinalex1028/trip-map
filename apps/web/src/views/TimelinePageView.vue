@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { CalendarIcon } from '@radix-icons/vue'
 
 import TimelineVisitCard from '../components/timeline/TimelineVisitCard.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
@@ -50,35 +51,24 @@ const restoringSkeletonRows = 3
 
 <template>
   <section
-    class="journal-shell flex min-h-0 flex-col gap-6 overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,248,253,0.98),rgba(250,250,255,0.98))] p-5 shadow-[var(--shadow-stage)] md:gap-8 md:p-6"
+    class="journal-shell flex min-h-0 flex-col gap-7 overflow-y-auto rounded-[30px] border border-[#eee6fb] bg-[rgba(255,255,255,0.72)] px-5 py-6 shadow-[0_24px_54px_rgba(139,111,239,0.12)] backdrop-blur-[3px] md:gap-8 md:px-10 md:py-8 lg:px-12"
     data-region="journal-shell"
     data-route-view="journal"
   >
-    <header
-      class="grid gap-4 rounded-[28px] border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,243,250,0.9))] p-4 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:px-6 md:py-5"
-    >
-      <div class="space-y-3">
-        <p
-          class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
-        >
-          Personal travel history
-        </p>
-        <div class="space-y-2">
-          <h2 class="text-[clamp(1.7rem,2.8vw,2.4rem)] font-semibold text-[var(--color-ink-strong)]">
-            旅途手账
-          </h2>
-          <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
-            沿着发光的时间线翻阅每一段旅程，从最早的出发到最近一次留下的足迹，按阅读节奏安静回看。
-          </p>
-        </div>
-      </div>
-
-      <div class="flex min-h-11 flex-wrap items-center justify-start gap-3 md:justify-end">
-        <p
-          v-if="status === 'authenticated' && currentUser"
-          class="inline-flex min-h-11 items-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)]"
-        >
-          {{ currentUser.username }} 的旅途手账
+    <header class="journal-page-header flex items-start gap-4 px-1 md:px-0">
+      <span
+        class="journal-title-icon flex h-11 w-11 shrink-0 items-center justify-center text-[var(--color-accent)]"
+        aria-hidden="true"
+        data-journal-title-icon
+      >
+        <CalendarIcon class="h-9 w-9" />
+      </span>
+      <div class="min-w-0 space-y-2">
+        <h2 class="text-[32px] font-extrabold leading-[1.12] text-[var(--color-ink-strong)] md:text-[36px]">
+          旅途手账
+        </h2>
+        <p class="max-w-2xl text-[18px] font-bold leading-7 text-[var(--color-ink-muted)]">
+          按时间顺序记录每一次与世界的相遇
         </p>
       </div>
     </header>
@@ -94,11 +84,11 @@ const restoringSkeletonRows = 3
         <div class="journal-skeleton-shimmer h-8 w-52 rounded-full bg-white/80"></div>
       </div>
       <div
-        class="journal-stream relative grid gap-4 md:gap-5"
+        class="journal-stream journal-stream--skeleton relative grid gap-4 md:gap-5"
         data-journal-stream
       >
         <span
-          class="journal-line absolute bottom-4 left-6 top-3 hidden md:left-7"
+          class="journal-line absolute bottom-4 top-3 hidden md:block"
           data-journal-line
           aria-hidden="true"
         ></span>
@@ -205,7 +195,7 @@ const restoringSkeletonRows = 3
       </div>
     </div>
 
-    <div v-else-if="shouldShowTimeline" class="grid gap-4 md:gap-5" data-state="populated">
+    <div v-else-if="shouldShowTimeline" class="grid gap-6 md:gap-7" data-state="populated">
       <div
         v-if="shouldShowWarningNotice"
         class="journal-state-panel grid gap-3 rounded-[28px] border border-[#f7d8e9] bg-[linear-gradient(180deg,rgba(255,248,251,0.94),rgba(255,240,246,0.98))] p-5 shadow-[var(--shadow-float)]"
@@ -234,20 +224,20 @@ const restoringSkeletonRows = 3
       </div>
 
       <div
-        class="journal-stream relative grid gap-4 md:gap-5"
+        class="journal-stream relative grid gap-5 md:gap-6"
         data-journal-stream
       >
         <span
-          class="journal-line absolute bottom-6 left-6 top-4 hidden md:left-7"
+          class="journal-line absolute bottom-10 top-5 hidden md:block"
           data-journal-line
           aria-hidden="true"
         ></span>
         <div
           v-for="(entry, index) in timelineEntries"
           :key="entry.recordId"
-          class="grid grid-cols-[48px_minmax(0,1fr)] items-start gap-3 md:grid-cols-[56px_minmax(0,1fr)] md:gap-4"
+          class="journal-timeline-row grid min-w-0 grid-cols-1 gap-3 md:grid-cols-[72px_minmax(0,1fr)] md:items-start md:gap-4"
         >
-          <div class="flex justify-center pt-6">
+          <div class="journal-axis-marker hidden md:grid">
             <span
               class="journal-node"
               :class="index % 3 === 1 ? 'journal-node--purple' : index % 3 === 2 ? 'journal-node--blue' : 'journal-node--pink'"
@@ -258,6 +248,21 @@ const restoringSkeletonRows = 3
           <TimelineVisitCard :entry="entry" />
         </div>
       </div>
+
+      <p
+        class="journal-footer-copy flex items-center justify-center gap-5 pb-1 pt-1 text-center text-[16px] font-extrabold leading-6 text-[#a982ef]"
+        data-journal-footer-copy
+      >
+        <span
+          class="journal-footer-spark"
+          aria-hidden="true"
+        ></span>
+        <span>每一次旅行，都是回忆的珍藏</span>
+        <span
+          class="journal-footer-spark journal-footer-spark--pink"
+          aria-hidden="true"
+        ></span>
+      </p>
     </div>
   </section>
 </template>
@@ -265,9 +270,18 @@ const restoringSkeletonRows = 3
 <style scoped>
 .journal-shell {
   background-image:
-    radial-gradient(circle at top left, rgba(247, 90, 155, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(94, 167, 242, 0.12), transparent 22%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 248, 253, 0.9) 46%, rgba(250, 250, 255, 0.92)),
     linear-gradient(180deg, rgba(255, 248, 253, 0.98), rgba(250, 250, 255, 0.98));
+}
+
+.journal-page-header {
+  position: relative;
+}
+
+.journal-title-icon {
+  color: var(--color-accent);
+  filter: drop-shadow(0 10px 16px rgba(247, 90, 155, 0.16));
+  stroke-width: 1.7;
 }
 
 .journal-state-panel {
@@ -287,59 +301,101 @@ const restoringSkeletonRows = 3
 }
 
 .journal-stream {
+  --journal-axis-size: 72px;
+  --journal-axis-center: calc(var(--journal-axis-size) / 2);
+  --journal-axis-row-min-height: 170px;
   isolation: isolate;
 }
 
+.journal-stream--skeleton {
+  --journal-axis-size: 56px;
+}
+
 .journal-line {
+  left: calc(var(--journal-axis-center) - 1px);
   z-index: 0;
   width: 2px;
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(247, 90, 155, 0.92), rgba(139, 111, 239, 0.9), rgba(94, 167, 242, 0.92));
+    linear-gradient(180deg, rgba(247, 90, 155, 0.78), rgba(139, 111, 239, 0.8), rgba(94, 167, 242, 0.78), rgba(247, 90, 155, 0.66));
   box-shadow:
-    0 0 0 8px rgba(247, 90, 155, 0.07),
-    0 0 26px rgba(139, 111, 239, 0.2);
+    0 0 0 5px rgba(255, 255, 255, 0.54),
+    0 0 20px rgba(139, 111, 239, 0.18);
+}
+
+[data-state='populated'] .journal-line {
+  top: calc(var(--journal-axis-row-min-height) / 2);
+  bottom: calc(var(--journal-axis-row-min-height) / 2);
+}
+
+.journal-axis-marker {
+  position: relative;
+  z-index: 1;
+  align-self: stretch;
+  min-height: var(--journal-axis-row-min-height);
+  place-items: center;
 }
 
 .journal-node {
   position: relative;
   z-index: 1;
   display: block;
-  width: 20px;
-  height: 20px;
-  clip-path: polygon(50% 0%, 62% 34%, 100% 35%, 70% 57%, 82% 100%, 50% 74%, 18% 100%, 30% 57%, 0% 35%, 38% 34%);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 90, 155, 0.88));
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 129, 177, 0.96), rgba(238, 65, 137, 0.9));
   box-shadow:
-    0 0 0 8px rgba(255, 255, 255, 0.72),
-    0 14px 28px rgba(247, 90, 155, 0.22);
+    0 0 0 7px rgba(255, 255, 255, 0.66),
+    0 14px 24px rgba(247, 90, 155, 0.2);
   animation: journal-node-float 4.2s ease-in-out infinite;
+}
+
+.journal-node::before {
+  position: absolute;
+  inset: 10px;
+  background: rgba(255, 255, 255, 0.96);
+  clip-path: polygon(50% 0%, 62% 34%, 100% 35%, 70% 57%, 82% 100%, 50% 74%, 18% 100%, 30% 57%, 0% 35%, 38% 34%);
+  content: '';
 }
 
 .journal-node::after {
   position: absolute;
-  inset: -6px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.72), transparent 70%);
-  content: '';
+  inset: -9px;
   z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.76), transparent 72%);
+  content: '';
 }
 
 .journal-node--pink {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 90, 155, 0.88));
+  background: linear-gradient(180deg, rgba(255, 129, 177, 0.96), rgba(238, 65, 137, 0.9));
 }
 
 .journal-node--purple {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(139, 111, 239, 0.88));
+  background: linear-gradient(180deg, rgba(164, 129, 245, 0.96), rgba(126, 91, 232, 0.9));
   box-shadow:
-    0 0 0 8px rgba(255, 255, 255, 0.72),
+    0 0 0 7px rgba(255, 255, 255, 0.66),
     0 14px 28px rgba(139, 111, 239, 0.22);
 }
 
 .journal-node--blue {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(94, 167, 242, 0.88));
+  background: linear-gradient(180deg, rgba(112, 178, 247, 0.96), rgba(78, 146, 235, 0.9));
   box-shadow:
-    0 0 0 8px rgba(255, 255, 255, 0.72),
+    0 0 0 7px rgba(255, 255, 255, 0.66),
     0 14px 28px rgba(94, 167, 242, 0.2);
+}
+
+.journal-footer-spark {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #a982ef;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+}
+
+.journal-footer-spark--pink {
+  border-color: #f27dbb;
 }
 
 .journal-skeleton-shimmer {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, shallowRef } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 
 import sidebarCameraGirl from '@/assets/v8/characters/sidebar-camera-girl.webp'
 import logoCat from '@/assets/v8/mascots/logo-cat-outline.png'
@@ -22,22 +22,24 @@ interface NavItem {
   to?: string
   label: string
   icon: KawaiiIconName
+  disabled?: boolean
 }
 
 const navItems = [
   { key: 'map', to: '/map', label: '世界足迹', icon: 'map' as const },
   { key: 'journal', to: '/journal', label: '旅途手账', icon: 'journal' as const },
-  { key: 'memories', to: '/memories', label: '旅途回忆', icon: 'memories' as const },
+  { key: 'atlas', to: '/memories', label: '旅行图鉴', icon: 'memories' as const },
+  { key: 'collections', label: '我的收藏', icon: 'star' as const, disabled: true },
+  { key: 'illuminate', label: '点亮足迹', icon: 'pin' as const, disabled: true },
+  { key: 'settings', label: '设置', icon: 'settings' as const, disabled: true },
 ] satisfies NavItem[]
 
 const authSessionStore = useAuthSessionStore()
 const { currentUser } = storeToRefs(authSessionStore)
 const route = useRoute()
-const router = useRouter()
-const hasLogoutError = shallowRef(false)
 
 const displayUsername = computed(() => currentUser.value?.username ?? '旅行家')
-const displayLevel = computed(() => (currentUser.value ? 'Lv.5 资深旅行家' : 'Lv.1 新手旅行家'))
+const displayLevel = computed(() => (currentUser.value ? 'Lv.5 旅行收藏家' : 'Lv.1 新手旅行家'))
 const displayPoints = computed(() => (currentUser.value ? 28 : 0))
 function isActiveRoute(item: NavItem) {
   return item.to ? route.path === item.to : false
@@ -48,20 +50,10 @@ function getNavButtonClass(item: NavItem) {
     'sidebar-nav-button h-11 rounded-[16px] px-3.5 text-[#8a77cc] transition duration-[var(--motion-quick)] focus-visible:ring-2 focus-visible:ring-[rgba(247,90,155,0.32)]',
     isActiveRoute(item)
       ? 'bg-[linear-gradient(135deg,rgba(255,224,241,0.98),rgba(255,241,249,0.98))] text-[#2f1d72] shadow-[0_12px_24px_rgba(244,143,177,0.18)]'
-      : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
+      : item.disabled
+        ? 'bg-transparent opacity-80 hover:bg-white/46'
+        : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
   ]
-}
-
-async function handleLogout() {
-  hasLogoutError.value = false
-
-  try {
-    await authSessionStore.logout()
-    await router.replace('/')
-  }
-  catch {
-    hasLogoutError.value = true
-  }
 }
 </script>
 
@@ -168,6 +160,22 @@ async function handleLogout() {
                   </a>
                 </SidebarMenuButton>
               </RouterLink>
+              <SidebarMenuButton
+                v-else
+                :class="getNavButtonClass(item)"
+                :data-shell-nav-item="item.key"
+                :is-active="false"
+                aria-disabled="true"
+                disabled
+              >
+                <KawaiiIcon
+                  :label="item.label"
+                  :name="item.icon"
+                  :decorative="false"
+                  :size="24"
+                />
+                <span class="text-sm font-semibold">{{ item.label }}</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </nav>
@@ -188,23 +196,7 @@ async function handleLogout() {
       </SidebarContent>
     </div>
 
-    <div class="mt-4 grid gap-2">
-      <button
-        type="button"
-        class="inline-flex min-h-11 items-center justify-center rounded-full border border-[#f4d7e4] bg-white/88 px-4 py-2 text-sm font-semibold text-[#8a77cc] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(247,90,155,0.32)]"
-        data-shell-logout
-        @click="handleLogout"
-      >
-        退出登录
-      </button>
-      <p
-        v-if="hasLogoutError"
-        class="text-center text-xs font-semibold leading-5 text-[#b94d79]"
-        role="alert"
-      >
-        退出登录失败，请稍后重试。
-      </p>
-    </div>
+    <!-- Logout removed — pending design review (see 43-UAT.md test 10) -->
   </div>
 </template>
 

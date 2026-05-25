@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import type { DateValue } from '@internationalized/date'
+
+import { CalendarIcon } from '@radix-icons/vue'
+import { parseDate } from '@internationalized/date'
+import { computed, shallowRef } from 'vue'
 
 import type { TravelRecord, UpdateTravelRecordRequest } from '@trip-map/contracts'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { checkDateConflict } from '../../services/date-conflict'
 import type { TimelineEntry } from '../../services/timeline'
 
@@ -24,10 +34,12 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const startDate = ref(props.record.startDate ?? '')
-const endDate = ref(props.record.endDate ?? '')
-const notes = ref(props.record.notes ?? '')
-const tags = ref<string[]>([...props.record.tags])
+const startDate = shallowRef(props.record.startDate ?? '')
+const endDate = shallowRef(props.record.endDate ?? '')
+const notes = shallowRef(props.record.notes ?? '')
+const tags = shallowRef<string[]>([...props.record.tags])
+const isStartDatePickerOpen = shallowRef(false)
+const isEndDatePickerOpen = shallowRef(false)
 
 const hasStartDate = computed(() => startDate.value !== '')
 const hasRangeError = computed(
@@ -35,6 +47,8 @@ const hasRangeError = computed(
 )
 const notesTooLong = computed(() => notes.value.length > 1000)
 const isValid = computed(() => hasStartDate.value && !hasRangeError.value && !notesTooLong.value)
+const startDateValue = computed(() => getCalendarDateValue(startDate.value))
+const endDateValue = computed(() => getCalendarDateValue(endDate.value))
 
 const rangeErrorMessage = computed(() =>
   hasRangeError.value ? '结束日期不能早于开始日期' : null,
@@ -55,6 +69,29 @@ const visibleConflictingDates = computed(() => {
     props.tripsByPlaceId,
   )
 })
+const fieldIdPrefix = computed(() => `timeline-edit-${props.record.recordId}`)
+const rangeErrorId = computed(() => `${fieldIdPrefix.value}-date-range-error`)
+const notesErrorId = computed(() => `${fieldIdPrefix.value}-notes-error`)
+const dateFieldDescribedBy = computed(() => (rangeErrorMessage.value ? rangeErrorId.value : undefined))
+const notesDescribedBy = computed(() => (notesErrorMessage.value ? notesErrorId.value : undefined))
+
+function getCalendarDateValue(value: string) {
+  return value ? parseDate(value) : undefined
+}
+
+function formatDateLabel(value: string, fallback: string) {
+  return value || fallback
+}
+
+function handleStartDateChange(value: DateValue | undefined) {
+  startDate.value = value?.toString() ?? ''
+  isStartDatePickerOpen.value = false
+}
+
+function handleEndDateChange(value: DateValue | undefined) {
+  endDate.value = value?.toString() ?? ''
+  isEndDatePickerOpen.value = false
+}
 
 function handleSubmit() {
   if (!isValid.value || props.isSubmitting) {
@@ -73,45 +110,87 @@ function handleSubmit() {
 
 <template>
   <form
-    class="grid gap-3 rounded-[22px] border border-[#e6d9ec] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(253,245,255,0.94))] p-4"
+    class="grid gap-4"
     data-region="timeline-edit-form"
     @submit.prevent="handleSubmit"
   >
-    <p class="text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)]">
-      编辑旅行记录
-    </p>
-
-    <label class="grid gap-1">
+    <div class="grid gap-1.5">
       <span class="text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)]">
         开始日期
       </span>
-      <input
-        v-model="startDate"
-        type="date"
-        required
-        :max="endDate || undefined"
-        class="min-h-11 rounded-xl border border-[#d7dcea] bg-white px-3 py-2 text-[var(--font-label-size)] text-[var(--color-ink-strong)]"
-        data-edit-input="start-date"
-        aria-label="选择旅行开始日期"
-      />
-    </label>
+      <Popover v-model:open="isStartDatePickerOpen">
+        <PopoverTrigger as-child>
+          <button
+            type="button"
+            class="timeline-edit-form__date-button min-h-11 w-full rounded-xl border border-[#d7dcea] bg-white px-3 py-2 text-left text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)] shadow-[0_10px_22px_rgba(139,111,239,0.06)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#e6d9ec] hover:bg-white/95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] active:scale-[0.99]"
+            data-edit-input="start-date"
+            :aria-invalid="hasStartDate ? undefined : true"
+            :aria-describedby="dateFieldDescribedBy"
+            aria-label="选择旅行开始日期"
+          >
+            <CalendarIcon
+              class="h-4 w-4 text-[var(--color-accent)]"
+              aria-hidden="true"
+            />
+            <span>{{ formatDateLabel(startDate, '选择开始日期') }}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          class="z-[70] w-auto rounded-[24px] border-[#eadff8] bg-white/95 p-0 shadow-[0_22px_46px_rgba(108,79,156,0.16)]"
+        >
+          <Calendar
+            :model-value="startDateValue"
+            locale="zh-CN"
+            layout="month-and-year"
+            :max-value="endDateValue"
+            data-edit-calendar="start-date"
+            @update:model-value="handleStartDateChange"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
 
-    <label class="grid gap-1">
+    <div class="grid gap-1.5">
       <span class="text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)]">
         结束日期（可选）
       </span>
-      <input
-        v-model="endDate"
-        type="date"
-        :min="startDate || undefined"
-        class="min-h-11 rounded-xl border border-[#d7dcea] bg-white px-3 py-2 text-[var(--font-label-size)] text-[var(--color-ink-strong)]"
-        data-edit-input="end-date"
-        aria-label="选择旅行结束日期（可选）"
-      />
-    </label>
+      <Popover v-model:open="isEndDatePickerOpen">
+        <PopoverTrigger as-child>
+          <button
+            type="button"
+            class="timeline-edit-form__date-button min-h-11 w-full rounded-xl border border-[#d7dcea] bg-white px-3 py-2 text-left text-[var(--font-label-size)] font-bold text-[var(--color-ink-strong)] shadow-[0_10px_22px_rgba(139,111,239,0.06)] transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#e6d9ec] hover:bg-white/95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)] active:scale-[0.99]"
+            data-edit-input="end-date"
+            :aria-invalid="hasRangeError || undefined"
+            :aria-describedby="dateFieldDescribedBy"
+            aria-label="选择旅行结束日期（可选）"
+          >
+            <CalendarIcon
+              class="h-4 w-4 text-[var(--color-accent)]"
+              aria-hidden="true"
+            />
+            <span>{{ formatDateLabel(endDate, '选择结束日期（可选）') }}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          class="z-[70] w-auto rounded-[24px] border-[#eadff8] bg-white/95 p-0 shadow-[0_22px_46px_rgba(108,79,156,0.16)]"
+        >
+          <Calendar
+            :model-value="endDateValue"
+            locale="zh-CN"
+            layout="month-and-year"
+            :min-value="startDateValue"
+            data-edit-calendar="end-date"
+            @update:model-value="handleEndDateChange"
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
 
     <p
       v-if="rangeErrorMessage"
+      :id="rangeErrorId"
       class="text-[var(--font-label-size)] font-bold text-[var(--color-destructive)]"
       role="alert"
       data-edit-error="range"
@@ -138,12 +217,15 @@ function handleSubmit() {
         rows="3"
         class="min-h-24 resize-none rounded-xl border border-[#d7dcea] bg-white px-3 py-2 text-[var(--font-label-size)] text-[var(--color-ink-strong)]"
         data-edit-input="notes"
+        :aria-invalid="notesTooLong || undefined"
+        :aria-describedby="notesDescribedBy"
         aria-label="旅行备注"
       />
     </label>
 
     <p
       v-if="notesErrorMessage"
+      :id="notesErrorId"
       class="text-[var(--font-label-size)] font-bold text-[var(--color-destructive)]"
       role="alert"
       data-edit-error="notes"
@@ -185,6 +267,20 @@ function handleSubmit() {
 </template>
 
 <style scoped>
+.timeline-edit-form__date-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.timeline-edit-form__date-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (prefers-reduced-motion: reduce) {
   button {
     transform: none !important;

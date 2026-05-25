@@ -1,6 +1,7 @@
 import type { TimelineEntry } from '../../services/timeline'
 
 import {
+  getJournalPostcardImage,
   getJournalLocationPath,
   getJournalPostcardVariant,
   getJournalSummary,
@@ -92,12 +93,18 @@ describe('journal thumbnail helpers', () => {
     it('derives the variant from stable place context fields', () => {
       const variants = new Set([
         getJournalPostcardVariant(makeEntry({ placeId: 'jp-kyoto' })),
-        getJournalPostcardVariant(makeEntry({ parentLabel: '法国' })),
-        getJournalPostcardVariant(makeEntry({ subtitle: '塞纳河畔' })),
-        getJournalPostcardVariant(makeEntry({ typeLabel: '海岸' })),
+        getJournalPostcardVariant(makeEntry({ displayName: '河源', parentLabel: '中国' })),
+        getJournalPostcardVariant(makeEntry({ displayName: '巴黎', parentLabel: '法国' })),
+        getJournalPostcardVariant(makeEntry({ displayName: '上海', parentLabel: '中国' })),
       ])
 
-      expect(variants.size).toBeGreaterThan(1)
+      expect(variants).toEqual(new Set(['kyoto', 'river', 'paris', 'shanghai']))
+    })
+
+    it('returns a bundled image for each variant', () => {
+      for (const variant of ['kyoto', 'river', 'paris', 'shanghai'] as const) {
+        expect(getJournalPostcardImage(variant)).toBeTruthy()
+      }
     })
   })
 })

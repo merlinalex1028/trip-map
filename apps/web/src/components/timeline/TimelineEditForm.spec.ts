@@ -1,8 +1,23 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import type { DateValue } from '@internationalized/date'
+import type { TravelRecord } from '@trip-map/contracts'
+import { Calendar } from '@/components/ui/calendar'
 import TimelineEditForm from './TimelineEditForm.vue'
 import type { TimelineEntry } from '../../services/timeline'
+
+const popoverStubs = {
+  Popover: {
+    template: '<div data-popover><slot /></div>',
+  },
+  PopoverTrigger: {
+    template: '<div data-popover-trigger><slot /></div>',
+  },
+  PopoverContent: {
+    template: '<div data-popover-content><slot /></div>',
+  },
+}
 
 function makeTimelineEntry(overrides: Partial<TimelineEntry> = {}): TimelineEntry {
   return {
@@ -25,6 +40,28 @@ function makeTimelineEntry(overrides: Partial<TimelineEntry> = {}): TimelineEntr
   }
 }
 
+function makeDateValue(value: string): DateValue {
+  return {
+    toString: () => value,
+  } as DateValue
+}
+
+interface TimelineEditFormProps {
+  record: TimelineEntry
+  conflictingDates?: string[]
+  tripsByPlaceId?: Map<string, TravelRecord[]>
+  isSubmitting?: boolean
+}
+
+function mountForm(props: TimelineEditFormProps) {
+  return mount(TimelineEditForm, {
+    props,
+    global: {
+      stubs: popoverStubs,
+    },
+  })
+}
+
 describe('TimelineEditForm', () => {
   it('renders initial date, notes and tags from the record', () => {
     const entry = makeTimelineEntry({
@@ -33,23 +70,22 @@ describe('TimelineEditForm', () => {
       notes: '旅行备注',
       tags: ['美食', '文化'],
     })
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
-    expect((wrapper.get('[data-edit-input="start-date"]').element as HTMLInputElement).value).toBe('2025-01-15')
-    expect((wrapper.get('[data-edit-input="end-date"]').element as HTMLInputElement).value).toBe('2025-01-20')
+    expect(wrapper.get('[data-edit-input="start-date"]').text()).toContain('2025-01-15')
+    expect(wrapper.get('[data-edit-input="end-date"]').text()).toContain('2025-01-20')
     expect((wrapper.get('[data-edit-input="notes"]').element as HTMLTextAreaElement).value).toBe('旅行备注')
     expect(wrapper.findAll('[data-tag-chip]')).toHaveLength(2)
   })
 
   it('shows range error when endDate is earlier than startDate', async () => {
     const entry = makeTimelineEntry({ startDate: '2025-01-15', endDate: null })
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
-    await wrapper.get('[data-edit-input="end-date"]').setValue('2025-01-10')
+    const calendars = wrapper.findAllComponents(Calendar)
+    expect(calendars).toHaveLength(2)
+    await calendars[1].vm.$emit('update:modelValue', makeDateValue('2025-01-10'))
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.get('[data-edit-error="range"]').text()).toContain('结束日期不能早于开始日期')
     expect(wrapper.get('[data-edit-submit="true"]').attributes('disabled')).toBeDefined()
@@ -57,9 +93,7 @@ describe('TimelineEditForm', () => {
 
   it('shows notes length error when notes exceed 1000 characters', async () => {
     const entry = makeTimelineEntry({ notes: null })
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
     const longNotes = 'あ'.repeat(1001)
     const textarea = wrapper.get('[data-edit-input="notes"]')
@@ -71,11 +105,9 @@ describe('TimelineEditForm', () => {
 
   it('shows date conflict warning when conflictingDates is non-empty', () => {
     const entry = makeTimelineEntry()
-    const wrapper = mount(TimelineEditForm, {
-      props: {
-        record: entry,
-        conflictingDates: ['2025-01-03 ~ 2025-01-07'],
-      },
+    const wrapper = mountForm({
+      record: entry,
+      conflictingDates: ['2025-01-03 ~ 2025-01-07'],
     })
 
     expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain('2025-01-03 ~ 2025-01-07')
@@ -88,12 +120,13 @@ describe('TimelineEditForm', () => {
       notes: null,
       tags: [],
     })
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
-    await wrapper.get('[data-edit-input="start-date"]').setValue('2025-01-20')
-    await wrapper.get('[data-edit-input="end-date"]').setValue('2025-01-25')
+    const calendars = wrapper.findAllComponents(Calendar)
+    expect(calendars).toHaveLength(2)
+    await calendars[0].vm.$emit('update:modelValue', makeDateValue('2025-01-20'))
+    await calendars[1].vm.$emit('update:modelValue', makeDateValue('2025-01-25'))
+    await wrapper.vm.$nextTick()
     await wrapper.get('[data-edit-input="notes"]').setValue('更新后的备注')
     await wrapper.get('form').trigger('submit')
 
@@ -107,9 +140,7 @@ describe('TimelineEditForm', () => {
 
   it('emits cancel when cancel button is clicked', async () => {
     const entry = makeTimelineEntry()
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
     await wrapper.get('[data-edit-cancel="true"]').trigger('click')
 
@@ -118,9 +149,7 @@ describe('TimelineEditForm', () => {
 
   it('disables submit button when isSubmitting is true', () => {
     const entry = makeTimelineEntry()
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry, isSubmitting: true },
-    })
+    const wrapper = mountForm({ record: entry, isSubmitting: true })
 
     expect(wrapper.get('[data-edit-submit="true"]').attributes('disabled')).toBeDefined()
   })
@@ -130,9 +159,7 @@ describe('TimelineEditForm', () => {
       startDate: '2025-01-15',
       notes: '一些备注',
     })
-    const wrapper = mount(TimelineEditForm, {
-      props: { record: entry },
-    })
+    const wrapper = mountForm({ record: entry })
 
     // 清空备注
     const textarea = wrapper.get('[data-edit-input="notes"]')

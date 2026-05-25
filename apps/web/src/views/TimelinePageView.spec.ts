@@ -108,6 +108,7 @@ describe('TimelinePageView', () => {
 
     expect(wrapper.get('[data-route-view="journal"]').attributes('data-region')).toBe('journal-shell')
     expect(wrapper.text()).toContain('旅途手账')
+    expect(wrapper.text()).toContain('按时间顺序记录每一次与世界的相遇')
     expect(wrapper.get('[data-state="anonymous"]').text()).toContain('立即登录')
     expect(openAuthModalSpy).toHaveBeenCalledWith('login')
     expectNoMapStage(wrapper)
@@ -200,6 +201,9 @@ describe('TimelinePageView', () => {
     expect(wrapper.findAll('[data-journal-node]')).toHaveLength(2)
     expect(wrapper.findAll('[data-journal-node]')).toHaveLength(
       wrapper.findAll('[data-region="timeline-entry"]').length,
+    )
+    expect(wrapper.get('[data-journal-footer-copy]').text()).toContain(
+      '每一次旅行，都是回忆的珍藏',
     )
   })
 
@@ -296,11 +300,13 @@ describe('TimelinePageView', () => {
     const text = wrapper.get('[data-route-view="journal"]').text()
 
     expect(text).toContain('旅途手账')
+    expect(text).toContain('按时间顺序记录每一次与世界的相遇')
     expect(text).not.toContain('返回世界足迹')
     expect(text).not.toContain('添加新旅行')
     expect(text).not.toContain('收藏')
     expect(text).not.toContain('我的收藏')
     expect(text).not.toContain('一次旅行一张卡片')
+    expect(text).not.toContain('Alice 的旅途手账')
   })
 
   it('renders multiple visits for the same place as separate cards', () => {
