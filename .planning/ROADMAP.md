@@ -27,7 +27,7 @@
 - [x] **Phase 44: 世界足迹地图与留下足迹日期弹窗** — 改造地图视觉、统一地点弹窗、独立日期选择弹窗和保存状态反馈 (completed 2026-05-13)
 - [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18, UAT passed)
 - [x] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口 (completed 2026-05-20)
-- [ ] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区
+- [x] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区 (completed 2026-05-26)
 - [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面/移动、地图、图表、弹窗、动效和现有回归测试做收口验证
 
 ## Phase Details
@@ -182,7 +182,7 @@ Plans:
 4. 回忆图片横滑/视觉缩略图区存在，但不提供用户上传照片能力。
 5. 所有图表和排行由当前账号真实旅行记录或 server-authoritative stats 派生；无记录时展示空状态，不渲染静态假数据。
 
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -195,7 +195,7 @@ Plans:
 - [x] 47-03-PLAN.md — Compose the four-card overview and chart grid into the protected `/memories` route states.
 
 **Wave 4** *(blocked on populated route composition)*
-- [ ] 47-04-PLAN.md — Add visual Top 5 footprints, real-record postcards, and final memories web gates.
+- [x] 47-04-PLAN.md — Add visual Top 5 footprints, real-record postcards, and final memories web gates.
 
 ---
 
@@ -280,7 +280,7 @@ Plans:
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
-| 47. 旅途回忆 Dashboard | 3/4 | In Progress|  |
+| 47. 旅途回忆 Dashboard | 4/4 | Complete   | 2026-05-26 |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
 
 ---
