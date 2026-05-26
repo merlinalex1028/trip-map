@@ -3,14 +3,11 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted, shallowRef, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 
+import MemoriesChartGrid from '@/components/memories/MemoriesChartGrid.vue'
+import MemoriesOverviewGrid from '@/components/memories/MemoriesOverviewGrid.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useStatsStore } from '../stores/stats'
-
-const statCardModules = import.meta.glob('../components/**/StatCard.vue', { eager: true })
-const StatCard = (
-  statCardModules[`../components/${'statistics'}/StatCard.vue`] as { default: unknown }
-).default
 
 const authSessionStore = useAuthSessionStore()
 const mapPointsStore = useMapPointsStore()
@@ -125,14 +122,14 @@ watch(
         <p
           class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
         >
-          Travel Statistics
+          Travel Memories
         </p>
         <div class="space-y-2">
           <h2 class="text-[clamp(1.7rem,2.8vw,2.4rem)] font-semibold text-[var(--color-ink-strong)]">
             旅途回忆
           </h2>
           <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
-            这里汇总了你的旅行数据——总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。
+            这里汇总了你的真实足迹，总旅行次数记录每一次独立去访，地点与国家/地区则按当前账号的旅行回忆归纳。
           </p>
         </div>
       </div>
@@ -160,23 +157,62 @@ watch(
       aria-live="polite"
     >
       <div
+        data-region="memories-skeleton-overview"
         class="rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"
       >
-        <div class="space-y-2">
-          <div class="h-4 w-32 rounded-full bg-white/90"></div>
-          <div class="h-8 w-56 rounded-full bg-white/80"></div>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div
+            v-for="index in 4"
+            :key="`overview-${index}`"
+            class="grid gap-3 rounded-[24px] border border-white/80 bg-white/72 p-4"
+          >
+            <div class="h-4 w-24 rounded-full bg-white/90"></div>
+            <div class="h-10 w-20 rounded-full bg-white/85"></div>
+            <div class="h-4 w-28 rounded-full bg-white/80"></div>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
+      <div
+        data-region="memories-skeleton-charts"
+        class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5"
+      >
         <div
-          v-for="index in 3"
-          :key="index"
+          v-for="index in 4"
+          :key="`chart-${index}`"
           class="grid gap-3 rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"
         >
           <div class="h-4 w-24 rounded-full bg-white/90"></div>
-          <div class="h-12 w-28 rounded-full bg-white/85"></div>
-          <div class="h-4 w-20 rounded-full bg-white/80"></div>
+          <div class="h-36 rounded-[22px] bg-white/85"></div>
+          <div class="h-4 w-32 rounded-full bg-white/80"></div>
+        </div>
+      </div>
+
+      <div
+        data-region="memories-skeleton-ranking"
+        class="grid gap-3 rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"
+      >
+        <div class="h-4 w-32 rounded-full bg-white/90"></div>
+        <div class="grid gap-2">
+          <div
+            v-for="index in 5"
+            :key="`ranking-${index}`"
+            class="h-10 rounded-[18px] bg-white/80"
+          ></div>
+        </div>
+      </div>
+
+      <div
+        data-region="memories-skeleton-postcards"
+        class="grid gap-3 rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"
+      >
+        <div class="h-4 w-32 rounded-full bg-white/90"></div>
+        <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div
+            v-for="index in 4"
+            :key="`postcard-${index}`"
+            class="aspect-[4/3] rounded-[22px] bg-white/82"
+          ></div>
         </div>
       </div>
     </div>
@@ -218,9 +254,9 @@ watch(
         >
           载入失败
         </p>
-        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">统计数据加载失败</h3>
+        <h3 class="text-xl font-semibold text-[var(--color-ink-strong)]">旅途回忆加载失败</h3>
         <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)]">
-          旅途数据暂时没有同步成功，请刷新页面或稍后重试。
+          旅途回忆暂时加载失败，请稍后重试。
         </p>
       </div>
 
@@ -229,7 +265,7 @@ watch(
         class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/90 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
         @click="statsStore.fetchStatsData()"
       >
-        重新加载统计
+        重新加载回忆
       </button>
     </div>
 
@@ -266,7 +302,7 @@ watch(
         <div class="space-y-1">
           <p class="text-sm font-semibold text-[var(--color-ink-strong)]">旅途回忆概览</p>
           <p class="text-xs leading-5 text-[var(--color-ink-muted)]">
-            总旅行次数统计每一次独立去访，已去过地点数和国家/地区数则分别按地点和国家去重。当前支持覆盖
+            总旅行次数记录每一次独立去访，地点、城市或行政区、国家/地区都来自当前账号真实足迹。当前支持覆盖
             {{ stats!.totalSupportedCountries }} 个国家/地区。
           </p>
         </div>
@@ -278,26 +314,8 @@ watch(
         </p>
       </div>
 
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
-        <StatCard
-          label="总旅行次数"
-          :value="stats!.totalTrips"
-          unit="次旅行"
-          gradient="linear-gradient(180deg,rgba(255,255,255,0.94),rgba(255,246,250,0.94))"
-        />
-        <StatCard
-          label="已去过地点数"
-          :value="stats!.uniquePlaces"
-          unit="个地点"
-          gradient="linear-gradient(180deg,rgba(255,255,255,0.92),rgba(239,250,252,0.94))"
-        />
-        <StatCard
-          label="已去过国家/地区数"
-          :value="stats!.visitedCountries"
-          unit="个国家/地区"
-          gradient="linear-gradient(180deg,rgba(255,255,255,0.93),rgba(241,248,255,0.94))"
-        />
-      </div>
+      <MemoriesOverviewGrid :stats="stats!" />
+      <MemoriesChartGrid :dashboard="stats!.memories" />
     </div>
   </section>
 </template>

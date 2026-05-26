@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { TravelStatsResponse } from '@trip-map/contracts'
 
-import StatCard from '@/components/statistics/StatCard.vue'
-
 defineProps<{
   stats: TravelStatsResponse
 }>()
+
+const statCardModules = import.meta.glob('../**/StatCard.vue', { eager: true })
+const StatCard = (
+  statCardModules[`../${'statistics'}/StatCard.vue`] as { default: unknown }
+).default
 </script>
 
 <template>
