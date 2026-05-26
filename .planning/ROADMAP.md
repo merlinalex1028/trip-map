@@ -182,14 +182,14 @@ Plans:
 4. 回忆图片横滑/视觉缩略图区存在，但不提供用户上传照片能力。
 5. 所有图表和排行由当前账号真实旅行记录或 server-authoritative stats 派生；无记录时展示空状态，不渲染静态假数据。
 
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 **Wave 1**
 - [x] 47-01-PLAN.md — Extend the account-scoped memories stats contract and aggregate semantics.
 
 **Wave 2** *(blocked on Wave 1 contract completion)*
-- [ ] 47-02-PLAN.md — Build real aggregate chart option helpers and the four-panel memories chart grid.
+- [x] 47-02-PLAN.md — Build real aggregate chart option helpers and the four-panel memories chart grid.
 
 **Wave 3** *(blocked on Wave 2 chart composition)*
 - [ ] 47-03-PLAN.md — Compose the four-card overview and chart grid into the protected `/memories` route states.
@@ -280,7 +280,7 @@ Plans:
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
-| 47. 旅途回忆 Dashboard | 1/4 | In Progress|  |
+| 47. 旅途回忆 Dashboard | 2/4 | In Progress|  |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
 
 ---
