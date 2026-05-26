@@ -44,7 +44,12 @@ const travelRecordRevision = computed(() =>
     .map((record) => [
       record.id,
       record.placeId,
+      record.boundaryId,
+      record.datasetVersion,
+      record.regionSystem,
+      record.adminType,
       record.createdAt,
+      record.updatedAt,
       record.parentLabel,
       record.displayName,
       record.typeLabel,
@@ -52,7 +57,7 @@ const travelRecordRevision = computed(() =>
       record.startDate,
       record.endDate,
       record.notes,
-      record.tags.join(','),
+      record.tags.join('\u0000'),
     ].join('\u0000'))
     .join('|'),
 )
@@ -157,7 +162,14 @@ watch(
       class="grid gap-4"
       data-state="restoring"
       aria-live="polite"
+      aria-busy="true"
     >
+      <p
+        class="sr-only"
+        role="status"
+      >
+        旅途回忆正在加载
+      </p>
       <div
         data-region="memories-skeleton-overview"
         class="rounded-[28px] border border-white/80 bg-white/72 p-5 shadow-[var(--shadow-float)]"

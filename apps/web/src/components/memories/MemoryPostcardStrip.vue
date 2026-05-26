@@ -34,6 +34,12 @@ const postcardItems = computed(() =>
     variant: getStableVariant(item),
   })),
 )
+const hasPostcards = computed(() => postcardItems.value.length > 0)
+const helperCopy = computed(() =>
+  hasPostcards.value
+    ? '最近带日期的足迹被整理成一排可以慢慢翻看的回忆卡。'
+    : '补充旅行日期后，这里会出现最近的回忆卡。',
+)
 </script>
 
 <template>
@@ -46,11 +52,12 @@ const postcardItems = computed(() =>
         珍藏回忆瞬间
       </h3>
       <p class="text-sm leading-5 text-[var(--color-ink-muted)]">
-        最近带日期的足迹被整理成一排可以慢慢翻看的回忆卡。
+        {{ helperCopy }}
       </p>
     </div>
 
     <div
+      v-if="hasPostcards"
       data-postcard-strip
       aria-label="珍藏回忆瞬间"
       tabindex="0"
@@ -78,5 +85,12 @@ const postcardItems = computed(() =>
         </div>
       </article>
     </div>
+    <p
+      v-else
+      data-postcard-empty
+      class="rounded-[18px] border border-white/80 bg-white/72 px-3 py-2 text-sm leading-5 text-[var(--color-ink-muted)]"
+    >
+      给足迹补充旅行日期后，最近的回忆卡会出现在这里。
+    </p>
   </section>
 </template>

@@ -54,14 +54,26 @@ function toTravelRecordData(userId: string, input: CreateTravelRecordDto) {
   }
 }
 
-function toCountryLabel(parentLabel: string | null) {
-  const label = parentLabel ?? '未知'
+function toCountryLabel(parentLabel: string | null): string | null {
+  const label = parentLabel?.trim()
+  if (!label) {
+    return null
+  }
+
   const separatorIndex = label.indexOf(' · ')
   return separatorIndex === -1 ? label : label.slice(0, separatorIndex)
 }
 
 function isUsableTravelDate(date: string | null): date is string {
-  return date !== null && /^\d{4}-\d{2}-\d{2}$/.test(date)
+  if (date === null || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return false
+  }
+
+  const [year, month, day] = date.split('-').map(Number)
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  return parsed.getUTCFullYear() === year
+    && parsed.getUTCMonth() === month - 1
+    && parsed.getUTCDate() === day
 }
 
 function incrementCount(map: Map<string, number>, key: string) {
@@ -237,12 +249,17 @@ export class RecordsRepository {
     const yearlyCounts = new Map<string, number>()
     const placeVisitCounts = new Map<string, number>()
     const popularByPlace = new Map<string, TravelPopularFootprint>()
+    const knownCountryLabels = new Set<string>()
 
     let datedRecordCount = 0
     let storyDetailCount = 0
 
     for (const record of records) {
-      incrementCount(countryCounts, toCountryLabel(record.parentLabel))
+      const countryLabel = toCountryLabel(record.parentLabel)
+      incrementCount(countryCounts, countryLabel ?? '未知')
+      if (countryLabel !== null) {
+        knownCountryLabels.add(countryLabel)
+      }
       incrementCount(placeVisitCounts, record.placeId)
 
       if (isUsableTravelDate(record.startDate)) {
@@ -277,7 +294,7 @@ export class RecordsRepository {
       }
     }
 
-    const visitedCountries = totalTrips === 0 ? 0 : countryCounts.size
+    const visitedCountries = knownCountryLabels.size
     const monthlyTrend = toSortedBuckets(monthlyCounts)
     const yearlyTrend = toSortedBuckets(yearlyCounts)
     const countryDistribution: TravelCountryTripCount[] = [...countryCounts.entries()]

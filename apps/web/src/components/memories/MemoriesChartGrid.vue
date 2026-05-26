@@ -49,8 +49,8 @@ const hasProfile = computed(() => props.dashboard.profile.length > 0)
         这些足迹还没有可用于趋势统计的旅行日期。
       </p>
       <BaseChart
+        v-if="hasMonthlyTrend"
         :option="monthlyOption"
-        :empty="!hasMonthlyTrend"
         :min-height="320"
       />
     </article>
@@ -94,8 +94,8 @@ const hasProfile = computed(() => props.dashboard.profile.length > 0)
         这些足迹还没有可用于趋势统计的旅行日期。
       </p>
       <BaseChart
+        v-if="hasYearlyTrend"
         :option="yearlyOption"
-        :empty="!hasYearlyTrend"
         :min-height="300"
       />
     </article>

@@ -85,7 +85,7 @@ describe('memory chart options', () => {
     })
     expect(option.series).toEqual([
       expect.objectContaining({
-        name: '旅行次数',
+        name: '旅途回忆画像',
         type: 'radar',
         data: [{ value: [83, 67], name: '旅途回忆画像' }],
       }),

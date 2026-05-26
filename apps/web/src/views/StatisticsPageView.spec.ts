@@ -212,6 +212,8 @@ describe('StatisticsPageView', () => {
     expect(wrapper.find('[data-region="memories-skeleton-charts"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="memories-skeleton-ranking"]').exists()).toBe(true)
     expect(wrapper.find('[data-region="memories-skeleton-postcards"]').exists()).toBe(true)
+    expect(wrapper.get('[data-state="restoring"]').attributes('aria-busy')).toBe('true')
+    expect(wrapper.get('[role="status"]').text()).toBe('旅途回忆正在加载')
   })
 
   it('renders overview and chart grid from an expanded stats payload', async () => {
@@ -353,6 +355,56 @@ describe('StatisticsPageView', () => {
 
     expect(wrapper.get('[data-state="populated"]').text()).toContain(
       '1 次旅行 · 1 个地点 · 2 个国家/地区',
+    )
+  })
+
+  it('re-fetches statistics after metadata-only authoritative refresh changes boundary id', async () => {
+    fetchStatsMock
+      .mockResolvedValueOnce(makeStatsResponse({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      }))
+      .mockResolvedValueOnce(makeStatsResponse({
+        totalTrips: 1,
+        uniquePlaces: 1,
+        visitedAdministrativeAreas: 2,
+        visitedCountries: 1,
+        totalSupportedCountries: 21,
+      }))
+
+    const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
+      id: 'california-1',
+      createdAt: '2025-02-01T00:00:00.000Z',
+    })
+    const refreshedRecord = {
+      ...baseRecord,
+      boundaryId: 'ne-admin1-ca-british-columbia',
+    }
+
+    const { mapPointsStore, wrapper } = mountStatisticsPage(({ authSessionStore, mapPointsStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+      mapPointsStore.replaceTravelRecords([baseRecord])
+    })
+
+    await flushPromises()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(1)
+
+    mapPointsStore.replaceTravelRecords([refreshedRecord])
+    await nextTick()
+    expect(fetchStatsMock).toHaveBeenCalledTimes(2)
+
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('[data-state="populated"]').text()).toContain(
+      '1 次旅行 · 1 个地点 · 1 个国家/地区',
+    )
+    expect(wrapper.get('[data-region="memories-overview"]').findAll('[data-region="stat-card"]')[2].text()).toContain(
+      '2',
     )
   })
 

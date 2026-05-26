@@ -100,11 +100,11 @@ describe('MemoriesChartGrid', () => {
     expect(wrapper.findAll('[data-chart-sparse="date-trend"]')).toHaveLength(2)
     expect(wrapper.text()).toContain('这些足迹还没有可用于趋势统计的旅行日期。')
     expect(
-      wrapper.get('[data-chart-panel="monthly-trend"]').getComponent({ name: 'BaseChart' }).props('empty'),
-    ).toBe(true)
+      wrapper.get('[data-chart-panel="monthly-trend"]').findComponent({ name: 'BaseChart' }).exists(),
+    ).toBe(false)
     expect(
-      wrapper.get('[data-chart-panel="yearly-trend"]').getComponent({ name: 'BaseChart' }).props('empty'),
-    ).toBe(true)
+      wrapper.get('[data-chart-panel="yearly-trend"]').findComponent({ name: 'BaseChart' }).exists(),
+    ).toBe(false)
   })
 
   it('renders the initial real-data memories profile copy when profile dimensions exist', () => {

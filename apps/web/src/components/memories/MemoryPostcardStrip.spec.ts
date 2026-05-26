@@ -45,6 +45,18 @@ describe('MemoryPostcardStrip', () => {
     expect(wrapper.find('button').exists()).toBe(false)
   })
 
+  it('renders a non-focusable empty state when there are no dated postcard seeds', () => {
+    const wrapper = mount(MemoryPostcardStrip, {
+      props: { items: [] },
+    })
+
+    expect(wrapper.find('[data-postcard-strip]').exists()).toBe(false)
+    expect(wrapper.get('[data-postcard-empty]').text()).toContain(
+      '给足迹补充旅行日期后，最近的回忆卡会出现在这里。',
+    )
+    expect(wrapper.text()).toContain('补充旅行日期后，这里会出现最近的回忆卡。')
+  })
+
   it('uses stable decorative variants for the same record context', () => {
     const items = [
       makeSeed({ recordId: 'record-1', placeId: 'cn-shanghai', displayName: '上海市', parentLabel: '中国' }),

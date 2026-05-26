@@ -68,7 +68,7 @@ export function buildMemoriesProfileOption(dimensions: TravelMemoriesProfileDime
     },
     series: [
       {
-        name: '旅行次数',
+        name: '旅途回忆画像',
         type: 'radar',
         data: [
           {

@@ -539,5 +539,73 @@ describe('RecordsService', () => {
         where: { userId: 'user-1' },
       }))
     })
+
+    it('excludes unknown countries and impossible dates from coverage and trend aggregates', async () => {
+      const prisma = createPrismaMock()
+      const repository = new RecordsRepository(prisma as never)
+
+      prisma.userTravelRecord.findMany.mockResolvedValueOnce([
+        {
+          id: 'rec-beijing',
+          placeId: 'cn-admin-beijing',
+          boundaryId: 'cn-admin-beijing-boundary',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2026-01-02',
+          notes: null,
+          tags: [],
+        },
+        {
+          id: 'rec-unknown-parent',
+          placeId: 'unknown-parent',
+          boundaryId: 'unknown-parent-boundary',
+          displayName: '未知地点',
+          parentLabel: null,
+          startDate: '2026-02-30',
+          notes: null,
+          tags: [],
+        },
+        {
+          id: 'rec-empty-parent',
+          placeId: 'empty-parent',
+          boundaryId: 'empty-parent-boundary',
+          displayName: '空归属地点',
+          parentLabel: '   ',
+          startDate: '2026-99-99',
+          notes: null,
+          tags: [],
+        },
+      ])
+
+      const result = await repository.getTravelStats('user-1')
+
+      expect(result.totalTrips).toBe(3)
+      expect(result.uniquePlaces).toBe(3)
+      expect(result.visitedAdministrativeAreas).toBe(3)
+      expect(result.visitedCountries).toBe(1)
+      expect(result.memories.monthlyTrend).toEqual([
+        { period: '2026-01', tripCount: 1 },
+      ])
+      expect(result.memories.yearlyTrend).toEqual([
+        { period: '2026', tripCount: 1 },
+      ])
+      expect(result.memories.countryDistribution).toEqual([
+        { countryLabel: '未知', tripCount: 2 },
+        { countryLabel: '中国', tripCount: 1 },
+      ])
+      expect(result.memories.postcards).toEqual([
+        {
+          recordId: 'rec-beijing',
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2026-01-02',
+        },
+      ])
+      expect(result.memories.profile).toEqual(expect.arrayContaining([
+        expect.objectContaining({ key: 'country-range', value: 5 }),
+        expect.objectContaining({ key: 'dated-memories', value: 33 }),
+      ]))
+    })
   })
 })
