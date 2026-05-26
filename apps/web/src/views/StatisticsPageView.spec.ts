@@ -89,8 +89,24 @@ function makeStatsResponse(overrides: Partial<TravelStatsResponse> = {}): Travel
           explanation: '不同地点比例',
         },
       ],
-      popularFootprints: [],
-      postcards: [],
+      popularFootprints: [
+        {
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          visitCount: 3,
+          latestVisitDate: '2026-02-01',
+        },
+      ],
+      postcards: [
+        {
+          recordId: 'record-beijing',
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2026-02-01',
+        },
+      ],
     },
     ...overrides,
   }
@@ -166,6 +182,8 @@ describe('StatisticsPageView', () => {
     expect(wrapper.get('[data-state="empty"]').text()).toContain('去世界足迹留下足迹')
     expect(wrapper.find('[data-region="memories-overview"]').exists()).toBe(false)
     expect(wrapper.find('[data-region="memories-chart-grid"]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="popular-footprints"]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="memory-postcard-strip"]').exists()).toBe(false)
 
     fetchStatsMock.mockReset()
     fetchStatsMock.mockRejectedValueOnce(new Error('network'))
@@ -215,6 +233,8 @@ describe('StatisticsPageView', () => {
     expect(wrapper.get('[data-state="populated"]').text()).toContain('旅途回忆')
     expect(wrapper.get('[data-region="memories-overview"]').text()).toContain('去过城市或行政区')
     expect(wrapper.get('[data-region="memories-chart-grid"]').text()).toContain('旅途回忆画像')
+    expect(wrapper.get('[data-region="popular-footprints"]').text()).toContain('热门足迹排行')
+    expect(wrapper.get('[data-region="memory-postcard-strip"]').text()).toContain('珍藏回忆瞬间')
     expect(wrapper.text()).not.toContain('Travel Statistics')
     expect(wrapper.text()).not.toContain('/statistics')
   })
