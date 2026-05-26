@@ -2,7 +2,9 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it, vi } from 'vitest'
 
+import type { DateValue } from '@internationalized/date'
 import type { TravelRecord } from '@trip-map/contracts'
+import { Calendar } from '@/components/ui/calendar'
 import PopupTripRecord from './PopupTripRecord.vue'
 import type { TimelineEntry } from '../../services/timeline'
 import { useMapPointsStore } from '../../stores/map-points'
@@ -51,6 +53,24 @@ function makeTravelRecord(overrides: Partial<TravelRecord> = {}): TravelRecord {
   }
 }
 
+function makeDateValue(value: string): DateValue {
+  return {
+    toString: () => value,
+  } as DateValue
+}
+
+const popoverStubs = {
+  Popover: {
+    template: '<div data-popover><slot /></div>',
+  },
+  PopoverTrigger: {
+    template: '<div data-popover-trigger><slot /></div>',
+  },
+  PopoverContent: {
+    template: '<div data-popover-content><slot /></div>',
+  },
+}
+
 function mountCard(entry: TimelineEntry) {
   const pinia = createPinia()
   setActivePinia(pinia)
@@ -58,7 +78,10 @@ function mountCard(entry: TimelineEntry) {
 
   const wrapper = mount(PopupTripRecord, {
     props: { entry },
-    global: { plugins: [pinia] },
+    global: {
+      plugins: [pinia],
+      stubs: popoverStubs,
+    },
   })
 
   return { mapPointsStore, wrapper }
@@ -252,7 +275,10 @@ describe('PopupTripRecord', () => {
 
     const wrapper = mount(PopupTripRecord, {
       props: { entry },
-      global: { plugins: [pinia] },
+      global: {
+        plugins: [pinia],
+        stubs: popoverStubs,
+      },
     })
 
     // Enter edit mode
@@ -288,7 +314,10 @@ describe('PopupTripRecord', () => {
 
     expect(wrapper.find('[data-edit-warning="date-conflict"]').exists()).toBe(false)
 
-    await wrapper.get('[data-edit-input="start-date"]').setValue('2025-02-02')
+    const calendars = wrapper.findAllComponents(Calendar)
+    expect(calendars).toHaveLength(2)
+    await calendars[0].vm.$emit('update:modelValue', makeDateValue('2025-02-02'))
+    await wrapper.vm.$nextTick()
 
     expect(wrapper.get('[data-edit-warning="date-conflict"]').text()).toContain(
       '2025-02-01 ~ 2025-02-03',
