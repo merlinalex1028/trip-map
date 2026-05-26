@@ -65,13 +65,13 @@
 
 ### Travel Memories Dashboard
 
-- [ ] **MEM-01**: `/statistics` 页面重命名并视觉升级为“旅途回忆”。
-- [ ] **MEM-02**: 旅途回忆展示四个概览卡：总旅行次数、去过地点、去过城市或行政区、去过国家/地区。
-- [ ] **MEM-03**: 旅途回忆展示月度趋势折线图、国家/地区分布环图、年度趋势柱状图和旅行风格雷达图。
-- [ ] **MEM-04**: 旅途回忆展示热门足迹排行，不使用传统表格布局。
-- [ ] **MEM-05**: 旅途回忆展示回忆图片横滑/视觉缩略图区，但不提供用户上传照片能力。
-- [ ] **MEM-06**: 所有图表使用当前账号真实旅行记录或 server-authoritative stats 派生，不能展示静态假数据。
-- [ ] **MEM-07**: 无旅行记录时展示空状态，不渲染误导性的示例图表。
+- [x] **MEM-01**: `/statistics` 页面重命名并视觉升级为“旅途回忆”。
+- [x] **MEM-02**: 旅途回忆展示四个概览卡：总旅行次数、去过地点、去过城市或行政区、去过国家/地区。
+- [x] **MEM-03**: 旅途回忆展示月度趋势折线图、国家/地区分布环图、年度趋势柱状图和旅行风格雷达图。
+- [x] **MEM-04**: 旅途回忆展示热门足迹排行，不使用传统表格布局。
+- [x] **MEM-05**: 旅途回忆展示回忆图片横滑/视觉缩略图区，但不提供用户上传照片能力。
+- [x] **MEM-06**: 所有图表使用当前账号真实旅行记录或 server-authoritative stats 派生，不能展示静态假数据。
+- [x] **MEM-07**: 无旅行记录时展示空状态，不渲染误导性的示例图表。
 
 ### Visual QA & Accessibility
 
@@ -152,13 +152,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | JOURNAL-04 | Phase 46 | Complete |
 | JOURNAL-05 | Phase 46 | Complete |
 | JOURNAL-06 | Phase 46 | Complete |
-| MEM-01 | Phase 47 | Pending |
-| MEM-02 | Phase 47 | Pending |
-| MEM-03 | Phase 47 | Pending |
-| MEM-04 | Phase 47 | Pending |
-| MEM-05 | Phase 47 | Pending |
-| MEM-06 | Phase 47 | Pending |
-| MEM-07 | Phase 47 | Pending |
+| MEM-01 | Phase 47 | Complete |
+| MEM-02 | Phase 47 | Complete |
+| MEM-03 | Phase 47 | Complete |
+| MEM-04 | Phase 47 | Complete |
+| MEM-05 | Phase 47 | Complete |
+| MEM-06 | Phase 47 | Complete |
+| MEM-07 | Phase 47 | Complete |
 | QA-01 | Phase 48 | Pending |
 | QA-02 | Phase 48 | Pending |
 | QA-03 | Phase 48 | Pending |

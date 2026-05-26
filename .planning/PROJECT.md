@@ -4,7 +4,7 @@
 
 一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和留下自己的旅行足迹。
 
-`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 已完成需求和路线图规划，准备进入 Yume Kawaii 视觉重构、登录落地页、全应用登录门禁、地图覆盖扩展和独立日期弹窗实现阶段。
+`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 已完成 Phase 42-47，当前准备进入 Phase 48 的 Visual QA、Accessibility 与回归验证收口。
 
 ## Core Value
 
@@ -13,6 +13,7 @@
 ## Current State
 
 - **v7.0 已于 2026-04-29 归档**：6 phases（36-41），8 plans，23 tasks，13/13 requirements satisfied，milestone audit passed，396 测试通过
+- **v8.0 Phase 47 已于 2026-05-26 完成**：旅途回忆 dashboard 已由当前账号 server-authoritative stats 驱动，覆盖概览卡、图表、热门足迹、回忆卡和真实空态；Phase 48 待规划视觉 QA、Accessibility 与回归验证
 - **v6.0 已完成（Phase 27-35 全部交付）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性、deep-link/refresh、文档同步、Nyquist 验证覆盖与测试固件对齐均已落地
 - **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
 - **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
@@ -54,7 +55,7 @@
 - `MAP-01`-`MAP-06` + `DATE-01`-`DATE-06`: 升级世界足迹地图、统一地点弹窗和独立“留下足迹”日期弹窗
 - `COV-01`-`COV-04`: 扩展当前可识别地点的可保存能力，并解释仍不可用的 authoritative 限制
 - `JOURNAL-01`-`JOURNAL-06`: 将时间轴升级为旅途手账，不提供添加新旅行入口和收藏入口
-- `MEM-01`-`MEM-07` + `QA-01`-`QA-05`: 将统计升级为旅途回忆 dashboard，并完成视觉、可访问性和回归验证
+- `QA-01`-`QA-05`: 对桌面/移动、地图、图表、弹窗、动效和现有回归测试做收口验证
 
 ### Validated
 
@@ -88,6 +89,7 @@
 - ✓ `SYNC-02`: 删除后时间轴自动移除 — v7.0
 - ✓ `SYNC-03`: 编辑/删除后统计自动刷新 — v7.0
 - ✓ `SYNC-04`: 网络失败时乐观更新正确回滚 — v7.0
+- ✓ `MEM-01`-`MEM-07`: 旅途回忆 dashboard 已使用当前账号真实旅行记录/server-authoritative stats 驱动概览、图表、热门足迹、回忆缩略图和空状态 — v8.0 / Phase 47
 
 ### Out of Scope
 
@@ -118,8 +120,9 @@
 | store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | ✓ Good — Implemented in Phase 37 |
 | 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✓ Good — Implemented in Phase 36 |
 | v8.0 不做收藏功能 | 用户确认除收藏外纳入设计图功能，收藏状态会引入新数据模型与页面分支 | — Pending |
-| 旅途手账不提供“添加新旅行”入口 | 用户确认旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | — Pending |
+| 旅途手账不提供“添加新旅行”入口 | 用户确认旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | ✓ Good — Validated in Phase 46 |
 | 地图弹窗始终使用统一地点信息 UI 与“留下足迹”入口 | 用户确认已保存地点 popup 不显示过往记录，不使用“再留一次足迹”分支 | — Pending |
+| 旅途回忆 dashboard 保持 server-authoritative | 图表、排行、画像和缩略图都从当前账号 `/records/stats` 派生，避免静态假数据和前端口径漂移 | ✓ Good — Validated in Phase 47 |
 
 ## Archived Milestone Snapshots
 
@@ -193,4 +196,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-09 — v8.0 roadmap ready*
+*Last updated: 2026-05-26 — Phase 47 completed*

@@ -256,13 +256,13 @@ Plans:
 | JOURNAL-04 | Phase 46 | Complete |
 | JOURNAL-05 | Phase 46 | Complete |
 | JOURNAL-06 | Phase 46 | Complete |
-| MEM-01 | Phase 47 | Pending |
-| MEM-02 | Phase 47 | Pending |
-| MEM-03 | Phase 47 | Pending |
-| MEM-04 | Phase 47 | Pending |
-| MEM-05 | Phase 47 | Pending |
-| MEM-06 | Phase 47 | Pending |
-| MEM-07 | Phase 47 | Pending |
+| MEM-01 | Phase 47 | Complete |
+| MEM-02 | Phase 47 | Complete |
+| MEM-03 | Phase 47 | Complete |
+| MEM-04 | Phase 47 | Complete |
+| MEM-05 | Phase 47 | Complete |
+| MEM-06 | Phase 47 | Complete |
+| MEM-07 | Phase 47 | Complete |
 | QA-01 | Phase 48 | Pending |
 | QA-02 | Phase 48 | Pending |
 | QA-03 | Phase 48 | Pending |
@@ -280,7 +280,7 @@ Plans:
 | 44. 世界足迹地图与留下足迹日期弹窗 | 5/5 | Complete   | 2026-05-13 |
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
-| 47. 旅途回忆 Dashboard | 4/4 | Complete   | 2026-05-26 |
+| 47. 旅途回忆 Dashboard | 4/4 | Complete    | 2026-05-26 |
 | 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
 
 ---
