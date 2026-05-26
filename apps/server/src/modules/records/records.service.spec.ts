@@ -72,10 +72,23 @@ function baseRecord(overrides: Partial<UserTravelRecord> = {}): UserTravelRecord
     subtitle: '直辖市 · 中国',
     startDate: null,
     endDate: null,
+    notes: null,
+    tags: [],
     createdAt: new Date('2026-04-20T00:00:00.000Z'),
     updatedAt: new Date('2026-04-20T00:00:00.000Z'),
     ...overrides,
   } as UserTravelRecord
+}
+
+function emptyMemories() {
+  return {
+    monthlyTrend: [],
+    yearlyTrend: [],
+    countryDistribution: [],
+    profile: [],
+    popularFootprints: [],
+    postcards: [],
+  }
 }
 
 const REPO_ROOT = fileURLToPath(new URL('../../../../..', import.meta.url))
@@ -280,8 +293,10 @@ describe('RecordsService', () => {
       repository.getTravelStats.mockResolvedValueOnce({
         totalTrips: 3,
         uniquePlaces: 2,
+        visitedAdministrativeAreas: 2,
         visitedCountries: 2,
         totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
+        memories: emptyMemories(),
       })
 
       const result = await service.getStats('user-1')
@@ -290,8 +305,10 @@ describe('RecordsService', () => {
       expect(result).toEqual({
         totalTrips: 3,
         uniquePlaces: 2,
+        visitedAdministrativeAreas: 2,
         visitedCountries: 2,
         totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
+        memories: emptyMemories(),
       })
     })
 
@@ -302,14 +319,17 @@ describe('RecordsService', () => {
       repository.getTravelStats.mockResolvedValueOnce({
         totalTrips: 3,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
+        memories: emptyMemories(),
       })
 
       const result = await service.getStats('user-1')
 
       expect(result.totalTrips).toBe(3)
       expect(result.uniquePlaces).toBe(1)
+      expect(result.visitedAdministrativeAreas).toBe(1)
       expect(result.visitedCountries).toBe(1)
       expect(result.totalSupportedCountries).toBe(TOTAL_SUPPORTED_TRAVEL_COUNTRIES)
     })
@@ -323,81 +343,201 @@ describe('RecordsService', () => {
       expect(TOTAL_SUPPORTED_TRAVEL_COUNTRIES).toBe(authoritativeOverseasCountries.size + 1)
     })
 
-    it('returns visitedCountries based on distinct parentLabel country extraction', async () => {
+    it('returns empty dashboard memories for an account with no travel rows', async () => {
       const prisma = createPrismaMock()
       const repository = new RecordsRepository(prisma as never)
 
-      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
-      prisma.userTravelRecord.findMany
-        .mockResolvedValueOnce([
-          { placeId: 'cn-admin-beijing' },
-          { placeId: 'jp-pref-tokyo' },
-          { placeId: 'us-state-california' },
-        ])
-        .mockResolvedValueOnce([
-          { parentLabel: '中国' },
-          { parentLabel: '日本' },
-          { parentLabel: '美国' },
-        ])
+      prisma.userTravelRecord.findMany.mockResolvedValueOnce([])
 
       const result = await repository.getTravelStats('user-1')
 
       expect(result).toEqual({
-        totalTrips: 3,
-        uniquePlaces: 3,
-        visitedCountries: 3,
+        totalTrips: 0,
+        uniquePlaces: 0,
+        visitedAdministrativeAreas: 0,
+        visitedCountries: 0,
         totalSupportedCountries: TOTAL_SUPPORTED_TRAVEL_COUNTRIES,
+        memories: emptyMemories(),
       })
-      expect(prisma.userTravelRecord.findMany).toHaveBeenNthCalledWith(1, {
+      expect(prisma.userTravelRecord.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
-        select: { placeId: true },
-        distinct: ['placeId'],
-      })
-      expect(prisma.userTravelRecord.findMany).toHaveBeenNthCalledWith(2, {
-        where: { userId: 'user-1' },
-        select: { parentLabel: true },
-        distinct: ['parentLabel'],
+        select: {
+          id: true,
+          placeId: true,
+          boundaryId: true,
+          displayName: true,
+          parentLabel: true,
+          startDate: true,
+          notes: true,
+          tags: true,
+        },
       })
     })
 
-    it('does not inflate visitedCountries when same country has multiple admin1 places', async () => {
+    it('derives dashboard aggregates from current-user travel rows', async () => {
       const prisma = createPrismaMock()
       const repository = new RecordsRepository(prisma as never)
 
-      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
-      prisma.userTravelRecord.findMany
-        .mockResolvedValueOnce([
-          { placeId: 'cn-admin-beijing' },
-          { placeId: 'cn-admin-shanghai' },
-          { placeId: 'jp-pref-tokyo' },
-        ])
-        .mockResolvedValueOnce([
-          { parentLabel: '中国 · 北京' },
-          { parentLabel: '中国 · 上海' },
-          { parentLabel: '日本' },
-        ])
+      prisma.userTravelRecord.findMany.mockResolvedValueOnce([
+        {
+          id: 'rec-beijing-1',
+          placeId: 'cn-admin-beijing',
+          boundaryId: 'cn-admin-beijing-boundary',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2025-10-01',
+          notes: '第一次到北京',
+          tags: [],
+        },
+        {
+          id: 'rec-beijing-2',
+          placeId: 'cn-admin-beijing',
+          boundaryId: 'cn-admin-beijing-boundary',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2026-01-02',
+          notes: null,
+          tags: ['冬天'],
+        },
+        {
+          id: 'rec-tokyo',
+          placeId: 'jp-pref-tokyo',
+          boundaryId: 'jp-pref-tokyo-boundary',
+          displayName: '东京都',
+          parentLabel: '日本',
+          startDate: '2026-01-01',
+          notes: '跨年',
+          tags: [],
+        },
+        {
+          id: 'rec-osaka',
+          placeId: 'jp-pref-osaka',
+          boundaryId: 'jp-pref-osaka-boundary',
+          displayName: '大阪府',
+          parentLabel: '日本',
+          startDate: null,
+          notes: '无日期也保留非时间聚合',
+          tags: [],
+        },
+        {
+          id: 'rec-california',
+          placeId: 'us-state-california',
+          boundaryId: 'us-state-california-boundary',
+          displayName: '加利福尼亚州',
+          parentLabel: '美国',
+          startDate: 'invalid-date',
+          notes: null,
+          tags: [],
+        },
+        {
+          id: 'rec-shanghai',
+          placeId: 'cn-admin-shanghai',
+          boundaryId: 'cn-admin-shanghai-boundary',
+          displayName: '上海市',
+          parentLabel: '中国 · 上海',
+          startDate: '2026-02-03',
+          notes: ' ',
+          tags: [],
+        },
+      ])
 
       const result = await repository.getTravelStats('user-1')
 
-      expect(result.totalTrips).toBe(3)
-      expect(result.uniquePlaces).toBe(3)
-      expect(result.visitedCountries).toBe(2)
-    })
-
-    it('does not inflate visitedCountries for multi-visit same place', async () => {
-      const prisma = createPrismaMock()
-      const repository = new RecordsRepository(prisma as never)
-
-      prisma.userTravelRecord.count.mockResolvedValueOnce(3)
-      prisma.userTravelRecord.findMany
-        .mockResolvedValueOnce([{ placeId: 'cn-admin-beijing' }])
-        .mockResolvedValueOnce([{ parentLabel: '中国' }])
-
-      const result = await repository.getTravelStats('user-1')
-
-      expect(result.totalTrips).toBe(3)
-      expect(result.uniquePlaces).toBe(1)
-      expect(result.visitedCountries).toBe(1)
+      expect(result.totalTrips).toBe(6)
+      expect(result.uniquePlaces).toBe(5)
+      expect(result.visitedAdministrativeAreas).toBe(5)
+      expect(result.visitedCountries).toBe(3)
+      expect(result.memories.monthlyTrend).toEqual([
+        { period: '2025-10', tripCount: 1 },
+        { period: '2026-01', tripCount: 2 },
+        { period: '2026-02', tripCount: 1 },
+      ])
+      expect(result.memories.yearlyTrend).toEqual([
+        { period: '2025', tripCount: 1 },
+        { period: '2026', tripCount: 3 },
+      ])
+      expect(result.memories.countryDistribution).toEqual([
+        { countryLabel: '中国', tripCount: 3 },
+        { countryLabel: '日本', tripCount: 2 },
+        { countryLabel: '美国', tripCount: 1 },
+      ])
+      expect(result.memories.popularFootprints).toEqual([
+        {
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          visitCount: 2,
+          latestVisitDate: '2026-01-02',
+        },
+        {
+          placeId: 'cn-admin-shanghai',
+          displayName: '上海市',
+          parentLabel: '中国 · 上海',
+          visitCount: 1,
+          latestVisitDate: '2026-02-03',
+        },
+        {
+          placeId: 'jp-pref-tokyo',
+          displayName: '东京都',
+          parentLabel: '日本',
+          visitCount: 1,
+          latestVisitDate: '2026-01-01',
+        },
+        {
+          placeId: 'jp-pref-osaka',
+          displayName: '大阪府',
+          parentLabel: '日本',
+          visitCount: 1,
+          latestVisitDate: null,
+        },
+        {
+          placeId: 'us-state-california',
+          displayName: '加利福尼亚州',
+          parentLabel: '美国',
+          visitCount: 1,
+          latestVisitDate: null,
+        },
+      ])
+      expect(result.memories.postcards).toEqual([
+        {
+          recordId: 'rec-shanghai',
+          placeId: 'cn-admin-shanghai',
+          displayName: '上海市',
+          parentLabel: '中国 · 上海',
+          startDate: '2026-02-03',
+        },
+        {
+          recordId: 'rec-beijing-2',
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2026-01-02',
+        },
+        {
+          recordId: 'rec-tokyo',
+          placeId: 'jp-pref-tokyo',
+          displayName: '东京都',
+          parentLabel: '日本',
+          startDate: '2026-01-01',
+        },
+        {
+          recordId: 'rec-beijing-1',
+          placeId: 'cn-admin-beijing',
+          displayName: '北京市',
+          parentLabel: '中国',
+          startDate: '2025-10-01',
+        },
+      ])
+      expect(result.memories.profile).toEqual([
+        expect.objectContaining({ key: 'place-exploration', label: '地点探索', value: 83, max: 100 }),
+        expect.objectContaining({ key: 'country-range', label: '国家跨度', value: 14, max: 100 }),
+        expect.objectContaining({ key: 'repeat-visits', label: '重访温度', value: 33, max: 100 }),
+        expect.objectContaining({ key: 'dated-memories', label: '日期完整度', value: 67, max: 100 }),
+        expect.objectContaining({ key: 'story-detail', label: '摘记细节', value: 67, max: 100 }),
+      ])
+      expect(prisma.userTravelRecord.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: { userId: 'user-1' },
+      }))
     })
   })
 })
