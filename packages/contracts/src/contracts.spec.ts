@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+
 import { describe, expect, expectTypeOf, it } from 'vitest'
 
 import type {
@@ -14,6 +16,13 @@ import type {
   ResolvedCanonicalPlace,
   SmokeRecordCreateRequest,
   SmokeRecordResponse,
+  TravelCountryTripCount,
+  TravelMemoriesDashboard,
+  TravelMemoriesProfileDimension,
+  TravelMemoryPostcardSeed,
+  TravelPopularFootprint,
+  TravelStatsResponse,
+  TravelTrendBucket,
 } from './index'
 import {
   PHASE11_CONTRACTS_VERSION,
@@ -28,6 +37,8 @@ import {
   PHASE28_RESOLVED_CALIFORNIA,
   PHASE28_RESOLVED_TOKYO,
 } from './index'
+
+const statsContractSource = readFileSync(new URL('./stats.ts', import.meta.url), 'utf8')
 
 describe('@trip-map/contracts', () => {
   it('exports the canonical contracts from one entrypoint', () => {
@@ -299,6 +310,77 @@ describe('@trip-map/contracts', () => {
   it('stays framework-free and only exports thin contract shapes', () => {
     expect(typeof PHASE11_CONTRACTS_VERSION).toBe('string')
     expect(PHASE11_SMOKE_RECORD_REQUEST.placeKind).toBe('OVERSEAS_ADMIN1')
+  })
+
+  it('exports the Phase 47 memories dashboard stats contract', () => {
+    expect(statsContractSource).toContain('visitedAdministrativeAreas: number')
+    expect(statsContractSource).toContain('export interface TravelMemoriesDashboard')
+    expect(statsContractSource).toContain('monthlyTrend: TravelTrendBucket[]')
+    expect(statsContractSource).toContain('yearlyTrend: TravelTrendBucket[]')
+    expect(statsContractSource).toContain('countryDistribution: TravelCountryTripCount[]')
+    expect(statsContractSource).toContain('profile: TravelMemoriesProfileDimension[]')
+    expect(statsContractSource).toContain('popularFootprints: TravelPopularFootprint[]')
+    expect(statsContractSource).toContain('postcards: TravelMemoryPostcardSeed[]')
+    expect(statsContractSource).toContain("'story-detail'")
+    expect(statsContractSource).not.toMatch(/upload|photo|achievement|timeRange|全部时间/)
+
+    expectTypeOf<TravelStatsResponse>().toMatchTypeOf<{
+      totalTrips: number
+      uniquePlaces: number
+      visitedAdministrativeAreas: number
+      visitedCountries: number
+      totalSupportedCountries: number
+      memories: TravelMemoriesDashboard
+    }>()
+    expectTypeOf<TravelMemoriesDashboard>().toMatchTypeOf<{
+      monthlyTrend: TravelTrendBucket[]
+      yearlyTrend: TravelTrendBucket[]
+      countryDistribution: TravelCountryTripCount[]
+      profile: TravelMemoriesProfileDimension[]
+      popularFootprints: TravelPopularFootprint[]
+      postcards: TravelMemoryPostcardSeed[]
+    }>()
+    expectTypeOf<TravelTrendBucket>().toEqualTypeOf<{
+      period: string
+      tripCount: number
+    }>()
+    expectTypeOf<TravelCountryTripCount>().toEqualTypeOf<{
+      countryLabel: string
+      tripCount: number
+    }>()
+    expectTypeOf<TravelMemoriesProfileDimension['key']>().toEqualTypeOf<
+      | 'place-exploration'
+      | 'country-range'
+      | 'repeat-visits'
+      | 'dated-memories'
+      | 'story-detail'
+    >()
+    expectTypeOf<TravelMemoriesProfileDimension>().toEqualTypeOf<{
+      key:
+        | 'place-exploration'
+        | 'country-range'
+        | 'repeat-visits'
+        | 'dated-memories'
+        | 'story-detail'
+      label: string
+      value: number
+      max: number
+      explanation: string
+    }>()
+    expectTypeOf<TravelPopularFootprint>().toEqualTypeOf<{
+      placeId: string
+      displayName: string
+      parentLabel: string | null
+      visitCount: number
+      latestVisitDate: string | null
+    }>()
+    expectTypeOf<TravelMemoryPostcardSeed>().toEqualTypeOf<{
+      recordId: string
+      placeId: string
+      displayName: string
+      parentLabel: string | null
+      startDate: string
+    }>()
   })
 
   it('exports Phase 13 geometry types: GeometryLayer and GeometrySourceDataset', () => {
