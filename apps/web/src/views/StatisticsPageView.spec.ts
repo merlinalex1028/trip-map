@@ -1,4 +1,4 @@
-import type { ResolvedCanonicalPlace, TravelRecord } from '@trip-map/contracts'
+import type { ResolvedCanonicalPlace, TravelRecord, TravelStatsResponse } from '@trip-map/contracts'
 import {
   PHASE12_RESOLVED_BEIJING,
   PHASE28_RESOLVED_CALIFORNIA,
@@ -17,6 +17,14 @@ const { fetchStatsMock } = vi.hoisted(() => ({
 
 vi.mock('../services/api/stats', () => ({
   fetchStats: fetchStatsMock,
+}))
+
+vi.mock('vue-echarts', () => ({
+  default: {
+    name: 'VChart',
+    props: ['option', 'theme', 'autoresize'],
+    template: '<div data-mocked-vchart></div>',
+  },
 }))
 
 function makeUser() {
@@ -50,6 +58,40 @@ function makeRecord(
     updatedAt: '2025-01-01T00:00:00.000Z',
     notes: null,
     tags: [],
+    ...overrides,
+  }
+}
+
+function makeStatsResponse(overrides: Partial<TravelStatsResponse> = {}): TravelStatsResponse {
+  return {
+    totalTrips: 2,
+    uniquePlaces: 2,
+    visitedAdministrativeAreas: 2,
+    visitedCountries: 2,
+    totalSupportedCountries: 21,
+    memories: {
+      monthlyTrend: [
+        { period: '2026-01', tripCount: 2 },
+      ],
+      yearlyTrend: [
+        { period: '2026', tripCount: 2 },
+      ],
+      countryDistribution: [
+        { countryLabel: '中国', tripCount: 1 },
+        { countryLabel: '美国', tripCount: 1 },
+      ],
+      profile: [
+        {
+          key: 'place-exploration',
+          label: '地点探索',
+          value: 100,
+          max: 100,
+          explanation: '不同地点比例',
+        },
+      ],
+      popularFootprints: [],
+      postcards: [],
+    },
     ...overrides,
   }
 }
@@ -104,12 +146,13 @@ describe('StatisticsPageView', () => {
   })
 
   it('renders the updated empty and error copy contracts', async () => {
-    fetchStatsMock.mockResolvedValue({
+    fetchStatsMock.mockResolvedValue(makeStatsResponse({
       totalTrips: 0,
       uniquePlaces: 0,
+      visitedAdministrativeAreas: 0,
       visitedCountries: 0,
       totalSupportedCountries: 21,
-    })
+    }))
 
     const { wrapper } = mountStatisticsPage(({ authSessionStore }) => {
       authSessionStore.status = 'authenticated'
@@ -121,6 +164,8 @@ describe('StatisticsPageView', () => {
 
     expect(wrapper.get('[data-state="empty"]').text()).toContain('还没有留下足迹')
     expect(wrapper.get('[data-state="empty"]').text()).toContain('去世界足迹留下足迹')
+    expect(wrapper.find('[data-region="memories-overview"]').exists()).toBe(false)
+    expect(wrapper.find('[data-region="memories-chart-grid"]').exists()).toBe(false)
 
     fetchStatsMock.mockReset()
     fetchStatsMock.mockRejectedValueOnce(new Error('network'))
@@ -134,23 +179,49 @@ describe('StatisticsPageView', () => {
     await nextTick()
 
     expect(mountedErrorPage.wrapper.get('[data-state="error"]').text()).toContain(
-      '旅途数据暂时没有同步成功，请刷新页面或稍后重试。',
+      '旅途回忆暂时加载失败，请稍后重试。',
     )
+    expect(mountedErrorPage.wrapper.get('[data-state="error"]').text()).toContain('重新加载回忆')
+  })
+
+  it('renders dashboard-shaped skeletons while restoring or loading', () => {
+    const { wrapper } = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'restoring'
+    })
+
+    expect(wrapper.get('[data-state="restoring"]').exists()).toBe(true)
+    expect(wrapper.get('[data-region="memories-skeleton-overview"]').exists()).toBe(true)
+    expect(wrapper.get('[data-region="memories-skeleton-charts"]').exists()).toBe(true)
+    expect(wrapper.get('[data-region="memories-skeleton-ranking"]').exists()).toBe(true)
+    expect(wrapper.get('[data-region="memories-skeleton-postcards"]').exists()).toBe(true)
+  })
+
+  it('renders overview and chart grid from an expanded stats payload', async () => {
+    fetchStatsMock.mockResolvedValueOnce(makeStatsResponse({
+      totalTrips: 5,
+      uniquePlaces: 3,
+      visitedAdministrativeAreas: 3,
+      visitedCountries: 2,
+    }))
+
+    const { wrapper } = mountStatisticsPage(({ authSessionStore }) => {
+      authSessionStore.status = 'authenticated'
+      authSessionStore.currentUser = makeUser()
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    expect(wrapper.get('[data-state="populated"]').text()).toContain('旅途回忆')
+    expect(wrapper.get('[data-region="memories-overview"]').text()).toContain('去过城市或行政区')
+    expect(wrapper.get('[data-region="memories-chart-grid"]').text()).toContain('旅途回忆画像')
+    expect(wrapper.text()).not.toContain('Travel Statistics')
+    expect(wrapper.text()).not.toContain('/statistics')
   })
 
   it('re-fetches statistics after travel records change during an in-flight request', async () => {
-    let resolveFirst!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
-    let resolveSecond!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
+    let resolveFirst!: (value: TravelStatsResponse) => void
+    let resolveSecond!: (value: TravelStatsResponse) => void
 
     fetchStatsMock
       .mockImplementationOnce(
@@ -188,13 +259,25 @@ describe('StatisticsPageView', () => {
     await nextTick()
     expect(fetchStatsMock).toHaveBeenCalledTimes(1)
 
-    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 21 })
+    resolveFirst(makeStatsResponse({
+      totalTrips: 1,
+      uniquePlaces: 1,
+      visitedAdministrativeAreas: 1,
+      visitedCountries: 1,
+      totalSupportedCountries: 21,
+    }))
     await flushPromises()
     await nextTick()
 
     expect(fetchStatsMock).toHaveBeenCalledTimes(2)
 
-    resolveSecond({ totalTrips: 2, uniquePlaces: 2, visitedCountries: 2, totalSupportedCountries: 21 })
+    resolveSecond(makeStatsResponse({
+      totalTrips: 2,
+      uniquePlaces: 2,
+      visitedAdministrativeAreas: 2,
+      visitedCountries: 2,
+      totalSupportedCountries: 21,
+    }))
     await flushPromises()
     await nextTick()
 
@@ -205,18 +288,20 @@ describe('StatisticsPageView', () => {
 
   it('re-fetches statistics after metadata-only authoritative refresh changes country metadata', async () => {
     fetchStatsMock
-      .mockResolvedValueOnce({
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
-      .mockResolvedValueOnce({
+      }))
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 2,
         totalSupportedCountries: 21,
-      })
+      }))
 
     const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
       id: 'california-1',
@@ -253,18 +338,20 @@ describe('StatisticsPageView', () => {
 
   it('refreshes memories when Phase 45 canonical grouping fields change', async () => {
     fetchStatsMock
-      .mockResolvedValueOnce({
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
-      .mockResolvedValueOnce({
+      }))
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 2,
         totalSupportedCountries: 21,
-      })
+      }))
 
     const baseRecord = makeRecord(PHASE28_RESOLVED_CALIFORNIA, {
       id: 'phase45-memories-record',
@@ -303,18 +390,8 @@ describe('StatisticsPageView', () => {
   })
 
   it('queues one follow-up refresh for in-flight metadata-only authoritative updates', async () => {
-    let resolveFirst!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
-    let resolveSecond!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
+    let resolveFirst!: (value: TravelStatsResponse) => void
+    let resolveSecond!: (value: TravelStatsResponse) => void
 
     fetchStatsMock
       .mockImplementationOnce(
@@ -355,13 +432,25 @@ describe('StatisticsPageView', () => {
     await nextTick()
     expect(fetchStatsMock).toHaveBeenCalledTimes(1)
 
-    resolveFirst({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 1, totalSupportedCountries: 21 })
+    resolveFirst(makeStatsResponse({
+      totalTrips: 1,
+      uniquePlaces: 1,
+      visitedAdministrativeAreas: 1,
+      visitedCountries: 1,
+      totalSupportedCountries: 21,
+    }))
     await flushPromises()
     await nextTick()
 
     expect(fetchStatsMock).toHaveBeenCalledTimes(2)
 
-    resolveSecond({ totalTrips: 1, uniquePlaces: 1, visitedCountries: 2, totalSupportedCountries: 21 })
+    resolveSecond(makeStatsResponse({
+      totalTrips: 1,
+      uniquePlaces: 1,
+      visitedAdministrativeAreas: 1,
+      visitedCountries: 2,
+      totalSupportedCountries: 21,
+    }))
     await flushPromises()
     await nextTick()
 
@@ -371,12 +460,7 @@ describe('StatisticsPageView', () => {
   })
 
   it('shows visitedCountries in populated state without inflating for multi-visit same place', async () => {
-    let resolveStats!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
+    let resolveStats!: (value: TravelStatsResponse) => void
 
     fetchStatsMock.mockImplementationOnce(
       () =>
@@ -406,27 +490,23 @@ describe('StatisticsPageView', () => {
       mapPointsStore.replaceTravelRecords(beijingVisits)
     })
 
-    resolveStats({
+    resolveStats(makeStatsResponse({
       totalTrips: 3,
       uniquePlaces: 1,
+      visitedAdministrativeAreas: 1,
       visitedCountries: 1,
       totalSupportedCountries: 21,
-    })
+    }))
     await flushPromises()
     await nextTick()
 
     const populated = wrapper.get('[data-state="populated"]')
     expect(populated.text()).toContain('3 次旅行 · 1 个地点 · 1 个国家/地区')
-    expect(populated.text()).toContain('已去过国家/地区数')
+    expect(populated.text()).toContain('去过国家/地区')
   })
 
   it('shows visitedCountries correctly for multi-country statistics', async () => {
-    let resolveStats!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
+    let resolveStats!: (value: TravelStatsResponse) => void
 
     fetchStatsMock.mockImplementationOnce(
       () =>
@@ -454,12 +534,13 @@ describe('StatisticsPageView', () => {
       ])
     })
 
-    resolveStats({
+    resolveStats(makeStatsResponse({
       totalTrips: 3,
       uniquePlaces: 2,
+      visitedAdministrativeAreas: 2,
       visitedCountries: 2,
       totalSupportedCountries: 21,
-    })
+    }))
     await flushPromises()
     await nextTick()
 
@@ -470,18 +551,20 @@ describe('StatisticsPageView', () => {
 
   it('re-fetches statistics after editing notes', async () => {
     fetchStatsMock
-      .mockResolvedValueOnce({
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
-      .mockResolvedValueOnce({
+      }))
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
+      }))
 
     const recordWithNotes = makeRecord(PHASE12_RESOLVED_BEIJING, {
       id: 'beijing-1',
@@ -506,18 +589,20 @@ describe('StatisticsPageView', () => {
 
   it('re-fetches statistics after editing tags', async () => {
     fetchStatsMock
-      .mockResolvedValueOnce({
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
-      .mockResolvedValueOnce({
+      }))
+      .mockResolvedValueOnce(makeStatsResponse({
         totalTrips: 1,
         uniquePlaces: 1,
+        visitedAdministrativeAreas: 1,
         visitedCountries: 1,
         totalSupportedCountries: 21,
-      })
+      }))
 
     const recordWithTags = makeRecord(PHASE12_RESOLVED_BEIJING, {
       id: 'beijing-1',

@@ -1,3 +1,4 @@
+import type { TravelStatsResponse } from '@trip-map/contracts'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { ApiClientError } from '../services/api/client'
@@ -21,6 +22,25 @@ function makeUser() {
   }
 }
 
+function makeStatsResponse(overrides: Partial<TravelStatsResponse> = {}): TravelStatsResponse {
+  return {
+    totalTrips: 4,
+    uniquePlaces: 3,
+    visitedAdministrativeAreas: 3,
+    visitedCountries: 2,
+    totalSupportedCountries: 21,
+    memories: {
+      monthlyTrend: [],
+      yearlyTrend: [],
+      countryDistribution: [],
+      profile: [],
+      popularFootprints: [],
+      postcards: [],
+    },
+    ...overrides,
+  }
+}
+
 describe('stats store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -33,21 +53,23 @@ describe('stats store', () => {
 
     authSessionStore.status = 'authenticated'
     authSessionStore.currentUser = makeUser()
-    fetchStatsMock.mockResolvedValueOnce({
+    fetchStatsMock.mockResolvedValueOnce(makeStatsResponse({
       totalTrips: 4,
       uniquePlaces: 3,
+      visitedAdministrativeAreas: 3,
       visitedCountries: 2,
       totalSupportedCountries: 21,
-    })
+    }))
 
     await statsStore.fetchStatsData()
 
-    expect(statsStore.stats).toEqual({
+    expect(statsStore.stats).toEqual(makeStatsResponse({
       totalTrips: 4,
       uniquePlaces: 3,
+      visitedAdministrativeAreas: 3,
       visitedCountries: 2,
       totalSupportedCountries: 21,
-    })
+    }))
     expect(statsStore.error).toBeNull()
     expect(statsStore.isLoading).toBe(false)
   })
@@ -82,7 +104,13 @@ describe('stats store', () => {
 
     fetchStatsMock.mockImplementationOnce(async () => {
       authSessionStore.boundaryVersion += 1
-      return { totalTrips: 8, uniquePlaces: 5, visitedCountries: 3, totalSupportedCountries: 21 }
+      return makeStatsResponse({
+        totalTrips: 8,
+        uniquePlaces: 5,
+        visitedAdministrativeAreas: 5,
+        visitedCountries: 3,
+        totalSupportedCountries: 21,
+      })
     })
 
     await statsStore.fetchStatsData()
@@ -95,12 +123,13 @@ describe('stats store', () => {
   it('reset clears any cached statistics state', () => {
     const statsStore = useStatsStore()
 
-    statsStore.stats = {
+    statsStore.stats = makeStatsResponse({
       totalTrips: 2,
       uniquePlaces: 1,
+      visitedAdministrativeAreas: 1,
       visitedCountries: 1,
       totalSupportedCountries: 21,
-    }
+    })
     statsStore.error = 'fetch-failed'
     statsStore.isLoading = true
 
@@ -118,18 +147,8 @@ describe('stats store', () => {
     authSessionStore.status = 'authenticated'
     authSessionStore.currentUser = makeUser()
 
-    let resolveFirst!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
-    let resolveSecond!: (value: {
-      totalTrips: number
-      uniquePlaces: number
-      visitedCountries: number
-      totalSupportedCountries: number
-    }) => void
+    let resolveFirst!: (value: TravelStatsResponse) => void
+    let resolveSecond!: (value: TravelStatsResponse) => void
 
     fetchStatsMock
       .mockImplementationOnce(
@@ -149,21 +168,34 @@ describe('stats store', () => {
     statsStore.reset()
     const secondRequest = statsStore.fetchStatsData()
 
-    resolveFirst({ totalTrips: 3, uniquePlaces: 2, visitedCountries: 1, totalSupportedCountries: 21 })
+    resolveFirst(makeStatsResponse({
+      totalTrips: 3,
+      uniquePlaces: 2,
+      visitedAdministrativeAreas: 2,
+      visitedCountries: 1,
+      totalSupportedCountries: 21,
+    }))
     await firstRequest
 
     expect(statsStore.isLoading).toBe(true)
     expect(statsStore.stats).toBeNull()
 
-    resolveSecond({ totalTrips: 5, uniquePlaces: 4, visitedCountries: 2, totalSupportedCountries: 21 })
-    await secondRequest
-
-    expect(statsStore.stats).toEqual({
+    resolveSecond(makeStatsResponse({
       totalTrips: 5,
       uniquePlaces: 4,
+      visitedAdministrativeAreas: 4,
       visitedCountries: 2,
       totalSupportedCountries: 21,
-    })
+    }))
+    await secondRequest
+
+    expect(statsStore.stats).toEqual(makeStatsResponse({
+      totalTrips: 5,
+      uniquePlaces: 4,
+      visitedAdministrativeAreas: 4,
+      visitedCountries: 2,
+      totalSupportedCountries: 21,
+    }))
     expect(statsStore.isLoading).toBe(false)
   })
 })
