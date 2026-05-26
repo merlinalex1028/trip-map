@@ -207,11 +207,11 @@ describe('StatisticsPageView', () => {
       authSessionStore.status = 'restoring'
     })
 
-    expect(wrapper.get('[data-state="restoring"]').exists()).toBe(true)
-    expect(wrapper.get('[data-region="memories-skeleton-overview"]').exists()).toBe(true)
-    expect(wrapper.get('[data-region="memories-skeleton-charts"]').exists()).toBe(true)
-    expect(wrapper.get('[data-region="memories-skeleton-ranking"]').exists()).toBe(true)
-    expect(wrapper.get('[data-region="memories-skeleton-postcards"]').exists()).toBe(true)
+    expect(wrapper.find('[data-state="restoring"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-skeleton-overview"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-skeleton-charts"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-skeleton-ranking"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-skeleton-postcards"]').exists()).toBe(true)
   })
 
   it('renders overview and chart grid from an expanded stats payload', async () => {

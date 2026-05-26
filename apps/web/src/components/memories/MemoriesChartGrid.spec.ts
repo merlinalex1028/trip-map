@@ -53,7 +53,7 @@ describe('MemoriesChartGrid', () => {
       props: { dashboard: makeDashboard() },
     })
 
-    expect(wrapper.get('[data-region="memories-chart-grid"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-chart-grid"]').exists()).toBe(true)
     expect(wrapper.get('[data-chart-panel="monthly-trend"]').text()).toContain('旅途足迹趋势')
     expect(wrapper.get('[data-chart-panel="country-distribution"]').text()).toContain('足迹国家/地区分布')
     expect(wrapper.get('[data-chart-panel="yearly-trend"]').text()).toContain('年度旅途趋势')

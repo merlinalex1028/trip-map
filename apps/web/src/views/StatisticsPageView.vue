@@ -5,6 +5,8 @@ import { RouterLink } from 'vue-router'
 
 import MemoriesChartGrid from '@/components/memories/MemoriesChartGrid.vue'
 import MemoriesOverviewGrid from '@/components/memories/MemoriesOverviewGrid.vue'
+import MemoryPostcardStrip from '@/components/memories/MemoryPostcardStrip.vue'
+import PopularFootprintsList from '@/components/memories/PopularFootprintsList.vue'
 import { useAuthSessionStore } from '../stores/auth-session'
 import { useMapPointsStore } from '../stores/map-points'
 import { useStatsStore } from '../stores/stats'
@@ -316,6 +318,8 @@ watch(
 
       <MemoriesOverviewGrid :stats="stats!" />
       <MemoriesChartGrid :dashboard="stats!.memories" />
+      <PopularFootprintsList :items="stats!.memories.popularFootprints" />
+      <MemoryPostcardStrip :items="stats!.memories.postcards" />
     </div>
   </section>
 </template>

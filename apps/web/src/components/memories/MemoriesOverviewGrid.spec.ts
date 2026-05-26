@@ -29,7 +29,7 @@ describe('MemoriesOverviewGrid', () => {
       props: { stats: makeStats() },
     })
 
-    expect(wrapper.get('[data-region="memories-overview"]').exists()).toBe(true)
+    expect(wrapper.find('[data-region="memories-overview"]').exists()).toBe(true)
     expect(wrapper.findAll('[data-region="stat-card"]')).toHaveLength(4)
     expect(wrapper.findAll('[data-stat="label"]').map(label => label.text())).toEqual([
       '总旅行次数',
