@@ -75,10 +75,10 @@
 
 ### Visual QA & Accessibility
 
-- [ ] **QA-01**: 桌面和移动端截图验证落地页、地图、旅途手账、旅途回忆、留下足迹弹窗无明显重叠、截断或不可读文本。
-- [ ] **QA-02**: 地图和图表在本地运行时非空渲染，Leaflet 地图、星形标记、ECharts 图表均可见。
-- [ ] **QA-03**: Dialog、Calendar、导航和登录入口支持键盘操作、焦点管理和可读 aria 标签。
-- [ ] **QA-04**: `prefers-reduced-motion` 下漂浮、呼吸、hover 动效降级，不影响核心操作。
+- [x] **QA-01**: 桌面和移动端截图验证落地页、地图、旅途手账、旅途回忆、留下足迹弹窗无明显重叠、截断或不可读文本。
+- [x] **QA-02**: 地图和图表在本地运行时非空渲染，Leaflet 地图、星形标记、ECharts 图表均可见。
+- [x] **QA-03**: Dialog、Calendar、导航和登录入口支持键盘操作、焦点管理和可读 aria 标签。
+- [x] **QA-04**: `prefers-reduced-motion` 下漂浮、呼吸、hover 动效降级，不影响核心操作。
 - [ ] **QA-05**: 新增依赖不会破坏现有 auth、records、timeline、statistics 回归测试。
 
 ## Future Requirements
@@ -159,10 +159,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MEM-05 | Phase 47 | Complete |
 | MEM-06 | Phase 47 | Complete |
 | MEM-07 | Phase 47 | Complete |
-| QA-01 | Phase 48 | Pending |
-| QA-02 | Phase 48 | Pending |
-| QA-03 | Phase 48 | Pending |
-| QA-04 | Phase 48 | Pending |
+| QA-01 | Phase 48 | Complete |
+| QA-02 | Phase 48 | Complete |
+| QA-03 | Phase 48 | Complete |
+| QA-04 | Phase 48 | Complete |
 | QA-05 | Phase 48 | Pending |
 
 **Coverage:**

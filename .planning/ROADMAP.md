@@ -212,10 +212,10 @@ Plans:
 4. `prefers-reduced-motion` 下漂浮、呼吸和 hover 动效会降级，核心操作不受影响。
 5. 新增依赖和页面改造不会破坏现有 auth、records、timeline、statistics 回归测试。
 
-**Plans:** 5 plans
+**Plans:** 1/5 plans executed
 
 Plans:
-- [ ] 48-01-PLAN.md — Establish the desktop evidence harness, fixed QA seed procedure, screenshots, and checklist.
+- [x] 48-01-PLAN.md — Establish the desktop evidence harness, fixed QA seed procedure, screenshots, and checklist.
 - [ ] 48-02-PLAN.md — Verify and repair auth entry plus sidebar keyboard, focus, ARIA, and long username behavior.
 - [ ] 48-03-PLAN.md — Verify and repair map popup, footprint date dialog, Calendar, and chart accessibility/rendering behavior.
 - [ ] 48-04-PLAN.md — Repair desktop visual, long-text, and reduced-motion blockers discovered by evidence.
@@ -270,10 +270,10 @@ Plans:
 | MEM-05 | Phase 47 | Complete |
 | MEM-06 | Phase 47 | Complete |
 | MEM-07 | Phase 47 | Complete |
-| QA-01 | Phase 48 | Pending |
-| QA-02 | Phase 48 | Pending |
-| QA-03 | Phase 48 | Pending |
-| QA-04 | Phase 48 | Pending |
+| QA-01 | Phase 48 | Complete |
+| QA-02 | Phase 48 | Complete |
+| QA-03 | Phase 48 | Complete |
+| QA-04 | Phase 48 | Complete |
 | QA-05 | Phase 48 | Pending |
 
 > 48/48 requirements mapped — 100% coverage ✓
@@ -288,7 +288,7 @@ Plans:
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
 | 47. 旅途回忆 Dashboard | 4/4 | Complete    | 2026-05-26 |
-| 48. Visual QA、Accessibility 与回归验证 | 0/0 | Not Started | — |
+| 48. Visual QA、Accessibility 与回归验证 | 1/5 | In Progress|  |
 
 ---
 
