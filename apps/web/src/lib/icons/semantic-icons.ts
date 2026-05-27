@@ -1,6 +1,5 @@
 import navAtlasIcon from '@/assets/v8/shell/nav-icons/nav-atlas.png'
 import navCollectionsIcon from '@/assets/v8/shell/nav-icons/nav-collections.png'
-import navIlluminateIcon from '@/assets/v8/shell/nav-icons/nav-illuminate.png'
 import navJournalIcon from '@/assets/v8/shell/nav-icons/nav-journal.png'
 import navSettingsIcon from '@/assets/v8/shell/nav-icons/nav-settings.png'
 import navWorldFootprintsIcon from '@/assets/v8/shell/nav-icons/nav-world-footprints.png'
@@ -14,6 +13,9 @@ export type KawaiiIconName =
   | 'camera'
   | 'badge'
   | 'pin'
+  | 'suitcase'
+  | 'signpost'
+  | 'globe'
   | 'settings'
 
 export type SemanticIconEntry =
@@ -28,6 +30,9 @@ export const semanticIconMap: Record<KawaiiIconName, SemanticIconEntry> = {
   star: { kind: 'asset', src: navCollectionsIcon },
   camera: { kind: 'iconify', icon: 'kawaii:camera' },
   badge: { kind: 'iconify', icon: 'kawaii:badge' },
-  pin: { kind: 'asset', src: navIlluminateIcon },
+  pin: { kind: 'iconify', icon: 'kawaii:pin' },
+  suitcase: { kind: 'iconify', icon: 'kawaii:suitcase' },
+  signpost: { kind: 'iconify', icon: 'kawaii:signpost' },
+  globe: { kind: 'iconify', icon: 'kawaii:globe' },
   settings: { kind: 'asset', src: navSettingsIcon },
 } as const

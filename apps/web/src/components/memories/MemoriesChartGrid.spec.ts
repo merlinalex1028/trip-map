@@ -57,7 +57,7 @@ describe('MemoriesChartGrid', () => {
     expect(wrapper.get('[data-chart-panel="monthly-trend"]').text()).toContain('旅途足迹趋势')
     expect(wrapper.get('[data-chart-panel="country-distribution"]').text()).toContain('足迹国家/地区分布')
     expect(wrapper.get('[data-chart-panel="yearly-trend"]').text()).toContain('年度旅途趋势')
-    expect(wrapper.get('[data-chart-panel="memories-profile"]').text()).toContain('旅途回忆画像')
+    expect(wrapper.get('[data-chart-panel="memories-profile"]').text()).toContain('旅途风格分析')
   })
 
   it('builds BaseChart options from the passed dashboard props', () => {
@@ -71,7 +71,7 @@ describe('MemoriesChartGrid', () => {
     const profileChart = wrapper.get('[data-chart-panel="memories-profile"]').getComponent({ name: 'BaseChart' })
 
     expect(monthlyChart.props('option')).toMatchObject({
-      xAxis: { data: ['2026-01', '2026-02'] },
+      xAxis: { data: ['1月', '2月'] },
       series: [{ data: [2, 4] }],
     })
     expect(countryChart.props('option')).toMatchObject({
@@ -83,7 +83,7 @@ describe('MemoriesChartGrid', () => {
     })
     expect(profileChart.props('option')).toMatchObject({
       radar: { indicator: [{ name: '地点探索', max: 100 }, { name: '摘记细节', max: 100 }] },
-      series: [{ data: [{ value: [83, 67], name: '旅途回忆画像' }] }],
+      series: [{ data: [{ value: [83, 67], name: '旅途风格分析' }] }],
     })
   })
 
@@ -107,13 +107,13 @@ describe('MemoriesChartGrid', () => {
     ).toBe(false)
   })
 
-  it('renders the initial real-data memories profile copy when profile dimensions exist', () => {
+  it('renders the high-fidelity memories profile subtitle when profile dimensions exist', () => {
     const wrapper = mount(MemoriesChartGrid, {
       props: { dashboard: makeDashboard() },
     })
 
     expect(wrapper.get('[data-chart-panel="memories-profile"]').text()).toContain(
-      '这是根据现有足迹描出的初始回忆画像。',
+      '你的旅行偏好雷达图',
     )
   })
 })

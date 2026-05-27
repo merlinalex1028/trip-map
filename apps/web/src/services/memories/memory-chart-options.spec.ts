@@ -14,7 +14,7 @@ describe('memory chart options', () => {
       { period: '2026-02', tripCount: 5 },
     ])
 
-    expect(option.xAxis).toMatchObject({ type: 'category', data: ['2026-01', '2026-02'] })
+    expect(option.xAxis).toMatchObject({ type: 'category', data: ['1月', '2月'] })
     expect(option.series).toEqual([
       expect.objectContaining({
         name: '旅行次数',
@@ -30,16 +30,16 @@ describe('memory chart options', () => {
       { countryLabel: '日本', tripCount: 2 },
     ])
 
-    expect(option.series).toEqual([
-      expect.objectContaining({
+    expect(option.series).toMatchObject([
+      {
         name: '旅行次数',
         type: 'pie',
-        radius: ['48%', '72%'],
+        radius: ['43%', '70%'],
         data: [
           { name: '中国', value: 3 },
           { name: '日本', value: 2 },
         ],
-      }),
+      },
     ])
   })
 
@@ -85,9 +85,9 @@ describe('memory chart options', () => {
     })
     expect(option.series).toEqual([
       expect.objectContaining({
-        name: '旅途回忆画像',
+        name: '旅途风格分析',
         type: 'radar',
-        data: [{ value: [83, 67], name: '旅途回忆画像' }],
+        data: [{ value: [83, 67], name: '旅途风格分析' }],
       }),
     ])
   })
@@ -104,7 +104,7 @@ describe('memory chart options', () => {
     ])
     expect(buildMemoriesProfileOption([]).radar).toMatchObject({ indicator: [] })
     expect(buildMemoriesProfileOption([]).series).toEqual([
-      expect.objectContaining({ data: [{ value: [], name: '旅途回忆画像' }] }),
+      expect.objectContaining({ data: [{ value: [], name: '旅途风格分析' }] }),
     ])
   })
 })

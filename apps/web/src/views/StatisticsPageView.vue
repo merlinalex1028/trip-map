@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ChevronDownIcon } from '@radix-icons/vue'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, shallowRef, watch } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -118,43 +119,35 @@ watch(
 
 <template>
   <section
-    class="flex min-h-0 flex-col gap-5 overflow-y-auto rounded-[32px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,248,251,0.94))] p-5 shadow-[var(--shadow-stage)] md:gap-6 md:p-6"
+    class="memories-dashboard-shell"
     data-region="memories-shell"
     data-route-view="memories"
   >
-    <header
-      class="grid gap-4 rounded-[28px] border border-white/85 bg-white/70 p-4 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-5"
-    >
-      <div class="space-y-3">
-        <p
-          class="inline-flex w-fit items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.68rem] font-semibold tracking-[0.12em] text-[var(--color-ink-soft)] uppercase"
-        >
-          Travel Memories
+    <header class="memories-dashboard-header">
+      <div class="memories-dashboard-header__copy">
+        <h2>
+          旅途回忆
+          <span
+            class="memories-sparkle memories-sparkle--title"
+            aria-hidden="true"
+          ></span>
+        </h2>
+        <p>
+          汇总你的旅行数据，发现更多美好回忆
+          <span
+            class="memories-sparkle memories-sparkle--subtitle"
+            aria-hidden="true"
+          ></span>
         </p>
-        <div class="space-y-2">
-          <h2 class="text-[clamp(1.7rem,2.8vw,2.4rem)] font-semibold text-[var(--color-ink-strong)]">
-            旅途回忆
-          </h2>
-          <p class="max-w-2xl text-sm leading-6 text-[var(--color-ink-muted)] md:text-[0.95rem]">
-            这里汇总了你的真实足迹，总旅行次数记录每一次独立去访，地点与国家/地区则按当前账号的旅行回忆归纳。
-          </p>
-        </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-start gap-3 md:justify-end">
-        <p
-          v-if="status === 'authenticated' && currentUser"
-          class="inline-flex min-h-11 items-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)]"
-        >
-          {{ currentUser.username }} 的旅途回忆
-        </p>
-        <RouterLink
-          class="inline-flex min-h-11 items-center justify-center rounded-full border border-white/85 bg-white/88 px-4 py-2 text-sm font-semibold text-[var(--color-ink-strong)] shadow-[var(--shadow-button)] transition duration-[var(--motion-quick)] hover:-translate-y-0.5 hover:bg-white"
-          to="/map"
-        >
-          返回世界足迹
-        </RouterLink>
-      </div>
+      <span
+        class="memories-time-pill"
+        aria-label="当前时间范围：全部时间"
+      >
+        全部时间
+        <ChevronDownIcon aria-hidden="true" />
+      </span>
     </header>
 
     <div
@@ -309,29 +302,216 @@ watch(
       </div>
     </div>
 
-    <div v-else-if="shouldShowStats" class="grid gap-4" data-state="populated">
-      <div
-        class="flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-white/80 bg-white/72 px-4 py-3 shadow-[var(--shadow-float)]"
+    <div
+      v-else-if="shouldShowStats"
+      class="memories-dashboard-content"
+      data-state="populated"
+    >
+      <p
+        class="sr-only"
+        data-region="memories-accessible-summary"
       >
-        <div class="space-y-1">
-          <p class="text-sm font-semibold text-[var(--color-ink-strong)]">旅途回忆概览</p>
-          <p class="text-xs leading-5 text-[var(--color-ink-muted)]">
-            总旅行次数记录每一次独立去访，地点、城市或行政区、国家/地区都来自当前账号真实足迹。当前支持覆盖
-            {{ stats!.totalSupportedCountries }} 个国家/地区。
-          </p>
-        </div>
-        <p
-          class="inline-flex items-center rounded-full border border-white/85 bg-white/88 px-3 py-1 text-[0.72rem] font-semibold text-[var(--color-ink-soft)]"
-        >
-          {{ stats!.totalTrips }} 次旅行 · {{ stats!.uniquePlaces }} 个地点 ·
-          {{ stats!.visitedCountries }} 个国家/地区
-        </p>
-      </div>
-
+        旅途回忆概览。总旅行次数记录每一次独立去访，地点、城市或行政区、国家/地区都来自当前账号真实足迹。当前支持覆盖
+        {{ stats!.totalSupportedCountries }} 个国家/地区。{{ stats!.totalTrips }} 次旅行 ·
+        {{ stats!.uniquePlaces }} 个地点 · {{ stats!.visitedCountries }} 个国家/地区
+      </p>
       <MemoriesOverviewGrid :stats="stats!" />
-      <MemoriesChartGrid :dashboard="stats!.memories" />
-      <PopularFootprintsList :items="stats!.memories.popularFootprints" />
+      <div
+        class="memories-analytics-grid"
+        data-region="memories-analytics-grid"
+      >
+        <MemoriesChartGrid :dashboard="stats!.memories" />
+        <PopularFootprintsList :items="stats!.memories.popularFootprints" />
+      </div>
       <MemoryPostcardStrip :items="stats!.memories.postcards" />
     </div>
   </section>
 </template>
+
+<style scoped>
+.memories-dashboard-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid rgba(237, 229, 248, 0.86);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 10% 5%, rgba(255, 244, 249, 0.86), transparent 28%),
+    radial-gradient(circle at 91% 0%, rgba(248, 244, 255, 0.78), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 251, 254, 0.93));
+  box-shadow:
+    0 18px 62px rgba(74, 52, 112, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  padding: 38px;
+  scrollbar-color: rgba(151, 138, 197, 0.26) transparent;
+  scrollbar-width: thin;
+}
+
+.memories-dashboard-shell::-webkit-scrollbar {
+  width: 8px;
+}
+
+.memories-dashboard-shell::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.memories-dashboard-shell::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(151, 138, 197, 0.22);
+}
+
+.memories-dashboard-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 22px;
+}
+
+.memories-dashboard-header__copy {
+  display: grid;
+  gap: 13px;
+}
+
+.memories-dashboard-header h2 {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0;
+  color: #15106b;
+  font-size: 32px;
+  font-weight: 880;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 2px 0 rgba(123, 100, 207, 0.12);
+}
+
+.memories-dashboard-header p {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin: 0;
+  color: #756fa4;
+  font-size: 17px;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.memories-sparkle {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  margin-left: 16px;
+  background: #ffcda4;
+  clip-path: polygon(50% 0, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0 50%, 37% 37%);
+}
+
+.memories-sparkle--subtitle {
+  width: 13px;
+  height: 13px;
+  margin-left: 18px;
+  opacity: 0.76;
+}
+
+.memories-time-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 154px;
+  min-height: 52px;
+  gap: 10px;
+  border: 1px solid rgba(235, 224, 247, 0.9);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow:
+    0 12px 28px rgba(117, 78, 171, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  color: #8c5fd8;
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.memories-time-pill svg {
+  width: 18px;
+  height: 18px;
+}
+
+.memories-dashboard-content {
+  display: grid;
+  gap: 26px;
+}
+
+.memories-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.memories-analytics-grid :deep([data-chart-panel="monthly-trend"]) {
+  grid-column: span 7;
+}
+
+.memories-analytics-grid :deep([data-chart-panel="country-distribution"]) {
+  grid-column: span 5;
+}
+
+.memories-analytics-grid :deep([data-chart-panel="yearly-trend"]),
+.memories-analytics-grid :deep([data-chart-panel="memories-profile"]),
+.memories-analytics-grid :deep([data-region="popular-footprints"]) {
+  grid-column: span 4;
+}
+
+@media (max-width: 1180px) {
+  .memories-dashboard-shell {
+    padding: 28px;
+  }
+
+  .memories-analytics-grid :deep([data-chart-panel="monthly-trend"]),
+  .memories-analytics-grid :deep([data-chart-panel="country-distribution"]) {
+    grid-column: span 12;
+  }
+
+  .memories-analytics-grid :deep([data-chart-panel="yearly-trend"]),
+  .memories-analytics-grid :deep([data-chart-panel="memories-profile"]),
+  .memories-analytics-grid :deep([data-region="popular-footprints"]) {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 760px) {
+  .memories-dashboard-shell {
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .memories-dashboard-header {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .memories-dashboard-header h2 {
+    font-size: 28px;
+  }
+
+  .memories-dashboard-header p {
+    font-size: 15px;
+  }
+
+  .memories-time-pill {
+    justify-self: start;
+    min-width: 132px;
+    min-height: 44px;
+  }
+
+  .memories-analytics-grid :deep([data-chart-panel="yearly-trend"]),
+  .memories-analytics-grid :deep([data-chart-panel="memories-profile"]),
+  .memories-analytics-grid :deep([data-region="popular-footprints"]) {
+    grid-column: span 12;
+  }
+}
+</style>

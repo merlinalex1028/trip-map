@@ -28,12 +28,11 @@ describe('PopularFootprintsList', () => {
 
     expect(wrapper.get('[data-region="popular-footprints"]').text()).toContain('热门足迹排行')
     expect(wrapper.findAll('[data-rank-row]')).toHaveLength(2)
-    expect(wrapper.text()).toContain('No.1')
+    expect(wrapper.text()).toContain('1')
     expect(wrapper.text()).toContain('北京市')
-    expect(wrapper.text()).toContain('4 次足迹')
-    expect(wrapper.text()).toContain('2026-02-01')
+    expect(wrapper.text()).toContain('4 次')
     expect(wrapper.text()).toContain('东京都')
-    expect(wrapper.text()).toContain('2 次足迹')
+    expect(wrapper.text()).toContain('2 次')
   })
 
   it('renders only the first five supplied items', () => {
@@ -63,6 +62,6 @@ describe('PopularFootprintsList', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('旅行日期待补充')
+    expect(wrapper.get('[data-rank-row]').attributes('aria-label')).toContain('旅行日期待补充')
   })
 })

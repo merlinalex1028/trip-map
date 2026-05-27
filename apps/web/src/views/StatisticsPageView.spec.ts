@@ -233,8 +233,8 @@ describe('StatisticsPageView', () => {
     await nextTick()
 
     expect(wrapper.get('[data-state="populated"]').text()).toContain('旅途回忆')
-    expect(wrapper.get('[data-region="memories-overview"]').text()).toContain('去过城市或行政区')
-    expect(wrapper.get('[data-region="memories-chart-grid"]').text()).toContain('旅途回忆画像')
+    expect(wrapper.get('[data-region="memories-overview"]').text()).toContain('去过城市')
+    expect(wrapper.get('[data-region="memories-chart-grid"]').text()).toContain('旅途风格分析')
     expect(wrapper.get('[data-region="popular-footprints"]').text()).toContain('热门足迹排行')
     expect(wrapper.get('[data-region="memory-postcard-strip"]').text()).toContain('珍藏回忆瞬间')
     expect(wrapper.text()).not.toContain('Travel Statistics')

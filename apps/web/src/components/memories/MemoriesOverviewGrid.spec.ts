@@ -34,7 +34,7 @@ describe('MemoriesOverviewGrid', () => {
     expect(wrapper.findAll('[data-stat="label"]').map(label => label.text())).toEqual([
       '总旅行次数',
       '去过地点',
-      '去过城市或行政区',
+      '去过城市',
       '去过国家/地区',
     ])
   })
@@ -58,10 +58,10 @@ describe('MemoriesOverviewGrid', () => {
       '5',
     ])
     expect(wrapper.findAll('[data-stat="unit"]').map(unit => unit.text())).toEqual([
-      '次旅行',
-      '个地点',
-      '个城市/行政区',
-      '个国家/地区',
+      '次',
+      '个',
+      '个',
+      '个',
     ])
   })
 
