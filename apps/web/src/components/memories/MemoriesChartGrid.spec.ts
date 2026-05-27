@@ -1,5 +1,6 @@
 import type { TravelMemoriesDashboard } from '@trip-map/contracts'
 import { mount } from '@vue/test-utils'
+import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 
 import MemoriesChartGrid from './MemoriesChartGrid.vue'
@@ -131,5 +132,12 @@ describe('MemoriesChartGrid', () => {
     expect(wrapper.get('[data-chart-panel="memories-profile"]').text()).toContain(
       '你的旅行偏好雷达图',
     )
+  })
+
+  it('keeps long country legend labels contained inside the chart panel source rules', () => {
+    const source = readFileSync('src/components/memories/MemoriesChartGrid.vue', 'utf8')
+
+    expect(source).toContain('.memories-country-legend__name')
+    expect(source).toContain('overflow-wrap: anywhere')
   })
 })
