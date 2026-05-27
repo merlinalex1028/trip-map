@@ -254,6 +254,7 @@ watch(
       v-else-if="error !== null && !isLoading"
       class="grid gap-4 rounded-[28px] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,242,247,0.95))] p-5 shadow-[var(--shadow-float)] md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
       data-state="error"
+      role="alert"
     >
       <div class="space-y-2">
         <p

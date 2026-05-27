@@ -32,11 +32,13 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   empty?: boolean
   error?: string | null
+  label?: string
   minHeight?: number
 }>(), {
   loading: false,
   empty: false,
   error: null,
+  label: '旅行数据图表',
   minHeight: 280,
 })
 </script>
@@ -44,6 +46,8 @@ const props = withDefaults(defineProps<{
 <template>
   <section
     data-base-chart
+    role="img"
+    :aria-label="label"
     :aria-busy="loading"
     :style="{ minHeight: `${minHeight}px`, height: `${minHeight}px` }"
     class="relative w-full"
@@ -61,6 +65,8 @@ const props = withDefaults(defineProps<{
 
     <div
       v-else-if="empty"
+      role="status"
+      aria-live="polite"
       data-state="empty"
       class="flex h-full min-h-[inherit] flex-col items-center justify-center gap-2 p-4 text-center"
     >
@@ -74,6 +80,8 @@ const props = withDefaults(defineProps<{
 
     <div
       v-else-if="loading"
+      role="status"
+      aria-live="polite"
       data-state="loading"
       class="flex h-full min-h-[inherit] flex-col items-center justify-center gap-3 p-4"
     >

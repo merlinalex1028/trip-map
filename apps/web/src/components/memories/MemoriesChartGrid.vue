@@ -45,9 +45,10 @@ const countryLegendItems = computed(() =>
     <article
       data-chart-panel="monthly-trend"
       class="memories-panel memories-panel--trend"
+      aria-labelledby="memories-chart-monthly-trend-title"
     >
       <div class="memories-panel__heading">
-        <h3>
+        <h3 id="memories-chart-monthly-trend-title">
           旅途足迹趋势
         </h3>
         <p>
@@ -63,6 +64,7 @@ const countryLegendItems = computed(() =>
       </p>
       <BaseChart
         v-if="hasMonthlyTrend"
+        label="旅途足迹趋势图表"
         :option="monthlyOption"
         :min-height="314"
       />
@@ -71,9 +73,10 @@ const countryLegendItems = computed(() =>
     <article
       data-chart-panel="country-distribution"
       class="memories-panel memories-panel--country"
+      aria-labelledby="memories-chart-country-distribution-title"
     >
       <div class="memories-panel__heading">
-        <h3>
+        <h3 id="memories-chart-country-distribution-title">
           足迹国家/地区分布
         </h3>
         <p>
@@ -82,6 +85,7 @@ const countryLegendItems = computed(() =>
       </div>
       <div class="memories-country-layout">
         <BaseChart
+          label="足迹国家/地区分布图表"
           :option="countryOption"
           :empty="dashboard.countryDistribution.length === 0"
           :min-height="264"
@@ -106,9 +110,10 @@ const countryLegendItems = computed(() =>
     <article
       data-chart-panel="yearly-trend"
       class="memories-panel memories-panel--yearly"
+      aria-labelledby="memories-chart-yearly-trend-title"
     >
       <div class="memories-panel__heading">
-        <h3>
+        <h3 id="memories-chart-yearly-trend-title">
           年度旅途趋势
         </h3>
         <p>
@@ -124,6 +129,7 @@ const countryLegendItems = computed(() =>
       </p>
       <BaseChart
         v-if="hasYearlyTrend"
+        label="年度旅途趋势图表"
         :option="yearlyOption"
         :min-height="285"
       />
@@ -132,9 +138,10 @@ const countryLegendItems = computed(() =>
     <article
       data-chart-panel="memories-profile"
       class="memories-panel memories-panel--profile"
+      aria-labelledby="memories-chart-profile-title"
     >
       <div class="memories-panel__heading">
-        <h3>
+        <h3 id="memories-chart-profile-title">
           旅途风格分析
         </h3>
         <p>
@@ -149,6 +156,7 @@ const countryLegendItems = computed(() =>
       </p>
       <BaseChart
         v-if="hasProfile"
+        label="旅途风格分析雷达图"
         :option="profileOption"
         :min-height="285"
       />
