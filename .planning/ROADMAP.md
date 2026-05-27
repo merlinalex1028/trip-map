@@ -212,12 +212,12 @@ Plans:
 4. `prefers-reduced-motion` 下漂浮、呼吸和 hover 动效会降级，核心操作不受影响。
 5. 新增依赖和页面改造不会破坏现有 auth、records、timeline、statistics 回归测试。
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [x] 48-01-PLAN.md — Establish the desktop evidence harness, fixed QA seed procedure, screenshots, and checklist.
 - [x] 48-02-PLAN.md — Verify and repair auth entry plus sidebar keyboard, focus, ARIA, and long username behavior.
-- [ ] 48-03-PLAN.md — Verify and repair map popup, footprint date dialog, Calendar, and chart accessibility/rendering behavior.
+- [x] 48-03-PLAN.md — Verify and repair map popup, footprint date dialog, Calendar, and chart accessibility/rendering behavior.
 - [ ] 48-04-PLAN.md — Repair desktop visual, long-text, and reduced-motion blockers discovered by evidence.
 - [ ] 48-05-PLAN.md — Run web/server/contracts release gate and close final verification evidence.
 
