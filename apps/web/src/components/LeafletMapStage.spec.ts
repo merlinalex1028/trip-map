@@ -1133,6 +1133,31 @@ describe('LeafletMapStage', () => {
       expect(document.activeElement?.getAttribute('data-footprint-cta')).toBe('true')
     })
 
+    it('restores focus to the footprint CTA after canceling the date dialog', async () => {
+      authenticateTestUser()
+      const mapPointsStore = useMapPointsStore()
+
+      const wrapper = mount(LeafletMapStage, {
+        attachTo: document.body,
+        global: { plugins: [pinia] },
+      })
+
+      ;(popupAnchorContainer.virtualElementRef as any).value = makeVirtualElement()
+      mapPointsStore.startDraftFromDetection(makeDraftPoint())
+      await nextTick()
+      await flushPromises()
+
+      await wrapper.get('[data-footprint-cta="true"]').trigger('click')
+      await nextTick()
+
+      wrapper.getComponent({ name: 'FootprintDateDialog' }).vm.$emit('cancel')
+      await flushPromises()
+      await nextTick()
+
+      expect(wrapper.getComponent({ name: 'FootprintDateDialog' }).props('open')).toBe(false)
+      expect(document.activeElement?.getAttribute('data-footprint-cta')).toBe('true')
+    })
+
     it('keeps the date dialog closed for fallback explanatory-only points', async () => {
       authenticateTestUser()
       const mapPointsStore = useMapPointsStore()

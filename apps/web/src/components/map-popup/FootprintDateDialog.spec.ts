@@ -144,6 +144,9 @@ describe('FootprintDateDialog', () => {
     expect(document.body.textContent).toContain('直辖市')
     expect(document.body.textContent).toContain('中国 · 直辖市')
     expect(getElement<HTMLElement>('[data-footprint-calendar="true"]')).toBeTruthy()
+    expect(
+      getElement<HTMLElement>('[data-footprint-calendar="true"]').getAttribute('aria-label'),
+    ).toBe('选择足迹到达日期')
     expect(getElement<HTMLButtonElement>('[data-footprint-cancel="true"]').textContent).toContain(
       '取消',
     )
@@ -219,6 +222,13 @@ describe('FootprintDateDialog', () => {
     ])
     expect(document.body.querySelector('[data-footprint-shortcut="custom"]')).toBeNull()
     expect(document.body.querySelector('input[type="date"]')).toBeNull()
+  })
+
+  it('moves focus into the date dialog when opened', async () => {
+    const wrapper = mountDialog()
+    await wrapper.vm.$nextTick()
+
+    expect(document.activeElement).toBe(getElement<HTMLElement>('[data-region="footprint-date-dialog"]'))
   })
 
   it('emits YYYY-MM-DD single-day payload from the selected shortcut', async () => {
