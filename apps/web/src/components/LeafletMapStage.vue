@@ -139,9 +139,10 @@ const isFootprintDialogOpen = shallowRef(false)
 const isFootprintSubmitting = shallowRef(false)
 const footprintDialogError = shallowRef<string | null>(null)
 
-watch(isFootprintDialogOpen, (open) => {
-  if (!open && !isFootprintSubmitting.value) {
+watch(isFootprintDialogOpen, async (open, wasOpen) => {
+  if (!open && wasOpen && !isFootprintSubmitting.value) {
     resetFootprintDialogState()
+    await focusFootprintReturnTarget()
   }
 })
 

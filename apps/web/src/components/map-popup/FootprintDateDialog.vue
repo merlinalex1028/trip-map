@@ -9,7 +9,7 @@ import {
   parseDate,
   today,
 } from '@internationalized/date'
-import { computed, shallowRef } from 'vue'
+import { computed, nextTick, shallowRef, useTemplateRef, watch } from 'vue'
 
 import footprintDialogGirl from '@/assets/v8/characters/footprint-dialog-girl.webp'
 import arrivalDateIcon from '@/assets/v8/map-popup/arrival-date-icon.png'
@@ -60,6 +60,7 @@ const timeZone = getLocalTimeZone()
 const todayValue = today(timeZone)
 const selectedDate = shallowRef<CalendarDate | undefined>(todayValue)
 const selectedShortcut = shallowRef<ShortcutKey | null>('today')
+const dialogSurfaceRef = useTemplateRef<HTMLElement>('dialogSurface')
 
 const failureMessage = '足迹暂时没有保存成功，请检查网络后重试。'
 
@@ -74,6 +75,19 @@ const dialogDescription = computed(() => {
 const isSubmitDisabled = computed(() => {
   return !props.place || !selectedDate.value || props.isSubmitting
 })
+
+watch(
+  () => props.open,
+  async (open) => {
+    if (!open) {
+      return
+    }
+
+    await nextTick()
+    dialogSurfaceRef.value?.focus({ preventScroll: true })
+  },
+  { immediate: true },
+)
 
 function setSelectedDate(date: CalendarDate, shortcut: ShortcutKey) {
   selectedDate.value = date
@@ -137,9 +151,11 @@ function handleSubmit() {
       @close-auto-focus.prevent
     >
       <div
+        ref="dialogSurface"
         class="footprint-date-dialog__surface"
         data-region="footprint-date-dialog"
         role="dialog"
+        tabindex="-1"
       >
         <button
           type="button"
@@ -228,6 +244,7 @@ function handleSubmit() {
           <div
             class="footprint-date-dialog__calendar-shell"
             data-footprint-calendar="true"
+            aria-label="选择足迹到达日期"
           >
             <Calendar
               :model-value="selectedDate"
