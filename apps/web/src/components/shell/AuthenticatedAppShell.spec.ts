@@ -68,7 +68,7 @@ describe('AuthenticatedAppShell', () => {
     const { wrapper } = await mountShell('/map')
     const appShell = wrapper.get('[data-app-shell]')
 
-    expect(appShell.attributes('style')).toContain('--sidebar-width: 260px')
+    expect(appShell.attributes('style')).toContain('--sidebar-width: 280px')
     expect(appShell.attributes('class')).toContain('bg-white')
     expect(wrapper.find('[data-shell-logo]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-sidebar]').exists()).toBe(true)

@@ -19,19 +19,15 @@ import { useAuthSessionStore } from '@/stores/auth-session'
 
 interface NavItem {
   key: string
-  to?: string
+  to: string
   label: string
   icon: KawaiiIconName
-  disabled?: boolean
 }
 
 const navItems = [
   { key: 'map', to: '/map', label: '世界足迹', icon: 'map' as const },
   { key: 'journal', to: '/journal', label: '旅途手账', icon: 'journal' as const },
-  { key: 'atlas', to: '/memories', label: '旅行图鉴', icon: 'memories' as const },
-  { key: 'collections', label: '我的收藏', icon: 'star' as const, disabled: true },
-  { key: 'illuminate', label: '点亮足迹', icon: 'pin' as const, disabled: true },
-  { key: 'settings', label: '设置', icon: 'settings' as const, disabled: true },
+  { key: 'memories', to: '/memories', label: '旅途回忆', icon: 'memories' as const },
 ] satisfies NavItem[]
 
 const authSessionStore = useAuthSessionStore()
@@ -42,7 +38,7 @@ const displayUsername = computed(() => currentUser.value?.username ?? '旅行家
 const displayLevel = computed(() => (currentUser.value ? 'Lv.5 旅行收藏家' : 'Lv.1 新手旅行家'))
 const displayPoints = computed(() => (currentUser.value ? 28 : 0))
 function isActiveRoute(item: NavItem) {
-  return item.to ? route.path === item.to : false
+  return route.path === item.to
 }
 
 function getNavButtonClass(item: NavItem) {
@@ -50,9 +46,7 @@ function getNavButtonClass(item: NavItem) {
     'sidebar-nav-button h-11 rounded-[16px] px-3.5 text-[#8a77cc] transition duration-[var(--motion-quick)] focus-visible:ring-2 focus-visible:ring-[rgba(247,90,155,0.32)]',
     isActiveRoute(item)
       ? 'bg-[linear-gradient(135deg,rgba(255,224,241,0.98),rgba(255,241,249,0.98))] text-[#2f1d72] shadow-[0_12px_24px_rgba(244,143,177,0.18)]'
-      : item.disabled
-        ? 'bg-transparent opacity-80 hover:bg-white/46'
-        : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
+      : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
   ]
 }
 </script>
@@ -102,7 +96,10 @@ function getNavButtonClass(item: NavItem) {
             class="h-[104px] w-[104px] rounded-full border border-[#ffd7e8] bg-white object-cover p-1 shadow-[0_12px_26px_rgba(247,90,155,0.16)]"
             data-shell-avatar
           >
-          <p class="max-w-full truncate text-[18px] font-extrabold leading-6 text-[#2f1d72]">
+          <p
+            class="max-w-full truncate text-[18px] font-extrabold leading-6 text-[#2f1d72]"
+            data-shell-username
+          >
             {{ displayUsername }}
           </p>
           <span class="rounded-full bg-[#f1e9ff] px-3 py-1 text-[11px] font-bold leading-4 text-[#8b6fef]">
@@ -134,7 +131,6 @@ function getNavButtonClass(item: NavItem) {
               :key="item.key"
             >
               <RouterLink
-                v-if="item.to"
                 v-slot="{ href, navigate }"
                 custom
                 :to="item.to"
@@ -145,9 +141,11 @@ function getNavButtonClass(item: NavItem) {
                   :is-active="isActiveRoute(item)"
                   as-child
                   :data-shell-nav-item="item.key"
+                  :data-nav-key="item.key"
                 >
                   <a
                     :href="href"
+                    :data-nav-key="item.key"
                     @click="navigate"
                   >
                     <KawaiiIcon
@@ -160,22 +158,6 @@ function getNavButtonClass(item: NavItem) {
                   </a>
                 </SidebarMenuButton>
               </RouterLink>
-              <SidebarMenuButton
-                v-else
-                :class="getNavButtonClass(item)"
-                :data-shell-nav-item="item.key"
-                :is-active="false"
-                aria-disabled="true"
-                disabled
-              >
-                <KawaiiIcon
-                  :label="item.label"
-                  :name="item.icon"
-                  :decorative="false"
-                  :size="24"
-                />
-                <span class="text-sm font-semibold">{{ item.label }}</span>
-              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </nav>

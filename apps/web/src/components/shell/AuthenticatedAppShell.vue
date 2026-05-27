@@ -12,7 +12,7 @@ import ShellSidebar from './ShellSidebar.vue'
   <SidebarProvider
     class="h-svh min-h-0 items-stretch overflow-hidden bg-white"
     data-app-shell
-    style="--sidebar-width: 260px"
+    style="--sidebar-width: 280px"
   >
     <Sidebar
       class="z-20 h-svh overflow-visible border-r-0 bg-white shadow-none"
