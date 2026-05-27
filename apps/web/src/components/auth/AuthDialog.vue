@@ -39,6 +39,9 @@ const titleText = computed(() =>
 const submitLabel = computed(() =>
   activeMode.value === 'login' ? '登录账号' : '创建账号',
 )
+const submitErrorDescriptionId = computed(() =>
+  submitError.value ? 'auth-submit-error' : undefined,
+)
 
 function resetSubmitError() {
   submitError.value = ''
@@ -154,6 +157,7 @@ watch(
       aria-modal="true"
       data-auth-dialog
       aria-labelledby="auth-dialog-title"
+      :aria-describedby="submitErrorDescriptionId"
       class="mx-auto w-full max-w-[30rem] shrink-0 overflow-hidden rounded-[32px] border border-white/85 bg-[var(--color-surface)]/96 p-0 text-[var(--color-ink-strong)] shadow-[var(--shadow-stage)] backdrop-blur-xl"
       @keydown.esc.prevent="handleDialogClose"
     >
@@ -296,6 +300,7 @@ watch(
 
           <p
             v-if="submitError"
+            id="auth-submit-error"
             class="rounded-[20px] border border-[color:color-mix(in_srgb,var(--color-destructive)_22%,white_78%)] bg-white/82 px-4 py-3 text-sm text-[var(--color-destructive)]"
             role="alert"
           >

@@ -16,3 +16,9 @@ Scope: desktop only. Evidence was captured from `http://localhost:5173` at `1440
 - Star marker is visible in `desktop-map.png` next to the map popup.
 - All four ECharts panels are visible in `desktop-memories.png`: monthly trend, country/region distribution, yearly trend, and memories-profile radar.
 - No `repair-needed` rows were found in this desktop core-state pass.
+
+## Accessibility Repair Notes
+
+| Owner | Surface | Result | Verification |
+|---|---|---|---|
+| `48-02-auth-shell-a11y` | Auth entry keyboard/focus/status | pass: login/register tabs expose tablist/tab selection and controls; opening the dialog focuses the selected mode's first field; closing restores focus to `[data-auth-trigger]`; submit failure remains in the dialog and is exposed through `role="alert"` with dialog `aria-describedby`. | `pnpm --filter @trip-map/web test -- src/components/auth/AuthDialog.spec.ts` |
