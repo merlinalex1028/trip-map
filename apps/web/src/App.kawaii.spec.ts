@@ -188,7 +188,7 @@ describe('App kawaii shell contracts', () => {
     const mapStage = wrapper.get('[data-region="map-stage"]')
     const source = readFileSync(resolve(process.cwd(), 'src/App.vue'), 'utf8')
 
-    expect(appShell.attributes('style')).toContain('--sidebar-width: 260px')
+    expect(appShell.attributes('style')).toContain('--sidebar-width: 280px')
     expect(wrapper.find('[data-region="topbar"]').exists()).toBe(false)
     expect(source).not.toContain('data-region="topbar"')
     expect(source).not.toContain('data-kawaii-shell="thin"')
