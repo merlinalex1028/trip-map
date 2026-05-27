@@ -18,7 +18,7 @@
     "research_before_questions": false,
     "discuss_mode": "discuss",
     "skip_discuss": false,
-    "use_worktrees": true
+    "use_worktrees": false
   },
   "git": {
     "branching_strategy": "none"
