@@ -31,13 +31,14 @@ Concise D-21 closeout evidence for the five required desktop states and final re
 
 - Final gate evidence: `.planning/phases/48-visual-qa-accessibility/evidence/regression-results.md`.
 - Web release gate: `pnpm --filter @trip-map/web test` passed after updating the stale sidebar-width assertion in `apps/web/src/App.kawaii.spec.ts`.
-- Server release gate: `pnpm --filter @trip-map/server test` passed.
+- Server release gate: `pnpm --filter @trip-map/server test` passed during Task 1, then the final plan-level rerun exited 1 after repeated DB unreachable `P1001` in DB-backed e2e specs.
 - Contracts release gate: `pnpm --filter @trip-map/contracts test` passed.
 
 ## DB Environment
 
-No DB environment skip was observed. The server test output did not contain `[server:test] DATABASE_URL is not reachable; skipping DB-backed e2e specs.`
+The final plan-level server rerun reported `PrismaClientInitializationError` / `P1001`: `Can't reach database server at aws-1-ap-southeast-1.pooler.supabase.com:5432`. The affected DB-backed specs were `test/auth-session.e2e-spec.ts` and `test/records-travel.e2e-spec.ts`. This is recorded separately from product logic failures.
 
 ## Residual Risk
 
-- No unresolved high-severity auth, route, records, journal, memories, accessibility, visual, or reduced-motion blocker remains in the Phase 48 desktop evidence matrix.
+- No unresolved high-severity auth, route, records, journal, memories, accessibility, visual, or reduced-motion product blocker remains in the Phase 48 desktop evidence matrix.
+- DB reachability remains an environment risk for DB-backed server e2e reruns.

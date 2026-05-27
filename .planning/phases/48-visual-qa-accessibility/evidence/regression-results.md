@@ -16,10 +16,12 @@ Scope: final Phase 48 release gate for desktop visual QA closeout. Commands were
 
 ## `pnpm --filter @trip-map/server test`
 
-- **Exit status:** 0
-- **Summary:** 15 test files passed; 110 tests passed.
+- **Task 1 exit status:** 0
+- **Task 1 summary:** 15 test files passed; 110 tests passed.
+- **Plan-level rerun exit status:** 1
+- **Plan-level rerun summary:** the runner detected a transient database connectivity failure, retried the full server suite once, then exited nonzero after DB-backed e2e setup still could not reach PostgreSQL.
 - **Coverage represented:** auth session/bootstrap behavior, records travel CRUD, record ownership/import/sync/smoke paths, canonical place resolution, and server memories/statistics aggregation surfaces.
-- **DB Environment Note:** Not applicable. The output did not contain `[server:test] DATABASE_URL is not reachable; skipping DB-backed e2e specs.`, and no DB-backed specs were skipped for environment reachability.
+- **DB Environment Note:** The plan-level rerun reported `PrismaClientInitializationError` / `P1001` with `Can't reach database server at aws-1-ap-southeast-1.pooler.supabase.com:5432`. The affected DB-backed specs were `test/auth-session.e2e-spec.ts` (`POST /auth/register returns 201 with user summary and Set-Cookie: sid`) and `test/records-travel.e2e-spec.ts` during `prisma.userTravelRecord.deleteMany()` setup. This was classified as an environment connectivity failure, not a product logic failure.
 
 ## `pnpm --filter @trip-map/contracts test`
 
@@ -32,11 +34,11 @@ Scope: final Phase 48 release gate for desktop visual QA closeout. Commands were
 | Command | Final status | Notes |
 |---|---:|---|
 | `pnpm --filter @trip-map/web test` | pass | One stale sidebar-width assertion was repaired, then the full web suite passed. |
-| `pnpm --filter @trip-map/server test` | pass | No DB-unreachable environment skip appeared. |
+| `pnpm --filter @trip-map/server test` | environment note | Task 1 run passed; final plan-level rerun exited 1 after repeated DB unreachable `P1001` in DB-backed e2e specs. |
 | `pnpm --filter @trip-map/contracts test` | pass | Shared contract suite passed. |
 
 ## Remediation Performed
 
 - `apps/web/src/App.kawaii.spec.ts` now asserts the current `280px` authenticated sidebar contract instead of the obsolete `260px` value.
 - No production logic change was required.
-- No DB environment remediation was required.
+- No product logic remediation was applied for the final server rerun because the remaining failure was DB reachability (`P1001`).
