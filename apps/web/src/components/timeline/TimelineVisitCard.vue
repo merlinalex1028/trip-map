@@ -120,10 +120,10 @@ async function handleDeleteConfirm() {
 
 <template>
   <article
-    class="timeline-entry-card relative grid gap-4 rounded-[26px] border border-[#eee7f8] bg-[rgba(255,255,255,0.72)] p-5 shadow-[0_16px_38px_rgba(139,111,239,0.08)] backdrop-blur-[2px] transition duration-[var(--motion-emphasis)] hover:-translate-y-0.5 hover:border-[#e7dafa] hover:bg-white/82 md:min-h-[170px] md:px-8 md:py-5"
+    class="timeline-entry-card relative grid min-w-0 gap-4 overflow-hidden rounded-[26px] border border-[#eee7f8] bg-[rgba(255,255,255,0.72)] p-5 shadow-[0_16px_38px_rgba(139,111,239,0.08)] backdrop-blur-[2px] transition duration-[var(--motion-emphasis)] hover:-translate-y-0.5 hover:border-[#e7dafa] hover:bg-white/82 md:min-h-[170px] md:px-8 md:py-5"
     data-region="timeline-entry"
   >
-    <div class="grid gap-5 md:grid-cols-[minmax(0,1fr)_230px] md:items-center md:gap-8">
+    <div class="grid min-w-0 gap-5 md:grid-cols-[minmax(0,1fr)_230px] md:items-center md:gap-8">
       <div class="min-w-0">
         <div class="flex items-start justify-between gap-3">
           <div class="flex min-w-0 flex-wrap items-center gap-2">
@@ -173,15 +173,24 @@ async function handleDeleteConfirm() {
           </DropdownMenu>
         </div>
 
-        <h3 class="mt-2 text-[26px] font-extrabold leading-[1.18] text-[var(--color-ink-strong)]">
+        <h3
+          class="mt-2 min-w-0 break-words text-[26px] font-extrabold leading-[1.18] text-[var(--color-ink-strong)]"
+          data-card-title
+        >
           {{ entry.displayName }}
         </h3>
 
-        <p class="mt-2 text-[16px] font-bold leading-6 text-[var(--color-ink-muted)]">
+        <p
+          class="mt-2 min-w-0 break-words text-[16px] font-bold leading-6 text-[var(--color-ink-muted)]"
+          data-card-location
+        >
           {{ journalLocationPath }}
         </p>
 
-        <p class="mt-2 line-clamp-2 text-[16px] font-semibold leading-6 text-[var(--color-ink-muted)]">
+        <p
+          class="mt-2 min-w-0 break-words line-clamp-2 text-[16px] font-semibold leading-6 text-[var(--color-ink-muted)]"
+          data-card-summary
+        >
           {{ journalSummary }}
         </p>
       </div>
