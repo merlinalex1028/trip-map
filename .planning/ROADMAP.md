@@ -28,7 +28,7 @@
 - [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18, UAT passed)
 - [x] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口 (completed 2026-05-20)
 - [x] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区 (completed 2026-05-26)
-- [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面/移动、地图、图表、弹窗、动效和现有回归测试做收口验证
+- [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面新页面、地图、图表、弹窗、动效和现有回归测试做收口验证
 
 ## Phase Details
 
@@ -201,18 +201,25 @@ Plans:
 
 ### Phase 48: Visual QA、Accessibility 与回归验证
 
-**Goal:** 对 v8.0 所有新页面和关键交互做桌面/移动截图、可访问性、动效降级和现有功能回归验证。  
+**Goal:** 对 v8.0 所有新页面和关键交互做桌面截图、可访问性、动效降级和现有功能回归验证。  
 **Depends on:** Phase 47  
 **Requirements:** QA-01, QA-02, QA-03, QA-04, QA-05
 
 **Success Criteria**（用户可观察行为）:
-1. 落地页、地图、旅途手账、旅途回忆、留下足迹弹窗在桌面和移动端截图中无明显重叠、截断或不可读文本。
+1. 落地页、地图、旅途手账、旅途回忆、留下足迹弹窗在桌面截图中无明显重叠、截断或不可读文本。
 2. Leaflet 地图、星形标记和 ECharts 图表在本地运行时非空渲染。
 3. Dialog、Calendar、导航和登录入口支持键盘操作、焦点管理和可读 aria 标签。
 4. `prefers-reduced-motion` 下漂浮、呼吸和 hover 动效会降级，核心操作不受影响。
 5. 新增依赖和页面改造不会破坏现有 auth、records、timeline、statistics 回归测试。
 
-**Plans:** 0 plans yet
+**Plans:** 5 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — Establish the desktop evidence harness, fixed QA seed procedure, screenshots, and checklist.
+- [ ] 48-02-PLAN.md — Verify and repair auth entry plus sidebar keyboard, focus, ARIA, and long username behavior.
+- [ ] 48-03-PLAN.md — Verify and repair map popup, footprint date dialog, Calendar, and chart accessibility/rendering behavior.
+- [ ] 48-04-PLAN.md — Repair desktop visual, long-text, and reduced-motion blockers discovered by evidence.
+- [ ] 48-05-PLAN.md — Run web/server/contracts release gate and close final verification evidence.
 
 ---
 
