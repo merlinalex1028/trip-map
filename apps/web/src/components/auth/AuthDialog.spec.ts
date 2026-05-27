@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { nextTick } from 'vue'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { replaceSpy } = vi.hoisted(() => ({
   replaceSpy: vi.fn(),
@@ -46,6 +46,10 @@ describe('AuthDialog', () => {
     replaceSpy.mockReset()
   })
 
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('renders only 登录 and 注册 tabs', () => {
     const { wrapper } = mountDialog()
 
@@ -82,6 +86,39 @@ describe('AuthDialog', () => {
     expect(wrapper.find('input[name="username"]').exists()).toBe(true)
     expect(wrapper.find('input[name="email"]').exists()).toBe(true)
     expect(wrapper.find('input[name="password"]').exists()).toBe(true)
+  })
+
+  it('moves focus into the selected auth mode and restores it to the auth trigger when closed', async () => {
+    const trigger = document.createElement('button')
+    trigger.dataset.authTrigger = 'true'
+    trigger.textContent = '登录'
+    document.body.append(trigger)
+    trigger.focus()
+
+    const { wrapper } = mountDialog((authSessionStore) => {
+      vi.spyOn(authSessionStore, 'closeAuthModal').mockImplementation(() => {
+        authSessionStore.isAuthModalOpen = false
+      })
+    })
+
+    await nextTick()
+
+    expect(document.activeElement).toBe(wrapper.get('input[name="email"]').element)
+    expect(wrapper.get('[data-auth-dialog]').attributes('role')).toBe('dialog')
+    expect(wrapper.get('[data-auth-dialog]').attributes('aria-modal')).toBe('true')
+
+    const tabs = wrapper.findAll('[role="tab"]')
+    expect(wrapper.get('[role="tablist"]').attributes('aria-label')).toBe('认证方式')
+    expect(tabs.map(tab => tab.attributes('aria-selected'))).toEqual(['true', 'false'])
+    expect(tabs.map(tab => tab.attributes('aria-controls'))).toEqual([
+      'auth-panel-login',
+      'auth-panel-register',
+    ])
+
+    await wrapper.get('button[aria-label="关闭认证弹层"]').trigger('click')
+    await flushPromises()
+
+    expect(document.activeElement).toBe(trigger)
   })
 
   it('calls login, closes the dialog, and navigates to /map after a successful 登录 submit', async () => {
@@ -161,7 +198,12 @@ describe('AuthDialog', () => {
     expect(closeAuthModalSpy).not.toHaveBeenCalled()
     expect(replaceSpy).not.toHaveBeenCalled()
     expect(authSessionStore.isAuthModalOpen).toBe(true)
-    expect(wrapper.get('[role="alert"]').text()).toContain('登录失败')
+    const alert = wrapper.get('[role="alert"]')
+    const dialog = wrapper.get('[data-auth-dialog]')
+
+    expect(alert.text()).toContain('登录失败')
+    expect(alert.attributes('id')).toBe('auth-submit-error')
+    expect(dialog.attributes('aria-describedby')).toBe('auth-submit-error')
   })
 
   it('preserves the centered dialog layout contract after 登录 fails', async () => {
