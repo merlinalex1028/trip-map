@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
 status: executing
-stopped_at: Completed 48-02-PLAN.md
-last_updated: "2026-05-27T12:08:16.000Z"
+stopped_at: Completed 48-04-PLAN.md
+last_updated: "2026-05-27T12:37:23.721Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 31
-  completed_plans: 29
-  percent: 94
+  completed_plans: 30
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 48 (visual-qa-accessibility) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-05-27
 
@@ -47,7 +47,7 @@ Last activity: 2026-05-27
 | 45 | 4/4 | Complete |
 | 46 | 4/4 | Complete |
 | 47 | 4/4 | Complete |
-| 48 | 3/5 | In Progress |
+| 48 | 4/5 | In Progress |
 
 ## Accumulated Context
 
@@ -72,6 +72,8 @@ Last activity: 2026-05-27
 | Phase 48 Plan 02 auth submit errors describe the open dialog only when present | 失败状态可读，同时避免成功状态保留陈旧描述 | ✅ 已完成 |
 | Phase 48 Plan 03 footprint dialog focus ownership | `FootprintDateDialog` 负责打开后初始焦点，`LeafletMapStage` 负责取消/关闭/保存后的触发器焦点回归 | ✅ 已完成 |
 | Phase 48 Plan 03 chart labels owned by memories chart grid | 图表可读名称由 `MemoriesChartGrid` 分配并传给 `BaseChart`，status 状态用 `role=\"status\"` / `role=\"alert\"` 暴露 | ✅ 已完成 |
+| Phase 48 Plan 04 source-level visual hardening without screenshot recapture | 所有相关截图行已是 pass，本计划只补长文本 containment 与 reduced-motion guard，因此无需刷新截图证据 | ✅ 已完成 |
+| Phase 48 Plan 04 reduced-motion guards stay local | 只在仍有非必要 animation 或 transform-based hover movement 的 repaired surfaces 增加 guard，避免全局移除视觉 polish | ✅ 已完成 |
 
 - [Phase 44]: sidebar 仅在 /map 切换到 world-footprints 视觉模式 — 遵守 Phase 43 的三项导航壳约束，不把 Phase 44 扩大为跨路由 shell 重设计。
 - [Phase 44]: 地图舞台只叠加 world-footprints 视觉壳 — 保留 useLeafletMap、resolveCanonicalPlace、confirmCanonicalPlace 与 MapContextPopup 识别链路，避免视觉恢复引入交互回归。
@@ -112,8 +114,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T12:08:16.000Z
-Stopped at: Completed 48-03-PLAN.md
+Last session: 2026-05-27T12:37:23.708Z
+Stopped at: Completed 48-04-PLAN.md
 
 ---
 
