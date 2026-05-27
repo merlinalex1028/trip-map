@@ -184,6 +184,22 @@ describe('TimelineVisitCard', () => {
     expect(source).not.toContain('v-html')
   })
 
+  it('keeps long place, location, and note text inside the readonly card columns', () => {
+    const entry = makeTimelineEntry({
+      displayName: '超长旅行地点名称用于验证旅途手账卡片标题不会压住右侧管理按钮或缩略图',
+      parentLabel: '一个非常非常长的国家地区名称',
+      subtitle: '一个非常非常长的行政区层级说明',
+      typeLabel: '一个非常长的类型标签',
+      notes: '这是一段很长的旅行摘记，用来验证摘记摘要会在卡片内容列内断行或截断，不会覆盖管理按钮，也不会把右侧明信片缩略图挤出卡片。',
+    })
+    const { wrapper } = mountCard(entry)
+
+    expect(wrapper.get('[data-card-title]').classes()).toContain('break-words')
+    expect(wrapper.get('[data-card-location]').classes()).toContain('break-words')
+    expect(wrapper.get('[data-card-summary]').classes()).toContain('break-words')
+    expect(wrapper.get('[data-region="timeline-entry"]').classes()).toContain('min-w-0')
+  })
+
   it('renders readonly mode: display name, date, and type label', () => {
     const entry = makeTimelineEntry({
       displayName: '洛杉矶',
