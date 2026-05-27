@@ -2,8 +2,10 @@
 import type { TravelStatsResponse } from '@trip-map/contracts'
 import { computed } from 'vue'
 
-import type { KawaiiIconName } from '@/lib/icons/semantic-icons'
-import KawaiiIcon from '@/components/common/KawaiiIcon.vue'
+import statGlobeIcon from '@/assets/v8/memories/stat-globe.png'
+import statMapPinIcon from '@/assets/v8/memories/stat-map-pin.png'
+import statSignpostIcon from '@/assets/v8/memories/stat-signpost.png'
+import statSuitcaseIcon from '@/assets/v8/memories/stat-suitcase.png'
 
 const props = defineProps<{
   stats: TravelStatsResponse
@@ -14,7 +16,7 @@ type OverviewCard = {
   label: string
   value: number
   unit: string
-  icon: KawaiiIconName
+  iconSrc: string
   tone: string
 }
 
@@ -24,7 +26,7 @@ const overviewCards = computed<OverviewCard[]>(() => [
     label: '总旅行次数',
     value: props.stats.totalTrips,
     unit: '次',
-    icon: 'suitcase',
+    iconSrc: statSuitcaseIcon,
     tone: 'luggage',
   },
   {
@@ -32,7 +34,7 @@ const overviewCards = computed<OverviewCard[]>(() => [
     label: '去过地点',
     value: props.stats.uniquePlaces,
     unit: '个',
-    icon: 'signpost',
+    iconSrc: statSignpostIcon,
     tone: 'signpost',
   },
   {
@@ -40,7 +42,7 @@ const overviewCards = computed<OverviewCard[]>(() => [
     label: '去过城市',
     value: props.stats.visitedAdministrativeAreas,
     unit: '个',
-    icon: 'pin',
+    iconSrc: statMapPinIcon,
     tone: 'pin',
   },
   {
@@ -48,7 +50,7 @@ const overviewCards = computed<OverviewCard[]>(() => [
     label: '去过国家/地区',
     value: props.stats.visitedCountries,
     unit: '个',
-    icon: 'globe',
+    iconSrc: statGlobeIcon,
     tone: 'globe',
   },
 ])
@@ -91,10 +93,13 @@ const overviewCards = computed<OverviewCard[]>(() => [
         class="memories-overview-card__icon"
         aria-hidden="true"
       >
-        <KawaiiIcon
-          :name="card.icon"
-          :size="58"
-        />
+        <img
+          :src="card.iconSrc"
+          alt=""
+          width="76"
+          height="76"
+          loading="lazy"
+        >
       </span>
     </article>
   </section>
@@ -162,29 +167,32 @@ const overviewCards = computed<OverviewCard[]>(() => [
 
 .memories-overview-card__icon {
   position: absolute;
-  right: 43px;
-  bottom: 25px;
+  right: 33px;
+  bottom: 20px;
   z-index: 1;
   display: grid;
-  width: 68px;
-  height: 68px;
+  width: 78px;
+  height: 78px;
   place-items: center;
-  color: #8a62ed;
-  filter: drop-shadow(0 14px 18px rgba(126, 93, 230, 0.25));
+  filter: drop-shadow(0 14px 18px rgba(126, 93, 230, 0.18));
 }
 
 .memories-overview-card__icon::before {
   position: absolute;
-  inset: 8px 2px 0;
+  inset: 16px 7px 4px;
   border-radius: 999px;
   background: rgba(161, 128, 241, 0.13);
   content: "";
   filter: blur(10px);
 }
 
-.memories-overview-card__icon :deep([data-kawaii-icon]) {
+.memories-overview-card__icon img {
   position: relative;
   z-index: 2;
+  display: block;
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
 }
 
 .memories-overview-card__spark {
@@ -209,15 +217,8 @@ const overviewCards = computed<OverviewCard[]>(() => [
 }
 
 .memories-overview-card[data-card-tone="pin"] .memories-overview-card__icon {
-  color: #ff5a68;
-}
-
-.memories-overview-card[data-card-tone="globe"] .memories-overview-card__icon {
-  color: #3b74ff;
-}
-
-.memories-overview-card[data-card-tone="signpost"] .memories-overview-card__icon {
-  color: #9c67e7;
+  right: 30px;
+  bottom: 17px;
 }
 
 @media (max-width: 1200px) {
