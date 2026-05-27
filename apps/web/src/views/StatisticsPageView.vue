@@ -515,4 +515,17 @@ watch(
     grid-column: span 12;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .memories-dashboard-shell button,
+  .memories-dashboard-shell a {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .memories-dashboard-shell button:hover,
+  .memories-dashboard-shell a:hover {
+    transform: none !important;
+  }
+}
 </style>

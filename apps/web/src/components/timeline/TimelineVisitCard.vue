@@ -240,3 +240,15 @@ async function handleDeleteConfirm() {
     @cancel="handleDeleteCancel"
   />
 </template>
+
+<style scoped>
+@media (prefers-reduced-motion: reduce) {
+  .timeline-entry-card,
+  .timeline-entry-card:hover,
+  .timeline-entry-card__menu-button,
+  .timeline-entry-card__menu-button:hover {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+</style>

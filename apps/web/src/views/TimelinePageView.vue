@@ -435,6 +435,17 @@ const restoringSkeletonRows = 3
     animation: none;
   }
 
+  .journal-state-panel button,
+  .journal-state-panel a {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .journal-state-panel button:hover,
+  .journal-state-panel a:hover {
+    transform: none !important;
+  }
+
   :deep([data-region='timeline-entry']) {
     transition: none !important;
     transform: none !important;
