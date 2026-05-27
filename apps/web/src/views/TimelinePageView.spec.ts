@@ -5,6 +5,7 @@ import {
 } from '@trip-map/contracts'
 import { RouterLinkStub, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { readFileSync } from 'node:fs'
 import { defineComponent, nextTick } from 'vue'
 
 import TimelinePageView from './TimelinePageView.vue'
@@ -307,6 +308,16 @@ describe('TimelinePageView', () => {
     expect(text).not.toContain('我的收藏')
     expect(text).not.toContain('一次旅行一张卡片')
     expect(text).not.toContain('Alice 的旅途手账')
+  })
+
+  it('disables journal route button and timeline hover displacement under reduced motion', () => {
+    const source = readFileSync('src/views/TimelinePageView.vue', 'utf8')
+
+    expect(source).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(source).toContain('.journal-state-panel button')
+    expect(source).toContain('.journal-state-panel a')
+    expect(source).toContain(":deep([data-region='timeline-entry']:hover)")
+    expect(source).toContain('transform: none !important')
   })
 
   it('renders multiple visits for the same place as separate cards', () => {

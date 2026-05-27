@@ -5,6 +5,7 @@ import {
 } from '@trip-map/contracts'
 import { RouterLinkStub, flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { readFileSync } from 'node:fs'
 import { nextTick } from 'vue'
 
 import StatisticsPageView from './StatisticsPageView.vue'
@@ -620,6 +621,15 @@ describe('StatisticsPageView', () => {
     const populated = wrapper.get('[data-state="populated"]')
     expect(populated.text()).toContain('3 次旅行 · 2 个地点 · 2 个国家/地区')
     expect(populated.text()).toContain('当前支持覆盖 21 个国家/地区。')
+  })
+
+  it('disables memories route button hover displacement under reduced motion', () => {
+    const source = readFileSync('src/views/StatisticsPageView.vue', 'utf8')
+
+    expect(source).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(source).toContain('.memories-dashboard-shell button')
+    expect(source).toContain('.memories-dashboard-shell a')
+    expect(source).toContain('transform: none !important')
   })
 
   it('re-fetches statistics after editing notes', async () => {

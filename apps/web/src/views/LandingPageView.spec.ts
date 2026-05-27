@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
+import { readFileSync } from 'node:fs'
 import { nextTick } from 'vue'
 
 import LandingPageView from './LandingPageView.vue'
@@ -52,5 +53,13 @@ describe('LandingPageView', () => {
     expect(wrapper.text()).toContain('探索世界地图 📖')
     expect(wrapper.find('[data-auth-trigger="landing-login"]').exists()).toBe(false)
     expect(openAuthModalSpy).toHaveBeenNthCalledWith(1, 'login')
+  })
+
+  it('keeps landing CTA hover motion disabled under reduced motion', () => {
+    const source = readFileSync('src/components/landing/LandingHero.vue', 'utf8')
+
+    expect(source).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(source).toContain('.landing-hero__action:hover')
+    expect(source).toContain('transform: none')
   })
 })

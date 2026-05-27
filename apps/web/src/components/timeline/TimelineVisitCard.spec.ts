@@ -451,4 +451,12 @@ describe('TimelineVisitCard', () => {
     expect(wrapper.text()).not.toContain('文化')
     expect(wrapper.text()).not.toContain('历史')
   })
+
+  it('disables card and management hover displacement under reduced motion', () => {
+    const source = readFileSync('src/components/timeline/TimelineVisitCard.vue', 'utf8')
+
+    expect(source).toContain('@media (prefers-reduced-motion: reduce)')
+    expect(source).toContain('.timeline-entry-card__menu-button:hover')
+    expect(source).toContain('transform: none !important')
+  })
 })
