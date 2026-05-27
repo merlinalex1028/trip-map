@@ -16,6 +16,7 @@ Scope: desktop only. Evidence was captured from `http://localhost:5173` at `1440
 - Star marker is visible in `desktop-map.png` next to the map popup.
 - All four ECharts panels are visible in `desktop-memories.png`: monthly trend, country/region distribution, yearly trend, and memories-profile radar.
 - No `repair-needed` rows were found in this desktop core-state pass.
+- Final closeout: every screenshot matrix row has a final `pass` status, and no desktop row is blank or awaiting triage.
 
 ## Accessibility Repair Notes
 
