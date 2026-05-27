@@ -199,6 +199,7 @@ describe('StatisticsPageView', () => {
     expect(mountedErrorPage.wrapper.get('[data-state="error"]').text()).toContain(
       '旅途回忆暂时加载失败，请稍后重试。',
     )
+    expect(mountedErrorPage.wrapper.get('[data-state="error"]').attributes('role')).toBe('alert')
     expect(mountedErrorPage.wrapper.get('[data-state="error"]').text()).toContain('重新加载回忆')
   })
 

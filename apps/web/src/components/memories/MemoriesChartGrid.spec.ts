@@ -7,8 +7,8 @@ import MemoriesChartGrid from './MemoriesChartGrid.vue'
 vi.mock('@/components/common/BaseChart.vue', () => ({
   default: {
     name: 'BaseChart',
-    props: ['option', 'empty', 'error', 'loading', 'minHeight'],
-    template: '<section data-mocked-base-chart :data-empty="empty"><slot /></section>',
+    props: ['option', 'empty', 'error', 'label', 'loading', 'minHeight'],
+    template: '<section data-mocked-base-chart :aria-label="label" :data-empty="empty"><slot /></section>',
   },
 }))
 
@@ -58,6 +58,18 @@ describe('MemoriesChartGrid', () => {
     expect(wrapper.get('[data-chart-panel="country-distribution"]').text()).toContain('足迹国家/地区分布')
     expect(wrapper.get('[data-chart-panel="yearly-trend"]').text()).toContain('年度旅途趋势')
     expect(wrapper.get('[data-chart-panel="memories-profile"]').text()).toContain('旅途风格分析')
+    expect(wrapper.get('[data-chart-panel="monthly-trend"]').attributes('aria-labelledby')).toBe(
+      'memories-chart-monthly-trend-title',
+    )
+    expect(wrapper.get('[data-chart-panel="country-distribution"]').attributes('aria-labelledby')).toBe(
+      'memories-chart-country-distribution-title',
+    )
+    expect(wrapper.get('[data-chart-panel="yearly-trend"]').attributes('aria-labelledby')).toBe(
+      'memories-chart-yearly-trend-title',
+    )
+    expect(wrapper.get('[data-chart-panel="memories-profile"]').attributes('aria-labelledby')).toBe(
+      'memories-chart-profile-title',
+    )
   })
 
   it('builds BaseChart options from the passed dashboard props', () => {
@@ -85,6 +97,10 @@ describe('MemoriesChartGrid', () => {
       radar: { indicator: [{ name: '地点探索', max: 100 }, { name: '摘记细节', max: 100 }] },
       series: [{ data: [{ value: [83, 67], name: '旅途风格分析' }] }],
     })
+    expect(monthlyChart.props('label')).toBe('旅途足迹趋势图表')
+    expect(countryChart.props('label')).toBe('足迹国家/地区分布图表')
+    expect(yearlyChart.props('label')).toBe('年度旅途趋势图表')
+    expect(profileChart.props('label')).toBe('旅途风格分析雷达图')
   })
 
   it('renders truthful sparse-date copy for empty monthly and yearly trends', () => {

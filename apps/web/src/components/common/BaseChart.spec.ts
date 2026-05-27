@@ -12,14 +12,20 @@ vi.mock('vue-echarts', () => ({
 
 describe('BaseChart', () => {
   it('renders loading state with aria-busy', () => {
-    const wrapper = mount(BaseChart, { props: { loading: true } })
+    const wrapper = mount(BaseChart, { props: { loading: true, label: '旅途足迹趋势图表' } })
     expect(wrapper.find('[data-state="loading"]').exists()).toBe(true)
     expect(wrapper.find('[data-base-chart]').attributes('aria-busy')).toBe('true')
+    expect(wrapper.find('[data-base-chart]').attributes('role')).toBe('img')
+    expect(wrapper.find('[data-base-chart]').attributes('aria-label')).toBe('旅途足迹趋势图表')
+    expect(wrapper.find('[data-state="loading"]').attributes('role')).toBe('status')
+    expect(wrapper.find('[data-state="loading"]').attributes('aria-live')).toBe('polite')
   })
 
   it('renders empty state with correct text', () => {
     const wrapper = mount(BaseChart, { props: { empty: true } })
     expect(wrapper.find('[data-state="empty"]').exists()).toBe(true)
+    expect(wrapper.find('[data-state="empty"]').attributes('role')).toBe('status')
+    expect(wrapper.find('[data-state="empty"]').attributes('aria-live')).toBe('polite')
     expect(wrapper.text()).toContain('还没有旅行记录')
     expect(wrapper.text()).toContain('先回到地图，选择一个真实地点留下第一枚足迹。')
   })
