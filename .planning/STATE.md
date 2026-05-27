@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
 status: executing
-stopped_at: Completed 48-01-PLAN.md
-last_updated: "2026-05-27T11:18:35.245Z"
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-05-27T11:43:43.074Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 31
-  completed_plans: 27
+  completed_plans: 28
   percent: 86
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md
 ## Current Position
 
 Phase: 48 (visual-qa-accessibility) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-05-27
 
@@ -47,7 +47,7 @@ Last activity: 2026-05-27
 | 45 | 4/4 | Complete |
 | 46 | 4/4 | Complete |
 | 47 | 4/4 | Complete |
-| 48 | 1/5 | In Progress |
+| 48 | 2/5 | In Progress |
 
 ## Accumulated Context
 
@@ -68,6 +68,8 @@ Last activity: 2026-05-27
 | Phase 43 全局文案替换 | `点亮`→`留下足迹`，`旅行统计`→`旅途回忆`，`时间轴`→`旅途手账` | ✅ 已实现 |
 | Phase 48 Plan 01 desktop-only evidence | 遵守 D-02，证据矩阵只覆盖桌面核心状态 | ✅ 已完成 |
 | Phase 48 screenshots use fixed QA account | 使用 `visual-qa@example.test` 通过正常认证弹层采集截图，避免绕过登录守卫 | ✅ 已完成 |
+| Phase 48 Plan 02 sidebar active destinations limited to map/journal/memories | 遵守 QA-03 与 T-48-06，避免禁用或未来入口进入键盘导航 | ✅ 已完成 |
+| Phase 48 Plan 02 auth submit errors describe the open dialog only when present | 失败状态可读，同时避免成功状态保留陈旧描述 | ✅ 已完成 |
 
 - [Phase 44]: sidebar 仅在 /map 切换到 world-footprints 视觉模式 — 遵守 Phase 43 的三项导航壳约束，不把 Phase 44 扩大为跨路由 shell 重设计。
 - [Phase 44]: 地图舞台只叠加 world-footprints 视觉壳 — 保留 useLeafletMap、resolveCanonicalPlace、confirmCanonicalPlace 与 MapContextPopup 识别链路，避免视觉恢复引入交互回归。
@@ -108,8 +110,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-05-27T11:18:35.225Z
-Stopped at: Completed 48-01-PLAN.md
+Last session: 2026-05-27T11:43:43.057Z
+Stopped at: Completed 48-02-PLAN.md
 
 ---
 
