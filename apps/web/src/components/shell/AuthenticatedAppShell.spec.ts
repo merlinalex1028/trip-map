@@ -14,6 +14,13 @@ function makeUser() {
   }
 }
 
+function makeLongUsernameUser() {
+  return {
+    ...makeUser(),
+    username: '视觉 QA 长用户名用于验证侧栏文本不会溢出',
+  }
+}
+
 async function mountShell(
   route = '/map',
   setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
@@ -69,20 +76,21 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.find('[data-shell-avatar]').exists()).toBe(true)
     expect(wrapper.find('[data-shell-illustration]').exists()).toBe(true)
 
-    const navItems = wrapper.findAll('[data-shell-nav-item]').map((item) =>
-      item.attributes('data-shell-nav-item'),
+    const navItems = wrapper.findAll('[data-nav-key]').map((item) =>
+      item.attributes('data-nav-key'),
     )
 
-    expect(navItems).toEqual(['map', 'journal', 'atlas', 'collections', 'illuminate', 'settings'])
+    expect(navItems).toEqual(['map', 'journal', 'memories'])
     expect(wrapper.text()).toContain('世界足迹')
     expect(wrapper.text()).toContain('旅途手账')
-    expect(wrapper.text()).toContain('旅行图鉴')
-    expect(wrapper.text()).toContain('我的收藏')
-    expect(wrapper.text()).toContain('点亮足迹')
-    expect(wrapper.text()).toContain('设置')
-    expect(navItems).toHaveLength(6)
-    expect(wrapper.findAll('[data-shell-nav-item] [data-kawaii-icon] img')).toHaveLength(6)
-    expect(wrapper.get('[data-shell-nav-item="map"] [data-kawaii-icon] img').attributes('src')).toContain(
+    expect(wrapper.text()).toContain('旅途回忆')
+    expect(wrapper.text()).not.toContain('旅行图鉴')
+    expect(wrapper.text()).not.toContain('我的收藏')
+    expect(wrapper.text()).not.toContain('点亮足迹')
+    expect(wrapper.text()).not.toContain('设置')
+    expect(navItems).toHaveLength(3)
+    expect(wrapper.findAll('[data-nav-key] [data-kawaii-icon] img')).toHaveLength(3)
+    expect(wrapper.get('[data-nav-key="map"] [data-kawaii-icon] img').attributes('src')).toContain(
       'nav-world-footprints',
     )
   })
@@ -90,8 +98,8 @@ describe('AuthenticatedAppShell', () => {
   it('marks the active route with aria-current="page"', async () => {
     const { wrapper } = await mountShell('/journal')
 
-    expect(wrapper.get('[data-shell-nav-item="journal"]').attributes('aria-current')).toBe('page')
-    expect(wrapper.get('[data-shell-nav-item="map"]').attributes('aria-current')).toBeUndefined()
+    expect(wrapper.get('a[data-nav-key="journal"]').attributes('aria-current')).toBe('page')
+    expect(wrapper.get('a[data-nav-key="map"]').attributes('aria-current')).toBeUndefined()
   })
 
   it('uses world-footprints visual mode on map route with the high-fidelity menu set', async () => {
@@ -103,10 +111,10 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('[data-shell-illustration]').attributes('src')).toContain(
       'sidebar-camera-girl.webp',
     )
-    expect(wrapper.findAll('[data-shell-nav-item]').map((item) =>
-      item.attributes('data-shell-nav-item'),
-    )).toEqual(['map', 'journal', 'atlas', 'collections', 'illuminate', 'settings'])
-    expect(wrapper.text()).toContain('我的收藏')
+    expect(wrapper.findAll('[data-nav-key]').map((item) =>
+      item.attributes('data-nav-key'),
+    )).toEqual(['map', 'journal', 'memories'])
+    expect(wrapper.text()).toContain('旅途回忆')
   })
 
   it('uses the same high-fidelity sidebar on non-map authenticated routes', async () => {
@@ -118,6 +126,23 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('[data-shell-illustration]').attributes('src')).toContain(
       'sidebar-camera-girl.webp',
     )
+  })
+
+  it('constrains the long QA username without adding extra navigation destinations', async () => {
+    const { wrapper } = await mountShell('/memories', (authSessionStore) => {
+      authSessionStore.currentUser = makeLongUsernameUser()
+    })
+
+    const username = wrapper.get('[data-shell-username]')
+
+    expect(username.text()).toBe('视觉 QA 长用户名用于验证侧栏文本不会溢出')
+    expect(username.classes()).toEqual(expect.arrayContaining(['max-w-full', 'truncate']))
+    expect(wrapper.findAll('a[data-nav-key]').map(item => item.text().trim())).toEqual([
+      '世界足迹',
+      '旅途手账',
+      '旅途回忆',
+    ])
+    expect(wrapper.get('a[data-nav-key="memories"]').attributes('aria-current')).toBe('page')
   })
 
   // TODO: re-enable logout test when design finalizes the logout placement (43-UAT.md test 10)
