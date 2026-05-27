@@ -255,6 +255,8 @@ const countryLegendItems = computed(() =>
 .memories-country-legend__name {
   position: relative;
   min-width: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
   padding-left: 28px;
 }
 
