@@ -28,7 +28,7 @@
 - [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18, UAT passed)
 - [x] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口 (completed 2026-05-20)
 - [x] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区 (completed 2026-05-26)
-- [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面新页面、地图、图表、弹窗、动效和现有回归测试做收口验证
+- [x] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面新页面、地图、图表、弹窗、动效和现有回归测试做收口验证 (completed 2026-05-27)
 
 ## Phase Details
 
@@ -212,14 +212,14 @@ Plans:
 4. `prefers-reduced-motion` 下漂浮、呼吸和 hover 动效会降级，核心操作不受影响。
 5. 新增依赖和页面改造不会破坏现有 auth、records、timeline、statistics 回归测试。
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 48-01-PLAN.md — Establish the desktop evidence harness, fixed QA seed procedure, screenshots, and checklist.
 - [x] 48-02-PLAN.md — Verify and repair auth entry plus sidebar keyboard, focus, ARIA, and long username behavior.
 - [x] 48-03-PLAN.md — Verify and repair map popup, footprint date dialog, Calendar, and chart accessibility/rendering behavior.
 - [x] 48-04-PLAN.md — Repair desktop visual, long-text, and reduced-motion blockers discovered by evidence.
-- [ ] 48-05-PLAN.md — Run web/server/contracts release gate and close final verification evidence.
+- [x] 48-05-PLAN.md — Run web/server/contracts release gate and close final verification evidence.
 
 ---
 
@@ -288,7 +288,7 @@ Plans:
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
 | 47. 旅途回忆 Dashboard | 4/4 | Complete    | 2026-05-26 |
-| 48. Visual QA、Accessibility 与回归验证 | 4/5 | In Progress|  |
+| 48. Visual QA、Accessibility 与回归验证 | 5/5 | Complete   | 2026-05-27 |
 
 ---
 

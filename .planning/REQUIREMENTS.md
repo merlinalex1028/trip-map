@@ -79,7 +79,7 @@
 - [x] **QA-02**: 地图和图表在本地运行时非空渲染，Leaflet 地图、星形标记、ECharts 图表均可见。
 - [x] **QA-03**: Dialog、Calendar、导航和登录入口支持键盘操作、焦点管理和可读 aria 标签。
 - [x] **QA-04**: `prefers-reduced-motion` 下漂浮、呼吸、hover 动效降级，不影响核心操作。
-- [ ] **QA-05**: 新增依赖不会破坏现有 auth、records、timeline、statistics 回归测试。
+- [x] **QA-05**: 新增依赖不会破坏现有 auth、records、timeline、statistics 回归测试。
 
 ## Future Requirements
 
@@ -163,7 +163,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QA-02 | Phase 48 | Complete |
 | QA-03 | Phase 48 | Complete |
 | QA-04 | Phase 48 | Complete |
-| QA-05 | Phase 48 | Pending |
+| QA-05 | Phase 48 | Complete |
 
 **Coverage:**
 - v8 requirements: 48 total
