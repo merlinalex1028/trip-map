@@ -331,17 +331,19 @@ Replicate this local pattern for any observed floating, pulse, shimmer, zoom, or
 | A1 | Prefer local CSS guards or Tailwind `motion-reduce:*` on the exact component causing motion. | Architecture Patterns | Planner might choose a different but still valid reduced-motion implementation pattern. |
 | A2 | Research remains valid until 2026-06-26 for project-specific QA planning. | Metadata | Fast-moving dependency docs could change earlier if planner adds packages or upgrades tooling. |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **What exact fixed account or seed mechanism should be used for screenshots?**
    - What we know: Phase 48 requires reproducible populated map and all four memories charts. [VERIFIED: 48-CONTEXT.md]
    - What's unclear: no existing dedicated QA seed script was found during research. [VERIFIED: rg scripts + package.json]
    - Recommendation: planner should add a Wave 0 task to define either a fixed local account or minimal seed-data procedure before screenshot capture. [VERIFIED: 48-CONTEXT.md]
+   - Resolution: `48-06` resolves the seed mechanism by requiring env-provided `VISUAL_QA_PASSWORD` for real seeding, production-like refusal before Prisma writes, dry-run preservation without DB/password, and explicit `--reset-password` behavior for intentional password refresh. [VERIFIED: 48-06-PLAN.md]
 
 2. **Should ECharts ARIA be added if screenshots show charts are visually fine but screen-reader labels are weak?**
    - What we know: ECharts requires `AriaComponent` import for `aria.show` to work. [CITED: https://echarts.apache.org/handbook/en/best-practices/aria/]
    - What's unclear: current `BaseChart.vue` does not show ARIA chart option wiring in the inspected snippet. [VERIFIED: BaseChart.vue]
    - Recommendation: treat missing chart labels as an accessibility fix if key chart/status regions are unreadable to assistive tech. [VERIFIED: 48-CONTEXT.md]
+   - Resolution: `48-06` resolves the chart/accessibility closeout by requiring `BaseChart` state-specific role behavior, with `role="img"` only for the rendered chart state and status/error states tested through related component evidence. [VERIFIED: 48-06-PLAN.md]
 
 ## Environment Availability
 
