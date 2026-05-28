@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { computed, shallowRef } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import sidebarCameraGirl from '@/assets/v8/characters/sidebar-camera-girl.webp'
 import logoCat from '@/assets/v8/mascots/logo-cat-outline.png'
@@ -31,8 +31,10 @@ const navItems = [
 ] satisfies NavItem[]
 
 const authSessionStore = useAuthSessionStore()
-const { currentUser } = storeToRefs(authSessionStore)
+const { currentUser, isSubmitting } = storeToRefs(authSessionStore)
 const route = useRoute()
+const router = useRouter()
+const logoutError = shallowRef('')
 
 const displayUsername = computed(() => currentUser.value?.username ?? '旅行家')
 const displayLevel = computed(() => (currentUser.value ? 'Lv.5 旅行收藏家' : 'Lv.1 新手旅行家'))
@@ -48,6 +50,17 @@ function getNavButtonClass(item: NavItem) {
       ? 'bg-[linear-gradient(135deg,rgba(255,224,241,0.98),rgba(255,241,249,0.98))] text-[#2f1d72] shadow-[0_12px_24px_rgba(244,143,177,0.18)]'
       : 'bg-transparent hover:-translate-y-0.5 hover:bg-white/64',
   ]
+}
+
+async function handleLogout() {
+  logoutError.value = ''
+
+  try {
+    await authSessionStore.logout()
+    await router.replace('/')
+  } catch {
+    logoutError.value = '退出登录失败，请稍后重试。'
+  }
 }
 </script>
 
@@ -178,7 +191,30 @@ function getNavButtonClass(item: NavItem) {
       </SidebarContent>
     </div>
 
-    <!-- Logout removed — pending design review (see 43-UAT.md test 10) -->
+    <div class="sidebar-session-actions">
+      <p
+        v-if="logoutError"
+        class="sidebar-session-actions__error"
+        role="alert"
+      >
+        {{ logoutError }}
+      </p>
+      <button
+        type="button"
+        class="sidebar-logout-button"
+        data-shell-logout
+        :disabled="isSubmitting"
+        @click="handleLogout"
+      >
+        <KawaiiIcon
+          label="退出登录"
+          name="settings"
+          :decorative="false"
+          :size="20"
+        />
+        <span>退出登录</span>
+      </button>
+    </div>
   </div>
 </template>
 
@@ -268,6 +304,59 @@ function getNavButtonClass(item: NavItem) {
   max-width: none;
   transform: translateX(-52%) scale(1.12);
   transform-origin: 50% 100%;
+}
+
+.sidebar-session-actions {
+  display: grid;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+}
+
+.sidebar-session-actions__error {
+  margin: 0;
+  border: 1px solid rgba(247, 90, 155, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 247, 252, 0.92);
+  color: #b42364;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 0.55rem 0.75rem;
+}
+
+.sidebar-logout-button {
+  display: inline-flex;
+  min-height: 44px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(230, 218, 248, 0.94);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  color: #6f4aa1;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 800;
+  transition: background-color var(--motion-quick), box-shadow var(--motion-quick), transform var(--motion-quick);
+}
+
+.sidebar-logout-button:hover,
+.sidebar-logout-button:focus-visible {
+  background: rgba(255, 247, 252, 0.98);
+  box-shadow: 0 10px 22px rgba(139, 111, 239, 0.1);
+  transform: translateY(-1px);
+}
+
+.sidebar-logout-button:focus-visible {
+  outline: 2px solid rgba(247, 90, 155, 0.35);
+  outline-offset: 3px;
+}
+
+.sidebar-logout-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+  transform: none;
 }
 
 @media (max-height: 760px) {

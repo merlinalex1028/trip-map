@@ -137,9 +137,8 @@ describe('FootprintDateDialog', () => {
   it('renders snapshot place details with Dialog and Calendar hooks', () => {
     mountDialog()
 
-    expect(getElement<HTMLElement>('[data-region="footprint-date-dialog"]').getAttribute('role')).toBe(
-      'dialog',
-    )
+    expect(getElement<HTMLElement>('[data-region="footprint-date-dialog"]').getAttribute('role')).toBeNull()
+    expect(getAllElements('[role="dialog"]')).toHaveLength(1)
     expect(getElement<HTMLElement>('[data-footprint-place-name]').textContent).toContain('北京')
     expect(document.body.textContent).toContain('直辖市')
     expect(document.body.textContent).toContain('中国 · 直辖市')
@@ -233,6 +232,25 @@ describe('FootprintDateDialog', () => {
 
   it('emits YYYY-MM-DD single-day payload from the selected shortcut', async () => {
     const wrapper = mountDialog()
+
+    getElement<HTMLButtonElement>('[data-footprint-shortcut="today"]').click()
+    await wrapper.vm.$nextTick()
+    getElement<HTMLButtonElement>('[data-footprint-submit="true"]').click()
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.emitted('submit')?.[0]?.[0]).toEqual({
+      startDate: currentDateString(),
+      endDate: null,
+    })
+  })
+
+  it('refreshes the default shortcut date when reopened after midnight', async () => {
+    const wrapper = mountDialog()
+
+    await wrapper.setProps({ open: false })
+    vi.setSystemTime(new Date('2026-05-14T08:00:00.000Z'))
+    await wrapper.setProps({ open: true })
+    await wrapper.vm.$nextTick()
 
     getElement<HTMLButtonElement>('[data-footprint-shortcut="today"]').click()
     await wrapper.vm.$nextTick()

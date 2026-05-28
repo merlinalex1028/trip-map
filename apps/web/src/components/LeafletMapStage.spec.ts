@@ -481,6 +481,38 @@ describe('LeafletMapStage', () => {
       })
     })
 
+    it('removes the map click handler on unmount', async () => {
+      const mapOnMock = vi.fn((event: string, handler: unknown) => {
+        if (event === 'click') {
+          capturedMapClickHandler = handler as typeof capturedMapClickHandler
+        }
+      })
+      const mapOffMock = vi.fn()
+      const fakeMap = {
+        on: mapOnMock,
+        off: mapOffMock,
+        latLngToContainerPoint: vi.fn(() => ({ x: 100, y: 100 })),
+        removeLayer: vi.fn(),
+        addLayer: vi.fn(),
+      } as unknown as import('leaflet').Map
+
+      ;(leafletMapContainer.mapRef as any).value = fakeMap as unknown as null
+      const wrapper = mount(LeafletMapStage, { global: { plugins: [pinia] } })
+
+      ;(leafletMapContainer.isReadyRef as any).value = true
+      await nextTick()
+      await flushPromises()
+
+      expect(mapOnMock.mock.calls.some(call => call[0] === 'click')).toBe(true)
+      expect(capturedMapClickHandler).not.toBeNull()
+
+      wrapper.unmount()
+
+      expect(
+        mapOffMock.mock.calls.some(call => call[0] === 'click' && typeof call[1] === 'function'),
+      ).toBe(true)
+    })
+
     it('creates draft point in store on resolved response (MAP-04)', async () => {
       canonicalPlacesMock.resolveCanonicalPlace.mockResolvedValue(
         makeResolvedResponse(PHASE12_RESOLVED_BEIJING),

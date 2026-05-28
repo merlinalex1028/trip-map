@@ -13,6 +13,7 @@ import type {
 } from 'echarts/components'
 import type { ComposeOption } from 'echarts/core'
 import VChart from 'vue-echarts'
+import { computed } from 'vue'
 import { YUME_KAWAII_CHART_THEME } from '@/lib/charts/theme'
 import '@/lib/charts/register'
 
@@ -41,13 +42,15 @@ const props = withDefaults(defineProps<{
   label: '旅行数据图表',
   minHeight: 280,
 })
+
+const isRenderedChartState = computed(() => !props.error && !props.empty && !props.loading)
 </script>
 
 <template>
   <section
     data-base-chart
-    role="img"
-    :aria-label="label"
+    :role="isRenderedChartState ? 'img' : undefined"
+    :aria-label="isRenderedChartState ? label : undefined"
     :aria-busy="loading"
     :style="{ minHeight: `${minHeight}px`, height: `${minHeight}px` }"
     class="relative w-full"

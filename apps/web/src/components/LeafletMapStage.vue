@@ -2,7 +2,7 @@
 import type { VirtualElement } from '@floating-ui/dom'
 import L from 'leaflet'
 import { storeToRefs } from 'pinia'
-import { computed, nextTick, onMounted, shallowRef, useTemplateRef, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, shallowRef, useTemplateRef, watch } from 'vue'
 
 import pinStarPink from '@/assets/v8/pins/pin-star-pink.png'
 import { useGeoJsonLayers } from '../composables/useGeoJsonLayers'
@@ -937,20 +937,43 @@ async function handleMapClick(e: L.LeafletMouseEvent) {
   await recognizeMapLocation(e.latlng)
 }
 
+let registeredClickMap: L.Map | null = null
+
+function registerMapClickHandler() {
+  if (!map.value || registeredClickMap === map.value) {
+    return
+  }
+
+  registeredClickMap?.off('click', handleMapClick)
+  map.value.on('click', handleMapClick)
+  registeredClickMap = map.value
+}
+
+function unregisterMapClickHandler() {
+  registeredClickMap?.off('click', handleMapClick)
+  registeredClickMap = null
+}
+
 // Register Leaflet click handler once map is ready
 watch(isReady, (ready) => {
-  if (ready && map.value) {
-    map.value.on('click', handleMapClick)
+  if (ready) {
+    registerMapClickHandler()
+  }
+  else {
+    unregisterMapClickHandler()
   }
 })
 
 // If map is already ready when component mounts (edge case)
 onMounted(() => {
-  if (isReady.value && map.value) {
-    map.value.on('click', handleMapClick)
+  if (isReady.value) {
+    registerMapClickHandler()
   }
 })
 
+onUnmounted(() => {
+  unregisterMapClickHandler()
+})
 </script>
 
 <template>

@@ -57,8 +57,7 @@ const emit = defineEmits<{
 type ShortcutKey = 'today' | 'tomorrow' | 'weekend'
 
 const timeZone = getLocalTimeZone()
-const todayValue = today(timeZone)
-const selectedDate = shallowRef<CalendarDate | undefined>(todayValue)
+const selectedDate = shallowRef<CalendarDate | undefined>(getTodayValue())
 const selectedShortcut = shallowRef<ShortcutKey | null>('today')
 const dialogSurfaceRef = useTemplateRef<HTMLElement>('dialogSurface')
 
@@ -76,6 +75,10 @@ const isSubmitDisabled = computed(() => {
   return !props.place || !selectedDate.value || props.isSubmitting
 })
 
+function getTodayValue() {
+  return today(timeZone)
+}
+
 watch(
   () => props.open,
   async (open) => {
@@ -83,6 +86,8 @@ watch(
       return
     }
 
+    selectedDate.value = getTodayValue()
+    selectedShortcut.value = 'today'
     await nextTick()
     dialogSurfaceRef.value?.focus({ preventScroll: true })
   },
@@ -117,18 +122,20 @@ function handleCalendarChange(value: DateValue | undefined) {
 }
 
 function handleShortcutClick(shortcut: ShortcutKey) {
+  const currentToday = getTodayValue()
+
   if (shortcut === 'today') {
-    setSelectedDate(todayValue, 'today')
+    setSelectedDate(currentToday, 'today')
     return
   }
 
   if (shortcut === 'tomorrow') {
-    setSelectedDate(todayValue.add({ days: 1 }), 'tomorrow')
+    setSelectedDate(currentToday.add({ days: 1 }), 'tomorrow')
     return
   }
 
-  const daysUntilSaturday = (6 - getDayOfWeek(todayValue, 'en-US', 'sun') + 7) % 7
-  setSelectedDate(todayValue.add({ days: daysUntilSaturday }), 'weekend')
+  const daysUntilSaturday = (6 - getDayOfWeek(currentToday, 'en-US', 'sun') + 7) % 7
+  setSelectedDate(currentToday.add({ days: daysUntilSaturday }), 'weekend')
 }
 
 function handleSubmit() {
@@ -154,7 +161,6 @@ function handleSubmit() {
         ref="dialogSurface"
         class="footprint-date-dialog__surface"
         data-region="footprint-date-dialog"
-        role="dialog"
         tabindex="-1"
       >
         <button

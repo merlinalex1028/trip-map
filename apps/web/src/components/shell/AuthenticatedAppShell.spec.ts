@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { vi } from 'vitest'
 
 import AuthenticatedAppShell from './AuthenticatedAppShell.vue'
 import { useAuthSessionStore } from '@/stores/auth-session'
@@ -145,9 +146,8 @@ describe('AuthenticatedAppShell', () => {
     expect(wrapper.get('a[data-nav-key="memories"]').attributes('aria-current')).toBe('page')
   })
 
-  // TODO: re-enable logout test when design finalizes the logout placement (43-UAT.md test 10)
-  it.skip('logs out and routes back to landing', async () => {
-    let logoutSpy: ReturnType<typeof vi.spyOn>
+  it('logs out and routes back to landing', async () => {
+    let logoutSpy!: ReturnType<typeof vi.spyOn>
     const { router, wrapper } = await mountShell('/memories', (authSessionStore) => {
       logoutSpy = vi.spyOn(authSessionStore, 'logout').mockResolvedValue(undefined)
     })
@@ -160,7 +160,7 @@ describe('AuthenticatedAppShell', () => {
     expect(replaceSpy).toHaveBeenCalledWith('/')
   })
 
-  it.skip('shows the inline logout failure alert when logout throws', async () => {
+  it('shows the inline logout failure alert when logout throws', async () => {
     const { wrapper } = await mountShell('/map', (authSessionStore) => {
       vi.spyOn(authSessionStore, 'logout').mockRejectedValue(new Error('network'))
     })
