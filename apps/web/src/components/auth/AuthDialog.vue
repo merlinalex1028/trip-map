@@ -47,6 +47,14 @@ function resetSubmitError() {
   submitError.value = ''
 }
 
+function resetAuthForms() {
+  loginForm.email = ''
+  loginForm.password = ''
+  registerForm.username = ''
+  registerForm.email = ''
+  registerForm.password = ''
+}
+
 function focusFirstField(mode: AuthMode) {
   if (mode === 'login') {
     loginEmailInput.value?.focus()
@@ -62,6 +70,7 @@ function restoreTriggerFocus() {
 }
 
 function handleDialogClose() {
+  resetAuthForms()
   closeAuthModal()
 }
 
@@ -99,6 +108,7 @@ async function handleSubmit() {
       })
     }
 
+    resetAuthForms()
     closeAuthModal()
     await router.replace('/map')
   } catch (error) {
@@ -116,7 +126,7 @@ async function handleSubmit() {
 
 watch(
   isAuthModalOpen,
-  async (open) => {
+  async (open, wasOpen) => {
     if (open) {
       lastFocusedElement.value =
         document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -126,8 +136,10 @@ watch(
       return
     }
 
-    await nextTick()
-    restoreTriggerFocus()
+    if (wasOpen) {
+      await nextTick()
+      restoreTriggerFocus()
+    }
   },
   { immediate: true },
 )

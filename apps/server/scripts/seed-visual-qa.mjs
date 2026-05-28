@@ -1,6 +1,6 @@
 const VISUAL_QA_EMAIL = 'visual-qa@example.test'
-const VISUAL_QA_PASSWORD = 'VisualQa2026!'
 const VISUAL_QA_USERNAME = '视觉 QA 长用户名用于验证侧栏文本不会溢出'
+const LOCAL_DATABASE_HOSTS = new Set(['localhost', '127.0.0.1', '::1'])
 
 const RECORD_FIXTURES = [
   {
@@ -102,6 +102,70 @@ function loadServerEnvFile() {
   process.env.SHADOW_DATABASE_URL = normalizeDatabaseUrl(process.env.SHADOW_DATABASE_URL)
 }
 
+function parseArgs(argv) {
+  const flags = new Set(argv.slice(2))
+
+  return {
+    dryRun: flags.has('--dry-run'),
+    resetPassword: flags.has('--reset-password'),
+    allowNonLocal: flags.has('--allow-non-local-visual-qa-seed'),
+    help: flags.has('--help') || flags.has('-h'),
+  }
+}
+
+function printHelp() {
+  console.log(`Seed the desktop visual QA account and records.
+
+Usage:
+  node scripts/seed-visual-qa.mjs [--dry-run] [--reset-password] [--allow-non-local-visual-qa-seed]
+
+Options:
+  --dry-run                         Validate fixtures without reading secrets, connecting to, or mutating the database.
+  --reset-password                  Refresh passwordHash for an existing QA user. Without this flag, existing passwords are preserved.
+  --allow-non-local-visual-qa-seed  Explicit override for non-local DATABASE_URL targets. NODE_ENV=production and VERCEL_ENV=production are always refused.
+
+Environment:
+  VISUAL_QA_PASSWORD                Required for real seeding and for creating the QA user.
+  DATABASE_URL                      Required for real seeding. Local hosts are allowed by default.
+`)
+}
+
+function getDatabaseHost(databaseUrl) {
+  if (!databaseUrl) {
+    return null
+  }
+
+  try {
+    return new URL(databaseUrl).hostname
+  }
+  catch {
+    return null
+  }
+}
+
+function assertRealSeedAllowed(options) {
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
+    throw new Error(
+      'Refusing to seed visual QA data in production. NODE_ENV=production and VERCEL_ENV=production are blocked.',
+    )
+  }
+
+  if (!process.env.VISUAL_QA_PASSWORD) {
+    throw new Error('VISUAL_QA_PASSWORD must be set before real visual QA seeding.')
+  }
+
+  const databaseHost = getDatabaseHost(process.env.DATABASE_URL)
+  if (!databaseHost) {
+    throw new Error('DATABASE_URL must be set before real visual QA seeding.')
+  }
+
+  if (!LOCAL_DATABASE_HOSTS.has(databaseHost) && !options.allowNonLocal) {
+    throw new Error(
+      `Refusing to seed visual QA data against non-local database host "${databaseHost}". Pass --allow-non-local-visual-qa-seed only for an explicitly approved QA database.`,
+    )
+  }
+}
+
 function assertIsoDate(value, label) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`${label} must be YYYY-MM-DD, received ${value}`)
@@ -177,9 +241,16 @@ function toUserTravelRecordCreateInput(userId, fixture) {
 }
 
 async function seed() {
+  const options = parseArgs(process.argv)
+
+  if (options.help) {
+    printHelp()
+    return
+  }
+
   validateFixtures(RECORD_FIXTURES)
 
-  if (process.argv.includes('--dry-run')) {
+  if (options.dryRun) {
     console.log(`[dry-run] visual QA account: ${VISUAL_QA_EMAIL}`)
     console.log(`[dry-run] validated ${RECORD_FIXTURES.length} dated records`)
     console.log(`[dry-run] places: ${RECORD_FIXTURES.map(record => record.placeId).join(', ')}`)
@@ -187,6 +258,7 @@ async function seed() {
   }
 
   loadServerEnvFile()
+  assertRealSeedAllowed(options)
 
   const [{ PrismaClient }, argon2] = await Promise.all([
     import('@prisma/client'),
@@ -195,7 +267,12 @@ async function seed() {
   const prisma = new PrismaClient()
 
   try {
-    const passwordHash = await argon2.hash(VISUAL_QA_PASSWORD)
+    const passwordHash = await argon2.hash(process.env.VISUAL_QA_PASSWORD)
+    const existingUser = await prisma.user.findUnique({
+      where: { email: VISUAL_QA_EMAIL },
+      select: { id: true },
+    })
+
     const user = await prisma.user.upsert({
       where: { email: VISUAL_QA_EMAIL },
       create: {
@@ -205,7 +282,7 @@ async function seed() {
       },
       update: {
         username: VISUAL_QA_USERNAME,
-        passwordHash,
+        ...(options.resetPassword ? { passwordHash } : {}),
       },
     })
 
@@ -225,6 +302,9 @@ async function seed() {
     console.log(`Deleted existing records for target account: ${deleted.count}`)
     console.log(`Created records: ${RECORD_FIXTURES.length}`)
     console.log(`Places: ${RECORD_FIXTURES.map(record => record.placeId).join(', ')}`)
+    if (existingUser && !options.resetPassword) {
+      console.log('Preserved existing QA account passwordHash; pass --reset-password to refresh it.')
+    }
   }
   finally {
     await prisma.$disconnect()
