@@ -19,12 +19,13 @@ import { useAuthSessionStore } from '../../stores/auth-session'
 
 function mountDialog(
   setup?: (authSessionStore: ReturnType<typeof useAuthSessionStore>) => void,
+  options: { open?: boolean } = {},
 ) {
   const pinia = createPinia()
   setActivePinia(pinia)
 
   const authSessionStore = useAuthSessionStore()
-  authSessionStore.isAuthModalOpen = true
+  authSessionStore.isAuthModalOpen = options.open ?? true
   authSessionStore.authMode = 'login'
   setup?.(authSessionStore)
 
@@ -121,6 +122,42 @@ describe('AuthDialog', () => {
     expect(document.activeElement).toBe(trigger)
   })
 
+  it('does not move focus to an auth trigger when mounted closed', async () => {
+    const trigger = document.createElement('button')
+    trigger.dataset.authTrigger = 'true'
+    trigger.textContent = '登录'
+    document.body.append(trigger)
+
+    const stableFocus = document.createElement('button')
+    stableFocus.textContent = '保持焦点'
+    document.body.append(stableFocus)
+    stableFocus.focus()
+
+    mountDialog(undefined, { open: false })
+    await flushPromises()
+
+    expect(document.activeElement).toBe(stableFocus)
+  })
+
+  it('clears login credentials after explicit close before the next open', async () => {
+    const { authSessionStore, wrapper } = mountDialog((store) => {
+      vi.spyOn(store, 'closeAuthModal').mockImplementation(() => {
+        store.isAuthModalOpen = false
+      })
+    })
+
+    await wrapper.get('input[name="email"]').setValue('alice@example.com')
+    await wrapper.get('input[name="password"]').setValue('super-secret')
+    await wrapper.get('button[aria-label="关闭认证弹层"]').trigger('click')
+    await flushPromises()
+
+    authSessionStore.isAuthModalOpen = true
+    await flushPromises()
+
+    expect(wrapper.get<HTMLInputElement>('input[name="email"]').element.value).toBe('')
+    expect(wrapper.get<HTMLInputElement>('input[name="password"]').element.value).toBe('')
+  })
+
   it('calls login, closes the dialog, and navigates to /map after a successful 登录 submit', async () => {
     const { wrapper } = mountDialog((authSessionStore) => {
       vi.spyOn(authSessionStore, 'login').mockResolvedValue(undefined)
@@ -143,6 +180,12 @@ describe('AuthDialog', () => {
     })
     expect(closeAuthModalSpy).toHaveBeenCalled()
     expect(replaceSpy).toHaveBeenCalledWith('/map')
+
+    authSessionStore.isAuthModalOpen = true
+    await flushPromises()
+
+    expect(wrapper.get<HTMLInputElement>('input[name="email"]').element.value).toBe('')
+    expect(wrapper.get<HTMLInputElement>('input[name="password"]').element.value).toBe('')
   })
 
   it('calls register, closes the dialog, and navigates to /map after a successful 注册 submit', async () => {
@@ -172,6 +215,14 @@ describe('AuthDialog', () => {
     })
     expect(closeAuthModalSpy).toHaveBeenCalled()
     expect(replaceSpy).toHaveBeenCalledWith('/map')
+
+    authSessionStore.isAuthModalOpen = true
+    authSessionStore.authMode = 'register'
+    await flushPromises()
+
+    expect(wrapper.get<HTMLInputElement>('input[name="username"]').element.value).toBe('')
+    expect(wrapper.get<HTMLInputElement>('input[name="email"]').element.value).toBe('')
+    expect(wrapper.get<HTMLInputElement>('input[name="password"]').element.value).toBe('')
   })
 
   it('keeps the dialog open and shows a form error when 登录 fails with auth-submit 401', async () => {
