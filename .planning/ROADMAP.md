@@ -9,7 +9,7 @@
 - ✅ **v5.0 账号体系与云同步基础版** — Phases 23-26，已于 2026-04-17 归档（[详情](milestones/v5.0-ROADMAP.md)）
 - ✅ **v6.0 旅行统计、时间轴与海外覆盖增强版** — Phases 27-35，已于 2026-04-28 归档（[详情](milestones/v6.0-ROADMAP.md)）
 - ✅ **v7.0 旅行记录编辑与删除** — Phases 36-41，已于 2026-04-29 归档（[详情](milestones/v7.0-ROADMAP.md)）
-- 🚧 **v8.0 Yume Kawaii 视觉重构与登录地图体验** — Phases 42-48，规划中
+- ✅ **v8.0 Yume Kawaii 视觉重构与登录地图体验** — Phases 42-48，Phase 48 已完成，待里程碑归档
 
 ---
 
@@ -28,7 +28,7 @@
 - [x] **Phase 45: 可用地点覆盖扩展** — 识别“可识别但不可留下足迹”的断点，并尽量补齐 authoritative 保存所需 metadata / geometry (completed 2026-05-18, UAT passed)
 - [x] **Phase 46: 旅途手账重构** — 将时间轴升级为发光手账流，移除新增旅行入口和收藏相关入口 (completed 2026-05-20)
 - [x] **Phase 47: 旅途回忆 Dashboard** — 将统计页升级为真实数据驱动的图表、排行、概览和视觉缩略图区 (completed 2026-05-26)
-- [ ] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面新页面、地图、图表、弹窗、动效和现有回归测试做收口验证 (verification gaps found 2026-05-27)
+- [x] **Phase 48: Visual QA、Accessibility 与回归验证** — 对桌面新页面、地图、图表、弹窗、动效和现有回归测试做收口验证 (completed 2026-05-28)
 
 ## Phase Details
 
@@ -45,7 +45,7 @@
 3. 旅途回忆后续可使用 ECharts/vue-echarts 渲染折线、环图、柱状和雷达图。
 4. 页面图标由统一方案提供，实际使用图标不依赖运行时公网拉取。
 
-**Plans:** 5/6 plans complete
+**Plans:** 5/5 plans complete
 
 Plans:
 
@@ -237,7 +237,7 @@ Plans:
 4. `prefers-reduced-motion` 下漂浮、呼吸和 hover 动效会降级，核心操作不受影响。
 5. 新增依赖和页面改造不会破坏现有 auth、records、timeline、statistics 回归测试。
 
-**Plans:** 5/5 plans complete
+**Plans:** 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -259,7 +259,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 48-06-PLAN.md — Close Phase 48 verification gaps for seed safety, auth/date/chart accessibility, logout debt, Leaflet listener cleanup, and final regression evidence.
+- [x] 48-06-PLAN.md — Close Phase 48 verification gaps for seed safety, auth/date/chart accessibility, logout debt, Leaflet listener cleanup, and final regression evidence.
 
 ---
 
@@ -310,11 +310,11 @@ Plans:
 | MEM-05 | Phase 47 | Complete |
 | MEM-06 | Phase 47 | Complete |
 | MEM-07 | Phase 47 | Complete |
-| QA-01 | Phase 48 | Partial |
+| QA-01 | Phase 48 | Complete |
 | QA-02 | Phase 48 | Complete |
-| QA-03 | Phase 48 | Gaps Found |
+| QA-03 | Phase 48 | Complete |
 | QA-04 | Phase 48 | Complete |
-| QA-05 | Phase 48 | Pending |
+| QA-05 | Phase 48 | Complete |
 
 > 48/48 requirements mapped — 100% coverage ✓
 
@@ -328,9 +328,9 @@ Plans:
 | 45. 可用地点覆盖扩展 | 4/4 | Complete    | 2026-05-18 |
 | 46. 旅途手账重构 | 4/4 | Complete    | 2026-05-20 |
 | 47. 旅途回忆 Dashboard | 4/4 | Complete    | 2026-05-26 |
-| 48. Visual QA、Accessibility 与回归验证 | 5/6 | Ready to execute gaps | — |
+| 48. Visual QA、Accessibility 与回归验证 | 6/6 | Complete | 2026-05-28 |
 
 ---
 
 *Created: 2026-05-09*
-*Last updated: 2026-05-12 — Phase 43 completed*
+*Last updated: 2026-05-28 — Phase 48 completed*
