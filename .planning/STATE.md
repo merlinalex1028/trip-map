@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Yume Kawaii 视觉重构与登录地图体验
-status: complete
-stopped_at: Phase 48 gap closure complete
-last_updated: "2026-05-28T06:10:21Z"
-last_activity: 2026-05-28 -- Phase 48 verification gaps closed
+status: Awaiting next milestone
+stopped_at: Phase 48 verification gaps closed
+last_updated: "2026-05-28T08:36:14.092Z"
+last_activity: 2026-05-28 — Milestone v8.0 completed and archived
 progress:
   total_phases: 7
   completed_phases: 7
@@ -18,24 +18,24 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md
+See: .planning/PROJECT.md (updated 2026-05-28)
 
 **Core value:** 用户点击地图后，系统必须能以本地静态地理数据稳定判断真实地点，并把旅行点位可靠保存下来。
-**Current focus:** Phase 48 — visual-qa-accessibility complete
+**Current focus:** Awaiting next milestone definition
 
 ## Current Position
 
-Phase: 48 (visual-qa-accessibility) — COMPLETE
-Plan: 6 of 6
-Status: Complete
-Last activity: 2026-05-28 -- Phase 48 verification gaps closed
+Phase: Milestone v8.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-28 — Milestone v8.0 completed and archived
 
 ## Performance Metrics
 
 **Velocity:**
 
 - Last shipped milestone: v7.0（6 phases, 8 plans, 23 tasks）
-- Current roadmap: 7 planned phases (42-48)
+- Last roadmap: 7 completed phases (42-48)
 
 **By Phase:**
 
@@ -96,6 +96,39 @@ None yet.
 
 ### Deferred Items
 
+Items acknowledged and deferred at v8.0 milestone close on 2026-05-28:
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | 02-projection-frame-mismatch | unknown |
+| debug | 04-city-hit-radius-too-small | unknown |
+| debug | 08-boundary-highlight-missing | unknown |
+| debug | 09-popup-middle-scroll | investigating |
+| debug | beijing-no-type-label | root_cause_found |
+| debug | california-not-recognized | unknown |
+| debug | canonical-resolve-beijing | unknown |
+| debug | canonical-resolve-response-shape | unknown |
+| debug | geojson-boundary-not-showing | unknown |
+| debug | hk-no-type-label | unknown |
+| debug | illuminate-button-no-effect | unknown |
+| debug | phase-25-uat1-a-window-fails | diagnosed |
+| debug | records-smoke-test-failure | unknown |
+| quick_task | 260326-qmh-popup-60 | missing |
+| quick_task | 260326-qvd-popup-60-header-content-footer-header-fo | missing |
+| quick_task | 260326-r14-drawer-popup | missing |
+| quick_task | 260327-dgz-remove-mobile-compat | missing |
+| quick_task | 260331-pj4-title | missing |
+| quick_task | 260401-nbd-swagger-apifox | missing |
+| quick_task | 260408-lc0-turbo-parallel-turbo-v2-dev | missing |
+| quick_task | 260408-lu0-taze | missing |
+| quick_task | 260408-mom-topbar-title | missing |
+| quick_task | 260408-n46-anime-style-kawaii-cute-anime-style-kawa | missing |
+| quick_task | 260408-nch-anime-style-kawaii-cute-anime-style-kawa | missing |
+| quick_task | 260408-nw1-kawaii | missing |
+| quick_task | 260410-lcu-pointsummarycard-kawaii | missing |
+| quick_task | 260410-ma6-kawaii-q | missing |
+| uat_gap | Phase 44 44-UAT.md | testing, 7 pending scenarios |
+
 Items acknowledged and deferred at v6.0 milestone close (re-acknowledged at v7.0 close on 2026-04-29):
 
 | Category | Item | Status |
@@ -131,3 +164,7 @@ Stopped at: Phase 48 verification gaps closed
 *Last updated: 2026-05-28 — Phase 48 gap closure complete*
 
 **Next:** `$gsd-complete-milestone`
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone

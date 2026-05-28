@@ -1,5 +1,42 @@
 # Milestones
 
+## v8.0 Yume Kawaii 视觉重构与登录地图体验 (Shipped: 2026-05-28)
+
+**Phases completed:** 7 phases, 32 plans, 64 tasks
+**Known deferred items at close:** 28 (13 debug sessions, 14 quick tasks, 1 UAT gap — see STATE.md Deferred Items)
+**Known requirement gaps accepted at close:** 23 unchecked or non-Complete requirement rows were accepted as follow-up debt because all 32 planned v8.0 plans were complete.
+
+**Key accomplishments:**
+
+- 公共落地页现在通过语义化 v8 背景资源和真实 DOM hero CTA 呈现，并直接接入现有登录/注册弹层；底部 CTA 条已按高保反馈移除。
+- Phase 43 的根路由、受保护应用路由和认证弹层跳转语义已切到 landing + `/map` 契约，并与 43-01 的 public landing 视图兼容。
+- 已登录桌面应用现在使用左侧 Yume Kawaii shell，公共落地页不再被旧 topbar 包裹，authenticated 导航收敛到固定三项侧栏入口。
+- Phase 43 的 route-facing 视图与测试已切到 `世界足迹`、`旅途手账`、`旅途回忆`、`留下足迹` 词汇，并完成 focused specs、grep audit、full web test、build；landing 后续按高保反馈改为完整背景、无底部 CTA 条，当前只剩桌面截图 checkpoint。
+- Executable red-state Vitest contracts now lock the Phase 44 popup, footprint date dialog, snapshot-safe map submission, marker visuals, and map-route sidebar hooks.
+- 语义化 v8 角色资产、Leaflet 世界足迹舞台和 `/map` 专属 sidebar 视觉模式已经对齐到同一套高保视觉语言。
+- 地图 popup 已收敛为统一地点信息卡片，移除了 inline 日期表单和已保存地点历史面板，并把 CTA 契约统一成 leaveFootprint 事件。
+- LeafletMapStage 现在通过冻结地点快照驱动独立日期弹窗保存，store 返回明确保存状态并配套通过 focused specs、build 与 Phase 44 grep gate
+- Canonical resolve now has a Phase 45 fixture matrix proving saveable canonical identity and explanatory-only fallback behavior.
+- Reason-returning frontend saveability classification with stable friendly unavailable categories for the map popup.
+- The real map popup now uses one availability result for disabled CTA copy, snapshot-safe date dialog entry, and Phase 45 manifest-backed highlight verification.
+- Record save/reject, bootstrap replay, journal labels, and memories refresh now prove the Phase 45 canonical sample chain end to end.
+- Route, shell, and absence contracts now prevent legacy timeline paths, local add-trip affordances, and collection/favorite surfaces from returning to the travel journal.
+- Deterministic travel journal helper API and decorative postcard thumbnail component for the upcoming card refactor
+- Timeline visit cards now read as travel journal postcards while edit and delete remain available through a quiet two-action management menu.
+- `/journal` 现在是带发光竖线、星形节点、warning/empty/restoring 面板和 320px 可读布局的完整旅途手账路由。
+- Current-account travel records now produce one typed memories dashboard payload for overview cards, charts, Top 5 footprints, profile, and postcard seeds.
+- Typed memories aggregates now render as four tested BaseChart panels without fake chart data or local fetch behavior.
+- The protected `/memories` route now renders real overview cards and chart panels while preserving auth, refresh, empty, and stale-response behavior.
+- The populated memories dashboard now includes real Top 5 footprint ranking and a browse-only postcard strip sourced from `stats.memories`.
+- Fixed seeded QA account plus desktop screenshot matrix for landing, map, footprint dialog, journal, and memories
+- Keyboard and ARIA gates for the auth entry plus three-link authenticated sidebar with long username containment
+- Keyboard-safe footprint dialog focus flow plus readable memories chart/status semantics
+- Desktop visual QA closure with journal/memories long-text containment and local reduced-motion guards
+- Release gate evidence, repair closeout, DB environment classification, and QA-01 through QA-05 verification for Phase 48
+- Phase 48 verification gaps closed through seed hardening, accessibility lifecycle repairs, logout coverage, Leaflet cleanup, and clean release evidence
+
+---
+
 ## v7.0 旅行记录编辑与删除 (Shipped: 2026-04-29)
 
 **Phases completed:** 6 phases, 8 plans, 23 tasks

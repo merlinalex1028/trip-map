@@ -2,9 +2,7 @@
 
 ## What This Is
 
-一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和留下自己的旅行足迹。
-
-`v7.0` 已完成：用户现在可以编辑已有旅行记录的日期、添加备注和标签，删除单条记录，并在旅途手账和地图入口均可操作。`v8.0` 已完成 Phase 42-47，当前准备进入 Phase 48 的 Visual QA、Accessibility 与回归验证收口。
+一个面向个人使用的旅行世界地图应用，用户可以在世界地图上点击真实地理位置，由系统判断对应的真实地点，并创建、保存、编辑、删除和留下自己的旅行足迹。应用已经从单页地图演进为登录后使用的完整旅行记录体验：世界足迹地图、旅途手账、旅途回忆 dashboard，以及 Yume Kawaii / Soft Pastel Glassmorphism 视觉系统。
 
 ## Core Value
 
@@ -12,169 +10,155 @@
 
 ## Current State
 
-- **v7.0 已于 2026-04-29 归档**：6 phases（36-41），8 plans，23 tasks，13/13 requirements satisfied，milestone audit passed，396 测试通过
-- **v8.0 Phase 47 已于 2026-05-26 完成**：旅途回忆 dashboard 已由当前账号 server-authoritative stats 驱动，覆盖概览卡、图表、热门足迹、回忆卡和真实空态；Phase 48 待规划视觉 QA、Accessibility 与回归验证
-- **v6.0 已完成（Phase 27-35 全部交付）**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性、deep-link/refresh、文档同步、Nyquist 验证覆盖与测试固件对齐均已落地
-- **v5.0 已于 2026-04-17 归档**：4 phases（23-26），22 plans，26 tasks，17/17 requirements satisfied，milestone audit passed
-- **v4.0 已于 2026-04-10 归档**：4 phases（19-22），11 plans，12/12 requirements satisfied，canonical milestone audit passed
-- **v3.0 已于 2026-04-03 交付**：8 phases（11-18），39 plans，29/29 requirements satisfied
-- 用户现在可注册、登录、退出，并通过 `sid` cookie 会话恢复到同一账号
-- 旅行记录已经绑定到账号，支持首次登录本地记录导入、cloud-wins 与切账号边界清理
-- same-user 多设备点亮/取消点亮、foreground refresh 与 notice 分流已经闭环
-- 8 国 overseas admin1 authoritative support catalog、persisted metadata replay 与 unsupported popup feedback 已经落地
-- 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）
-- 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD 全链路
-- 前端：Vue 3 + Leaflet + Tailwind v4 + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮
-- 几何交付：版本化静态 GeoJSON sharding（23MB → 1.75MB，92% 减少）
+- **v8.0 已于 2026-05-28 归档**：7 phases（42-48），32 plans，64 tasks；落地页、登录门禁、左侧应用壳、世界足迹地图、留下足迹日期弹窗、可用地点覆盖扩展、旅途手账、旅途回忆 dashboard、桌面视觉 QA 与无障碍回归证据均已完成计划闭环。
+- **v8.0 close 接受的后续债务**：未运行独立 `v8.0-MILESTONE-AUDIT.md`；28 个 open artifacts 记录到 `STATE.md` Deferred Items；23 个 unchecked 或 non-Complete requirement rows 保留在 requirements archive 作为 known gaps。
+- **v7.0 已于 2026-04-29 归档**：旅行记录日期、备注、标签编辑，单条记录删除，地图 popup 与旅途手账入口编辑/删除闭环。
+- **v6.0 已于 2026-04-28 归档**：多次旅行记录数据基座、海外覆盖扩展、独立时间轴、基础统计与 authoritative metadata 刷新一致性、deep-link/refresh、文档同步、Nyquist 验证覆盖与测试固件对齐均已落地。
+- **v5.0 已于 2026-04-17 归档**：邮箱密码账号、`sid` 会话恢复、账号记录绑定、首次登录本地导入、cloud-wins 与 same-user 多设备同步闭环。
+- 代码库：`pnpm workspace + turbo` monorepo（`apps/web`、`apps/server`、`packages/contracts`）。
+- 后端：NestJS + Fastify + Prisma + PostgreSQL，canonical resolve / travel records CRUD / stats 全链路。
+- 前端：Vue 3 + Leaflet + Tailwind v4 + shadcn-vue primitives + ECharts + Nunito，双图层 GeoJSON（CN + OVERSEAS），server-driven 点亮与账号态页面。
+- 几何交付：版本化静态 GeoJSON sharding（23MB -> 1.75MB，92% 减少）。
 
-## Current Milestone: v8.0 Yume Kawaii 视觉重构与登录地图体验
+## Current Focus
 
-**Goal:** 将现有旅行地图升级为登录后使用的梦かわいい风格完整应用，并补齐设计图中除收藏外的页面与交互能力。
+等待下一个 milestone 定义。
 
-**Target features:**
-- 新增未登录落地页，用户点击登录后才进入地图；地图、旅途手账、旅途回忆等应用页面都需要登录
-- 按 `8.0/` 设计图实现 Yume Kawaii / Soft Pastel Glassmorphism / Anime Travel Diary 风格，包括左侧导航、用户卡片、插画位与轻量漂浮动效
-- 地图首页保留核心地图体验，升级为“世界足迹”视觉，弹窗始终展示真实地点信息和“留下足迹”
-- 点击“留下足迹”后打开独立日期选择弹窗，支持日历与快捷日期选择
-- 当前系统可识别的地图位置尽量全部扩展为可保存/可用，降低“识别但不可留下足迹”的断裂感
-- `点亮` 文案替换为 `留下足迹`，`旅行统计` 替换为 `旅途回忆`，`时间轴` 替换为 `旅途手账`
-- 旅途手账升级为发光竖线、节点、旅行卡片和视觉缩略图，不提供“添加新旅行”入口
-- 旅途回忆升级为 dashboard，包含概览卡、趋势图、分布图、年度趋势、风格分析、热门足迹排行和回忆图片横滑
-
-**Out of scope for v8.0:**
-- 收藏功能，包括“我的收藏”、爱心/星标收藏按钮、收藏状态管理
-- 用户上传旅行照片或富文本游记；本轮只实现设计图所需的视觉缩略图/插画位
+**Next:** `$gsd-new-milestone`
 
 ## Requirements
 
 ### Active
 
-- `DS-01`-`DS-05`: 引入 shadcn-vue / ECharts / 统一图标方案，并建立 Yume Kawaii theme bridge
-- `AUTH-01`-`AUTH-05`: 新增落地页、登录/注册入口、全应用登录门禁和登录后 `/map` 入口
-- `SHELL-01`-`SHELL-04`: 建立登录后应用壳、左侧导航、移动端导航适配和全局文案替换
-- `MAP-01`-`MAP-06` + `DATE-01`-`DATE-06`: 升级世界足迹地图、统一地点弹窗和独立“留下足迹”日期弹窗
-- `COV-01`-`COV-04`: 扩展当前可识别地点的可保存能力，并解释仍不可用的 authoritative 限制
-- `JOURNAL-01`-`JOURNAL-06`: 将时间轴升级为旅途手账，不提供添加新旅行入口和收藏入口
-- `QA-01`-`QA-05`: 对桌面/移动、地图、图表、弹窗、动效和现有回归测试做收口验证
+- 下一轮 requirements 尚未定义。通过 `$gsd-new-milestone` 重新进入 questioning -> research -> requirements -> roadmap。
+- v8.0 accepted gaps 保留为后续候选输入：`DS-*`、`AUTH-*`、`SHELL-*` 的 checklist 未同步勾选，部分 `MAP/DATE` requirement 仍未勾选，`QA-01/QA-03/QA-05` traceability 仍为 Partial/Gaps Found。
 
 ### Validated
 
-- ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — v5.0 / Phase 23
-- ✓ 旅行记录与账号绑定，刷新或更换设备后仍能恢复到同一份账号记录 — v5.0 / Phase 23-25
-- ✓ 首次登录本地导入、本地/云端二选一与切账号边界清理已经闭环 — v5.0 / Phase 24
-- ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — v5.0 / Phase 26
-- ✓ 用户点亮地点时可以选择旅行日期 — v6.0 / Phase 27
-- ✓ 用户可以为同一地点保存多次旅行记录 — v6.0 / Phase 27
-- ✓ 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复 — v6.0 / Phase 27
-- ✓ 用户可以在更广的优先海外国家/地区上稳定识别并记录旅行 — v6.0 / Phase 28
-- ✓ 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类 — v6.0 / Phase 28
-- ✓ 已登录用户可以从点击用户名后展开的面板进入独立的旅行时间轴页面 — v6.0 / Phase 29
-- ✓ 用户可以在时间轴页面按时间顺序查看自己的旅行记录，并区分同一地点的多次去访 — v6.0 / Phase 29
-- ✓ 当同一地点存在多次旅行记录时，统计会正确区分"总旅行次数"和"唯一地点 / 完成度" — v6.0 / Phase 30-31
-- ✓ `STAT-01`: 用户可以查看基础旅行统计 — v6.0 / Phase 30
-- ✓ `STAT-02`: 用户可以查看国家/地区完成度 — v6.0 / Phase 30
-- ✓ Tailwind CSS 已集成到 `apps/web` — v4.0
-- ✓ 页面使用奶油白背景及主题 token — v4.0
-- ✓ Nunito Variable 全局字体基线 — v4.0
-- ✓ Kawaii/Tailwind 主路径迁移完成 — v4.0
-- ✓ pill-shaped 按钮、floating-cloud 卡片、设计语言 formal verification — v4.0
-- ✓ `EDIT-01`: 用户可以修改已有旅行记录的开始日期和结束日期 — v7.0
-- ✓ `EDIT-02`: 用户可以为旅行记录添加或修改纯文本备注（最长 1000 字符）— v7.0
-- ✓ `EDIT-03`: 用户可以为旅行记录添加或修改标签（最多 10 个，每个最长 20 字符）— v7.0
-- ✓ `EDIT-04`: 编辑日期时自动检查同地点其他记录日期冲突并提示 — v7.0
-- ✓ `DEL-01`: 用户可以删除单条旅行记录 — v7.0
-- ✓ `DEL-02`: 删除前展示确认弹窗 — v7.0
-- ✓ `DEL-03`: 删除最后一条记录时提示将取消点亮 — v7.0
-- ✓ `SYNC-01`: 编辑后时间轴自动重排序 — v7.0
-- ✓ `SYNC-02`: 删除后时间轴自动移除 — v7.0
-- ✓ `SYNC-03`: 编辑/删除后统计自动刷新 — v7.0
-- ✓ `SYNC-04`: 网络失败时乐观更新正确回滚 — v7.0
-- ✓ `MEM-01`-`MEM-07`: 旅途回忆 dashboard 已使用当前账号真实旅行记录/server-authoritative stats 驱动概览、图表、热门足迹、回忆缩略图和空状态 — v8.0 / Phase 47
+- ✓ 用户可以注册、登录、退出，并拥有独立账号身份 — v5.0
+- ✓ 旅行记录与账号绑定，刷新或更换设备后仍能恢复到同一份账号记录 — v5.0
+- ✓ 首次登录本地导入、本地/云端二选一与切账号边界清理已经闭环 — v5.0
+- ✓ 优先海外国家/地区的 admin1 可识别/可点亮覆盖、持久化文本稳定回放与未支持地区可解释反馈已闭环 — v5.0 / v6.0
+- ✓ 用户点亮地点时可以选择旅行日期，并能为同一地点保存多次旅行记录 — v6.0
+- ✓ 已保存的旅行日期与同地点多次去访记录在刷新、重开应用和跨设备后仍能稳定恢复 — v6.0
+- ✓ 扩展后的海外记录在地图、时间轴和统计视图中保持一致的标题与归类 — v6.0
+- ✓ 已登录用户可以从独立页面查看时间序列旅行记录，并区分同一地点的多次去访 — v6.0
+- ✓ 统计会正确区分总旅行次数、唯一地点和国家/地区覆盖 — v6.0
+- ✓ 用户可以修改已有旅行记录的日期、备注和标签 — v7.0
+- ✓ 用户可以删除单条旅行记录，删除最后一条记录时获得明确 destructive 提示 — v7.0
+- ✓ 编辑/删除后时间轴自动重排序、统计自动刷新，网络失败时乐观更新正确回滚 — v7.0
+- ✓ Yume Kawaii theme bridge、shadcn-vue primitive set、统一图标方案和 ECharts chart theme 已接入 `apps/web` — v8.0 / Phase 42
+- ✓ 未登录用户访问 `/` 看到落地页，登录/注册成功后进入 `/map`，受保护页面回到登录入口 — v8.0 / Phase 43
+- ✓ 已登录应用使用左侧 Yume Kawaii shell，导航收敛为世界足迹、旅途手账、旅途回忆，不显示收藏入口 — v8.0 / Phase 43
+- ✓ 地图弹窗统一为地点信息 + “留下足迹”入口，日期选择进入独立弹窗，并使用冻结地点快照保存 — v8.0 / Phase 44
+- ✓ 可保存地点与不可保存地点的 frontend availability 分类、解释文案、date dialog guard 与 canonical chain 已闭环 — v8.0 / Phase 45
+- ✓ `/journal` 已升级为旅途手账，包含发光竖线、星形节点、旅行卡片和无添加/收藏入口约束 — v8.0 / Phase 46
+- ✓ `/memories` 已升级为真实账号数据驱动的 dashboard，包含概览卡、图表、Top 5 足迹和 browse-only postcard strip — v8.0 / Phase 47
+- ✓ Phase 48 已完成桌面截图矩阵、auth/sidebar/日期弹窗/chart accessibility 修复、long-text containment、reduced-motion guard 和 release gate evidence — v8.0 / Phase 48
 
 ### Out of Scope
 
-- 第三方 OAuth 登录与账号接入增强 — 本轮重点转向旅行记录表达与统计，不扩展登录体系
-- 同步历史、最近同步时间与更完整的同步状态可见性 — 本轮不处理同步可观察性增强
-- 分享、公开主页与协作能力 — 会引入权限与隐私模型，超出本轮单用户旅行表达范围
-- 旅行照片上传、游记正文与富文本内容 — 当前只承载旅行时间、备注、标签、统计和视觉缩略图/插画位，不做内容社区化
-- 单条旅行记录编辑与删除 — 已在 v7.0 实现，不再属于 Out of Scope
-- 自动轨迹、GPS 采集或外部行程导入 — 偏离当前“手动点亮 + 主动记录”的产品主线
-- Dark mode — 目前仍非优先项
-- JS 动画库（framer-motion 等） — 当前 CSS transition 已满足主路径需要
-- 全球城市级统一覆盖 — 范围过大，v6.0 先扩展优先海外国家/地区的 admin1 能力
-- 收藏功能 — v8.0 明确不纳入，包括我的收藏、爱心/星标收藏按钮与收藏状态管理
+- 收藏功能，包括“我的收藏”、爱心/星标收藏按钮和收藏状态管理。
+- 用户上传旅行照片或富文本游记；当前只承载旅行时间、备注、标签、统计和视觉缩略图/插画位。
+- 第三方 OAuth 登录与账号接入增强。
+- 同步历史、最近同步时间与更完整的同步状态可见性。
+- 分享、公开主页与协作能力。
+- 自动轨迹、GPS 采集或外部行程导入。
+- Dark mode。
+- JS 动画库（framer-motion 等）；当前 CSS transition 和 reduced-motion guard 已满足主路径需要。
+- 全球城市级统一覆盖。
 
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v6.0 先把旅行记录升级为"多次去访 + 旅行日期"模型 | 时间轴和统计都依赖记录从 place-level presence 升级为 trip-level history | ✓ Good — Validated in Phase 27 |
-| 时间轴作为独立页面而不是地图内联模块 | 这是用户明确指定的交互路径，且更适合承载时间序列浏览 | ✓ Good — Validated in Phase 29 |
-| 时间轴入口放在点击用户名后展开的面板内 | 复用现有账号入口心智，避免在地图主舞台额外引入高噪声导航 | ✓ Good — Validated in Phase 29 |
-| 统计页保持 server-authoritative，并用 metadata-aware revision 触发重拉 | 避免在前端本地重算统计口径，同时保证 bootstrap / same-user sync 后不会出现统计滞后 | ✓ Good — Validated in Phase 31 |
-| 单条旅行记录编辑 / 局部删除延后 | 本轮先闭环新增、展示和统计，控制模型迁移复杂度 | ✓ Resolved — 纳入 v7.0 |
+| v6.0 先把旅行记录升级为“多次去访 + 旅行日期”模型 | 时间轴和统计都依赖记录从 place-level presence 升级为 trip-level history | ✓ Good — Validated in Phase 27 |
+| 时间轴作为独立页面而不是地图内联模块 | 更适合承载时间序列浏览 | ✓ Good — Validated in Phase 29 |
+| 统计页保持 server-authoritative，并用 metadata-aware revision 触发重拉 | 避免前端本地重算统计口径和统计滞后 | ✓ Good — Validated in Phase 31 |
 | v7.0 编辑不含地点修改 | 关联地点不可变更，避免 placeId / boundaryId 级联更新复杂度 | ✓ Good — Validated in v7.0 |
 | v7.0 无编辑历史/撤销 | 仅确认弹窗，不做 undo 栈，控制实现复杂度 | ✓ Good — Validated in v7.0 |
-| PATCH 语义而非 PUT | 部分更新场景更灵活，place 字段不可编辑 | ✓ Good — Implemented in Phase 36 |
-| 删除端点使用 /records/record/:id | 避免与现有 /records/:placeId 冲突 | ✓ Good — Implemented in Phase 36 |
-| store 方法名 deleteSingleRecord 与 API 同名 | import 时重命名 API 为 deleteSingleRecordApi | ✓ Good — Implemented in Phase 37 |
 | 使用 PostgreSQL 数组存储标签 | 场景简单，无需独立 Tag 模型/表 | ✓ Good — Implemented in Phase 36 |
-| v8.0 不做收藏功能 | 用户确认除收藏外纳入设计图功能，收藏状态会引入新数据模型与页面分支 | — Pending |
-| 旅途手账不提供“添加新旅行”入口 | 用户确认旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | ✓ Good — Validated in Phase 46 |
-| 地图弹窗始终使用统一地点信息 UI 与“留下足迹”入口 | 用户确认已保存地点 popup 不显示过往记录，不使用“再留一次足迹”分支 | — Pending |
-| 旅途回忆 dashboard 保持 server-authoritative | 图表、排行、画像和缩略图都从当前账号 `/records/stats` 派生，避免静态假数据和前端口径漂移 | ✓ Good — Validated in Phase 47 |
+| v8.0 不做收藏功能 | 用户确认除收藏外纳入设计图功能，收藏状态会引入新数据模型与页面分支 | ✓ Good — Preserved across Phase 43/46/47 |
+| 旅途手账不提供“添加新旅行”入口 | 旅行创建仍从地图真实地点进入，避免绕过地图识别主线 | ✓ Good — Validated in Phase 46 |
+| 地图弹窗始终使用统一地点信息 UI 与“留下足迹”入口 | 已保存地点 popup 不显示过往记录，不使用“再留一次足迹”分支 | ✓ Good — Implemented in Phase 44 |
+| 旅途回忆 dashboard 保持 server-authoritative | 图表、排行、画像和缩略图都从当前账号 `/records/stats` 派生 | ✓ Good — Validated in Phase 47 |
+| Phase 48 证据矩阵采用 fixed QA account | 通过正常认证弹层采集截图，避免绕过登录守卫 | ✓ Good — Validated in Phase 48 |
 
 ## Archived Milestone Snapshots
 
 <details>
+<summary>v8.0 Yume Kawaii 视觉重构与登录地图体验 (Phases 42-48)</summary>
+
+- shadcn-vue primitives、ECharts/vue-echarts、Iconify 图标和 Soft Pastel Glassmorphism token 基线已接入。
+- 落地页、登录门禁、登录后左侧导航壳和全局文案替换已完成。
+- 世界足迹地图、统一地点弹窗、独立留下足迹日期弹窗和保存状态反馈已完成。
+- 可用地点覆盖扩展、canonical availability 分类、不可用地点解释文案与保存 guard 已完成。
+- 旅途手账和旅途回忆 dashboard 已使用真实账号记录驱动。
+- Phase 48 完成桌面视觉 QA、无障碍、动效降级和回归验证证据。
+- Known gaps accepted at close: 28 deferred open artifacts, 23 unchecked/non-Complete requirement rows.
+
+</details>
+
+<details>
+<summary>v7.0 旅行记录编辑与删除 (Phases 36-41)</summary>
+
+- 用户可以编辑已有旅行记录的日期、备注和标签。
+- 用户可以删除单条记录，删除最后一条记录时获得明确 destructive 提示。
+- 编辑/删除后地图、旅途手账和统计可自动同步。
+
+</details>
+
+<details>
+<summary>v6.0 旅行统计、时间轴与海外覆盖增强版 (Phases 27-35)</summary>
+
+- 多次旅行记录、日期模型、独立时间轴、基础统计和 overseas admin1 覆盖增强已落地。
+- 统计和 metadata refresh 保持 server-authoritative。
+- Nyquist 验证覆盖与测试固件对齐完成。
+
+</details>
+
+<details>
 <summary>v5.0 账号体系与云同步基础版 (Phases 23-26)</summary>
 
-- 邮箱密码账号、`sid` 会话恢复与 current-user records ownership 已正式交付
-- 首登本地导入、cloud-wins 与 logout / switch-account / unauthorized 边界清理已闭环
-- same-user 多设备同步、foreground refresh 与 overlap 竞态已收口
-- 8 国 overseas admin1 authoritative support catalog、persisted metadata replay 与 unsupported popup feedback 已落地
-- 17/17 requirements satisfied，v5.0 milestone audit `passed`
+- 邮箱密码账号、`sid` 会话恢复与 current-user records ownership 已正式交付。
+- 首登本地导入、cloud-wins 与 logout / switch-account / unauthorized 边界清理已闭环。
+- same-user 多设备同步、foreground refresh 与 overlap 竞态已收口。
 
 </details>
 
 <details>
 <summary>v4.0 Kawaii UI 重构 & Tailwind 集成 (Phases 19-22)</summary>
 
-- Tailwind v4、Vite 插件顺序、单一 CSS 入口与 Nunito Variable 已在 `apps/web` 稳定落地
-- App shell、MapContextPopup、PointSummaryCard 完成 Kawaii/Tailwind 主路径迁移
-- Phase 19 与 Phase 20 formal verification 已补齐
-- canonical v4.0 milestone audit 已 re-audit 为 `passed`
+- Tailwind v4、Vite 插件顺序、单一 CSS 入口与 Nunito Variable 已在 `apps/web` 稳定落地。
+- App shell、MapContextPopup、PointSummaryCard 完成 Kawaii/Tailwind 主路径迁移。
 
 </details>
 
 <details>
 <summary>v3.0 全栈化与行政区地图重构 (Phases 11-18)</summary>
 
-- Monorepo: `apps/web` + `apps/server` + `packages/contracts`
-- Backend: NestJS + Fastify + Prisma + PostgreSQL
-- Canonical resolve: server authoritative，中国市级 / 海外一级行政区
-- Map engine: Leaflet，双图层 GeoJSON（CN + OVERSEAS）
-- Geometry: 版本化静态 sharding，92% bundle 减少
-- 29/29 requirements satisfied，18/18 phases verified
+- Monorepo: `apps/web` + `apps/server` + `packages/contracts`。
+- Backend: NestJS + Fastify + Prisma + PostgreSQL。
+- Canonical resolve: server authoritative，中国市级 / 海外一级行政区。
+- Map engine: Leaflet，双图层 GeoJSON（CN + OVERSEAS）。
 
 </details>
 
 <details>
 <summary>v2.0 城市主视角与可爱风格重构 (Phases 7-10)</summary>
 
-- 城市成为主要选择结果，国家/地区只作为兜底信息
-- 地图中的已点亮地点以真实城市边界范围整体高亮
-- 桌面 anchored popup 成为地图主舞台中的 summary 主入口
-- 整体视觉升级为原创可爱风格
+- 城市成为主要选择结果，国家/地区只作为兜底信息。
+- 地图中的已点亮地点以真实城市边界范围整体高亮。
+- 桌面 anchored popup 成为地图主舞台中的 summary 主入口。
 
 </details>
 
 <details>
 <summary>v1.0 MVP (Phases 1-6)</summary>
 
-- 可交互世界地图 + 真实点位识别
-- 点位 CRUD + localStorage 持久化
-- 城市/国家级地理识别
+- 可交互世界地图 + 真实点位识别。
+- 点位 CRUD + localStorage 持久化。
+- 城市/国家级地理识别。
 
 </details>
 
@@ -182,18 +166,5 @@
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition**:
-1. Requirements invalidated? -> Move to Out of Scope with reason
-2. Requirements validated? -> Move to Validated with phase reference
-3. New requirements emerged? -> Add to Active
-4. Decisions to log? -> Add to Key Decisions
-5. "What This Is" still accurate? -> Update if drifted
-
-**After each milestone**:
-1. Full review of all sections
-2. Core Value check -> still the right priority?
-3. Audit Out of Scope -> reasons still valid?
-4. Update Context with current state
-
 ---
-*Last updated: 2026-05-26 — Phase 47 completed*
+*Last updated: 2026-05-28 after v8.0 milestone*
